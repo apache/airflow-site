@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Scheduling &amp; Triggers &mdash; Airflow Documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Airflow Documentation" href="index.html"/>
+        <link rel="next" title="Plugins" href="plugins.html"/>
+        <link rel="prev" title="Command Line Interface" href="cli.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Airflow
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="project.html">Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ui.html">UI / Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Data Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Scheduling &amp; Triggers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dag-runs">DAG Runs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#external-triggers">External Triggers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#to-keep-in-mind">To Keep in Mind</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Airflow</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Scheduling &amp; Triggers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/scheduler.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="scheduling-triggers">
+<h1>Scheduling &amp; Triggers<a class="headerlink" href="#scheduling-triggers" title="Permalink to this headline">¶</a></h1>
+<p>The Airflow scheduler monitors all tasks and all DAGs, and triggers the
+task instances whose dependencies have been met. Behind the scenes,
+it monitors and stays in sync with a folder for all DAG objects it may contain,
+and periodically (every minute or so) inspects active tasks to see whether
+they can be triggered.</p>
+<p>The Airflow scheduler is designed to run as a persistent service in an
+Airflow production environment. To kick it off, all you need to do is
+execute <code class="docutils literal"><span class="pre">airflow</span> <span class="pre">scheduler</span></code>. It will use the configuration specified in
+<code class="docutils literal"><span class="pre">airflow.cfg</span></code>.</p>
+<p>Note that if you run a DAG on a <code class="docutils literal"><span class="pre">schedule_interval</span></code> of one day,
+the run stamped <code class="docutils literal"><span class="pre">2016-01-01</span></code> will be trigger soon after <code class="docutils literal"><span class="pre">2016-01-01T23:59</span></code>.
+In other words, the job instance is started once the period it covers
+has ended.</p>
+<p>The scheduler starts an instance of the executor specified in the your
+<code class="docutils literal"><span class="pre">airflow.cfg</span></code>. If it happens to be the <code class="docutils literal"><span class="pre">LocalExecutor</span></code>, tasks will be
+executed as subprocesses; in the case of <code class="docutils literal"><span class="pre">CeleryExecutor</span></code> and
+<code class="docutils literal"><span class="pre">MesosExecutor</span></code>, tasks are executed remotely.</p>
+<p>To start a scheduler, simply run the command:</p>
+<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="n">airflow</span> <span class="n">scheduler</span>
+</pre></div>
+</div>
+<div class="section" id="dag-runs">
+<h2>DAG Runs<a class="headerlink" href="#dag-runs" title="Permalink to this headline">¶</a></h2>
+<p>A DAG Run is an object representing an instantiation of the DAG in time.</p>
+<p>Each DAG may or may not have a schedule, which informs how <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Runs</span></code> are
+created. <code class="docutils literal"><span class="pre">schedule_interval</span></code> is defined as a DAG arguments, and receives
+preferably a
+<a class="reference external" href="https://en.wikipedia.org/wiki/Cron#CRON_expression">cron expression</a> as
+a <code class="docutils literal"><span class="pre">str</span></code>, or a <code class="docutils literal"><span class="pre">datetime.timedelta</span></code> object. Alternatively, you can also
+use one of these cron &#8220;preset&#8221;:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="69%" />
+<col width="16%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">preset</th>
+<th class="head">Run once a year at midnight of January 1</th>
+<th class="head">cron</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">None</span></code></td>
+<td>Don&#8217;t schedule, use for exclusively &#8220;externally triggered&#8221;
+DAGs</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&#64;once</span></code></td>
+<td>Schedule once and only once</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">&#64;hourly</span></code></td>
+<td>Run once an hour at the beginning of the hour</td>
+<td><code class="docutils literal"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">*</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&#64;daily</span></code></td>
+<td>Run once a day at midnight</td>
+<td><code class="docutils literal"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">*</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">&#64;weekly</span></code></td>
+<td>Run once a week at midnight on Sunday morning</td>
+<td><code class="docutils literal"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">0</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&#64;monthly</span></code></td>
+<td>Run once a month at midnight of the first day of the month</td>
+<td><code class="docutils literal"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">*</span> <span class="pre">*</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">&#64;yearly</span></code></td>
+<td>Run once a year at midnight of January 1</td>
+<td><code class="docutils literal"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">1</span> <span class="pre">*</span></code></td>
+</tr>
+</tbody>
+</table>
+<p>Your DAG will be instantiated
+for each schedule, while creating a <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Run</span></code> entry for each schedule.</p>
+<p>DAG runs have a state associated to them (running, failed, success) and
+informs the scheduler on which set of schedules should be evaluated for
+task submissions. Without the metadata at the DAG run level, the Airflow
+scheduler would have much more work to do in order to figure out what tasks
+should be triggered and come to a crawl. It might also create undesired
+processing when changing the shape of your DAG, by say adding in new
+tasks.</p>
+</div>
+<div class="section" id="external-triggers">
+<h2>External Triggers<a class="headerlink" href="#external-triggers" title="Permalink to this headline">¶</a></h2>
+<p>Note that <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Runs</span></code> can also be created manually through the CLI while
+running an <code class="docutils literal"><span class="pre">airflow</span> <span class="pre">trigger_dag</span></code> command, where you can define a
+specific <code class="docutils literal"><span class="pre">run_id</span></code>. The <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Runs</span></code> created externally to the
+scheduler get associated to the trigger&#8217;s timestamp, and will be displayed
+in the UI alongside scheduled <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">runs</span></code>.</p>
+</div>
+<div class="section" id="to-keep-in-mind">
+<h2>To Keep in Mind<a class="headerlink" href="#to-keep-in-mind" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The first <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Run</span></code> is created based on the minimum <code class="docutils literal"><span class="pre">start_date</span></code> for the
+tasks in your DAG.</li>
+<li>Subsequent <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Runs</span></code> are created by the scheduler process, based on
+your DAG&#8217;s <code class="docutils literal"><span class="pre">schedule_interval</span></code>, sequentially.</li>
+<li>When clearing a set of tasks&#8217; state in hope of getting them to re-run,
+it is important to keep in mind the <code class="docutils literal"><span class="pre">DAG</span> <span class="pre">Run</span></code>&#8216;s state too as it defines
+whether the scheduler should look into triggering tasks for that run.</li>
+</ul>
+<p>Here are some of the ways you can <strong>unblock tasks</strong>:</p>
+<ul class="simple">
+<li>From the UI, you can <strong>clear</strong> (as in delete the status of) individual task instances from the task instances dialog, while defining whether you want to includes the past/future and the upstream/downstream dependencies. Note that a confirmation window comes next and allows you to see the set you are about to clear.</li>
+<li>The CLI command <code class="docutils literal"><span class="pre">airflow</span> <span class="pre">clear</span> <span class="pre">-h</span></code> has lots of options when it comes to clearing task instance states, including specifying date ranges, targeting task_ids by specifying a regular expression, flags for including upstream and downstream relatives, and targeting task instances in specific states (<code class="docutils literal"><span class="pre">failed</span></code>, or <code class="docutils literal"><span class="pre">success</span></code>)</li>
+<li>Marking task instances as successful can be done through the UI. This is mostly to fix false negatives, or for instance when the fix has been applied outside of Airflow.</li>
+<li>The <code class="docutils literal"><span class="pre">airflow</span> <span class="pre">backfill</span></code> CLI subcommand has a flag to <code class="docutils literal"><span class="pre">--mark_success</span></code> and allows selecting subsections of the DAG as well as specifying date ranges.</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="plugins.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cli.html" class="btn btn-neutral" title="Command Line Interface" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Maxime Beauchemin, Airbnb.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

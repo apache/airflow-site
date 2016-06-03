@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>python_operator &mdash; Airflow Documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Airflow Documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Airflow
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui.html">UI / Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling.html">Data Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scheduler.html">Scheduling &amp; Triggers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../code.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Airflow</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>python_operator</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for python_operator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">str</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span><span class="p">,</span> <span class="n">TaskInstance</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="kn">import</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="kn">import</span> <span class="n">apply_defaults</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">settings</span>
+
+
+<div class="viewcode-block" id="PythonOperator"><a class="viewcode-back" href="../code.html#airflow.operators.PythonOperator">[docs]</a><span class="k">class</span> <span class="nc">PythonOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes a Python callable</span>
+
+<span class="sd">    :param python_callable: A reference to an object that is callable</span>
+<span class="sd">    :type python_callable: python callable</span>
+<span class="sd">    :param op_kwargs: a dictionary of keyword arguments that will get unpacked</span>
+<span class="sd">        in your function</span>
+<span class="sd">    :type op_kwargs: dict</span>
+<span class="sd">    :param op_args: a list of positional arguments that will get unpacked when</span>
+<span class="sd">        calling your callable</span>
+<span class="sd">    :type op_args: list</span>
+<span class="sd">    :param provide_context: if set to true, Airflow will pass a set of</span>
+<span class="sd">        keyword arguments that can be used in your function. This set of</span>
+<span class="sd">        kwargs correspond exactly to what you can use in your jinja</span>
+<span class="sd">        templates. For this to work, you need to define `**kwargs` in your</span>
+<span class="sd">        function header.</span>
+<span class="sd">    :type provide_context: bool</span>
+<span class="sd">    :param templates_dict: a dictionary where the values are templates that</span>
+<span class="sd">        will get templated by the Airflow engine sometime between</span>
+<span class="sd">        ``__init__`` and ``execute`` takes place and are made available</span>
+<span class="sd">        in your callable&#39;s context after the template has been applied</span>
+<span class="sd">    :type templates_dict: dict of str</span>
+<span class="sd">    :param templates_exts: a list of file extensions to resolve while</span>
+<span class="sd">        processing templated fields, for examples ``[&#39;.sql&#39;, &#39;.hql&#39;]``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;templates_dict&#39;</span><span class="p">,)</span>
+    <span class="n">template_ext</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#ffefeb&#39;</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">python_callable</span><span class="p">,</span>
+            <span class="n">op_args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">op_kwargs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">provide_context</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">templates_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">templates_exts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PythonOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">python_callable</span> <span class="o">=</span> <span class="n">python_callable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">op_args</span> <span class="o">=</span> <span class="n">op_args</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span> <span class="o">=</span> <span class="n">op_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">provide_context</span> <span class="o">=</span> <span class="n">provide_context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates_dict</span> <span class="o">=</span> <span class="n">templates_dict</span>
+        <span class="k">if</span> <span class="n">templates_exts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">template_ext</span> <span class="o">=</span> <span class="n">templates_exts</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">provide_context</span><span class="p">:</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span><span class="p">)</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;templates_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span> <span class="o">=</span> <span class="n">context</span>
+
+        <span class="n">return_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">python_callable</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">op_args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done. Returned value was: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">return_value</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">return_value</span></div>
+
+
+<div class="viewcode-block" id="BranchPythonOperator"><a class="viewcode-back" href="../code.html#airflow.operators.BranchPythonOperator">[docs]</a><span class="k">class</span> <span class="nc">BranchPythonOperator</span><span class="p">(</span><span class="n">PythonOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allows a workflow to &quot;branch&quot; or follow a single path following the</span>
+<span class="sd">    execution of this task.</span>
+
+<span class="sd">    It derives the PythonOperator and expects a Python function that returns</span>
+<span class="sd">    the task_id to follow. The task_id returned should point to a task</span>
+<span class="sd">    directly downstream from {self}. All other &quot;branches&quot; or</span>
+<span class="sd">    directly downstream tasks are marked with a state of ``skipped`` so that</span>
+<span class="sd">    these paths can&#39;t move forward. The ``skipped`` states are propageted</span>
+<span class="sd">    downstream to allow for the DAG state to fill up and the DAG run&#39;s state</span>
+<span class="sd">    to be inferred.</span>
+
+<span class="sd">    Note that using tasks with ``depends_on_past=True`` downstream from</span>
+<span class="sd">    ``BranchPythonOperator`` is logically unsound as ``skipped`` status</span>
+<span class="sd">    will invariably lead to block tasks that depend on their past successes.</span>
+<span class="sd">    ``skipped`` states propagates where all directly upstream tasks are</span>
+<span class="sd">    ``skipped``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BranchPythonOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Following branch &quot;</span> <span class="o">+</span> <span class="n">branch</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Marking other directly downstream tasks as skipped&quot;</span><span class="p">)</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">downstream_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">task_id</span> <span class="o">!=</span> <span class="n">branch</span><span class="p">:</span>
+                <span class="n">ti</span> <span class="o">=</span> <span class="n">TaskInstance</span><span class="p">(</span>
+                    <span class="n">task</span><span class="p">,</span> <span class="n">execution_date</span><span class="o">=</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;ti&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">SKIPPED</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShortCircuitOperator"><a class="viewcode-back" href="../code.html#airflow.operators.ShortCircuitOperator">[docs]</a><span class="k">class</span> <span class="nc">ShortCircuitOperator</span><span class="p">(</span><span class="n">PythonOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allows a workflow to continue only if a condition is met. Otherwise, the</span>
+<span class="sd">    workflow &quot;short-circuits&quot; and downstream tasks are skipped.</span>
+
+<span class="sd">    The ShortCircuitOperator is derived from the PythonOperator. It evaluates a</span>
+<span class="sd">    condition and short-circuits the workflow if the condition is False. Any</span>
+<span class="sd">    downstream tasks are marked with a state of &quot;skipped&quot;. If the condition is</span>
+<span class="sd">    True, downstream tasks proceed as normal.</span>
+
+<span class="sd">    The condition is determined by the result of `python_callable`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ShortCircuitOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Condition result is {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">condition</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">condition</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Proceeding with downstream tasks...&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipping downstream tasks...&#39;</span><span class="p">)</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">downstream_list</span><span class="p">:</span>
+                <span class="n">ti</span> <span class="o">=</span> <span class="n">TaskInstance</span><span class="p">(</span>
+                    <span class="n">task</span><span class="p">,</span> <span class="n">execution_date</span><span class="o">=</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;ti&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">SKIPPED</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Maxime Beauchemin, Airbnb.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
