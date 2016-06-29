@@ -965,8 +965,8 @@
 <span class="sd">        Refreshes the task instance from the database based on the primary key</span>
 
 <span class="sd">        :param lock_for_update: if True, indicates that the database should</span>
-<span class="sd">        lock the TaskInstance (issuing a FOR UPDATE clause) until the session</span>
-<span class="sd">        is committed.</span>
+<span class="sd">            lock the TaskInstance (issuing a FOR UPDATE clause) until the</span>
+<span class="sd">            session is committed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">TI</span> <span class="o">=</span> <span class="n">TaskInstance</span>
 
@@ -1325,7 +1325,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">test_mode</span> <span class="o">=</span> <span class="n">test_mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="o">=</span> <span class="n">force</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">,</span> <span class="n">lock_for_update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clear_xcom_data</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span> <span class="o">=</span> <span class="n">job_id</span>
         <span class="n">iso</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hostname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span>
@@ -1334,6 +1333,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Another instance is running, skipping.&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">REMOVED</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_xcom_data</span><span class="p">()</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Task {} was removed from the dag&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -1358,6 +1358,7 @@
                 <span class="s2">&quot;Next run after {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">next_run</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">force</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">in</span> <span class="n">State</span><span class="o">.</span><span class="n">runnable</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_xcom_data</span><span class="p">()</span>
             <span class="n">HR</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>  <span class="c1"># Line break</span>
 
             <span class="c1"># For reporting purposes, we report based on 1-indexed,</span>
@@ -3583,7 +3584,11 @@
                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tis</span><span class="p">)))</span>
 
         <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">tis</span><span class="p">:</span>
-            <span class="n">ti</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
+            <span class="c1"># skip in db?</span>
+            <span class="k">if</span> <span class="n">ti</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">REMOVED</span><span class="p">:</span>
+                <span class="n">tis</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
 
         <span class="c1"># pre-calculate</span>
         <span class="c1"># db is faster</span>
@@ -3650,8 +3655,11 @@
         <span class="n">task_ids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">tis</span><span class="p">:</span>
             <span class="n">task_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">dag</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">State</span><span class="o">.</span><span class="n">unfinished</span><span class="p">():</span>
-                <span class="n">ti</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">REMOVED</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">dag</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">AirflowException</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">State</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">:</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">REMOVED</span>
 
         <span class="c1"># check for missing tasks</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>

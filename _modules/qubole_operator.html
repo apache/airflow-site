@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qubole_operator &mdash; Airflow Documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Airflow Documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Airflow
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui.html">UI / Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling.html">Data Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scheduler.html">Scheduling &amp; Triggers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../code.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Airflow</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>qubole_operator</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qubole_operator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="kn">import</span> <span class="n">apply_defaults</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks</span> <span class="kn">import</span> <span class="n">QuboleHook</span>
+
+
+<div class="viewcode-block" id="QuboleOperator"><a class="viewcode-back" href="../code.html#airflow.contrib.operators.QuboleOperator">[docs]</a><span class="k">class</span> <span class="nc">QuboleOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute tasks (commands) on QDS (https://qubole.com).</span>
+
+<span class="sd">    :param qubole_conn_id: Connection id which consists of qds auth_token</span>
+<span class="sd">    :type qubole_conn_id: str</span>
+
+<span class="sd">    kwargs:</span>
+<span class="sd">        :command_type: type of command to be executed, e.g. hivecmd, shellcmd, hadoopcmd</span>
+<span class="sd">        :tags: array of tags to be assigned with the command</span>
+<span class="sd">        :cluster_label: cluster label on which the command will be executed</span>
+<span class="sd">        :name: name to be given to command</span>
+
+<span class="sd">        **Arguments specific to command types**</span>
+
+<span class="sd">        hivecmd:</span>
+<span class="sd">            :query: inline query statement</span>
+<span class="sd">            :script_location: s3 location containing query statement</span>
+<span class="sd">            :sample_size: size of sample in bytes on which to run query</span>
+<span class="sd">            :macros: macro values which were used in query</span>
+<span class="sd">        prestocmd:</span>
+<span class="sd">            :query: inline query statement</span>
+<span class="sd">            :script_location: s3 location containing query statement</span>
+<span class="sd">            :macros: macro values which were used in query</span>
+<span class="sd">        hadoopcmd:</span>
+<span class="sd">            :sub_commnad: must be one these [&quot;jar&quot;, &quot;s3distcp&quot;, &quot;streaming&quot;] followed by 1 or more args</span>
+<span class="sd">        shellcmd:</span>
+<span class="sd">            :script: inline command with args</span>
+<span class="sd">            :script_location: s3 location containing query statement</span>
+<span class="sd">            :files: list of files in s3 bucket as file1,file2 format. These files will be copied into the working directory where the qubole command is being executed.</span>
+<span class="sd">            :archives: list of archives in s3 bucket as archive1,archive2 format. These will be unarchived intothe working directory where the qubole command is being executed</span>
+<span class="sd">            :parameters: any extra args which need to be passed to script (only when script_location is supplied)</span>
+<span class="sd">        pigcmd:</span>
+<span class="sd">            :script: inline query statement (latin_statements)</span>
+<span class="sd">            :script_location: s3 location containing pig query</span>
+<span class="sd">            :parameters: any extra args which need to be passed to script (only when script_location is supplied</span>
+<span class="sd">        sparkcmd:</span>
+<span class="sd">            :program: the complete Spark Program in Scala, SQL, Command, R, or Python</span>
+<span class="sd">            :cmdline: spark-submit command line, all required information must be specify in cmdline itself.</span>
+<span class="sd">            :sql: inline sql query</span>
+<span class="sd">            :script_location: s3 location containing query statement</span>
+<span class="sd">            :language: language of the program, Scala, SQL, Command, R, or Python</span>
+<span class="sd">            :app_id: ID of an Spark job server app</span>
+<span class="sd">            :arguments: spark-submit command line arguments</span>
+<span class="sd">            :user_program_arguments: arguments that the user program takes in</span>
+<span class="sd">            :macros: macro values which were used in query</span>
+<span class="sd">        dbtapquerycmd:</span>
+<span class="sd">            :db_tap_id: data store ID of the target database, in Qubole.</span>
+<span class="sd">            :query: inline query statement</span>
+<span class="sd">            :macros: macro values which were used in query</span>
+<span class="sd">        dbexportcmd:</span>
+<span class="sd">            :mode: 1 (simple), 2 (advance)</span>
+<span class="sd">            :hive_table: Name of the hive table</span>
+<span class="sd">            :partition_spec: partition specification for Hive table.</span>
+<span class="sd">            :dbtap_id: data store ID of the target database, in Qubole.</span>
+<span class="sd">            :db_table: name of the db table</span>
+<span class="sd">            :db_update_mode: allowinsert or updateonly</span>
+<span class="sd">            :db_update_keys: columns used to determine the uniqueness of rows</span>
+<span class="sd">            :export_dir: HDFS/S3 location from which data will be exported.</span>
+<span class="sd">            :fields_terminated_by: hex of the char used as column separator in the dataset.</span>
+<span class="sd">        dbimportcmd:</span>
+<span class="sd">            :mode: 1 (simple), 2 (advance)</span>
+<span class="sd">            :hive_table: Name of the hive table</span>
+<span class="sd">            :dbtap_id: data store ID of the target database, in Qubole.</span>
+<span class="sd">            :db_table: name of the db table</span>
+<span class="sd">            :where_clause: where clause, if any</span>
+<span class="sd">            :parallelism: number of parallel db connections to use for extracting data</span>
+<span class="sd">            :extract_query: SQL query to extract data from db. $CONDITIONS must be part of the where clause.</span>
+<span class="sd">            :boundary_query: Query to be used get range of row IDs to be extracted</span>
+<span class="sd">            :split_column: Column used as row ID to split data into ranges (mode 2)</span>
+
+<span class="sd">    .. note:: Following fields are template-supported : ``query``, ``script_location``, ``sub_command``, ``script``, ``files``,</span>
+<span class="sd">        ``archives``, ``program``, ``cmdline``, ``sql``, ``where_clause``, ``extract_query``, ``boundary_query``, ``macros``, ``tags``,</span>
+<span class="sd">        ``name``, ``parameters``. You can also use ``.txt`` files for template driven use cases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;script_location&#39;</span><span class="p">,</span> <span class="s1">&#39;sub_command&#39;</span><span class="p">,</span> <span class="s1">&#39;script&#39;</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="s1">&#39;archives&#39;</span><span class="p">,</span> <span class="s1">&#39;program&#39;</span><span class="p">,</span> <span class="s1">&#39;cmdline&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;where_clause&#39;</span><span class="p">,</span> <span class="s1">&#39;extract_query&#39;</span><span class="p">,</span> <span class="s1">&#39;boundary_query&#39;</span><span class="p">,</span> <span class="s1">&#39;macros&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">)</span>
+    <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#3064A1&#39;</span>
+    <span class="n">ui_fgcolor</span> <span class="o">=</span> <span class="s1">&#39;#fff&#39;</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qubole_conn_id</span><span class="o">=</span><span class="s2">&quot;qubole_default&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;qubole_conn_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qubole_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">QuboleHook</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QuboleOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="c1"># Reinitiating the hook, as some template fields might have changed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">QuboleHook</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ti</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ti</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fetch</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="n">ti</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">inline</span><span class="p">,</span> <span class="n">delim</span><span class="p">,</span> <span class="n">fetch</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ti</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_log</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_jobs_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ti</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_jobs_id</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">QuboleOperator</span><span class="o">.</span><span class="n">template_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">QuboleOperator</span><span class="o">.</span><span class="n">template_fields</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">object</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
