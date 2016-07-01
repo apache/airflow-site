@@ -137,9 +137,24 @@
            <div itemprop="articleBody">
             
   <h1>Source code for hive_to_druid</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1"># http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
 
-<span class="kn">from</span> <span class="nn">airflow.hooks</span> <span class="kn">import</span> <span class="n">HiveCliHook</span><span class="p">,</span> <span class="n">DruidHook</span><span class="p">,</span> <span class="n">HiveMetastoreHook</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">airflow.hooks.hive_hooks</span> <span class="kn">import</span> <span class="n">HiveCliHook</span><span class="p">,</span> <span class="n">HiveMetastoreHook</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.druid_hook</span> <span class="kn">import</span> <span class="n">DruidHook</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="kn">import</span> <span class="n">apply_defaults</span>
 
@@ -240,19 +255,20 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserting rows into Druid&quot;</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;HDFS path: &quot;</span> <span class="o">+</span> <span class="n">static_path</span><span class="p">)</span>
 
-        <span class="n">druid</span><span class="o">.</span><span class="n">load_from_hdfs</span><span class="p">(</span>
-            <span class="n">datasource</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">druid_datasource</span><span class="p">,</span>
-            <span class="n">intervals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span>
-            <span class="n">static_path</span><span class="o">=</span><span class="n">static_path</span><span class="p">,</span> <span class="n">ts_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_dim</span><span class="p">,</span>
-            <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">num_shards</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span><span class="p">,</span> <span class="n">target_partition_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_partition_size</span><span class="p">,</span>
-            <span class="n">metric_spec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_spec</span><span class="p">,</span> <span class="n">hadoop_dependency_coordinates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Load seems to have succeeded!&quot;</span><span class="p">)</span>
-
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;Cleaning up by dropping the temp &quot;</span>
-            <span class="s2">&quot;Hive table {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">))</span>
-        <span class="n">hql</span> <span class="o">=</span> <span class="s2">&quot;DROP TABLE IF EXISTS {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
-        <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">druid</span><span class="o">.</span><span class="n">load_from_hdfs</span><span class="p">(</span>
+                <span class="n">datasource</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">druid_datasource</span><span class="p">,</span>
+                <span class="n">intervals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span>
+                <span class="n">static_path</span><span class="o">=</span><span class="n">static_path</span><span class="p">,</span> <span class="n">ts_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_dim</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">num_shards</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span><span class="p">,</span> <span class="n">target_partition_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_partition_size</span><span class="p">,</span>
+                <span class="n">metric_spec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_spec</span><span class="p">,</span> <span class="n">hadoop_dependency_coordinates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Load seems to have succeeded!&quot;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Cleaning up by dropping the temp &quot;</span>
+                <span class="s2">&quot;Hive table {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">))</span>
+            <span class="n">hql</span> <span class="o">=</span> <span class="s2">&quot;DROP TABLE IF EXISTS {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
+            <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

@@ -137,7 +137,21 @@
            <div itemprop="articleBody">
             
   <h1>Source code for airflow.operators.sensors</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1"># http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">future</span> <span class="kn">import</span> <span class="n">standard_library</span>
 <span class="n">standard_library</span><span class="o">.</span><span class="n">install_aliases</span><span class="p">()</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">str</span>
@@ -146,10 +160,11 @@
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 
+<span class="kn">import</span> <span class="nn">airflow</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">hooks</span><span class="p">,</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowSensorTimeout</span><span class="p">,</span> <span class="n">AirflowSkipException</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span><span class="p">,</span> <span class="n">TaskInstance</span><span class="p">,</span> <span class="n">Connection</span> <span class="k">as</span> <span class="n">DB</span>
-<span class="kn">from</span> <span class="nn">airflow.hooks</span> <span class="kn">import</span> <span class="n">BaseHook</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="kn">import</span> <span class="n">BaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="kn">import</span> <span class="n">State</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="kn">import</span> <span class="n">apply_defaults</span>
 
@@ -193,12 +208,12 @@
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">started_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">poke</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
-            <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poke_interval</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">started_at</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">started_at</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">soft_fail</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">AirflowSkipException</span><span class="p">(</span><span class="s1">&#39;Snap. Time is OUT.&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">AirflowSensorTimeout</span><span class="p">(</span><span class="s1">&#39;Snap. Time is OUT.&#39;</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poke_interval</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Success criteria met. Exiting.&quot;</span><span class="p">)</span></div>
 
 
@@ -303,8 +318,14 @@
 <span class="sd">    :type allowed_states: list</span>
 <span class="sd">    :param execution_delta: time difference with the previous execution to</span>
 <span class="sd">        look at, the default is the same execution_date as the current task.</span>
-<span class="sd">        For yesterday, use [positive!] datetime.timedelta(days=1)</span>
+<span class="sd">        For yesterday, use [positive!] datetime.timedelta(days=1). Either</span>
+<span class="sd">        execution_delta or execution_date_fn can be passed to</span>
+<span class="sd">        ExternalTaskSensor, but not both.</span>
 <span class="sd">    :type execution_delta: datetime.timedelta</span>
+<span class="sd">    :param execution_date_fn: function that receives the current execution date</span>
+<span class="sd">        and returns the desired execution date to query. Either execution_delta</span>
+<span class="sd">        or execution_date_fn can be passed to ExternalTaskSensor, but not both.</span>
+<span class="sd">    :type execution_date_fn: callable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@apply_defaults</span>
@@ -314,16 +335,25 @@
             <span class="n">external_task_id</span><span class="p">,</span>
             <span class="n">allowed_states</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
             <span class="n">execution_delta</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">execution_date_fn</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ExternalTaskSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allowed_states</span> <span class="o">=</span> <span class="n">allowed_states</span> <span class="ow">or</span> <span class="p">[</span><span class="n">State</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">execution_delta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">execution_date_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Only one of `execution_date` or `execution_date_fn` may&#39;</span>
+                <span class="s1">&#39;be provided to ExternalTaskSensor; not both.&#39;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">execution_delta</span> <span class="o">=</span> <span class="n">execution_delta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execution_date_fn</span> <span class="o">=</span> <span class="n">execution_date_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">external_dag_id</span> <span class="o">=</span> <span class="n">external_dag_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">external_task_id</span> <span class="o">=</span> <span class="n">external_task_id</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_delta</span><span class="p">:</span>
             <span class="n">dttm</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;execution_date&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_delta</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date_fn</span><span class="p">:</span>
+            <span class="n">dttm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date_fn</span><span class="p">(</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;execution_date&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dttm</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;execution_date&#39;</span><span class="p">]</span>
 
@@ -346,15 +376,91 @@
         <span class="k">return</span> <span class="n">count</span>
 
 
+<span class="k">class</span> <span class="nc">NamedHivePartitionSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Waits for a set of partitions to show up in Hive.</span>
+
+<span class="sd">    :param partition_names: List of fully qualified names of the</span>
+<span class="sd">        partitions to wait for. A fully qualified name is of the</span>
+<span class="sd">        form schema.table/pk1=pv1/pk2=pv2, for example,</span>
+<span class="sd">        default.users/ds=2016-01-01. This is passed as is to the metastore</span>
+<span class="sd">        Thrift client &quot;get_partitions_by_name&quot; method. Note that</span>
+<span class="sd">        you cannot use logical operators as in HivePartitionSensor.</span>
+<span class="sd">    :type partition_names: list of strings</span>
+<span class="sd">    :param metastore_conn_id: reference to the metastore thrift service</span>
+<span class="sd">        connection id</span>
+<span class="sd">    :type metastore_conn_id: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;partition_names&#39;</span><span class="p">,</span> <span class="p">)</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">partition_names</span><span class="p">,</span>
+            <span class="n">metastore_conn_id</span><span class="o">=</span><span class="s1">&#39;metastore_default&#39;</span><span class="p">,</span>
+            <span class="n">poke_interval</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NamedHivePartitionSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">poke_interval</span><span class="o">=</span><span class="n">poke_interval</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partition_names</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;partition_names must be an array of strings&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">partition_name</span> <span class="ow">in</span> <span class="n">partition_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parse_partition_name</span><span class="p">(</span><span class="n">partition_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span> <span class="o">=</span> <span class="n">metastore_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partition_names</span> <span class="o">=</span> <span class="n">partition_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_poke_idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">parse_partition_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partition</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">schema</span><span class="p">,</span> <span class="n">table_partition</span> <span class="o">=</span> <span class="n">partition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="n">table</span><span class="p">,</span> <span class="n">partition</span> <span class="o">=</span> <span class="n">table_partition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not parse &#39;</span> <span class="o">+</span> <span class="n">partition</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hook&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">hive_hooks</span><span class="o">.</span><span class="n">HiveMetastoreHook</span><span class="p">(</span>
+                <span class="n">metastore_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">poke_partition</span><span class="p">(</span><span class="n">partition</span><span class="p">):</span>
+
+            <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_partition_name</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Poking for {schema}.{table}/{partition}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">check_for_named_partition</span><span class="p">(</span>
+                <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_poke_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_names</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">poke_partition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">next_poke_idx</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">next_poke_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">return</span> <span class="bp">True</span>
+
+
 <span class="k">class</span> <span class="nc">HivePartitionSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Waits for a partition to show up in Hive</span>
+<span class="sd">    Waits for a partition to show up in Hive.</span>
+
+<span class="sd">    Note: Because @partition supports general logical operators, it</span>
+<span class="sd">    can be inefficient. Consider using NamedHivePartitionSensor instead if</span>
+<span class="sd">    you don&#39;t need the full flexibility of HivePartitionSensor.</span>
 
 <span class="sd">    :param table: The name of the table to wait for, supports the dot</span>
 <span class="sd">        notation (my_database.my_table)</span>
 <span class="sd">    :type table: string</span>
 <span class="sd">    :param partition: The partition clause to wait for. This is passed as</span>
-<span class="sd">        is to the Metastore Thrift client &quot;get_partitions_by_filter&quot; method,</span>
+<span class="sd">        is to the metastore Thrift client &quot;get_partitions_by_filter&quot; method,</span>
 <span class="sd">        and apparently supports SQL like notation as in `ds=&#39;2015-01-01&#39;</span>
 <span class="sd">        AND type=&#39;value&#39;` and &gt; &lt; sings as in &quot;ds&gt;=2015-01-01&quot;</span>
 <span class="sd">    :type partition: string</span>
@@ -388,7 +494,7 @@
             <span class="s1">&#39;Poking for table {self.schema}.{self.table}, &#39;</span>
             <span class="s1">&#39;partition {self.partition}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hook&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">HiveMetastoreHook</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">hive_hooks</span><span class="o">.</span><span class="n">HiveMetastoreHook</span><span class="p">(</span>
                 <span class="n">metastore_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">check_for_partition</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="p">)</span>
@@ -411,7 +517,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hdfs_conn_id</span> <span class="o">=</span> <span class="n">hdfs_conn_id</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">sb</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">HDFSHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hdfs_conn_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="kn">import</span> <span class="nn">airflow.hooks.hdfs_hook</span>
+        <span class="n">sb</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">hdfs_hook</span><span class="o">.</span><span class="n">HDFSHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hdfs_conn_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;snakebite&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Poking for file {self.filepath} &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
@@ -439,7 +546,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">webhdfs_conn_id</span> <span class="o">=</span> <span class="n">webhdfs_conn_id</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">WebHDFSHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">webhdfs_conn_id</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">webhdfs_hook</span><span class="o">.</span><span class="n">WebHDFSHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">webhdfs_conn_id</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Poking for file {self.filepath} &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">check_for_path</span><span class="p">(</span><span class="n">hdfs_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
@@ -495,7 +602,8 @@
         <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">airflow.hooks.S3_hook</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">S3_hook</span><span class="o">.</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span><span class="p">)</span>
         <span class="n">full_url</span> <span class="o">=</span> <span class="s2">&quot;s3://&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bucket_key</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for key : {full_url}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wildcard_match</span><span class="p">:</span>
@@ -547,7 +655,8 @@
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for prefix : {self.prefix}</span><span class="se">\n</span><span class="s1">&#39;</span>
                      <span class="s1">&#39;in bucket s3://{self.bucket_name}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">airflow.hooks.S3_hook</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">S3_hook</span><span class="o">.</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">check_for_prefix</span><span class="p">(</span>
             <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
             <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">,</span>
@@ -639,7 +748,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">extra_options</span> <span class="o">=</span> <span class="n">extra_options</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">response_check</span> <span class="o">=</span> <span class="n">response_check</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">HttpHook</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">http_conn_id</span><span class="o">=</span><span class="n">http_conn_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">http_hook</span><span class="o">.</span><span class="n">HttpHook</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">http_conn_id</span><span class="o">=</span><span class="n">http_conn_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)</span>
@@ -652,7 +761,7 @@
                 <span class="c1"># run content check on response</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_check</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">AirflowException</span> <span class="k">as</span> <span class="n">ae</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">ae</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;404&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ae</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;404&quot;</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">False</span>
 
             <span class="k">raise</span> <span class="n">ae</span>

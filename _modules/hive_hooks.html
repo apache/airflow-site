@@ -155,11 +155,13 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">past.builtins</span> <span class="kn">import</span> <span class="nb">basestring</span>
+
 <span class="kn">import</span> <span class="nn">unicodecsv</span> <span class="kn">as</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
+<span class="kn">import</span> <span class="nn">hive_metastore</span>
 
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="kn">import</span> <span class="n">BaseHook</span>
@@ -180,6 +182,7 @@
 <span class="sd">    Note that you can also set default hive CLI parameters using the</span>
 <span class="sd">    ``hive_cli_params`` to be used in your connection as in</span>
 <span class="sd">    ``{&quot;hive_cli_params&quot;: &quot;-hiveconf mapred.job.tracker=some.jobtracker:444&quot;}``</span>
+<span class="sd">    Parameters passed here can be overridden by run_cli&#39;s hive_conf param</span>
 
 <span class="sd">    The extra connection parameter ``auth`` gets passed as in the ``jdbc``</span>
 <span class="sd">    connection string as is.</span>
@@ -196,9 +199,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">conn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_as</span> <span class="o">=</span> <span class="n">run_as</span>
 
-<div class="viewcode-block" id="HiveCliHook.run_cli"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveCliHook.run_cli">[docs]</a>    <span class="k">def</span> <span class="nf">run_cli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="HiveCliHook.run_cli"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveCliHook.run_cli">[docs]</a>    <span class="k">def</span> <span class="nf">run_cli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Run an hql statement using the hive cli</span>
+<span class="sd">        Run an hql statement using the hive cli. If hive_conf is specified it should be a</span>
+<span class="sd">        dict and the entries will be set as key/value pairs in HiveConf</span>
+
+
+<span class="sd">        :param hive_conf: if specified these key value pairs will be passed to hive as</span>
+<span class="sd">            ``-hiveconf &quot;key&quot;=&quot;value&quot;``. Note that they will be passed after the</span>
+<span class="sd">            ``hive_cli_params`` and thus will override whatever values are specified in</span>
+<span class="sd">            the database.</span>
+<span class="sd">        :type hive_conf: dict</span>
 
 <span class="sd">        &gt;&gt;&gt; hh = HiveCliHook()</span>
 <span class="sd">        &gt;&gt;&gt; result = hh.run_cli(&quot;USE airflow;&quot;)</span>
@@ -245,6 +256,10 @@
                         <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
                         <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span><span class="p">]</span>
+
+                <span class="n">hive_conf</span> <span class="o">=</span> <span class="n">hive_conf</span> <span class="ow">or</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">hive_conf</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-hiveconf&#39;</span><span class="p">,</span> <span class="s1">&#39;{0}={1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)]</span>
 
                 <span class="n">hive_cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">hive_bin</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">]</span> <span class="o">+</span> <span class="n">cmd_extra</span>
 
@@ -446,7 +461,17 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metastore</span>
 
 <div class="viewcode-block" id="HiveMetastoreHook.check_for_partition"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveMetastoreHook.check_for_partition">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_partition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Checks whether a partition exists</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks whether a partition exists</span>
+
+<span class="sd">        :param schema: Name of hive schema (database) @table belongs to</span>
+<span class="sd">        :type schema: string</span>
+<span class="sd">        :param table: Name of hive table @partition belongs to</span>
+<span class="sd">        :type schema: string</span>
+<span class="sd">        :partition: Expression that matches the partitions to check for</span>
+<span class="sd">            (eg `a = &#39;b&#39; AND c = &#39;d&#39;`)</span>
+<span class="sd">        :type schema: string</span>
+<span class="sd">        :rtype: boolean</span>
 
 <span class="sd">        &gt;&gt;&gt; hh = HiveMetastoreHook()</span>
 <span class="sd">        &gt;&gt;&gt; t = &#39;static_babynames_partitioned&#39;</span>
@@ -461,6 +486,35 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="HiveMetastoreHook.check_for_named_partition"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveMetastoreHook.check_for_named_partition">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_named_partition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks whether a partition with a given name exists</span>
+
+<span class="sd">        :param schema: Name of hive schema (database) @table belongs to</span>
+<span class="sd">        :type schema: string</span>
+<span class="sd">        :param table: Name of hive table @partition belongs to</span>
+<span class="sd">        :type schema: string</span>
+<span class="sd">        :partition: Name of the partitions to check for (eg `a=b/c=d`)</span>
+<span class="sd">        :type schema: string</span>
+<span class="sd">        :rtype: boolean</span>
+
+<span class="sd">        &gt;&gt;&gt; hh = HiveMetastoreHook()</span>
+<span class="sd">        &gt;&gt;&gt; t = &#39;static_babynames_partitioned&#39;</span>
+<span class="sd">        &gt;&gt;&gt; hh.check_for_named_partition(&#39;airflow&#39;, t, &quot;ds=2015-01-01&quot;)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; hh.check_for_named_partition(&#39;airflow&#39;, t, &quot;ds=xxx&quot;)</span>
+<span class="sd">        False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metastore</span><span class="o">.</span><span class="n">_oprot</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metastore</span><span class="o">.</span><span class="n">get_partition_by_name</span><span class="p">(</span>
+                <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">hive_metastore</span><span class="o">.</span><span class="n">ttypes</span><span class="o">.</span><span class="n">NoSuchObjectException</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metastore</span><span class="o">.</span><span class="n">_oprot</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="HiveMetastoreHook.get_table"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveMetastoreHook.get_table">[docs]</a>    <span class="k">def</span> <span class="nf">get_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get a metastore table object</span>
@@ -604,6 +658,7 @@
             <span class="n">database</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="s1">&#39;default&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">arraysize</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">impala.error</span> <span class="kn">import</span> <span class="n">ProgrammingError</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hql</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
                 <span class="n">hql</span> <span class="o">=</span> <span class="p">[</span><span class="n">hql</span><span class="p">]</span>
@@ -611,15 +666,22 @@
                 <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[],</span>
                 <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="p">[],</span>
             <span class="p">}</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">hql</span><span class="p">:</span>
-                <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
-                    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+                <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># impala Lib raises when no results are returned</span>
+                    <span class="c1"># we&#39;re silencing here as some statements in the list</span>
+                    <span class="c1"># may be `SET` or DDL</span>
                     <span class="n">records</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">records</span><span class="p">:</span>
-                        <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
-                            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">records</span><span class="p">,</span>
-                            <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
-                        <span class="p">}</span>
+                <span class="k">except</span> <span class="n">ProgrammingError</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;get_results returned no records&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">records</span><span class="p">:</span>
+                    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">records</span><span class="p">,</span>
+                        <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                    <span class="p">}</span>
             <span class="k">return</span> <span class="n">results</span>
 
     <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span>
