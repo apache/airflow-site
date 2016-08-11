@@ -155,6 +155,8 @@
 <span class="kn">from</span> <span class="nn">future</span> <span class="kn">import</span> <span class="n">standard_library</span>
 <span class="n">standard_library</span><span class="o">.</span><span class="n">install_aliases</span><span class="p">()</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">str</span>
+<span class="kn">from</span> <span class="nn">past.builtins</span> <span class="kn">import</span> <span class="nb">basestring</span>
+
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
@@ -229,6 +231,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sql&#39;</span><span class="p">,)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.hql&#39;</span><span class="p">,</span> <span class="s1">&#39;.sql&#39;</span><span class="p">,)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#7c7287&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn_id</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -272,6 +275,7 @@
 <span class="sd">    :type mysql_conn_id: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;partition_name&#39;</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="s1">&#39;schema&#39;</span><span class="p">)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#8da7be&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -327,6 +331,7 @@
 <span class="sd">        or execution_date_fn can be passed to ExternalTaskSensor, but not both.</span>
 <span class="sd">    :type execution_date_fn: callable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#19647e&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -382,10 +387,11 @@
 
 <span class="sd">    :param partition_names: List of fully qualified names of the</span>
 <span class="sd">        partitions to wait for. A fully qualified name is of the</span>
-<span class="sd">        form schema.table/pk1=pv1/pk2=pv2, for example,</span>
+<span class="sd">        form ``schema.table/pk1=pv1/pk2=pv2``, for example,</span>
 <span class="sd">        default.users/ds=2016-01-01. This is passed as is to the metastore</span>
-<span class="sd">        Thrift client &quot;get_partitions_by_name&quot; method. Note that</span>
-<span class="sd">        you cannot use logical operators as in HivePartitionSensor.</span>
+<span class="sd">        Thrift client ``get_partitions_by_name`` method. Note that</span>
+<span class="sd">        you cannot use logical or comparison operators as in</span>
+<span class="sd">        HivePartitionSensor.</span>
 <span class="sd">    :type partition_names: list of strings</span>
 <span class="sd">    :param metastore_conn_id: reference to the metastore thrift service</span>
 <span class="sd">        connection id</span>
@@ -393,6 +399,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;partition_names&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#8d99ae&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -407,9 +414,6 @@
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partition_names</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;partition_names must be an array of strings&#39;</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">partition_name</span> <span class="ow">in</span> <span class="n">partition_names</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">parse_partition_name</span><span class="p">(</span><span class="n">partition_name</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span> <span class="o">=</span> <span class="n">metastore_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">partition_names</span> <span class="o">=</span> <span class="n">partition_names</span>
@@ -452,7 +456,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Waits for a partition to show up in Hive.</span>
 
-<span class="sd">    Note: Because @partition supports general logical operators, it</span>
+<span class="sd">    Note: Because ``partition`` supports general logical operators, it</span>
 <span class="sd">    can be inefficient. Consider using NamedHivePartitionSensor instead if</span>
 <span class="sd">    you don&#39;t need the full flexibility of HivePartitionSensor.</span>
 
@@ -460,15 +464,16 @@
 <span class="sd">        notation (my_database.my_table)</span>
 <span class="sd">    :type table: string</span>
 <span class="sd">    :param partition: The partition clause to wait for. This is passed as</span>
-<span class="sd">        is to the metastore Thrift client &quot;get_partitions_by_filter&quot; method,</span>
-<span class="sd">        and apparently supports SQL like notation as in `ds=&#39;2015-01-01&#39;</span>
-<span class="sd">        AND type=&#39;value&#39;` and &gt; &lt; sings as in &quot;ds&gt;=2015-01-01&quot;</span>
+<span class="sd">        is to the metastore Thrift client ``get_partitions_by_filter`` method,</span>
+<span class="sd">        and apparently supports SQL like notation as in ``ds=&#39;2015-01-01&#39;</span>
+<span class="sd">        AND type=&#39;value&#39;`` and comparison operators as in ``&quot;ds&gt;=2015-01-01&quot;``</span>
 <span class="sd">    :type partition: string</span>
 <span class="sd">    :param metastore_conn_id: reference to the metastore thrift service</span>
 <span class="sd">        connection id</span>
 <span class="sd">    :type metastore_conn_id: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;schema&#39;</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="s1">&#39;partition&#39;</span><span class="p">,)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#2b2d42&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -505,6 +510,7 @@
 <span class="sd">    Waits for a file or folder to land in HDFS</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;filepath&#39;</span><span class="p">,)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#4d9de0&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>

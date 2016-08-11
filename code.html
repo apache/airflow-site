@@ -187,7 +187,7 @@ to understand the primitive features that can be leveraged in your
 DAGs.</p>
 <dl class="class">
 <dt id="airflow.models.BaseOperator">
-<em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">BaseOperator</code><span class="sig-paren">(</span><em>task_id</em>, <em>owner='airflow'</em>, <em>email=None</em>, <em>email_on_retry=True</em>, <em>email_on_failure=True</em>, <em>retries=0</em>, <em>retry_delay=datetime.timedelta(0</em>, <em>300)</em>, <em>start_date=None</em>, <em>end_date=None</em>, <em>schedule_interval=None</em>, <em>depends_on_past=False</em>, <em>wait_for_downstream=False</em>, <em>dag=None</em>, <em>params=None</em>, <em>default_args=None</em>, <em>adhoc=False</em>, <em>priority_weight=1</em>, <em>queue='default'</em>, <em>pool=None</em>, <em>sla=None</em>, <em>execution_timeout=None</em>, <em>on_failure_callback=None</em>, <em>on_success_callback=None</em>, <em>on_retry_callback=None</em>, <em>trigger_rule=u'all_success'</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#BaseOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.BaseOperator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">BaseOperator</code><span class="sig-paren">(</span><em>task_id</em>, <em>owner='airflow'</em>, <em>email=None</em>, <em>email_on_retry=True</em>, <em>email_on_failure=True</em>, <em>retries=0</em>, <em>retry_delay=datetime.timedelta(0</em>, <em>300)</em>, <em>retry_exponential_backoff=False</em>, <em>max_retry_delay=None</em>, <em>start_date=None</em>, <em>end_date=None</em>, <em>schedule_interval=None</em>, <em>depends_on_past=False</em>, <em>wait_for_downstream=False</em>, <em>dag=None</em>, <em>params=None</em>, <em>default_args=None</em>, <em>adhoc=False</em>, <em>priority_weight=1</em>, <em>queue='default'</em>, <em>pool=None</em>, <em>sla=None</em>, <em>execution_timeout=None</em>, <em>on_failure_callback=None</em>, <em>on_success_callback=None</em>, <em>on_retry_callback=None</em>, <em>trigger_rule=u'all_success'</em>, <em>resources=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#BaseOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.BaseOperator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract base class for all operators. Since operators create objects that
 become node in the dag, BaseOperator contains many recursive methods for
 dag crawling behavior. To derive this class, you are expected to override
@@ -218,6 +218,10 @@ operators.</p>
 <li><strong>retries</strong> (<em>int</em>) &#8211; the number of retries that should be performed before
 failing the task</li>
 <li><strong>retry_delay</strong> (<em>timedelta</em>) &#8211; delay between retries</li>
+<li><strong>retry_exponential_backoff</strong> (<em>bool</em>) &#8211; allow progressive longer waits between
+retries by using exponential backoff algorithm on retry delay (delay
+will be converted into seconds)</li>
+<li><strong>max_retry_delay</strong> (<em>timedelta</em>) &#8211; maximum delay interval between retries</li>
 <li><strong>start_date</strong> (<em>datetime</em>) &#8211; The <code class="docutils literal"><span class="pre">start_date</span></code> for the task, determines
 the <code class="docutils literal"><span class="pre">execution_date</span></code> for the first task instance. The best practice
 is to have the start_date rounded
@@ -282,6 +286,8 @@ for the task to get triggered. Options are:
 default is <code class="docutils literal"><span class="pre">all_success</span></code>. Options can be set as string or
 using the constants defined in the static class
 <code class="docutils literal"><span class="pre">airflow.utils.TriggerRule</span></code></li>
+<li><strong>resources</strong> (<em>dict</em>) &#8211; A map of resource parameter names (the argument names of the
+Resources constructor) to their values.</li>
 </ul>
 </td>
 </tr>
@@ -323,14 +329,15 @@ between each tries</li>
 <div class="section" id="module-airflow.operators">
 <span id="operator-api"></span><h3>Operator API<a class="headerlink" href="#module-airflow.operators" title="Permalink to this headline">¶</a></h3>
 <p>Importer that dynamically loads a class and module from its parent. This
-allows Airflow to support <cite>from airflow.operators.bash_operator import
-BashOperator</cite> even though BashOperator is actually in
-airflow.operators.bash_operator.</p>
+allows Airflow to support <code class="docutils literal"><span class="pre">from</span> <span class="pre">airflow.operators</span> <span class="pre">import</span> <span class="pre">BashOperator</span></code>
+even though BashOperator is actually in
+<code class="docutils literal"><span class="pre">airflow.operators.bash_operator</span></code>.</p>
 <p>The importer also takes over for the parent_module by wrapping it. This is
 required to support attribute-based usage:</p>
-<blockquote>
-<div>from airflow import operators
-operators.BashOperator(...)</div></blockquote>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">operators</span>
+<span class="n">operators</span><span class="o">.</span><span class="n">BashOperator</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="airflow.operators.BashOperator">
 <em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">BashOperator</code><span class="sig-paren">(</span><em>bash_command</em>, <em>xcom_push=False</em>, <em>env=None</em>, <em>output_encoding='utf-8'</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bash_operator.html#BashOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.BashOperator" title="Permalink to this definition">¶</a></dt>
@@ -343,6 +350,8 @@ operators.BashOperator(...)</div></blockquote>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>bash_command</strong> (<em>string</em>) &#8211; The command, set of commands or reference to a
 bash script (must be &#8216;.sh&#8217;) to be executed.</li>
+<li><strong>xcom_push</strong> (<em>bool</em>) &#8211; If xcom_push is True, the last line written to stdout
+will also be pushed to an XCom when the bash command completes.</li>
 <li><strong>env</strong> (<em>dict</em>) &#8211; If env is not None, it must be a mapping that defines the
 environment variables for the new process; these are used instead
 of inheriting the current process environment, which is the default
@@ -418,7 +427,7 @@ DAG.</p>
 
 <dl class="class">
 <dt id="airflow.operators.EmailOperator">
-<em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">EmailOperator</code><span class="sig-paren">(</span><em>to</em>, <em>subject</em>, <em>html_content</em>, <em>files=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/email_operator.html#EmailOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.EmailOperator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">EmailOperator</code><span class="sig-paren">(</span><em>to</em>, <em>subject</em>, <em>html_content</em>, <em>files=None</em>, <em>cc=None</em>, <em>bcc=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/email_operator.html#EmailOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.EmailOperator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#airflow.models.BaseOperator" title="airflow.models.BaseOperator"><code class="xref py py-class docutils literal"><span class="pre">airflow.models.BaseOperator</span></code></a></p>
 <p>Sends an email.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -431,6 +440,8 @@ DAG.</p>
 <li><strong>html_content</strong> (<em>string</em>) &#8211; content of the email (templated), html markup
 is allowed</li>
 <li><strong>files</strong> (<em>list</em>) &#8211; file names to attach in email</li>
+<li><strong>cc</strong> (<em>list or string (comma or semicolon delimited)</em>) &#8211; list of recipients to be added in CC field</li>
+<li><strong>bcc</strong> (<em>list or string (comma or semicolon delimited)</em>) &#8211; list of recipients to be added in BCC field</li>
 </ul>
 </td>
 </tr>
@@ -525,7 +536,7 @@ results of the query as a csv to a Samba location.</p>
 
 <dl class="class">
 <dt id="airflow.operators.HiveOperator">
-<em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">HiveOperator</code><span class="sig-paren">(</span><em>hql</em>, <em>hive_cli_conn_id='hive_cli_default'</em>, <em>schema='default'</em>, <em>hiveconf_jinja_translate=False</em>, <em>script_begin_tag=None</em>, <em>run_as_owner=False</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hive_operator.html#HiveOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.HiveOperator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">HiveOperator</code><span class="sig-paren">(</span><em>hql</em>, <em>hive_cli_conn_id='hive_cli_default'</em>, <em>schema='default'</em>, <em>hiveconf_jinja_translate=False</em>, <em>script_begin_tag=None</em>, <em>run_as_owner=False</em>, <em>mapred_queue=None</em>, <em>mapred_queue_priority=None</em>, <em>mapred_job_name=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hive_operator.html#HiveOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.HiveOperator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#airflow.models.BaseOperator" title="airflow.models.BaseOperator"><code class="xref py py-class docutils literal"><span class="pre">airflow.models.BaseOperator</span></code></a></p>
 <p>Executes hql code in a specific Hive database.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -542,6 +553,11 @@ you may want to use this along with the
 object documentation for more details.</li>
 <li><strong>script_begin_tag</strong> (<em>str</em>) &#8211; If defined, the operator will get rid of the
 part of the script before the first occurrence of <cite>script_begin_tag</cite></li>
+<li><strong>mapred_queue</strong> (<em>string</em>) &#8211; queue used by the Hadoop CapacityScheduler</li>
+<li><strong>mapred_queue_priority</strong> (<em>string</em>) &#8211; priority within CapacityScheduler queue.
+Possible settings include: VERY_HIGH, HIGH, NORMAL, LOW, VERY_LOW</li>
+<li><strong>mapred_job_name</strong> (<em>string</em>) &#8211; This name will appear in the jobtracker.
+This can make monitoring easier.</li>
 </ul>
 </td>
 </tr>
@@ -554,7 +570,7 @@ part of the script before the first occurrence of <cite>script_begin_tag</cite><
 <em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">HivePartitionSensor</code><span class="sig-paren">(</span><em>table</em>, <em>partition=&quot;ds='{{ ds }}'&quot;</em>, <em>metastore_conn_id='metastore_default'</em>, <em>schema='default'</em>, <em>poke_interval=180</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sensors.html#HivePartitionSensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.HivePartitionSensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#airflow.operators.sensors.BaseSensorOperator" title="airflow.operators.sensors.BaseSensorOperator"><code class="xref py py-class docutils literal"><span class="pre">sensors.BaseSensorOperator</span></code></a></p>
 <p>Waits for a partition to show up in Hive.</p>
-<p>Note: Because &#64;partition supports general logical operators, it
+<p>Note: Because <code class="docutils literal"><span class="pre">partition</span></code> supports general logical operators, it
 can be inefficient. Consider using NamedHivePartitionSensor instead if
 you don&#8217;t need the full flexibility of HivePartitionSensor.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -565,9 +581,9 @@ you don&#8217;t need the full flexibility of HivePartitionSensor.</p>
 <li><strong>table</strong> (<em>string</em>) &#8211; The name of the table to wait for, supports the dot
 notation (my_database.my_table)</li>
 <li><strong>partition</strong> (<em>string</em>) &#8211; The partition clause to wait for. This is passed as
-is to the metastore Thrift client &#8220;get_partitions_by_filter&#8221; method,
-and apparently supports SQL like notation as in <cite>ds=&#8216;2015-01-01&#8217;
-AND type=&#8217;value&#8217;</cite> and &gt; &lt; sings as in &#8220;ds&gt;=2015-01-01&#8221;</li>
+is to the metastore Thrift client <code class="docutils literal"><span class="pre">get_partitions_by_filter</span></code> method,
+and apparently supports SQL like notation as in <code class="docutils literal"><span class="pre">ds='2015-01-01'</span>
+<span class="pre">AND</span> <span class="pre">type='value'</span></code> and comparison operators as in <code class="docutils literal"><span class="pre">&quot;ds&gt;=2015-01-01&quot;</span></code></li>
 <li><strong>metastore_conn_id</strong> (<em>str</em>) &#8211; reference to the metastore thrift service
 connection id</li>
 </ul>
@@ -835,6 +851,32 @@ and values</li>
 </dd></dl>
 
 <dl class="class">
+<dt id="airflow.operators.NamedHivePartitionSensor">
+<em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">NamedHivePartitionSensor</code><span class="sig-paren">(</span><em>partition_names</em>, <em>metastore_conn_id='metastore_default'</em>, <em>poke_interval=180</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sensors.html#NamedHivePartitionSensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.NamedHivePartitionSensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#airflow.operators.sensors.BaseSensorOperator" title="airflow.operators.sensors.BaseSensorOperator"><code class="xref py py-class docutils literal"><span class="pre">sensors.BaseSensorOperator</span></code></a></p>
+<p>Waits for a set of partitions to show up in Hive.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>partition_names</strong> (<em>list of strings</em>) &#8211; List of fully qualified names of the
+partitions to wait for. A fully qualified name is of the
+form <code class="docutils literal"><span class="pre">schema.table/pk1=pv1/pk2=pv2</span></code>, for example,
+default.users/ds=2016-01-01. This is passed as is to the metastore
+Thrift client <code class="docutils literal"><span class="pre">get_partitions_by_name</span></code> method. Note that
+you cannot use logical or comparison operators as in
+HivePartitionSensor.</li>
+<li><strong>metastore_conn_id</strong> (<em>str</em>) &#8211; reference to the metastore thrift service
+connection id</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
 <dt id="airflow.operators.PostgresOperator">
 <em class="property">class </em><code class="descclassname">airflow.operators.</code><code class="descname">PostgresOperator</code><span class="sig-paren">(</span><em>sql</em>, <em>postgres_conn_id='postgres_default'</em>, <em>autocommit=False</em>, <em>parameters=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/postgres_operator.html#PostgresOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.operators.PostgresOperator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#airflow.models.BaseOperator" title="airflow.models.BaseOperator"><code class="xref py py-class docutils literal"><span class="pre">airflow.models.BaseOperator</span></code></a></p>
@@ -863,12 +905,14 @@ Template reference are recognized by str ending in '.sql'</em>) &#8211; the sql 
 a sql query that will return a single row. Each value on that
 first row is evaluated using python <code class="docutils literal"><span class="pre">bool</span></code> casting. If any of the
 values return <code class="docutils literal"><span class="pre">False</span></code> the check is failed and errors out.</p>
-<p>Note that Python bool casting evals the following as <code class="docutils literal"><span class="pre">False</span></code>:
-* False
-* 0
-* Empty string (<code class="docutils literal"><span class="pre">&quot;&quot;</span></code>)
-* Empty list (<code class="docutils literal"><span class="pre">[]</span></code>)
-* Empty dictionary or set (<code class="docutils literal"><span class="pre">{}</span></code>)</p>
+<p>Note that Python bool casting evals the following as <code class="docutils literal"><span class="pre">False</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">False</span></code></li>
+<li><code class="docutils literal"><span class="pre">0</span></code></li>
+<li>Empty string (<code class="docutils literal"><span class="pre">&quot;&quot;</span></code>)</li>
+<li>Empty list (<code class="docutils literal"><span class="pre">[]</span></code>)</li>
+<li>Empty dictionary or set (<code class="docutils literal"><span class="pre">{}</span></code>)</li>
+</ul>
 <p>Given a query like <code class="docutils literal"><span class="pre">SELECT</span> <span class="pre">COUNT(*)</span> <span class="pre">FROM</span> <span class="pre">foo</span></code>, it will fail only if
 the count <code class="docutils literal"><span class="pre">==</span> <span class="pre">0</span></code>. You can craft much more complex query that could,
 for instance, check that the table has the same number of rows as
@@ -1206,14 +1250,15 @@ The default is False.</li>
 <div class="section" id="module-airflow.contrib.operators">
 <span id="community-contributed-operators"></span><h3>Community-contributed Operators<a class="headerlink" href="#module-airflow.contrib.operators" title="Permalink to this headline">¶</a></h3>
 <p>Importer that dynamically loads a class and module from its parent. This
-allows Airflow to support <cite>from airflow.operators.bash_operator import
-BashOperator</cite> even though BashOperator is actually in
-airflow.operators.bash_operator.</p>
+allows Airflow to support <code class="docutils literal"><span class="pre">from</span> <span class="pre">airflow.operators</span> <span class="pre">import</span> <span class="pre">BashOperator</span></code>
+even though BashOperator is actually in
+<code class="docutils literal"><span class="pre">airflow.operators.bash_operator</span></code>.</p>
 <p>The importer also takes over for the parent_module by wrapping it. This is
 required to support attribute-based usage:</p>
-<blockquote>
-<div>from airflow import operators
-operators.BashOperator(...)</div></blockquote>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">operators</span>
+<span class="n">operators</span><span class="o">.</span><span class="n">BashOperator</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="airflow.contrib.operators.SSHExecuteOperator">
 <em class="property">class </em><code class="descclassname">airflow.contrib.operators.</code><code class="descname">SSHExecuteOperator</code><span class="sig-paren">(</span><em>ssh_hook</em>, <em>bash_command</em>, <em>xcom_push=False</em>, <em>env=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ssh_execute_operator.html#SSHExecuteOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.contrib.operators.SSHExecuteOperator" title="Permalink to this definition">¶</a></dt>
@@ -1848,7 +1893,7 @@ persisted in the database.</p>
 <span class="target" id="module-airflow.models"></span><dl class="class">
 <dt id="airflow.models.DAG">
 <em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">DAG</code><span class="sig-paren">(</span><em>dag_id</em>, <em>schedule_interval=datetime.timedelta(1)</em>, <em>start_date=None</em>, <em>end_date=None</em>, <em>full_filepath=None</em>, <em>template_searchpath=None</em>, <em>user_defined_macros=None</em>, <em>default_args=None</em>, <em>concurrency=16</em>, <em>max_active_runs=16</em>, <em>dagrun_timeout=None</em>, <em>sla_miss_callback=None</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">airflow.utils.logging.LoggingMixin</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">airflow.dag.base_dag.BaseDag</span></code>, <code class="xref py py-class docutils literal"><span class="pre">airflow.utils.logging.LoggingMixin</span></code></p>
 <p>A dag (directed acyclic graph) is a collection of tasks with directional
 dependencies. A dag also has a schedule, a start end an end date
 (optional). For each schedule, (say daily or hourly), the DAG needs to run
@@ -1933,6 +1978,13 @@ timeouts.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="airflow.models.DAG.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>start_date=None</em>, <em>end_date=None</em>, <em>only_failed=False</em>, <em>only_running=False</em>, <em>confirm_prompt=False</em>, <em>include_subdags=True</em>, <em>reset_dag_runs=True</em>, <em>dry_run=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears a set of task instances associated with the current dag for
+a specified date range.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="airflow.models.DAG.cli">
 <code class="descname">cli</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG.cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG.cli" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exposes a CLI specific to this DAG</p>
@@ -1970,6 +2022,41 @@ run.
 :type external_trigger: bool
 :param session: database session
 :type session: Session</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="airflow.models.DAG.deactivate_stale_dags">
+<em class="property">static </em><code class="descname">deactivate_stale_dags</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG.deactivate_stale_dags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG.deactivate_stale_dags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deactivate any DAGs that were last touched by the scheduler before
+the expiration date. These DAGs were likely deleted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expiration_date</strong> &#8211; set inactive DAGs that were touched before this</td>
+</tr>
+</tbody>
+</table>
+<p>time
+:type expiration_date: datetime
+:return: None</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="airflow.models.DAG.deactivate_unknown_dags">
+<em class="property">static </em><code class="descname">deactivate_unknown_dags</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG.deactivate_unknown_dags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG.deactivate_unknown_dags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of known DAGs, deactivate any other DAGs that are
+marked as active in the ORM</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>active_dag_ids</strong> (<em>list[unicode]</em>) &#8211; list of DAG IDs that are active</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -2036,6 +2123,26 @@ upstream and downstream neighbours based on the flag passed.</p>
 <dd><p>Returns a list of the subdag objects associated to this DAG</p>
 </dd></dl>
 
+<dl class="staticmethod">
+<dt id="airflow.models.DAG.sync_to_db">
+<em class="property">static </em><code class="descname">sync_to_db</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG.sync_to_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG.sync_to_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save attributes about this DAG to the DB. Note that this method
+can be called for both DAGs and SubDAGs. A SubDag is actually a
+SubDagOperator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dag</strong> (<a class="reference internal" href="#airflow.models.DAG" title="airflow.models.DAG"><em>DAG</em></a>) &#8211; the DAG object to save to the DB</td>
+</tr>
+</tbody>
+</table>
+<p>:own
+:param sync_time: The time that the DAG should be marked as sync&#8217;ed
+:type sync_time: datetime
+:return: None</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="airflow.models.DAG.tree_view">
 <code class="descname">tree_view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DAG.tree_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DAG.tree_view" title="Permalink to this definition">¶</a></dt>
@@ -2046,7 +2153,7 @@ upstream and downstream neighbours based on the flag passed.</p>
 
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">BaseOperator</code><span class="sig-paren">(</span><em>task_id</em>, <em>owner='airflow'</em>, <em>email=None</em>, <em>email_on_retry=True</em>, <em>email_on_failure=True</em>, <em>retries=0</em>, <em>retry_delay=datetime.timedelta(0</em>, <em>300)</em>, <em>start_date=None</em>, <em>end_date=None</em>, <em>schedule_interval=None</em>, <em>depends_on_past=False</em>, <em>wait_for_downstream=False</em>, <em>dag=None</em>, <em>params=None</em>, <em>default_args=None</em>, <em>adhoc=False</em>, <em>priority_weight=1</em>, <em>queue='default'</em>, <em>pool=None</em>, <em>sla=None</em>, <em>execution_timeout=None</em>, <em>on_failure_callback=None</em>, <em>on_success_callback=None</em>, <em>on_retry_callback=None</em>, <em>trigger_rule=u'all_success'</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#BaseOperator"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">BaseOperator</code><span class="sig-paren">(</span><em>task_id</em>, <em>owner='airflow'</em>, <em>email=None</em>, <em>email_on_retry=True</em>, <em>email_on_failure=True</em>, <em>retries=0</em>, <em>retry_delay=datetime.timedelta(0</em>, <em>300)</em>, <em>retry_exponential_backoff=False</em>, <em>max_retry_delay=None</em>, <em>start_date=None</em>, <em>end_date=None</em>, <em>schedule_interval=None</em>, <em>depends_on_past=False</em>, <em>wait_for_downstream=False</em>, <em>dag=None</em>, <em>params=None</em>, <em>default_args=None</em>, <em>adhoc=False</em>, <em>priority_weight=1</em>, <em>queue='default'</em>, <em>pool=None</em>, <em>sla=None</em>, <em>execution_timeout=None</em>, <em>on_failure_callback=None</em>, <em>on_success_callback=None</em>, <em>on_retry_callback=None</em>, <em>trigger_rule=u'all_success'</em>, <em>resources=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#BaseOperator"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">future.types.newobject.newobject</span></code></p>
 <p>Abstract base class for all operators. Since operators create objects that
 become node in the dag, BaseOperator contains many recursive methods for
@@ -2078,6 +2185,10 @@ operators.</p>
 <li><strong>retries</strong> (<em>int</em>) &#8211; the number of retries that should be performed before
 failing the task</li>
 <li><strong>retry_delay</strong> (<em>timedelta</em>) &#8211; delay between retries</li>
+<li><strong>retry_exponential_backoff</strong> (<em>bool</em>) &#8211; allow progressive longer waits between
+retries by using exponential backoff algorithm on retry delay (delay
+will be converted into seconds)</li>
+<li><strong>max_retry_delay</strong> (<em>timedelta</em>) &#8211; maximum delay interval between retries</li>
 <li><strong>start_date</strong> (<em>datetime</em>) &#8211; The <code class="docutils literal"><span class="pre">start_date</span></code> for the task, determines
 the <code class="docutils literal"><span class="pre">execution_date</span></code> for the first task instance. The best practice
 is to have the start_date rounded
@@ -2142,6 +2253,8 @@ for the task to get triggered. Options are:
 default is <code class="docutils literal"><span class="pre">all_success</span></code>. Options can be set as string or
 using the constants defined in the static class
 <code class="docutils literal"><span class="pre">airflow.utils.TriggerRule</span></code></li>
+<li><strong>resources</strong> (<em>dict</em>) &#8211; A map of resource parameter names (the argument names of the
+Resources constructor) to their values.</li>
 </ul>
 </td>
 </tr>
@@ -2407,6 +2520,45 @@ path to add the feature</li>
 </table>
 </dd></dl>
 
+<dl class="staticmethod">
+<dt id="airflow.models.TaskInstance.generate_command">
+<em class="property">static </em><code class="descname">generate_command</code><span class="sig-paren">(</span><em>dag_id</em>, <em>task_id</em>, <em>execution_date</em>, <em>mark_success=False</em>, <em>ignore_dependencies=False</em>, <em>ignore_depends_on_past=False</em>, <em>force=False</em>, <em>local=False</em>, <em>pickle_id=None</em>, <em>file_path=None</em>, <em>raw=False</em>, <em>job_id=None</em>, <em>pool=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#TaskInstance.generate_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.TaskInstance.generate_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the shell command required to execute this task instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dag_id</strong> (<em>unicode</em>) &#8211; DAG ID</li>
+<li><strong>task_id</strong> (<em>unicode</em>) &#8211; Task ID</li>
+<li><strong>execution_date</strong> (<em>datetime</em>) &#8211; Execution date for the task</li>
+<li><strong>mark_success</strong> (<em>bool</em>) &#8211; Whether to mark the task as successful</li>
+<li><strong>ignore_dependencies</strong> &#8211; Whether to ignore the dependencies and run</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>anyway
+:type ignore_dependencies: bool
+:param ignore_depends_on_past: Whether to ignore the depends on past
+setting and run anyway
+:type ignore_depends_on_past: bool
+:param force: Whether to force running - see TaskInstance.run()
+:type force: bool
+:param local: Whether to run the task locally
+:type local: bool
+:param pickle_id: If the DAG was serialized to the DB, the ID
+associated with the pickled DAG
+:type pickle_id: unicode
+:param file_path: path to the file containing the DAG definition
+:param raw: raw mode (needs more details)
+:param job_id: job ID (needs more details)
+:param pool: the Airflow pool that the task should run in
+:type pool: unicode
+:return: shell command that can be used to run the task instance</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="airflow.models.TaskInstance.is_premature">
 <code class="descname">is_premature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#TaskInstance.is_premature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.TaskInstance.is_premature" title="Permalink to this definition">¶</a></dt>
@@ -2467,6 +2619,13 @@ dependencies. Defaults to False.</li>
 <dt id="airflow.models.TaskInstance.key">
 <code class="descname">key</code><a class="headerlink" href="#airflow.models.TaskInstance.key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a tuple that identifies the task instance uniquely</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow.models.TaskInstance.next_retry_datetime">
+<code class="descname">next_retry_datetime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#TaskInstance.next_retry_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.TaskInstance.next_retry_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get datetime of the next retry if the task instance fails. For exponential
+backoff, retry_delay is used as base and will be converted to seconds.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2584,8 +2743,8 @@ task on a future date without it being immediately visible.</li>
 
 <dl class="class">
 <dt id="airflow.models.DagBag">
-<em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">DagBag</code><span class="sig-paren">(</span><em>dag_folder=None</em>, <em>executor=&lt;airflow.executors.local_executor.LocalExecutor object&gt;</em>, <em>include_examples=True</em>, <em>sync_to_db=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DagBag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DagBag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">airflow.utils.logging.LoggingMixin</span></code></p>
+<em class="property">class </em><code class="descclassname">airflow.models.</code><code class="descname">DagBag</code><span class="sig-paren">(</span><em>dag_folder=None</em>, <em>executor=&lt;airflow.executors.local_executor.LocalExecutor object&gt;</em>, <em>include_examples=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow/models.html#DagBag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.models.DagBag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">airflow.dag.base_dag.BaseDagBag</span></code>, <code class="xref py py-class docutils literal"><span class="pre">airflow.utils.logging.LoggingMixin</span></code></p>
 <p>A dagbag is a collection of dags, parsed out of a folder tree and has high
 level configuration settings, like what database to use as a backend and
 what executor to use to fire off tasks. This makes it easier to run
@@ -2598,7 +2757,7 @@ independent settings sets.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dag_folder</strong> (<em>str</em>) &#8211; the folder to scan to find DAGs</li>
+<li><strong>dag_folder</strong> (<em>unicode</em>) &#8211; the folder to scan to find DAGs</li>
 <li><strong>executor</strong> &#8211; the executor to use when executing task instances
 in this DagBag</li>
 <li><strong>include_examples</strong> (<em>bool</em>) &#8211; whether to include the examples that ship
@@ -2688,14 +2847,15 @@ passwords when using operators or hooks.</p>
 <div class="section" id="module-airflow.hooks">
 <span id="hooks"></span><h2>Hooks<a class="headerlink" href="#module-airflow.hooks" title="Permalink to this headline">¶</a></h2>
 <p>Importer that dynamically loads a class and module from its parent. This
-allows Airflow to support <cite>from airflow.operators.bash_operator import
-BashOperator</cite> even though BashOperator is actually in
-airflow.operators.bash_operator.</p>
+allows Airflow to support <code class="docutils literal"><span class="pre">from</span> <span class="pre">airflow.operators</span> <span class="pre">import</span> <span class="pre">BashOperator</span></code>
+even though BashOperator is actually in
+<code class="docutils literal"><span class="pre">airflow.operators.bash_operator</span></code>.</p>
 <p>The importer also takes over for the parent_module by wrapping it. This is
 required to support attribute-based usage:</p>
-<blockquote>
-<div>from airflow import operators
-operators.BashOperator(...)</div></blockquote>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">operators</span>
+<span class="n">operators</span><span class="o">.</span><span class="n">BashOperator</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="airflow.hooks.DbApiHook">
 <em class="property">class </em><code class="descclassname">airflow.hooks.</code><code class="descname">DbApiHook</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dbapi_hook.html#DbApiHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.hooks.DbApiHook" title="Permalink to this definition">¶</a></dt>
@@ -2855,7 +3015,7 @@ before executing the query.</li>
 
 <dl class="class">
 <dt id="airflow.hooks.HiveCliHook">
-<em class="property">class </em><code class="descclassname">airflow.hooks.</code><code class="descname">HiveCliHook</code><span class="sig-paren">(</span><em>hive_cli_conn_id='hive_cli_default'</em>, <em>run_as=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hive_hooks.html#HiveCliHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.hooks.HiveCliHook" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">airflow.hooks.</code><code class="descname">HiveCliHook</code><span class="sig-paren">(</span><em>hive_cli_conn_id='hive_cli_default'</em>, <em>run_as=None</em>, <em>mapred_queue=None</em>, <em>mapred_queue_priority=None</em>, <em>mapred_job_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hive_hooks.html#HiveCliHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.hooks.HiveCliHook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">airflow.hooks.base_hook.BaseHook</span></code></p>
 <p>Simple wrapper around the hive CLI.</p>
 <p>It also supports the <code class="docutils literal"><span class="pre">beeline</span></code>
@@ -2868,6 +3028,21 @@ extra field of your connection as in <code class="docutils literal"><span class=
 Parameters passed here can be overridden by run_cli&#8217;s hive_conf param</p>
 <p>The extra connection parameter <code class="docutils literal"><span class="pre">auth</span></code> gets passed as in the <code class="docutils literal"><span class="pre">jdbc</span></code>
 connection string as is.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mapred_queue</strong> (<em>string</em>) &#8211; queue used by the Hadoop Scheduler (Capacity or Fair)</li>
+<li><strong>mapred_queue_priority</strong> (<em>string</em>) &#8211; priority within the job queue.
+Possible settings include: VERY_HIGH, HIGH, NORMAL, LOW, VERY_LOW</li>
+<li><strong>mapred_job_name</strong> (<em>string</em>) &#8211; This name will appear in the jobtracker.
+This can make monitoring easier.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="airflow.hooks.HiveCliHook.load_file">
 <code class="descname">load_file</code><span class="sig-paren">(</span><em>filepath</em>, <em>table</em>, <em>delimiter='</em>, <em>'</em>, <em>field_dict=None</em>, <em>create=True</em>, <em>overwrite=True</em>, <em>partition=None</em>, <em>recreate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hive_hooks.html#HiveCliHook.load_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.hooks.HiveCliHook.load_file" title="Permalink to this definition">¶</a></dt>
@@ -2901,16 +3076,17 @@ and values</li>
 <dl class="method">
 <dt id="airflow.hooks.HiveCliHook.run_cli">
 <code class="descname">run_cli</code><span class="sig-paren">(</span><em>hql</em>, <em>schema=None</em>, <em>verbose=True</em>, <em>hive_conf=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hive_hooks.html#HiveCliHook.run_cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.hooks.HiveCliHook.run_cli" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run an hql statement using the hive cli. If hive_conf is specified it should be a
-dict and the entries will be set as key/value pairs in HiveConf</p>
+<dd><p>Run an hql statement using the hive cli. If hive_conf is specified
+it should be a dict and the entries will be set as key/value pairs
+in HiveConf</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hive_conf</strong> (<em>dict</em>) &#8211; if specified these key value pairs will be passed to hive as
-<code class="docutils literal"><span class="pre">-hiveconf</span> <span class="pre">&quot;key&quot;=&quot;value&quot;</span></code>. Note that they will be passed after the
-<code class="docutils literal"><span class="pre">hive_cli_params</span></code> and thus will override whatever values are specified in
-the database.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hive_conf</strong> (<em>dict</em>) &#8211; if specified these key value pairs will be passed
+to hive as <code class="docutils literal"><span class="pre">-hiveconf</span> <span class="pre">&quot;key&quot;=&quot;value&quot;</span></code>. Note that they will be
+passed after the <code class="docutils literal"><span class="pre">hive_cli_params</span></code> and thus will override
+whatever values are specified in the database.</td>
 </tr>
 </tbody>
 </table>
@@ -3168,9 +3344,19 @@ checking for the result</p>
 <dl class="method">
 <dt id="airflow.hooks.DruidHook.load_from_hdfs">
 <code class="descname">load_from_hdfs</code><span class="sig-paren">(</span><em>datasource</em>, <em>static_path</em>, <em>ts_dim</em>, <em>columns</em>, <em>intervals</em>, <em>num_shards</em>, <em>target_partition_size</em>, <em>metric_spec=None</em>, <em>hadoop_dependency_coordinates=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/druid_hook.html#DruidHook.load_from_hdfs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.hooks.DruidHook.load_from_hdfs" title="Permalink to this definition">¶</a></dt>
-<dd><p>load data to druid from hdfs
-:params ts_dim: The column name to use as a timestamp
-:params metric_spec: A list of dictionaries</p>
+<dd><p>load data to druid from hdfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ts_dim</strong> &#8211; The column name to use as a timestamp</li>
+<li><strong>metric_spec</strong> &#8211; A list of dictionaries</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -3507,14 +3693,15 @@ directory, files will be uploaded inside.</li>
 <div class="section" id="module-airflow.contrib.hooks">
 <span id="community-contributed-hooks"></span><h3>Community contributed hooks<a class="headerlink" href="#module-airflow.contrib.hooks" title="Permalink to this headline">¶</a></h3>
 <p>Importer that dynamically loads a class and module from its parent. This
-allows Airflow to support <cite>from airflow.operators.bash_operator import
-BashOperator</cite> even though BashOperator is actually in
-airflow.operators.bash_operator.</p>
+allows Airflow to support <code class="docutils literal"><span class="pre">from</span> <span class="pre">airflow.operators</span> <span class="pre">import</span> <span class="pre">BashOperator</span></code>
+even though BashOperator is actually in
+<code class="docutils literal"><span class="pre">airflow.operators.bash_operator</span></code>.</p>
 <p>The importer also takes over for the parent_module by wrapping it. This is
 required to support attribute-based usage:</p>
-<blockquote>
-<div>from airflow import operators
-operators.BashOperator(...)</div></blockquote>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">operators</span>
+<span class="n">operators</span><span class="o">.</span><span class="n">BashOperator</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="airflow.contrib.hooks.BigQueryHook">
 <em class="property">class </em><code class="descclassname">airflow.contrib.hooks.</code><code class="descname">BigQueryHook</code><span class="sig-paren">(</span><em>bigquery_conn_id='bigquery_default'</em>, <em>delegate_to=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bigquery_hook.html#BigQueryHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.contrib.hooks.BigQueryHook" title="Permalink to this definition">¶</a></dt>
@@ -3713,6 +3900,24 @@ on the remote system (where the MLSD command is supported).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) &#8211; full path to the remote directory to list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow.contrib.hooks.FTPHook.rename">
+<code class="descname">rename</code><span class="sig-paren">(</span><em>from_name</em>, <em>to_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ftp_hook.html#FTPHook.rename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow.contrib.hooks.FTPHook.rename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename a file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>from_name</strong> &#8211; rename file from name</li>
+<li><strong>to_name</strong> &#8211; rename file to name</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>

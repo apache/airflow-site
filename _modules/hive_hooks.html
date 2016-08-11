@@ -156,18 +156,24 @@
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">past.builtins</span> <span class="kn">import</span> <span class="nb">basestring</span>
 
+<span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">unicodecsv</span> <span class="kn">as</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
 <span class="kn">import</span> <span class="nn">hive_metastore</span>
 
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="kn">import</span> <span class="n">BaseHook</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.helpers</span> <span class="kn">import</span> <span class="n">as_flattened_list</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.file</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">configuration</span>
 <span class="kn">import</span> <span class="nn">airflow.security.utils</span> <span class="kn">as</span> <span class="nn">utils</span>
+
+<span class="n">HIVE_QUEUE_PRIORITIES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VERY_HIGH&#39;</span><span class="p">,</span> <span class="s1">&#39;HIGH&#39;</span><span class="p">,</span> <span class="s1">&#39;NORMAL&#39;</span><span class="p">,</span> <span class="s1">&#39;LOW&#39;</span><span class="p">,</span> <span class="s1">&#39;VERY_LOW&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="HiveCliHook"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveCliHook">[docs]</a><span class="k">class</span> <span class="nc">HiveCliHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
@@ -186,12 +192,24 @@
 
 <span class="sd">    The extra connection parameter ``auth`` gets passed as in the ``jdbc``</span>
 <span class="sd">    connection string as is.</span>
+
+<span class="sd">    :param mapred_queue: queue used by the Hadoop Scheduler (Capacity or Fair)</span>
+<span class="sd">    :type  mapred_queue: string</span>
+<span class="sd">    :param mapred_queue_priority: priority within the job queue.</span>
+<span class="sd">        Possible settings include: VERY_HIGH, HIGH, NORMAL, LOW, VERY_LOW</span>
+<span class="sd">    :type  mapred_queue_priority: string</span>
+<span class="sd">    :param mapred_job_name: This name will appear in the jobtracker.</span>
+<span class="sd">        This can make monitoring easier.</span>
+<span class="sd">    :type  mapred_job_name: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="s2">&quot;hive_cli_default&quot;</span><span class="p">,</span>
-            <span class="n">run_as</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+            <span class="n">run_as</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">mapred_queue</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">mapred_queue_priority</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">mapred_job_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">hive_cli_conn_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_params</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hive_cli_params&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_beeline</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_beeline&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -199,16 +217,92 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">conn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_as</span> <span class="o">=</span> <span class="n">run_as</span>
 
+        <span class="k">if</span> <span class="n">mapred_queue_priority</span><span class="p">:</span>
+            <span class="n">mapred_queue_priority</span> <span class="o">=</span> <span class="n">mapred_queue_priority</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">mapred_queue_priority</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HIVE_QUEUE_PRIORITIES</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                    <span class="s2">&quot;Invalid Mapred Queue Priority.  Valid values are: &quot;</span>
+                    <span class="s2">&quot;{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HIVE_QUEUE_PRIORITIES</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span> <span class="o">=</span> <span class="n">mapred_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue_priority</span> <span class="o">=</span> <span class="n">mapred_queue_priority</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_job_name</span> <span class="o">=</span> <span class="n">mapred_job_name</span>
+
+    <span class="k">def</span> <span class="nf">_prepare_cli_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function creates the command list from available information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span>
+        <span class="n">hive_bin</span> <span class="o">=</span> <span class="s1">&#39;hive&#39;</span>
+        <span class="n">cmd_extra</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_beeline</span><span class="p">:</span>
+            <span class="n">hive_bin</span> <span class="o">=</span> <span class="s1">&#39;beeline&#39;</span>
+            <span class="n">jdbc_url</span> <span class="o">=</span> <span class="s2">&quot;jdbc:hive2://{conn.host}:{conn.port}/{conn.schema}&quot;</span>
+            <span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;security&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;kerberos&#39;</span><span class="p">:</span>
+                <span class="n">template</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s1">&#39;principal&#39;</span><span class="p">,</span> <span class="s2">&quot;hive/_HOST@EXAMPLE.COM&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;_HOST&quot;</span> <span class="ow">in</span> <span class="n">template</span><span class="p">:</span>
+                    <span class="n">template</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">replace_hostname_pattern</span><span class="p">(</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">get_components</span><span class="p">(</span><span class="n">template</span><span class="p">))</span>
+
+                <span class="n">proxy_user</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># noqa</span>
+                <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proxy_user&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;login&quot;</span> <span class="ow">and</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">:</span>
+                    <span class="n">proxy_user</span> <span class="o">=</span> <span class="s2">&quot;hive.server2.proxy.user={0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proxy_user&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;owner&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_as</span><span class="p">:</span>
+                    <span class="n">proxy_user</span> <span class="o">=</span> <span class="s2">&quot;hive.server2.proxy.user={0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run_as</span><span class="p">)</span>
+
+                <span class="n">jdbc_url</span> <span class="o">+=</span> <span class="s2">&quot;;principal={template};{proxy_user}&quot;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">:</span>
+                <span class="n">jdbc_url</span> <span class="o">+=</span> <span class="s2">&quot;;auth=&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth</span>
+
+            <span class="n">jdbc_url</span> <span class="o">=</span> <span class="n">jdbc_url</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+            <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="n">jdbc_url</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">:</span>
+                <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
+                <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span><span class="p">]</span>
+
+        <span class="n">hive_params_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_params</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">hive_bin</span><span class="p">]</span> <span class="o">+</span> <span class="n">cmd_extra</span> <span class="o">+</span> <span class="n">hive_params_list</span>
+
+    <span class="k">def</span> <span class="nf">_prepare_hiveconf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function prepares a list of hiveconf params</span>
+<span class="sd">        from a dictionary of key value pairs.</span>
+
+<span class="sd">        :param d:</span>
+<span class="sd">        :type d: dict</span>
+
+<span class="sd">        &gt;&gt;&gt; hh = HiveCliHook()</span>
+<span class="sd">        &gt;&gt;&gt; hive_conf = {&quot;hive.exec.dynamic.partition&quot;: &quot;true&quot;,</span>
+<span class="sd">        ... &quot;hive.exec.dynamic.partition.mode&quot;: &quot;nonstrict&quot;}</span>
+<span class="sd">        &gt;&gt;&gt; hh._prepare_hiveconf(hive_conf)</span>
+<span class="sd">        [&quot;-hiveconf&quot;, &quot;hive.exec.dynamic.partition=true&quot;,\</span>
+<span class="sd"> &quot;-hiveconf&quot;, &quot;hive.exec.dynamic.partition.mode=nonstrict&quot;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">as_flattened_list</span><span class="p">(</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;-hiveconf&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">),</span>
+                <span class="p">[</span><span class="s2">&quot;{}={}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
 <div class="viewcode-block" id="HiveCliHook.run_cli"><a class="viewcode-back" href="../code.html#airflow.hooks.HiveCliHook.run_cli">[docs]</a>    <span class="k">def</span> <span class="nf">run_cli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Run an hql statement using the hive cli. If hive_conf is specified it should be a</span>
-<span class="sd">        dict and the entries will be set as key/value pairs in HiveConf</span>
+<span class="sd">        Run an hql statement using the hive cli. If hive_conf is specified</span>
+<span class="sd">        it should be a dict and the entries will be set as key/value pairs</span>
+<span class="sd">        in HiveConf</span>
 
 
-<span class="sd">        :param hive_conf: if specified these key value pairs will be passed to hive as</span>
-<span class="sd">            ``-hiveconf &quot;key&quot;=&quot;value&quot;``. Note that they will be passed after the</span>
-<span class="sd">            ``hive_cli_params`` and thus will override whatever values are specified in</span>
-<span class="sd">            the database.</span>
+<span class="sd">        :param hive_conf: if specified these key value pairs will be passed</span>
+<span class="sd">            to hive as ``-hiveconf &quot;key&quot;=&quot;value&quot;``. Note that they will be</span>
+<span class="sd">            passed after the ``hive_cli_params`` and thus will override</span>
+<span class="sd">            whatever values are specified in the database.</span>
 <span class="sd">        :type hive_conf: dict</span>
 
 <span class="sd">        &gt;&gt;&gt; hh = HiveCliHook()</span>
@@ -225,47 +319,29 @@
             <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">hql</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-                <span class="n">fname</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span>
-                <span class="n">hive_bin</span> <span class="o">=</span> <span class="s1">&#39;hive&#39;</span>
-                <span class="n">cmd_extra</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">hive_cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_cli_cmd</span><span class="p">()</span>
+                <span class="n">hive_conf_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_hiveconf</span><span class="p">(</span><span class="n">hive_conf</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span><span class="p">:</span>
+                    <span class="n">hive_conf_params</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                        <span class="p">[</span><span class="s1">&#39;-hiveconf&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;mapreduce.job.queuename={}&#39;</span>
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span><span class="p">)])</span>
 
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_beeline</span><span class="p">:</span>
-                    <span class="n">hive_bin</span> <span class="o">=</span> <span class="s1">&#39;beeline&#39;</span>
-                    <span class="n">jdbc_url</span> <span class="o">=</span> <span class="s2">&quot;jdbc:hive2://{conn.host}:{conn.port}/{conn.schema}&quot;</span>
-                    <span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;security&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;kerberos&#39;</span><span class="p">:</span>
-                        <span class="n">template</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                            <span class="s1">&#39;principal&#39;</span><span class="p">,</span> <span class="s2">&quot;hive/_HOST@EXAMPLE.COM&quot;</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="s2">&quot;_HOST&quot;</span> <span class="ow">in</span> <span class="n">template</span><span class="p">:</span>
-                            <span class="n">template</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">replace_hostname_pattern</span><span class="p">(</span>
-                                <span class="n">utils</span><span class="o">.</span><span class="n">get_components</span><span class="p">(</span><span class="n">template</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue_priority</span><span class="p">:</span>
+                    <span class="n">hive_conf_params</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                        <span class="p">[</span><span class="s1">&#39;-hiveconf&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;mapreduce.job.priority={}&#39;</span>
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue_priority</span><span class="p">)])</span>
 
-                        <span class="n">proxy_user</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># noqa</span>
-                        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proxy_user&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;login&quot;</span> <span class="ow">and</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">:</span>
-                            <span class="n">proxy_user</span> <span class="o">=</span> <span class="s2">&quot;hive.server2.proxy.user={0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">)</span>
-                        <span class="k">elif</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proxy_user&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;owner&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_as</span><span class="p">:</span>
-                            <span class="n">proxy_user</span> <span class="o">=</span> <span class="s2">&quot;hive.server2.proxy.user={0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run_as</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapred_job_name</span><span class="p">:</span>
+                    <span class="n">hive_conf_params</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                        <span class="p">[</span><span class="s1">&#39;-hiveconf&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;mapred.job.name={}&#39;</span>
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapred_job_name</span><span class="p">)])</span>
 
-                        <span class="n">jdbc_url</span> <span class="o">+=</span> <span class="s2">&quot;;principal={template};{proxy_user}&quot;</span>
-                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="p">:</span>
-                        <span class="n">jdbc_url</span> <span class="o">+=</span> <span class="s2">&quot;;auth=&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth</span>
+                <span class="n">hive_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hive_conf_params</span><span class="p">)</span>
+                <span class="n">hive_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
 
-                    <span class="n">jdbc_url</span> <span class="o">=</span> <span class="n">jdbc_url</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
-                    <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="n">jdbc_url</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">:</span>
-                        <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
-                        <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span><span class="p">]</span>
-
-                <span class="n">hive_conf</span> <span class="o">=</span> <span class="n">hive_conf</span> <span class="ow">or</span> <span class="p">{}</span>
-                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">hive_conf</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-hiveconf&#39;</span><span class="p">,</span> <span class="s1">&#39;{0}={1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)]</span>
-
-                <span class="n">hive_cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">hive_bin</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">]</span> <span class="o">+</span> <span class="n">cmd_extra</span>
-
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_params</span><span class="p">:</span>
-                    <span class="n">hive_params_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_params</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-                    <span class="n">hive_cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hive_params_list</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hive_cmd</span><span class="p">))</span>
                 <span class="n">sp</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
@@ -399,6 +475,8 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;sp&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Killing the Hive job&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span></div>
 
 
@@ -700,11 +778,12 @@
                 <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span>
                 <span class="n">schema</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
-                        <span class="n">lineterminator</span><span class="o">=</span><span class="n">lineterminator</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span>
+                                        <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
+                                        <span class="n">lineterminator</span><span class="o">=</span><span class="n">lineterminator</span><span class="p">,</span>
+                                        <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">output_header</span><span class="p">:</span>
-                        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">])</span>
+                        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">])</span>
                     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
                     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
                         <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchmany</span><span class="p">(</span><span class="n">fetch_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">row</span><span class="p">]</span>

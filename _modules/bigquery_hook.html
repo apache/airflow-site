@@ -157,6 +157,9 @@
 <span class="sd">implementation for BigQuery.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">past.builtins</span> <span class="kn">import</span> <span class="nb">basestring</span>
+
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
@@ -440,10 +443,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_split_project_dataset_table_input</span><span class="p">(</span>
                     <span class="s1">&#39;source_project_dataset_table&#39;</span><span class="p">,</span> <span class="n">source_project_dataset_table</span><span class="p">)</span>
             <span class="n">source_project_dataset_tables_fixup</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                    <span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">source_project</span><span class="p">,</span>
-                    <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">source_dataset</span><span class="p">,</span>
-                    <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">source_table</span>
-                <span class="p">})</span>
+                <span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">source_project</span><span class="p">,</span>
+                <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">source_dataset</span><span class="p">,</span>
+                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">source_table</span>
+            <span class="p">})</span>
 
         <span class="k">assert</span> <span class="mi">3</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">destination_project_dataset_table</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)),</span> <span class="p">(</span>
             <span class="s1">&#39;Expected destination_project_dataset_table in the format of &#39;</span>
@@ -652,29 +655,34 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check to see if the table exists</span>
         <span class="n">table_id</span> <span class="o">=</span> <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;tableReference&#39;</span><span class="p">][</span><span class="s1">&#39;tableId&#39;</span><span class="p">]</span>
-        <span class="n">table_exists</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span> <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span>
         <span class="n">tables_list_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
                                                       <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s1">&#39;tables&#39;</span> <span class="ow">in</span> <span class="n">tables_list_resp</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables_list_resp</span><span class="p">[</span><span class="s1">&#39;tables&#39;</span><span class="p">]:</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables_list_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tables&#39;</span><span class="p">,</span> <span class="p">[]):</span>
                 <span class="k">if</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;tableReference&#39;</span><span class="p">][</span><span class="s1">&#39;tableId&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">table_id</span><span class="p">:</span>
-                    <span class="n">table_exists</span> <span class="o">=</span> <span class="bp">True</span>
-                    <span class="k">break</span>
-
-        <span class="c1"># do update if table exists</span>
-        <span class="k">if</span> <span class="n">table_exists</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> exists, updating.&#39;</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                                                <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
-                                                <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">,</span>
-                                                <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="c1"># do insert if table does not exist</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> does not exist. creating.&#39;</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                                                <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
-                                                <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+                    <span class="c1"># found the table, do update</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> exists, updating.&#39;</span><span class="p">,</span>
+                                 <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                                                        <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                                                        <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">,</span>
+                                                        <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="c1"># If there is a next page, we need to check the next page.</span>
+            <span class="k">if</span> <span class="s1">&#39;nextPageToken&#39;</span> <span class="ow">in</span> <span class="n">tables_list_resp</span><span class="p">:</span>
+                <span class="n">tables_list_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span>\
+                    <span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                          <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                          <span class="n">pageToken</span><span class="o">=</span><span class="n">tables_list_resp</span><span class="p">[</span><span class="s1">&#39;nextPageToken&#39;</span><span class="p">])</span>\
+                    <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="c1"># If there is no next page, then the table doesn&#39;t exist.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># do insert</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> does not exist. creating.&#39;</span><span class="p">,</span>
+                             <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                                                    <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                                                    <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">run_grant_dataset_view_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                       <span class="n">source_dataset</span><span class="p">,</span>
@@ -851,7 +859,7 @@
         <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arraysize</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
             <span class="n">one</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">one</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">break</span>

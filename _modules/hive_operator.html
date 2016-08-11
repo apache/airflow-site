@@ -177,6 +177,14 @@
 <span class="sd">    :param script_begin_tag: If defined, the operator will get rid of the</span>
 <span class="sd">        part of the script before the first occurrence of `script_begin_tag`</span>
 <span class="sd">    :type script_begin_tag: str</span>
+<span class="sd">    :param mapred_queue: queue used by the Hadoop CapacityScheduler</span>
+<span class="sd">    :type  mapred_queue: string</span>
+<span class="sd">    :param mapred_queue_priority: priority within CapacityScheduler queue.</span>
+<span class="sd">        Possible settings include: VERY_HIGH, HIGH, NORMAL, LOW, VERY_LOW</span>
+<span class="sd">    :type  mapred_queue_priority: string</span>
+<span class="sd">    :param mapred_job_name: This name will appear in the jobtracker.</span>
+<span class="sd">        This can make monitoring easier.</span>
+<span class="sd">    :type  mapred_job_name: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;hql&#39;</span><span class="p">,</span> <span class="s1">&#39;schema&#39;</span><span class="p">)</span>
@@ -191,6 +199,9 @@
             <span class="n">hiveconf_jinja_translate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
             <span class="n">script_begin_tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
             <span class="n">run_as_owner</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">mapred_queue</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">mapred_queue_priority</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">mapred_job_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">HiveOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -203,8 +214,17 @@
         <span class="k">if</span> <span class="n">run_as_owner</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">run_as</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">owner</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span> <span class="o">=</span> <span class="n">mapred_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue_priority</span> <span class="o">=</span> <span class="n">mapred_queue_priority</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_job_name</span> <span class="o">=</span> <span class="n">mapred_job_name</span>
+
     <span class="k">def</span> <span class="nf">get_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">HiveCliHook</span><span class="p">(</span><span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_conn_id</span><span class="p">,</span> <span class="n">run_as</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_as</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">HiveCliHook</span><span class="p">(</span>
+                        <span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_conn_id</span><span class="p">,</span>
+                        <span class="n">run_as</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_as</span><span class="p">,</span>
+                        <span class="n">mapred_queue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span><span class="p">,</span>
+                        <span class="n">mapred_queue_priority</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue_priority</span><span class="p">,</span>
+                        <span class="n">mapred_job_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mapred_job_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">prepare_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hiveconf_jinja_translate</span><span class="p">:</span>
