@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="Airflow Documentation" href="index.html"/>
         <link rel="next" title="UI / Screenshots" href="ui.html"/>
         <link rel="prev" title="Tutorial" href="tutorial.html"/> 
@@ -41,6 +44,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,10 +92,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-a-backend">Setting up a Backend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#connections">Connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scaling-out-with-celery">Scaling Out with Celery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scaling-out-with-dask">Scaling Out with Dask</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logs">Logs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scaling-out-on-mesos-community-contributed">Scaling Out on Mesos (community contributed)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-with-systemd">Integration with systemd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-with-upstart">Integration with upstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-mode">Test Mode</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ui.html">UI / Screenshots</a></li>
@@ -101,6 +107,8 @@
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">API Reference</a></li>
 </ul>
@@ -115,8 +123,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Airflow</a>
+        
       </nav>
 
 
@@ -125,23 +135,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Configuration</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Configuration</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/configuration.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -152,7 +179,7 @@
 <p>Setting up the sandbox in the <a class="reference internal" href="start.html"><span class="doc">Quick Start</span></a> section was easy;
 building a production-grade environment requires a bit more work!</p>
 <div class="section" id="setting-configuration-options">
-<h2>Setting Configuration Options<a class="headerlink" href="#setting-configuration-options" title="Permalink to this headline">¶</a></h2>
+<span id="setting-options"></span><h2>Setting Configuration Options<a class="headerlink" href="#setting-configuration-options" title="Permalink to this headline">¶</a></h2>
 <p>The first time you run Airflow, it will create a file called <code class="docutils literal"><span class="pre">airflow.cfg</span></code> in
 your <code class="docutils literal"><span class="pre">$AIRFLOW_HOME</span></code> directory (<code class="docutils literal"><span class="pre">~/airflow</span></code> by default). This file contains Airflow&#8217;s configuration and you
 can edit it to change any of the settings. You can also set options with environment variables by using this format:
@@ -258,6 +285,33 @@ its direction.</p>
 to monitor your workers. You can use the shortcut command <code class="docutils literal"><span class="pre">airflow</span> <span class="pre">flower</span></code>
 to start a Flower web server.</p>
 </div>
+<div class="section" id="scaling-out-with-dask">
+<h2>Scaling Out with Dask<a class="headerlink" href="#scaling-out-with-dask" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">DaskExecutor</span></code> allows you to run Airflow tasks in a Dask Distributed cluster.</p>
+<p>Dask clusters can be run on a single machine or on remote networks. For complete
+details, consult the <a class="reference external" href="https://distributed.readthedocs.io/">Distributed documentation</a>.</p>
+<p>To create a cluster, first start a Scheduler:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># default settings for a local cluster</span>
+<span class="nv">DASK_HOST</span><span class="o">=</span>127.0.0.1
+<span class="nv">DASK_PORT</span><span class="o">=</span>8786
+
+dask-scheduler --host <span class="nv">$DASK_HOST</span> --port <span class="nv">$DASK_PORT</span>
+</pre></div>
+</div>
+<p>Next start at least one Worker on any machine that can connect to the host:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>dask-worker <span class="nv">$DASK_HOST</span>:<span class="nv">$DASK_PORT</span>
+</pre></div>
+</div>
+<p>Edit your <code class="docutils literal"><span class="pre">airflow.cfg</span></code> to set your executor to <code class="docutils literal"><span class="pre">DaskExecutor</span></code> and provide
+the Dask Scheduler address in the <code class="docutils literal"><span class="pre">[dask]</span></code> section.</p>
+<p>Please note:</p>
+<ul class="simple">
+<li>Each Dask worker must be able to import Airflow and any dependencies you
+require.</li>
+<li>Dask does not support queues. If an Airflow task was created with a queue, a
+warning will be raised but the task will be submitted to the cluster.</li>
+</ul>
+</div>
 <div class="section" id="logs">
 <h2>Logs<a class="headerlink" href="#logs" title="Permalink to this headline">¶</a></h2>
 <p>Users can specify a logs folder in <code class="docutils literal"><span class="pre">airflow.cfg</span></code>. By default, it is in
@@ -346,19 +400,37 @@ integrated with upstart</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="test-mode">
+<h2>Test Mode<a class="headerlink" href="#test-mode" title="Permalink to this headline">¶</a></h2>
+<p>Airflow has a fixed set of &#8220;test mode&#8221; configuration options. You can load these
+at any time by calling <code class="docutils literal"><span class="pre">airflow.configuration.load_test_config()</span></code> (note this
+operation is not reversible!). However, some options (like the DAG_FOLDER) are
+loaded before you have a chance to call load_test_config(). In order to eagerly load
+the test configuration, set test_mode in airflow.cfg:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>tests<span class="o">]</span>
+<span class="nv">unit_test_mode</span> <span class="o">=</span> True
+</pre></div>
+</div>
+<p>Due to Airflow&#8217;s automatic environment variable expansion (see <a class="reference internal" href="#setting-options"><span class="std std-ref">Setting Configuration Options</span></a>),
+you can also set the env var <code class="docutils literal"><span class="pre">AIRFLOW__CORE__UNIT_TEST_MODE</span></code> to temporarily overwrite
+airflow.cfg.</p>
+</div>
 </div>
 
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ui.html" class="btn btn-neutral float-right" title="UI / Screenshots" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ui.html" class="btn btn-neutral float-right" title="UI / Screenshots" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="tutorial.html" class="btn btn-neutral" title="Tutorial" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -391,7 +463,8 @@ integrated with upstart</p>
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

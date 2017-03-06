@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="Airflow Documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
@@ -40,6 +43,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -90,6 +94,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integration.html">Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../code.html">API Reference</a></li>
 </ul>
@@ -104,8 +110,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Airflow</a>
+        
       </nav>
 
 
@@ -118,19 +126,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="index.html">Module code</a> &raquo;</li>
-      
-    <li>mysql_hook</li>
+        
+      <li>mysql_hook</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -154,21 +179,25 @@
 <span class="kn">import</span> <span class="nn">MySQLdb</span>
 <span class="kn">import</span> <span class="nn">MySQLdb.cursors</span>
 
-<span class="kn">from</span> <span class="nn">airflow.hooks.dbapi_hook</span> <span class="kn">import</span> <span class="n">DbApiHook</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.dbapi_hook</span> <span class="k">import</span> <span class="n">DbApiHook</span>
 
 
 <div class="viewcode-block" id="MySqlHook"><a class="viewcode-back" href="../code.html#airflow.hooks.MySqlHook">[docs]</a><span class="k">class</span> <span class="nc">MySqlHook</span><span class="p">(</span><span class="n">DbApiHook</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interact with MySQL.</span>
 
 <span class="sd">    You can specify charset in the extra field of your connection</span>
 <span class="sd">    as ``{&quot;charset&quot;: &quot;utf8&quot;}``. Also you can choose cursor as</span>
 <span class="sd">    ``{&quot;cursor&quot;: &quot;SSCursor&quot;}``. Refer to the MySQLdb.cursors for more details.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s1">&#39;mysql_conn_id&#39;</span>
     <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s1">&#39;mysql_default&#39;</span>
-    <span class="n">supports_autocommit</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">supports_autocommit</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MySqlHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;schema&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MySqlHook.get_conn"><a class="viewcode-back" href="../code.html#airflow.hooks.MySqlHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -177,31 +206,30 @@
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_conn_id</span><span class="p">)</span>
         <span class="n">conn_config</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
-            <span class="s2">&quot;passwd&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
+            <span class="s2">&quot;passwd&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span> <span class="ow">or</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;db&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
         <span class="p">}</span>
 
-        <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;host&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span> <span class="ow">or</span> <span class="s1">&#39;localhost&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3306</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
 
-        <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
-
-        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;charset&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;charset&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;charset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s2">&quot;charset&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;charset&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;utf8&#39;</span> <span class="ow">or</span>\
                     <span class="p">(</span><span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;charset&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">:</span>
-                <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;use_unicode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cursor&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+                <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;use_unicode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cursor&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s2">&quot;cursor&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;sscursor&#39;</span><span class="p">:</span>
                 <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;cursorclass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">cursors</span><span class="o">.</span><span class="n">SSCursor</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s2">&quot;cursor&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;dictcursor&#39;</span><span class="p">:</span>
                 <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;cursorclass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">cursors</span><span class="o">.</span><span class="n">DictCursor</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s2">&quot;cursor&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ssdictcursor&#39;</span><span class="p">:</span>
                 <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;cursorclass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">cursors</span><span class="o">.</span><span class="n">SSDictCursor</span>
-        <span class="n">local_infile</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;local_infile&#39;</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="n">local_infile</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;local_infile&#39;</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s1">&#39;ssl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s1">&#39;ssl&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">local_infile</span><span class="p">:</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;local_infile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -215,12 +243,30 @@
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            LOAD DATA LOCAL INFILE &#39;{tmp_file}&#39;</span>
-<span class="s2">            INTO TABLE {table}</span>
+<span class="s2">            LOAD DATA LOCAL INFILE &#39;</span><span class="si">{tmp_file}</span><span class="s2">&#39;</span>
+<span class="s2">            INTO TABLE </span><span class="si">{table}</span><span class="s2"></span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
-        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div></div>
+        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_serialize_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the MySQL literal of the cell as a string.</span>
+
+<span class="sd">        :param cell: The cell to insert into the table</span>
+<span class="sd">        :type cell: object</span>
+<span class="sd">        :param conn: The database connection</span>
+<span class="sd">        :type conn: connection object</span>
+<span class="sd">        :return: The serialized cell</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -254,7 +300,8 @@
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="Airflow Documentation" href="index.html"/>
         <link rel="next" title="Data Profiling" href="profiling.html"/>
         <link rel="prev" title="UI / Screenshots" href="ui.html"/> 
@@ -41,6 +44,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -114,6 +118,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#subdags">SubDAGs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#slas">SLAs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#trigger-rules">Trigger Rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#latest-run-only">Latest Run Only</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#zombies-undeads">Zombies &amp; Undeads</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cluster-policy">Cluster Policy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#documentation-notes">Documentation &amp; Notes</a></li>
@@ -128,6 +133,8 @@
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">API Reference</a></li>
 </ul>
@@ -142,8 +149,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Airflow</a>
+        
       </nav>
 
 
@@ -152,23 +161,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Concepts</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Concepts</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/concepts.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/concepts.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -341,8 +367,7 @@ object is always returned. For example:</p>
 <p>We can put this all together to build a simple pipeline:</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="s1">&#39;my_dag&#39;</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
     <span class="p">(</span>
-        <span class="n">dag</span>
-        <span class="o">&gt;&gt;</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;dummy_1&#39;</span><span class="p">)</span>
+        <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;dummy_1&#39;</span><span class="p">)</span>
         <span class="o">&gt;&gt;</span> <span class="n">BashOperator</span><span class="p">(</span>
             <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;bash_1&#39;</span><span class="p">,</span>
             <span class="n">bash_command</span><span class="o">=</span><span class="s1">&#39;echo &quot;HELLO!&quot;&#39;</span><span class="p">)</span>
@@ -452,10 +477,11 @@ variables from the operating system. The environment variable needs to be
 prefixed with <code class="docutils literal"><span class="pre">AIRFLOW_CONN_</span></code> to be considered a connection. When
 referencing the connection in the Airflow pipeline, the <code class="docutils literal"><span class="pre">conn_id</span></code> should
 be the name of the variable without the prefix. For example, if the <code class="docutils literal"><span class="pre">conn_id</span></code>
-is named <code class="docutils literal"><span class="pre">POSTGRES_MASTER</span></code> the environment variable should be named
-<code class="docutils literal"><span class="pre">AIRFLOW_CONN_POSTGRES_MASTER</span></code>. Airflow assumes the value returned
-from the environment variable to be in a URI format
-(e.g. <code class="docutils literal"><span class="pre">postgres://user:password&#64;localhost:5432/master</span></code>).</p>
+is named <code class="docutils literal"><span class="pre">postgres_master</span></code> the environment variable should be named
+<code class="docutils literal"><span class="pre">AIRFLOW_CONN_POSTGRES_MASTER</span></code> (note that the environment variable must be
+all uppercase). Airflow assumes the value returned from the environment
+variable to be in a URI format (e.g.
+<code class="docutils literal"><span class="pre">postgres://user:password&#64;localhost:5432/master</span></code> or <code class="docutils literal"><span class="pre">s3://accesskey:secretkey&#64;S3</span></code>).</p>
 </div>
 <div class="section" id="queues">
 <h3>Queues<a class="headerlink" href="#queues" title="Permalink to this headline">¶</a></h3>
@@ -674,6 +700,71 @@ while creating tasks:</p>
 that, when set to <code class="docutils literal"><span class="pre">True</span></code>, keeps a task from getting triggered if the
 previous schedule for the task hasn&#8217;t succeeded.</p>
 </div>
+<div class="section" id="latest-run-only">
+<h3>Latest Run Only<a class="headerlink" href="#latest-run-only" title="Permalink to this headline">¶</a></h3>
+<p>Standard workflow behavior involves running a series of tasks for a
+particular date/time range. Some workflows, however, perform tasks that
+are independent of run time but need to be run on a schedule, much like a
+standard cron job. In these cases, backfills or running jobs missed during
+a pause just wastes CPU cycles.</p>
+<p>For situations like this, you can use the <code class="docutils literal"><span class="pre">LatestOnlyOperator</span></code> to skip
+tasks that are not being run during the most recent scheduled run for a
+DAG. The <code class="docutils literal"><span class="pre">LatestOnlyOperator</span></code> skips all immediate downstream tasks, and
+itself, if the time right now is not between its <code class="docutils literal"><span class="pre">execution_time</span></code> and the
+next scheduled <code class="docutils literal"><span class="pre">execution_time</span></code>.</p>
+<p>One must be aware of the interaction between skipped tasks and trigger
+rules. Skipped tasks will cascade through trigger rules <code class="docutils literal"><span class="pre">all_success</span></code>
+and <code class="docutils literal"><span class="pre">all_failed</span></code> but not <code class="docutils literal"><span class="pre">all_done</span></code>, <code class="docutils literal"><span class="pre">one_failed</span></code>, <code class="docutils literal"><span class="pre">one_success</span></code>,
+and <code class="docutils literal"><span class="pre">dummy</span></code>. If you would like to use the <code class="docutils literal"><span class="pre">LatestOnlyOperator</span></code> with
+trigger rules that do not cascade skips, you will need to ensure that the
+<code class="docutils literal"><span class="pre">LatestOnlyOperator</span></code> is <strong>directly</strong> upstream of the task you would like
+to skip.</p>
+<p>It is possible, through use of trigger rules to mix tasks that should run
+in the typical date/time dependent mode and those using the
+<code class="docutils literal"><span class="pre">LatestOnlyOperator</span></code>.</p>
+<p>For example, consider the following dag:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1">#dags/latest_only_with_trigger.py</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">DAG</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.dummy_operator</span> <span class="k">import</span> <span class="n">DummyOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.latest_only_operator</span> <span class="k">import</span> <span class="n">LatestOnlyOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.trigger_rule</span> <span class="k">import</span> <span class="n">TriggerRule</span>
+
+
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span>
+    <span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;latest_only_with_trigger&#39;</span><span class="p">,</span>
+    <span class="n">schedule_interval</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">latest_only</span> <span class="o">=</span> <span class="n">LatestOnlyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;latest_only&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+
+<span class="n">task1</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">task1</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">latest_only</span><span class="p">)</span>
+
+<span class="n">task2</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+
+<span class="n">task3</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">task3</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">([</span><span class="n">task1</span><span class="p">,</span> <span class="n">task2</span><span class="p">])</span>
+
+<span class="n">task4</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task4&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">,</span>
+                      <span class="n">trigger_rule</span><span class="o">=</span><span class="n">TriggerRule</span><span class="o">.</span><span class="n">ALL_DONE</span><span class="p">)</span>
+<span class="n">task4</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">([</span><span class="n">task1</span><span class="p">,</span> <span class="n">task2</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>In the case of this dag, the <code class="docutils literal"><span class="pre">latest_only</span></code> task will show up as skipped
+for all runs except the latest run. <code class="docutils literal"><span class="pre">task1</span></code> is directly downstream of
+<code class="docutils literal"><span class="pre">latest_only</span></code> and will also skip for all runs except the latest.
+<code class="docutils literal"><span class="pre">task2</span></code> is entirely independent of <code class="docutils literal"><span class="pre">latest_only</span></code> and will run in all
+scheduled periods. <code class="docutils literal"><span class="pre">task3</span></code> is downstream of <code class="docutils literal"><span class="pre">task1</span></code> and <code class="docutils literal"><span class="pre">task2</span></code> and
+because of the default <code class="docutils literal"><span class="pre">trigger_rule</span></code> being <code class="docutils literal"><span class="pre">all_success</span></code> will receive
+a cascaded skip from <code class="docutils literal"><span class="pre">task1</span></code>. <code class="docutils literal"><span class="pre">task4</span></code> is downstream of <code class="docutils literal"><span class="pre">task1</span></code> and
+<code class="docutils literal"><span class="pre">task2</span></code> but since its <code class="docutils literal"><span class="pre">trigger_rule</span></code> is set to <code class="docutils literal"><span class="pre">all_done</span></code> it will
+trigger as soon as <code class="docutils literal"><span class="pre">task1</span></code> has been skipped (a valid completion state)
+and <code class="docutils literal"><span class="pre">task2</span></code> has succeeded.</p>
+<img alt="_images/latest_only_with_trigger.png" src="_images/latest_only_with_trigger.png" />
+</div>
 <div class="section" id="zombies-undeads">
 <h3>Zombies &amp; Undeads<a class="headerlink" href="#zombies-undeads" title="Permalink to this headline">¶</a></h3>
 <p>Task instances die all the time, usually as part of their normal life cycle,
@@ -842,15 +933,18 @@ pure python modules can be packaged.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="profiling.html" class="btn btn-neutral float-right" title="Data Profiling" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="profiling.html" class="btn btn-neutral float-right" title="Data Profiling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ui.html" class="btn btn-neutral" title="UI / Screenshots" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ui.html" class="btn btn-neutral" title="UI / Screenshots" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -883,7 +977,8 @@ pure python modules can be packaged.</p>
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
