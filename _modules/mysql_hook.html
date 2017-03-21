@@ -183,21 +183,17 @@
 
 
 <div class="viewcode-block" id="MySqlHook"><a class="viewcode-back" href="../code.html#airflow.hooks.MySqlHook">[docs]</a><span class="k">class</span> <span class="nc">MySqlHook</span><span class="p">(</span><span class="n">DbApiHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Interact with MySQL.</span>
 
 <span class="sd">    You can specify charset in the extra field of your connection</span>
 <span class="sd">    as ``{&quot;charset&quot;: &quot;utf8&quot;}``. Also you can choose cursor as</span>
 <span class="sd">    ``{&quot;cursor&quot;: &quot;SSCursor&quot;}``. Refer to the MySQLdb.cursors for more details.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s1">&#39;mysql_conn_id&#39;</span>
     <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s1">&#39;mysql_default&#39;</span>
     <span class="n">supports_autocommit</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MySqlHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;schema&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MySqlHook.get_conn"><a class="viewcode-back" href="../code.html#airflow.hooks.MySqlHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -206,15 +202,16 @@
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_conn_id</span><span class="p">)</span>
         <span class="n">conn_config</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
-            <span class="s2">&quot;passwd&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span> <span class="ow">or</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;db&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
+            <span class="s2">&quot;passwd&quot;</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
         <span class="p">}</span>
 
+        <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;host&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span> <span class="ow">or</span> <span class="s1">&#39;localhost&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3306</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+
+        <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
 
         <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;charset&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;charset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s2">&quot;charset&quot;</span><span class="p">]</span>
