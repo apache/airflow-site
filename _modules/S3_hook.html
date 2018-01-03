@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="Airflow Documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -76,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
@@ -90,6 +99,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integration.html">Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../code.html">API Reference</a></li>
 </ul>
@@ -104,8 +115,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Airflow</a>
+        
       </nav>
 
 
@@ -118,19 +131,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="index.html">Module code</a> &raquo;</li>
-      
-    <li>S3_hook</li>
+        
+      <li>S3_hook</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -151,135 +181,21 @@
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
-<span class="kn">from</span> <span class="nn">future</span> <span class="kn">import</span> <span class="n">standard_library</span>
-<span class="n">standard_library</span><span class="o">.</span><span class="n">install_aliases</span><span class="p">()</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.aws_hook</span> <span class="k">import</span> <span class="n">AwsHook</span>
+
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">urlparse</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">fnmatch</span>
-<span class="kn">import</span> <span class="nn">configparser</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">import</span> <span class="nn">boto</span>
-<span class="kn">from</span> <span class="nn">boto.s3.connection</span> <span class="kn">import</span> <span class="n">S3Connection</span>
-<span class="kn">from</span> <span class="nn">boto.sts</span> <span class="kn">import</span> <span class="n">STSConnection</span>
-<span class="n">boto</span><span class="o">.</span><span class="n">set_stream_logger</span><span class="p">(</span><span class="s1">&#39;boto&#39;</span><span class="p">)</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;boto&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-
-<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="kn">import</span> <span class="n">BaseHook</span>
-
-
-<span class="k">def</span> <span class="nf">_parse_s3_config</span><span class="p">(</span><span class="n">config_file_name</span><span class="p">,</span> <span class="n">config_format</span><span class="o">=</span><span class="s1">&#39;boto&#39;</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="S3Hook"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook">[docs]</a><span class="k">class</span> <span class="nc">S3Hook</span><span class="p">(</span><span class="n">AwsHook</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parses a config file for s3 credentials. Can currently</span>
-<span class="sd">    parse boto, s3cmd.conf and AWS SDK config formats</span>
-
-<span class="sd">    :param config_file_name: path to the config file</span>
-<span class="sd">    :type config_file_name: str</span>
-<span class="sd">    :param config_format: config type. One of &quot;boto&quot;, &quot;s3cmd&quot; or &quot;aws&quot;.</span>
-<span class="sd">        Defaults to &quot;boto&quot;</span>
-<span class="sd">    :type config_format: str</span>
-<span class="sd">    :param profile: profile name in AWS type config file</span>
-<span class="sd">    :type profile: str</span>
+<span class="sd">    Interact with AWS S3, using the boto3 library.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">Config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_name</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-        <span class="n">sections</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t read {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_name</span><span class="p">))</span>
-    <span class="c1"># Setting option names depending on file format</span>
-    <span class="k">if</span> <span class="n">config_format</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">config_format</span> <span class="o">=</span> <span class="s1">&#39;boto&#39;</span>
-    <span class="n">conf_format</span> <span class="o">=</span> <span class="n">config_format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">conf_format</span> <span class="o">==</span> <span class="s1">&#39;boto&#39;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-        <span class="k">if</span> <span class="n">profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s1">&#39;profile &#39;</span> <span class="o">+</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
-            <span class="n">cred_section</span> <span class="o">=</span> <span class="s1">&#39;profile &#39;</span> <span class="o">+</span> <span class="n">profile</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">cred_section</span> <span class="o">=</span> <span class="s1">&#39;Credentials&#39;</span>
-    <span class="k">elif</span> <span class="n">conf_format</span> <span class="o">==</span> <span class="s1">&#39;aws&#39;</span> <span class="ow">and</span> <span class="n">profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">cred_section</span> <span class="o">=</span> <span class="n">profile</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">cred_section</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
-    <span class="c1"># Option names</span>
-    <span class="k">if</span> <span class="n">conf_format</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;boto&#39;</span><span class="p">,</span> <span class="s1">&#39;aws&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-        <span class="n">key_id_option</span> <span class="o">=</span> <span class="s1">&#39;aws_access_key_id&#39;</span>
-        <span class="n">secret_key_option</span> <span class="o">=</span> <span class="s1">&#39;aws_secret_access_key&#39;</span>
-        <span class="c1"># security_token_option = &#39;aws_security_token&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">key_id_option</span> <span class="o">=</span> <span class="s1">&#39;access_key&#39;</span>
-        <span class="n">secret_key_option</span> <span class="o">=</span> <span class="s1">&#39;secret_key&#39;</span>
-    <span class="c1"># Actual Parsing</span>
-    <span class="k">if</span> <span class="n">cred_section</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;This config file format is not recognized&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">access_key</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cred_section</span><span class="p">,</span> <span class="n">key_id_option</span><span class="p">)</span>
-            <span class="n">secret_key</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cred_section</span><span class="p">,</span> <span class="n">secret_key_option</span><span class="p">)</span>
-            <span class="n">calling_format</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="n">cred_section</span><span class="p">,</span> <span class="s1">&#39;calling_format&#39;</span><span class="p">):</span>
-                <span class="n">calling_format</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cred_section</span><span class="p">,</span> <span class="s1">&#39;calling_format&#39;</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Option Error in parsing s3 config file&quot;</span><span class="p">)</span>
-            <span class="k">raise</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span><span class="p">,</span> <span class="n">calling_format</span><span class="p">)</span>
 
-
-<div class="viewcode-block" id="S3Hook"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook">[docs]</a><span class="k">class</span> <span class="nc">S3Hook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Interact with S3. This class is a wrapper around the boto library.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">s3_conn_id</span><span class="o">=</span><span class="s1">&#39;s3_default&#39;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span> <span class="o">=</span> <span class="n">s3_conn_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">s3_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3_conn</span><span class="o">.</span><span class="n">extra_dejson</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">calling_format</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_creds_in_conn</span> <span class="o">=</span> <span class="s1">&#39;aws_secret_access_key&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_creds_in_config_file</span> <span class="o">=</span> <span class="s1">&#39;s3_config_file&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_to_boto</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_creds_in_conn</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_a_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">[</span><span class="s1">&#39;aws_access_key_id&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_s_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">[</span><span class="s1">&#39;aws_secret_access_key&#39;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s1">&#39;calling_format&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">calling_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">[</span><span class="s1">&#39;calling_format&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_creds_in_config_file</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">s3_config_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">[</span><span class="s1">&#39;s3_config_file&#39;</span><span class="p">]</span>
-            <span class="c1"># The format can be None and will default to boto in the parser</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">s3_config_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3_config_format&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_default_to_boto</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="c1"># STS support for cross account resource access</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sts_conn_required</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;aws_account_id&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span> <span class="ow">or</span>
-                                   <span class="s1">&#39;role_arn&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sts_conn_required</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">role_arn</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;role_arn&#39;</span><span class="p">)</span> <span class="ow">or</span>
-                             <span class="s2">&quot;arn:aws:iam::&quot;</span> <span class="o">+</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">[</span><span class="s1">&#39;aws_account_id&#39;</span><span class="p">]</span> <span class="o">+</span>
-                             <span class="s2">&quot;:role/&quot;</span> <span class="o">+</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">extra_params</span><span class="p">[</span><span class="s1">&#39;aws_iam_role&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">pickled_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
-        <span class="k">del</span> <span class="n">pickled_dict</span><span class="p">[</span><span class="s1">&#39;connection&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">pickled_dict</span>
-
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s1">&#39;connection&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_parse_s3_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s3url</span><span class="p">):</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s1">&#39;Please note: S3Hook._parse_s3_url() is now &#39;</span>
-            <span class="s1">&#39;S3Hook.parse_s3_url() (no leading underscore).&#39;</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3url</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_client_type</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">parse_s3_url</span><span class="p">(</span><span class="n">s3url</span><span class="p">):</span>
@@ -291,47 +207,6 @@
             <span class="n">key</span> <span class="o">=</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
-<div class="viewcode-block" id="S3Hook.get_conn"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the boto S3Connection object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_to_boto</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">S3Connection</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">)</span>
-        <span class="n">a_key</span> <span class="o">=</span> <span class="n">s_key</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_creds_in_config_file</span><span class="p">:</span>
-            <span class="n">a_key</span><span class="p">,</span> <span class="n">s_key</span><span class="p">,</span> <span class="n">calling_format</span> <span class="o">=</span> <span class="n">_parse_s3_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_config_file</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">s3_config_format</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_creds_in_conn</span><span class="p">:</span>
-            <span class="n">a_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_key</span>
-            <span class="n">s_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s_key</span>
-            <span class="n">calling_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calling_format</span>
-
-        <span class="k">if</span> <span class="n">calling_format</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">calling_format</span> <span class="o">=</span> <span class="s1">&#39;boto.s3.connection.SubdomainCallingFormat&#39;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sts_conn_required</span><span class="p">:</span>
-            <span class="n">sts_connection</span> <span class="o">=</span> <span class="n">STSConnection</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">a_key</span><span class="p">,</span>
-                                           <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">s_key</span><span class="p">,</span>
-                                           <span class="n">profile_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">)</span>
-            <span class="n">assumed_role_object</span> <span class="o">=</span> <span class="n">sts_connection</span><span class="o">.</span><span class="n">assume_role</span><span class="p">(</span>
-                <span class="n">role_arn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">role_arn</span><span class="p">,</span>
-                <span class="n">role_session_name</span><span class="o">=</span><span class="s2">&quot;Airflow_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span>
-                <span class="p">)</span>
-            <span class="n">creds</span> <span class="o">=</span> <span class="n">assumed_role_object</span><span class="o">.</span><span class="n">credentials</span>
-            <span class="n">connection</span> <span class="o">=</span> <span class="n">S3Connection</span><span class="p">(</span>
-                <span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">access_key</span><span class="p">,</span>
-                <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">secret_key</span><span class="p">,</span>
-                <span class="n">calling_format</span><span class="o">=</span><span class="n">calling_format</span><span class="p">,</span>
-                <span class="n">security_token</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">session_token</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">connection</span> <span class="o">=</span> <span class="n">S3Connection</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">a_key</span><span class="p">,</span>
-                                      <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">s_key</span><span class="p">,</span>
-                                      <span class="n">calling_format</span><span class="o">=</span><span class="n">calling_format</span><span class="p">,</span>
-                                      <span class="n">profile_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">connection</span></div>
-
 <div class="viewcode-block" id="S3Hook.check_for_bucket"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.check_for_bucket">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if bucket_name exists.</span>
@@ -339,31 +214,31 @@
 <span class="sd">        :param bucket_name: the name of the bucket</span>
 <span class="sd">        :type bucket_name: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="S3Hook.get_bucket"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.get_bucket">[docs]</a>    <span class="k">def</span> <span class="nf">get_bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a boto.s3.bucket.Bucket object</span>
+<span class="sd">        Returns a boto3.S3.Bucket object</span>
 
 <span class="sd">        :param bucket_name: the name of the bucket</span>
 <span class="sd">        :type bucket_name: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span></div>
+        <span class="n">s3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resource_type</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="S3Hook.list_keys"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.list_keys">[docs]</a>    <span class="k">def</span> <span class="nf">list_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="S3Hook.check_for_prefix"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.check_for_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Lists keys in a bucket under prefix and not containing delimiter</span>
-
-<span class="sd">        :param bucket_name: the name of the bucket</span>
-<span class="sd">        :type bucket_name: str</span>
-<span class="sd">        :param prefix: a key prefix</span>
-<span class="sd">        :type prefix: str</span>
-<span class="sd">        :param delimiter: the delimiter marks key hierarchy.</span>
-<span class="sd">        :type delimiter: str</span>
+<span class="sd">        Checks that a prefix exists in a bucket</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="n">keylist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">))</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keylist</span><span class="p">]</span> <span class="k">if</span> <span class="n">keylist</span> <span class="o">!=</span> <span class="p">[]</span> <span class="k">else</span> <span class="bp">None</span></div>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">delimiter</span> <span class="k">if</span> <span class="n">prefix</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">delimiter</span> <span class="k">else</span> <span class="n">prefix</span>
+        <span class="n">prefix_split</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\w+[</span><span class="si">{d}</span><span class="s1">])$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="n">delimiter</span><span class="p">),</span> <span class="n">prefix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">previous_level</span> <span class="o">=</span> <span class="n">prefix_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">plist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_prefixes</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">previous_level</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">plist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">plist</span></div>
 
 <div class="viewcode-block" id="S3Hook.list_prefixes"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.list_prefixes">[docs]</a>    <span class="k">def</span> <span class="nf">list_prefixes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -376,24 +251,48 @@
 <span class="sd">        :param delimiter: the delimiter marks key hierarchy.</span>
 <span class="sd">        :type delimiter: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="n">plist</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span>
-        <span class="n">prefix_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plist</span>
-                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">boto</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">prefix</span><span class="o">.</span><span class="n">Prefix</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="n">prefix_names</span> <span class="k">if</span> <span class="n">prefix_names</span> <span class="o">!=</span> <span class="p">[]</span> <span class="k">else</span> <span class="bp">None</span></div>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span> 
+                                                   <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> 
+                                                   <span class="n">Delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;Prefix&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;CommonPrefixes&#39;</span><span class="p">]]</span> <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CommonPrefixes&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="S3Hook.check_for_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.check_for_key">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="S3Hook.list_keys"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.list_keys">[docs]</a>    <span class="k">def</span> <span class="nf">list_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Checks that a key exists in a bucket</span>
+<span class="sd">        Lists keys in a bucket under prefix and not containing delimiter</span>
+
+<span class="sd">        :param bucket_name: the name of the bucket</span>
+<span class="sd">        :type bucket_name: str</span>
+<span class="sd">        :param prefix: a key prefix</span>
+<span class="sd">        :type prefix: str</span>
+<span class="sd">        :param delimiter: the delimiter marks key hierarchy.</span>
+<span class="sd">        :type delimiter: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
+                                                   <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+                                                   <span class="n">Delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="s1">&#39;Key&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;Contents&#39;</span><span class="p">]]</span> <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Contents&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="S3Hook.check_for_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.check_for_key">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a key exists in a bucket</span>
+
+<span class="sd">        :param key: S3 key that will point to the file</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :param bucket_name: Name of the bucket in which the file is stored</span>
+<span class="sd">        :type bucket_name: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span></div>
 
-<div class="viewcode-block" id="S3Hook.get_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.get_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="S3Hook.get_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.get_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a boto.s3.key.Key object</span>
+<span class="sd">        Returns a boto3.s3.Object</span>
 
 <span class="sd">        :param key: the path to the key</span>
 <span class="sd">        :type key: str</span>
@@ -402,21 +301,36 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resource_type</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+<div class="viewcode-block" id="S3Hook.read_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.read_key">[docs]</a>    <span class="k">def</span> <span class="nf">read_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads a key from S3</span>
+
+<span class="sd">        :param key: S3 key that will point to the file</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :param bucket_name: Name of the bucket in which the file is stored</span>
+<span class="sd">        :type bucket_name: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="s1">&#39;Body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="S3Hook.check_for_wildcard_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.check_for_wildcard_key">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_wildcard_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                               <span class="n">wildcard_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+                               <span class="n">wildcard_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that a key matching a wildcard expression exists in a bucket</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_wildcard_key</span><span class="p">(</span><span class="n">wildcard_key</span><span class="o">=</span><span class="n">wildcard_key</span><span class="p">,</span>
                                      <span class="n">bucket_name</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
-                                     <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span></div>
+                                     <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="S3Hook.get_wildcard_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.get_wildcard_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_wildcard_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="S3Hook.get_wildcard_key"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.get_wildcard_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_wildcard_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a boto.s3.key.Key object matching the regular expression</span>
+<span class="sd">        Returns a boto3.s3.Object object matching the regular expression</span>
 
 <span class="sd">        :param regex_key: the path to the key</span>
 <span class="sd">        :type regex_key: str</span>
@@ -425,31 +339,20 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">wildcard_key</span><span class="p">)</span>
-        <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="n">prefix</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">r&#39;[*]&#39;</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[*]&#39;</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">klist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_keys</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">klist</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
-        <span class="n">key_matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">klist</span> <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key_matches</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">key_matches</span> <span class="k">else</span> <span class="bp">None</span></div>
+        <span class="k">if</span> <span class="n">klist</span><span class="p">:</span>
+            <span class="n">key_matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">klist</span> <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">key_matches</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key_matches</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bucket_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="S3Hook.check_for_prefix"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.check_for_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Checks that a prefix exists in a bucket</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">delimiter</span> <span class="k">if</span> <span class="n">prefix</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">delimiter</span> <span class="k">else</span> <span class="n">prefix</span>
-        <span class="n">prefix_split</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">r&#39;(\w+[{d}])$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="n">delimiter</span><span class="p">),</span> <span class="n">prefix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">previous_level</span> <span class="o">=</span> <span class="n">prefix_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">plist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_prefixes</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">previous_level</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">False</span> <span class="k">if</span> <span class="n">plist</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">plist</span></div>
-
-<div class="viewcode-block" id="S3Hook.load_file"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.load_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">filename</span><span class="p">,</span>
-            <span class="n">key</span><span class="p">,</span>
-            <span class="n">bucket_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-            <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-            <span class="n">multipart_bytes</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)):</span>
+<div class="viewcode-block" id="S3Hook.load_file"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.load_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">filename</span><span class="p">,</span>
+                  <span class="n">key</span><span class="p">,</span>
+                  <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">encrypt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads a local file to S3</span>
 
@@ -463,60 +366,35 @@
 <span class="sd">            if it already exists. If replace is False and the key exists, an</span>
 <span class="sd">            error will be raised.</span>
 <span class="sd">        :type replace: bool</span>
-<span class="sd">        :param multipart_bytes: If provided, the file is uploaded in parts of</span>
-<span class="sd">            this size (minimum 5242880). The default value is 5GB, since S3</span>
-<span class="sd">            cannot accept non-multipart uploads for files larger than 5GB. If</span>
-<span class="sd">            the file is smaller than the specified limit, the option will be</span>
-<span class="sd">            ignored.</span>
-<span class="sd">        :type multipart_bytes: int</span>
+<span class="sd">        :param encrypt: If True, the file will be encrypted on the server-side</span>
+<span class="sd">            by S3 and will be stored in an encrypted form while at rest in S3.</span>
+<span class="sd">        :type encrypt: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="n">key_obj</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="n">key_obj</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The key {key} already exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
 
-        <span class="n">key_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">multipart_bytes</span> <span class="ow">and</span> <span class="n">key_size</span> <span class="o">&gt;=</span> <span class="n">multipart_bytes</span><span class="p">:</span>
-            <span class="c1"># multipart upload</span>
-            <span class="kn">from</span> <span class="nn">filechunkio</span> <span class="kn">import</span> <span class="n">FileChunkIO</span>
-            <span class="n">mp</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">initiate_multipart_upload</span><span class="p">(</span><span class="n">key_name</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-            <span class="n">total_chunks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">key_size</span> <span class="o">/</span> <span class="n">multipart_bytes</span><span class="p">))</span>
-            <span class="n">sent_bytes</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_chunks</span><span class="p">):</span>
-                    <span class="n">offset</span> <span class="o">=</span> <span class="n">chunk</span> <span class="o">*</span> <span class="n">multipart_bytes</span>
-                    <span class="nb">bytes</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">multipart_bytes</span><span class="p">,</span> <span class="n">key_size</span> <span class="o">-</span> <span class="n">offset</span><span class="p">)</span>
-                    <span class="k">with</span> <span class="n">FileChunkIO</span><span class="p">(</span>
-                            <span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="nb">bytes</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Sending chunk {c} of {tc}...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">c</span><span class="o">=</span><span class="n">chunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tc</span><span class="o">=</span><span class="n">total_chunks</span><span class="p">))</span>
-                        <span class="n">mp</span><span class="o">.</span><span class="n">upload_part_from_file</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">part_num</span><span class="o">=</span><span class="n">chunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="n">mp</span><span class="o">.</span><span class="n">cancel_upload</span><span class="p">()</span>
-                <span class="k">raise</span>
-            <span class="n">mp</span><span class="o">.</span><span class="n">complete_upload</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># regular upload</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">key_obj</span><span class="p">:</span>
-                <span class="n">key_obj</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">new_key</span><span class="p">(</span><span class="n">key_name</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-            <span class="n">key_size</span> <span class="o">=</span> <span class="n">key_obj</span><span class="o">.</span><span class="n">set_contents_from_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span>
-                                                      <span class="n">replace</span><span class="o">=</span><span class="n">replace</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The key {key} now contains&quot;</span>
-                     <span class="s2">&quot; {key_size} bytes&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The key </span><span class="si">{key}</span><span class="s2"> already exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">))</span>
 
-<div class="viewcode-block" id="S3Hook.load_string"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.load_string">[docs]</a>    <span class="k">def</span> <span class="nf">load_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string_data</span><span class="p">,</span>
-                    <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                    <span class="n">encrypt</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">extra_args</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">if</span> <span class="n">encrypt</span><span class="p">:</span>
+            <span class="n">extra_args</span><span class="p">[</span><span class="s1">&#39;ServerSideEncryption&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;AES256&quot;</span>
+
+        <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="S3Hook.load_string"><a class="viewcode-back" href="../code.html#airflow.hooks.S3Hook.load_string">[docs]</a>    <span class="k">def</span> <span class="nf">load_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                    <span class="n">string_data</span><span class="p">,</span>
+                    <span class="n">key</span><span class="p">,</span> 
+                    <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">encrypt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Loads a local file to S3</span>
+<span class="sd">        Loads a string to S3</span>
 
-<span class="sd">        This is provided as a convenience to drop a file in S3. It uses the</span>
-<span class="sd">        boto infrastructure to ship a file to s3. It is currently using only</span>
-<span class="sd">        a single part download, and should not be used to move large files.</span>
+<span class="sd">        This is provided as a convenience to drop a string in S3. It uses the</span>
+<span class="sd">        boto infrastructure to ship a file to s3. </span>
 
 <span class="sd">        :param string_data: string to set as content for the key.</span>
 <span class="sd">        :type string_data: str</span>
@@ -527,23 +405,29 @@
 <span class="sd">        :param replace: A flag to decide whether or not to overwrite the key</span>
 <span class="sd">            if it already exists</span>
 <span class="sd">        :type replace: bool</span>
+<span class="sd">        :param encrypt: If True, the file will be encrypted on the server-side</span>
+<span class="sd">            by S3 and will be stored in an encrypted form while at rest in S3.</span>
+<span class="sd">        :type encrypt: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-        <span class="n">key_obj</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="n">key_obj</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The key {key} already exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">key_obj</span><span class="p">:</span>
-            <span class="n">key_obj</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">new_key</span><span class="p">(</span><span class="n">key_name</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-        <span class="n">key_size</span> <span class="o">=</span> <span class="n">key_obj</span><span class="o">.</span><span class="n">set_contents_from_string</span><span class="p">(</span><span class="n">string_data</span><span class="p">,</span>
-                                                    <span class="n">replace</span><span class="o">=</span><span class="n">replace</span><span class="p">,</span>
-                                                    <span class="n">encrypt_key</span><span class="o">=</span><span class="n">encrypt</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The key {key} now contains&quot;</span>
-                     <span class="s2">&quot; {key_size} bytes&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span></div></div>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The key </span><span class="si">{key}</span><span class="s2"> already exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">))</span>
+        
+        <span class="n">extra_args</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">if</span> <span class="n">encrypt</span><span class="p">:</span>
+            <span class="n">extra_args</span><span class="p">[</span><span class="s1">&#39;ServerSideEncryption&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;AES256&quot;</span>
+        
+        <span class="n">filelike_buffer</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">string_data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="p">))</span>
+        
+        <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">filelike_buffer</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span></div></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -577,7 +461,8 @@
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

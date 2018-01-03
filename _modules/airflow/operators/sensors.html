@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -80,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../start.html">Quick Start</a></li>
@@ -178,23 +183,25 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">future</span> <span class="k">import</span> <span class="n">standard_library</span>
+
+<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
+
 <span class="n">standard_library</span><span class="o">.</span><span class="n">install_aliases</span><span class="p">()</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">str</span>
 <span class="kn">from</span> <span class="nn">past.builtins</span> <span class="k">import</span> <span class="n">basestring</span>
 
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">urlparse</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">import</span> <span class="nn">airflow</span>
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">hooks</span><span class="p">,</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowSensorTimeout</span><span class="p">,</span> <span class="n">AirflowSkipException</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span><span class="p">,</span> <span class="n">TaskInstance</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.hdfs_hook</span> <span class="k">import</span> <span class="n">HDFSHook</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.http_hook</span> <span class="k">import</span> <span class="n">HttpHook</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="k">import</span> <span class="n">State</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
 
@@ -223,7 +230,7 @@
             <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="mi">7</span><span class="p">,</span>
             <span class="n">soft_fail</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">poke_interval</span> <span class="o">=</span> <span class="n">poke_interval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">soft_fail</span> <span class="o">=</span> <span class="n">soft_fail</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
@@ -236,20 +243,20 @@
         <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Override me.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">started_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">started_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">poke</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">started_at</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="n">started_at</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">soft_fail</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">AirflowSkipException</span><span class="p">(</span><span class="s1">&#39;Snap. Time is OUT.&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">AirflowSensorTimeout</span><span class="p">(</span><span class="s1">&#39;Snap. Time is OUT.&#39;</span><span class="p">)</span>
             <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poke_interval</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Success criteria met. Exiting.&quot;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Success criteria met. Exiting.&quot;</span><span class="p">)</span></div>
 
 
 <span class="k">class</span> <span class="nc">SqlSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Runs a sql statement until a criteria is met. It will keep trying until</span>
+<span class="sd">    Runs a sql statement until a criteria is met. It will keep trying while</span>
 <span class="sd">    sql returns no row, or if the first cell in (0, &#39;0&#39;, &#39;&#39;).</span>
 
 <span class="sd">    :param conn_id: The connection to run the sensor against</span>
@@ -265,12 +272,12 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn_id</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sql</span> <span class="o">=</span> <span class="n">sql</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span> <span class="o">=</span> <span class="n">conn_id</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">SqlSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SqlSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">BaseHook</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_hook</span><span class="p">()</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
         <span class="n">records</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">get_records</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -279,7 +286,6 @@
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 
 
 <span class="k">class</span> <span class="nc">MetastorePartitionSensor</span><span class="p">(</span><span class="n">SqlSensor</span><span class="p">):</span>
@@ -321,7 +327,7 @@
         <span class="c1"># The inheritance model needs to be reworked in order to support overriding args/</span>
         <span class="c1"># kwargs with arguments here, then &#39;conn_id&#39; and &#39;sql&#39; can be passed into the</span>
         <span class="c1"># constructor below and apply_defaults will no longer throw an exception.</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">SqlSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SqlSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_poke</span><span class="p">:</span>
@@ -360,7 +366,7 @@
 <span class="sd">        ExternalTaskSensor, but not both.</span>
 <span class="sd">    :type execution_delta: datetime.timedelta</span>
 <span class="sd">    :param execution_date_fn: function that receives the current execution date</span>
-<span class="sd">        and returns the desired execution date to query. Either execution_delta</span>
+<span class="sd">        and returns the desired execution dates to query. Either execution_delta</span>
 <span class="sd">        or execution_date_fn can be passed to ExternalTaskSensor, but not both.</span>
 <span class="sd">    :type execution_date_fn: callable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -375,7 +381,7 @@
             <span class="n">execution_delta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">execution_date_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ExternalTaskSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExternalTaskSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allowed_states</span> <span class="o">=</span> <span class="n">allowed_states</span> <span class="ow">or</span> <span class="p">[</span><span class="n">State</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">execution_delta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">execution_date_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -395,11 +401,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dttm</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;execution_date&#39;</span><span class="p">]</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">dttm_filter</span> <span class="o">=</span> <span class="n">dttm</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dttm</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">dttm</span><span class="p">]</span>
+        <span class="n">serialized_dttm_filter</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="k">for</span> <span class="n">datetime</span> <span class="ow">in</span> <span class="n">dttm_filter</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Poking for &#39;</span>
             <span class="s1">&#39;</span><span class="si">{self.external_dag_id}</span><span class="s1">.&#39;</span>
             <span class="s1">&#39;</span><span class="si">{self.external_task_id}</span><span class="s1"> on &#39;</span>
-            <span class="s1">&#39;</span><span class="si">{dttm}</span><span class="s1"> ... &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+            <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> ... &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">serialized_dttm_filter</span><span class="p">,</span> <span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="n">TI</span> <span class="o">=</span> <span class="n">TaskInstance</span>
 
         <span class="n">session</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
@@ -407,11 +417,11 @@
             <span class="n">TI</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_dag_id</span><span class="p">,</span>
             <span class="n">TI</span><span class="o">.</span><span class="n">task_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_task_id</span><span class="p">,</span>
             <span class="n">TI</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allowed_states</span><span class="p">),</span>
-            <span class="n">TI</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">==</span> <span class="n">dttm</span><span class="p">,</span>
+            <span class="n">TI</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">dttm_filter</span><span class="p">),</span>
         <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
         <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">count</span>
+        <span class="k">return</span> <span class="n">count</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dttm_filter</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">NamedHivePartitionSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
@@ -442,7 +452,7 @@
             <span class="n">poke_interval</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">NamedHivePartitionSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NamedHivePartitionSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">poke_interval</span><span class="o">=</span><span class="n">poke_interval</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partition_names</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
@@ -462,16 +472,16 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not parse &#39;</span> <span class="o">+</span> <span class="n">partition</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hook&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">HiveMetastoreHook</span><span class="p">(</span>
+            <span class="kn">from</span> <span class="nn">airflow.hooks.hive_hooks</span> <span class="k">import</span> <span class="n">HiveMetastoreHook</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">HiveMetastoreHook</span><span class="p">(</span>
                 <span class="n">metastore_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">poke_partition</span><span class="p">(</span><span class="n">partition</span><span class="p">):</span>
 
             <span class="n">schema</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_partition_name</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
 
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Poking for </span><span class="si">{schema}</span><span class="s1">.</span><span class="si">{table}</span><span class="s1">/</span><span class="si">{partition}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">check_for_named_partition</span><span class="p">(</span>
@@ -507,7 +517,7 @@
 <span class="sd">    :type metastore_conn_id: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;schema&#39;</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">,</span> <span class="s1">&#39;partition&#39;</span><span class="p">,)</span>
-    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#2b2d42&#39;</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#C5CAE9&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -517,7 +527,7 @@
             <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span>
             <span class="n">poke_interval</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">HivePartitionSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HivePartitionSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">poke_interval</span><span class="o">=</span><span class="n">poke_interval</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">partition</span><span class="p">:</span>
             <span class="n">partition</span> <span class="o">=</span> <span class="s2">&quot;ds=&#39;{{ ds }}&#39;&quot;</span>
@@ -529,11 +539,12 @@
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Poking for table </span><span class="si">{self.schema}</span><span class="s1">.</span><span class="si">{self.table}</span><span class="s1">, &#39;</span>
             <span class="s1">&#39;partition </span><span class="si">{self.partition}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hook&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">HiveMetastoreHook</span><span class="p">(</span>
+            <span class="kn">from</span> <span class="nn">airflow.hooks.hive_hooks</span> <span class="k">import</span> <span class="n">HiveMetastoreHook</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">HiveMetastoreHook</span><span class="p">(</span>
                 <span class="n">metastore_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">check_for_partition</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="p">)</span>
@@ -556,7 +567,7 @@
             <span class="n">file_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">hook</span><span class="o">=</span><span class="n">HDFSHook</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">HdfsSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HdfsSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="o">=</span> <span class="n">filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hdfs_conn_id</span> <span class="o">=</span> <span class="n">hdfs_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file_size</span> <span class="o">=</span> <span class="n">file_size</span>
@@ -568,52 +579,57 @@
     <span class="k">def</span> <span class="nf">filter_for_filesize</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Will test the filepath result and test if its size is at least self.filesize</span>
+
 <span class="sd">        :param result: a list of dicts returned by Snakebite ls</span>
 <span class="sd">        :param size: the file size in MB a file should be at least to trigger True</span>
 <span class="sd">        :return: (bool) depending on the matching criteria</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Filtering for file size &gt;= </span><span class="si">%s</span><span class="s1"> in files: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">))</span>
+            <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Filtering for file size &gt;= </span><span class="si">%s</span><span class="s1"> in files: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">))</span>
             <span class="n">size</span> <span class="o">*=</span> <span class="n">settings</span><span class="o">.</span><span class="n">MEGABYTE</span>
             <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">]</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: after size filter result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: after size filter result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">filter_for_ignored_ext</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">ignored_ext</span><span class="p">,</span> <span class="n">ignore_copying</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Will filter if instructed to do so the result to remove matching criteria</span>
+
 <span class="sd">        :param result: (list) of dicts returned by Snakebite ls</span>
-<span class="sd">        :param ignored_ext: (list) of ignored extentions</span>
+<span class="sd">        :param ignored_ext: (list) of ignored extensions</span>
 <span class="sd">        :param ignore_copying: (bool) shall we ignore ?</span>
-<span class="sd">        :return:</span>
+<span class="sd">        :return: (list) of dicts which were not removed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ignore_copying</span><span class="p">:</span>
+            <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
             <span class="n">regex_builder</span> <span class="o">=</span> <span class="s2">&quot;^.*\.(</span><span class="si">%s</span><span class="s2">$)$&quot;</span> <span class="o">%</span> <span class="s1">&#39;$|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored_ext</span><span class="p">)</span>
             <span class="n">ignored_extentions_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regex_builder</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Filtering result for ignored extentions: </span><span class="si">%s</span><span class="s1"> in files </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ignored_extentions_regex</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
-                          <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Filtering result for ignored extensions: </span><span class="si">%s</span><span class="s1"> in files </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">ignored_extentions_regex</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ignored_extentions_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">])]</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: after ext filter result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: after ext filter result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">sb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hdfs_conn_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;snakebite&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for file </span><span class="si">{self.filepath}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for file </span><span class="si">{self.filepath}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># IMOO it&#39;s not right here, as there no raise of any kind.</span>
             <span class="c1"># if the filepath is let&#39;s say &#39;/data/mydirectory&#39;, it&#39;s correct but if it is &#39;/data/mydirectory/*&#39;,</span>
             <span class="c1"># it&#39;s not correct as the directory exists and sb does not raise any error</span>
             <span class="c1"># here is a quick fix</span>
             <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">sb</span><span class="o">.</span><span class="n">ls</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">],</span> <span class="n">include_toplevel</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_for_ignored_ext</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignored_ext</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_copying</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_for_filesize</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_size</span><span class="p">)</span>
             <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Caught an exception !: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Caught an exception !: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">False</span>
 
 
@@ -629,14 +645,14 @@
             <span class="n">filepath</span><span class="p">,</span>
             <span class="n">webhdfs_conn_id</span><span class="o">=</span><span class="s1">&#39;webhdfs_default&#39;</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">WebHdfsSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">WebHdfsSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="o">=</span> <span class="n">filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">webhdfs_conn_id</span> <span class="o">=</span> <span class="n">webhdfs_conn_id</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">webhdfs_hook</span><span class="o">.</span><span class="n">WebHDFSHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">webhdfs_conn_id</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s1">&#39;Poking for file </span><span class="si">{self.filepath}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="kn">from</span> <span class="nn">airflow.hooks.webhdfs_hook</span> <span class="k">import</span> <span class="n">WebHDFSHook</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">WebHDFSHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">webhdfs_conn_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for file </span><span class="si">{self.filepath}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">check_for_path</span><span class="p">(</span><span class="n">hdfs_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
 
 
@@ -654,8 +670,8 @@
 <span class="sd">    :param wildcard_match: whether the bucket_key should be interpreted as a</span>
 <span class="sd">        Unix wildcard pattern</span>
 <span class="sd">    :type wildcard_match: bool</span>
-<span class="sd">    :param s3_conn_id: a reference to the s3 connection</span>
-<span class="sd">    :type s3_conn_id: str</span>
+<span class="sd">    :param aws_conn_id: a reference to the s3 connection</span>
+<span class="sd">    :type aws_conn_id: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bucket_key&#39;</span><span class="p">,</span> <span class="s1">&#39;bucket_name&#39;</span><span class="p">)</span>
 
@@ -664,9 +680,9 @@
             <span class="bp">self</span><span class="p">,</span> <span class="n">bucket_key</span><span class="p">,</span>
             <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">wildcard_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">s3_conn_id</span><span class="o">=</span><span class="s1">&#39;s3_default&#39;</span><span class="p">,</span>
+            <span class="n">aws_conn_id</span><span class="o">=</span><span class="s1">&#39;aws_default&#39;</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">S3KeySensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">S3KeySensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Parse</span>
         <span class="k">if</span> <span class="n">bucket_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">bucket_key</span><span class="p">)</span>
@@ -681,13 +697,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span> <span class="o">=</span> <span class="n">bucket_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bucket_key</span> <span class="o">=</span> <span class="n">bucket_key</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wildcard_match</span> <span class="o">=</span> <span class="n">wildcard_match</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span> <span class="o">=</span> <span class="n">s3_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">airflow.hooks.S3_hook</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">S3_hook</span><span class="o">.</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">airflow.hooks.S3_hook</span> <span class="k">import</span> <span class="n">S3Hook</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
         <span class="n">full_url</span> <span class="o">=</span> <span class="s2">&quot;s3://&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bucket_key</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for key : </span><span class="si">{full_url}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for key : </span><span class="si">{full_url}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wildcard_match</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">check_for_wildcard_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket_key</span><span class="p">,</span>
                                                <span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span><span class="p">)</span>
@@ -718,21 +734,21 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span>
             <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">,</span>
-            <span class="n">s3_conn_id</span><span class="o">=</span><span class="s1">&#39;s3_default&#39;</span><span class="p">,</span>
+            <span class="n">aws_conn_id</span><span class="o">=</span><span class="s1">&#39;aws_default&#39;</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">S3PrefixSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">S3PrefixSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Parse</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bucket_name</span> <span class="o">=</span> <span class="n">bucket_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">=</span> <span class="n">delimiter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">full_url</span> <span class="o">=</span> <span class="s2">&quot;s3://&quot;</span> <span class="o">+</span> <span class="n">bucket_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">prefix</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span> <span class="o">=</span> <span class="n">s3_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for prefix : </span><span class="si">{self.prefix}</span><span class="se">\n</span><span class="s1">&#39;</span>
-                     <span class="s1">&#39;in bucket s3://</span><span class="si">{self.bucket_name}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
-        <span class="kn">import</span> <span class="nn">airflow.hooks.S3_hook</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">airflow</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">S3_hook</span><span class="o">.</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">s3_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_conn_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking for prefix : </span><span class="si">{self.prefix}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                      <span class="s1">&#39;in bucket s3://</span><span class="si">{self.bucket_name}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="kn">from</span> <span class="nn">airflow.hooks.S3_hook</span> <span class="k">import</span> <span class="n">S3Hook</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">check_for_prefix</span><span class="p">(</span>
             <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
             <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">,</span>
@@ -750,13 +766,12 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_time</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TimeSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TimeSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_time</span> <span class="o">=</span> <span class="n">target_time</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s1">&#39;Checking if the time (</span><span class="si">{0}</span><span class="s1">) has come&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_time</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking if the time (</span><span class="si">%s</span><span class="s1">) has come&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_time</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_time</span>
 
 
 <span class="k">class</span> <span class="nc">TimeDeltaSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
@@ -773,15 +788,15 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TimeDeltaSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TimeDeltaSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">dag</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;dag&#39;</span><span class="p">]</span>
         <span class="n">target_dttm</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">following_schedule</span><span class="p">(</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;execution_date&#39;</span><span class="p">])</span>
         <span class="n">target_dttm</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking if the time (</span><span class="si">{0}</span><span class="s1">) has come&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">target_dttm</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">target_dttm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking if the time (</span><span class="si">%s</span><span class="s1">) has come&#39;</span><span class="p">,</span> <span class="n">target_dttm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">target_dttm</span>
 
 
 <span class="k">class</span> <span class="nc">HttpSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
@@ -791,10 +806,12 @@
 
 <span class="sd">    :param http_conn_id: The connection to run the sensor against</span>
 <span class="sd">    :type http_conn_id: string</span>
+<span class="sd">    :param method: The HTTP request method to use</span>
+<span class="sd">    :type method: string</span>
 <span class="sd">    :param endpoint: The relative part of the full url</span>
 <span class="sd">    :type endpoint: string</span>
-<span class="sd">    :param params: The parameters to be added to the GET url</span>
-<span class="sd">    :type params: a dictionary of string key/value pairs</span>
+<span class="sd">    :param request_params: The parameters to be added to the GET url</span>
+<span class="sd">    :type request_params: a dictionary of string key/value pairs</span>
 <span class="sd">    :param headers: The HTTP headers to be added to the GET request</span>
 <span class="sd">    :type headers: a dictionary of string key/value pairs</span>
 <span class="sd">    :param response_check: A check against the &#39;requests&#39; response object.</span>
@@ -806,31 +823,34 @@
 <span class="sd">        depends on the option that&#39;s being modified.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">,)</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">,</span> <span class="s1">&#39;request_params&#39;</span><span class="p">)</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">endpoint</span><span class="p">,</span>
                  <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;http_default&#39;</span><span class="p">,</span>
-                 <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+                 <span class="n">request_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">response_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">extra_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">HttpSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HttpSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="n">endpoint</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">http_conn_id</span> <span class="o">=</span> <span class="n">http_conn_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_params</span> <span class="o">=</span> <span class="n">request_params</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">extra_options</span> <span class="o">=</span> <span class="n">extra_options</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">response_check</span> <span class="o">=</span> <span class="n">response_check</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hooks</span><span class="o">.</span><span class="n">http_hook</span><span class="o">.</span><span class="n">HttpHook</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">http_conn_id</span><span class="o">=</span><span class="n">http_conn_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">HttpHook</span><span class="p">(</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">http_conn_id</span><span class="o">=</span><span class="n">http_conn_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Poking: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endpoint</span><span class="p">,</span>
-                                     <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
+                                     <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_params</span><span class="p">,</span>
                                      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                                      <span class="n">extra_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">extra_options</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_check</span><span class="p">:</span>

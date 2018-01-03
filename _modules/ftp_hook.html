@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -80,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
@@ -179,10 +184,11 @@
 
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">ftplib</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os.path</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
 <span class="kn">from</span> <span class="nn">past.builtins</span> <span class="k">import</span> <span class="n">basestring</span>
+
+<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
 
 
 <span class="k">def</span> <span class="nf">mlsd</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">facts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -218,7 +224,7 @@
         <span class="k">yield</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="FTPHook"><a class="viewcode-back" href="../code.html#airflow.contrib.hooks.FTPHook">[docs]</a><span class="k">class</span> <span class="nc">FTPHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
+<div class="viewcode-block" id="FTPHook"><a class="viewcode-back" href="../code.html#airflow.contrib.hooks.FTPHook">[docs]</a><span class="k">class</span> <span class="nc">FTPHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interact with FTP.</span>
 
@@ -330,10 +336,9 @@
 
         <span class="n">remote_path</span><span class="p">,</span> <span class="n">remote_file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">remote_full_path</span><span class="p">)</span>
         <span class="n">conn</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">remote_path</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Retrieving file from FTP: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">remote_full_path</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Retrieving file from FTP: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">remote_full_path</span><span class="p">)</span>
         <span class="n">conn</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="s1">&#39;RETR </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">remote_file_name</span><span class="p">,</span> <span class="n">output_handle</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished retrieving file from FTP: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">remote_full_path</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished retrieving file from FTP: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">remote_full_path</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">is_path</span><span class="p">:</span>
             <span class="n">output_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
@@ -390,7 +395,12 @@
     <span class="k">def</span> <span class="nf">get_mod_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">ftp_mdtm</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">sendcmd</span><span class="p">(</span><span class="s1">&#39;MDTM &#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">ftp_mdtm</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">)</span></div>
+        <span class="n">time_val</span> <span class="o">=</span> <span class="n">ftp_mdtm</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+        <span class="c1"># time_val optionally has microseconds</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">time_val</span><span class="p">,</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">time_val</span><span class="p">,</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">)</span></div>
 
 
 <span class="k">class</span> <span class="nc">FTPSHook</span><span class="p">(</span><span class="n">FTPHook</span><span class="p">):</span>
@@ -401,9 +411,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ftp_conn_id</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+               <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP_TLS</span><span class="o">.</span><span class="n">port</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">port</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP_TLS</span><span class="p">(</span>
                 <span class="n">params</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">password</span>
             <span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span>
 </pre></div>
 

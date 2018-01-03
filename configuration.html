@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -81,7 +83,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="start.html">Quick Start</a></li>
@@ -92,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-a-backend">Setting up a Backend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#connections">Connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scaling-out-with-celery">Scaling Out with Celery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scaling-out-with-dask">Scaling Out with Dask</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logs">Logs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scaling-out-on-mesos-community-contributed">Scaling Out on Mesos (community contributed)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-with-systemd">Integration with systemd</a></li>
@@ -180,7 +186,7 @@ building a production-grade environment requires a bit more work!</p>
 <div class="section" id="setting-configuration-options">
 <span id="setting-options"></span><h2>Setting Configuration Options<a class="headerlink" href="#setting-configuration-options" title="Permalink to this headline">¶</a></h2>
 <p>The first time you run Airflow, it will create a file called <code class="docutils literal"><span class="pre">airflow.cfg</span></code> in
-your <code class="docutils literal"><span class="pre">$AIRFLOW_HOME</span></code> directory (<code class="docutils literal"><span class="pre">~/airflow</span></code> by default). This file contains Airflow&#8217;s configuration and you
+your <code class="docutils literal"><span class="pre">$AIRFLOW_HOME</span></code> directory (<code class="docutils literal"><span class="pre">~/airflow</span></code> by default). This file contains Airflow’s configuration and you
 can edit it to change any of the settings. You can also set options with environment variables by using this format:
 <code class="docutils literal"><span class="pre">$AIRFLOW__{SECTION}__{KEY}</span></code> (note the double underscores).</p>
 <p>For example, the
@@ -222,10 +228,10 @@ specific schema in the Postgres connection URI, you may
 want to set a default schema for your role with a
 command similar to <code class="docutils literal"><span class="pre">ALTER</span> <span class="pre">ROLE</span> <span class="pre">username</span> <span class="pre">SET</span> <span class="pre">search_path</span> <span class="pre">=</span> <span class="pre">airflow,</span> <span class="pre">foobar;</span></code></p>
 </div>
-<p>Once you&#8217;ve setup your database to host Airflow, you&#8217;ll need to alter the
+<p>Once you’ve setup your database to host Airflow, you’ll need to alter the
 SqlAlchemy connection string located in your configuration file
-<code class="docutils literal"><span class="pre">$AIRFLOW_HOME/airflow.cfg</span></code>. You should then also change the &#8220;executor&#8221;
-setting to use &#8220;LocalExecutor&#8221;, an executor that can parallelize task
+<code class="docutils literal"><span class="pre">$AIRFLOW_HOME/airflow.cfg</span></code>. You should then also change the “executor”
+setting to use “LocalExecutor”, an executor that can parallelize task
 instances locally.</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># initialize the database</span>
 airflow initdb
@@ -237,12 +243,35 @@ airflow initdb
 <p>Airflow needs to know how to connect to your environment. Information
 such as hostname, port, login and passwords to other systems and services is
 handled in the <code class="docutils literal"><span class="pre">Admin-&gt;Connection</span></code> section of the UI. The pipeline code you
-will author will reference the &#8216;conn_id&#8217; of the Connection objects.</p>
+will author will reference the ‘conn_id’ of the Connection objects.</p>
 <img alt="_images/connections.png" src="_images/connections.png" />
 <p>By default, Airflow will save the passwords for the connection in plain text
 within the metadata database. The <code class="docutils literal"><span class="pre">crypto</span></code> package is highly recommended
 during installation. The <code class="docutils literal"><span class="pre">crypto</span></code> package does require that your operating
 system have libffi-dev installed.</p>
+<p>If <code class="docutils literal"><span class="pre">crypto</span></code> package was not installed initially, you can still enable encryption for
+connections by following steps below:</p>
+<ol class="arabic simple">
+<li>Install crypto package <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">apache-airflow[crypto]</span></code></li>
+<li>Generate fernet_key, using this code snippet below. fernet_key must be a base64-encoded 32-byte key.</li>
+</ol>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cryptography.fernet</span> <span class="k">import</span> <span class="n">Fernet</span>
+<span class="n">fernet_key</span><span class="o">=</span> <span class="n">Fernet</span><span class="o">.</span><span class="n">generate_key</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fernet_key</span><span class="p">)</span> <span class="c1"># your fernet_key, keep it in secured place!</span>
+</pre></div>
+</div>
+<p>3. Replace <code class="docutils literal"><span class="pre">airflow.cfg</span></code> fernet_key value with the one from step 2.
+Alternatively, you can store your fernet_key in OS environment variable. You
+do not need to change <code class="docutils literal"><span class="pre">airflow.cfg</span></code> in this case as AirFlow will use environment
+variable over the value in <code class="docutils literal"><span class="pre">airflow.cfg</span></code>:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Note the double underscores</span>
+EXPORT <span class="nv">AIRFLOW__CORE__FERNET_KEY</span> <span class="o">=</span> your_fernet_key
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li>Restart AirFlow webserver.</li>
+<li>For existing connections (the ones that you had defined before installing <code class="docutils literal"><span class="pre">airflow[crypto]</span></code> and creating a Fernet key), you need to open each connection in the connection admin UI, re-type the password, and save it.</li>
+</ol>
 <p>Connections in Airflow pipelines can be created using environment variables.
 The environment variable needs to have a prefix of <code class="docutils literal"><span class="pre">AIRFLOW_CONN_</span></code> for
 Airflow with the value in a URI format to use the connection properly. Please
@@ -252,7 +281,7 @@ variables and connections.</p>
 <div class="section" id="scaling-out-with-celery">
 <h2>Scaling Out with Celery<a class="headerlink" href="#scaling-out-with-celery" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal"><span class="pre">CeleryExecutor</span></code> is one of the ways you can scale out the number of workers. For this
-to work, you need to setup a Celery backend (<strong>RabbitMQ</strong>, <strong>Redis</strong>, ...) and
+to work, you need to setup a Celery backend (<strong>RabbitMQ</strong>, <strong>Redis</strong>, …) and
 change your <code class="docutils literal"><span class="pre">airflow.cfg</span></code> to point the executor parameter to
 <code class="docutils literal"><span class="pre">CeleryExecutor</span></code> and provide the related Celery settings.</p>
 <p>For more information about setting up a Celery broker, refer to the
@@ -280,9 +309,36 @@ subcommand</p>
 </div>
 <p>Your worker should start picking up tasks as soon as they get fired in
 its direction.</p>
-<p>Note that you can also run &#8220;Celery Flower&#8221;, a web UI built on top of Celery,
+<p>Note that you can also run “Celery Flower”, a web UI built on top of Celery,
 to monitor your workers. You can use the shortcut command <code class="docutils literal"><span class="pre">airflow</span> <span class="pre">flower</span></code>
 to start a Flower web server.</p>
+</div>
+<div class="section" id="scaling-out-with-dask">
+<h2>Scaling Out with Dask<a class="headerlink" href="#scaling-out-with-dask" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">DaskExecutor</span></code> allows you to run Airflow tasks in a Dask Distributed cluster.</p>
+<p>Dask clusters can be run on a single machine or on remote networks. For complete
+details, consult the <a class="reference external" href="https://distributed.readthedocs.io/">Distributed documentation</a>.</p>
+<p>To create a cluster, first start a Scheduler:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># default settings for a local cluster</span>
+<span class="nv">DASK_HOST</span><span class="o">=</span><span class="m">127</span>.0.0.1
+<span class="nv">DASK_PORT</span><span class="o">=</span><span class="m">8786</span>
+
+dask-scheduler --host <span class="nv">$DASK_HOST</span> --port <span class="nv">$DASK_PORT</span>
+</pre></div>
+</div>
+<p>Next start at least one Worker on any machine that can connect to the host:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>dask-worker <span class="nv">$DASK_HOST</span>:<span class="nv">$DASK_PORT</span>
+</pre></div>
+</div>
+<p>Edit your <code class="docutils literal"><span class="pre">airflow.cfg</span></code> to set your executor to <code class="docutils literal"><span class="pre">DaskExecutor</span></code> and provide
+the Dask Scheduler address in the <code class="docutils literal"><span class="pre">[dask]</span></code> section.</p>
+<p>Please note:</p>
+<ul class="simple">
+<li>Each Dask worker must be able to import Airflow and any dependencies you
+require.</li>
+<li>Dask does not support queues. If an Airflow task was created with a queue, a
+warning will be raised but the task will be submitted to the cluster.</li>
+</ul>
 </div>
 <div class="section" id="logs">
 <h2>Logs<a class="headerlink" href="#logs" title="Permalink to this headline">¶</a></h2>
@@ -302,13 +358,14 @@ To enable this feature, <code class="docutils literal"><span class="pre">airflow
 <span class="nv">encrypt_s3_logs</span> <span class="o">=</span> False
 </pre></div>
 </div>
-<p>Remote logging uses an existing Airflow connection to read/write logs. If you don&#8217;t
+<p>Remote logging uses an existing Airflow connection to read/write logs. If you don’t
 have a connection properly setup, this will fail. In the above example, Airflow will
 try to use <code class="docutils literal"><span class="pre">S3Hook('MyS3Conn')</span></code>.</p>
 <p>In the Airflow Web UI, local logs take precedance over remote logs. If local logs
 can not be found or accessed, the remote logs will be displayed. Note that logs
 are only sent to remote storage once a task completes (including failure). In other
-words, remote logs for running tasks are unavailable.</p>
+words, remote logs for running tasks are unavailable. Logs are stored in the log
+folder as <code class="docutils literal"><span class="pre">{dag_id}/{task_id}/{execution_date}/{try_number}.log</span></code>.</p>
 </div>
 <div class="section" id="scaling-out-on-mesos-community-contributed">
 <h2>Scaling Out on Mesos (community contributed)<a class="headerlink" href="#scaling-out-on-mesos-community-contributed" title="Permalink to this headline">¶</a></h2>
@@ -317,7 +374,7 @@ For this to work, you need a running mesos cluster and you must perform the foll
 steps -</p>
 <ol class="arabic simple">
 <li>Install airflow on a machine where web server and scheduler will run,
-let&#8217;s refer to this as the &#8220;Airflow server&#8221;.</li>
+let’s refer to this as the “Airflow server”.</li>
 <li>On the Airflow server, install mesos python eggs from <a class="reference external" href="http://open.mesosphere.com/downloads/mesos/">mesos downloads</a>.</li>
 <li>On the Airflow server, use a database (such as mysql) which can be accessed from mesos
 slave machines and add configuration in <code class="docutils literal"><span class="pre">airflow.cfg</span></code>.</li>
@@ -374,7 +431,7 @@ integrated with upstart</p>
 </div>
 <div class="section" id="test-mode">
 <h2>Test Mode<a class="headerlink" href="#test-mode" title="Permalink to this headline">¶</a></h2>
-<p>Airflow has a fixed set of &#8220;test mode&#8221; configuration options. You can load these
+<p>Airflow has a fixed set of “test mode” configuration options. You can load these
 at any time by calling <code class="docutils literal"><span class="pre">airflow.configuration.load_test_config()</span></code> (note this
 operation is not reversible!). However, some options (like the DAG_FOLDER) are
 loaded before you have a chance to call load_test_config(). In order to eagerly load
@@ -383,7 +440,7 @@ the test configuration, set test_mode in airflow.cfg:</p>
 <span class="nv">unit_test_mode</span> <span class="o">=</span> True
 </pre></div>
 </div>
-<p>Due to Airflow&#8217;s automatic environment variable expansion (see <a class="reference internal" href="#setting-options"><span class="std std-ref">Setting Configuration Options</span></a>),
+<p>Due to Airflow’s automatic environment variable expansion (see <a class="reference internal" href="#setting-options"><span class="std std-ref">Setting Configuration Options</span></a>),
 you can also set the env var <code class="docutils literal"><span class="pre">AIRFLOW__CORE__UNIT_TEST_MODE</span></code> to temporarily overwrite
 airflow.cfg.</p>
 </div>

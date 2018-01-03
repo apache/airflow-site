@@ -110,7 +110,7 @@ Airflow provides operators for many common tasks, including:
 - ``PythonOperator`` - calls an arbitrary Python function
 - ``EmailOperator`` - sends an email
 - ``HTTPOperator`` - sends an HTTP request
-- ``SqlOperator`` - executes a SQL command
+- ``MySqlOperator``, ``SqliteOperator``, ``PostgresOperator``, ``MsSqlOperator``, ``OracleOperator``, ``JdbcOperator``, etc. - executes a SQL command
 - ``Sensor`` - waits for a certain time, file, database row, S3 key, etc...
 
 
@@ -207,8 +207,7 @@ We can put this all together to build a simple pipeline:
 
     with DAG('my_dag', start_date=datetime(2016, 1, 1)) as dag:
         (
-            dag
-            >> DummyOperator(task_id='dummy_1')
+            DummyOperator(task_id='dummy_1')
             >> BashOperator(
                 task_id='bash_1',
                 bash_command='echo "HELLO!"')
@@ -756,6 +755,8 @@ to the related tasks in Airflow.
 This content will get rendered as markdown respectively in the "Graph View" and
 "Task Details" pages.
 
+.. _jinja-templating:
+
 Jinja Templating
 ================
 
@@ -781,7 +782,8 @@ Here, ``{{ ds }}`` is a macro, and because the ``env`` parameter of the
 as an environment variable named ``EXECUTION_DATE`` in your Bash script.
 
 You can use Jinja templating with every parameter that is marked as "templated"
-in the documentation.
+in the documentation. Template substitution occurs just before the pre_execute
+function of your operator is called.
 
 Packaged dags
 '''''''''''''

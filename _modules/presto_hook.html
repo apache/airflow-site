@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -80,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
@@ -177,15 +182,11 @@
 <span class="c1"># limitations under the License.</span>
 
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">str</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">pyhive</span> <span class="k">import</span> <span class="n">presto</span>
 <span class="kn">from</span> <span class="nn">pyhive.exc</span> <span class="k">import</span> <span class="n">DatabaseError</span>
 
 <span class="kn">from</span> <span class="nn">airflow.hooks.dbapi_hook</span> <span class="k">import</span> <span class="n">DbApiHook</span>
-
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;pyhive&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-
 
 <span class="k">class</span> <span class="nc">PrestoException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span>
@@ -218,6 +219,19 @@
     <span class="k">def</span> <span class="nf">_strip_sql</span><span class="p">(</span><span class="n">sql</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">sql</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_get_pretty_exception_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses some DatabaseError to provide a better error message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="s1">&#39;errorName&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span>
+                <span class="ow">and</span> <span class="s1">&#39;message&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{name}</span><span class="s1">: </span><span class="si">{message}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;errorName&#39;</span><span class="p">],</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
 <div class="viewcode-block" id="PrestoHook.get_records"><a class="viewcode-back" href="../code.html#airflow.hooks.PrestoHook.get_records">[docs]</a>    <span class="k">def</span> <span class="nf">get_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a set of records from Presto</span>
@@ -226,14 +240,7 @@
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrestoHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_records</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_strip_sql</span><span class="p">(</span><span class="n">hql</span><span class="p">),</span> <span class="n">parameters</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">DatabaseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">)</span> <span class="ow">and</span>
-                <span class="s1">&#39;errorName&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span> <span class="ow">and</span>
-                <span class="s1">&#39;message&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">):</span>
-                <span class="c1"># Use the structured error data in the raised exception</span>
-                <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{name}</span><span class="s1">: </span><span class="si">{message}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;errorName&#39;</span><span class="p">],</span> <span class="n">message</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+            <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_exception_message</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PrestoHook.get_first"><a class="viewcode-back" href="../code.html#airflow.hooks.PrestoHook.get_first">[docs]</a>    <span class="k">def</span> <span class="nf">get_first</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -244,7 +251,7 @@
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrestoHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_first</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_strip_sql</span><span class="p">(</span><span class="n">hql</span><span class="p">),</span> <span class="n">parameters</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">DatabaseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;message&#39;</span><span class="p">])</span></div>
+            <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_exception_message</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PrestoHook.get_pandas_df"><a class="viewcode-back" href="../code.html#airflow.hooks.PrestoHook.get_pandas_df">[docs]</a>    <span class="k">def</span> <span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -256,7 +263,7 @@
             <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_strip_sql</span><span class="p">(</span><span class="n">hql</span><span class="p">),</span> <span class="n">parameters</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">DatabaseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;message&#39;</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="n">PrestoException</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_exception_message</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
         <span class="n">column_descriptions</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>

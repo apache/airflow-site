@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -80,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../start.html">Quick Start</a></li>
@@ -177,9 +182,12 @@
 <span class="c1"># limitations under the License.</span>
 
 <span class="kn">from</span> <span class="nn">future</span> <span class="k">import</span> <span class="n">standard_library</span>
+
+<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
+<span class="kn">from</span> <span class="nn">airflow.www.utils</span> <span class="k">import</span> <span class="n">LoginMixin</span>
+
 <span class="n">standard_library</span><span class="o">.</span><span class="n">install_aliases</span><span class="p">()</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">str</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">queue</span> <span class="k">import</span> <span class="n">Queue</span>
 
 <span class="kn">import</span> <span class="nn">mesos.interface</span>
@@ -205,7 +213,7 @@
 
 <span class="c1"># AirflowMesosScheduler, implements Mesos Scheduler interface</span>
 <span class="c1"># To schedule airflow jobs on mesos</span>
-<span class="k">class</span> <span class="nc">AirflowMesosScheduler</span><span class="p">(</span><span class="n">mesos</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">Scheduler</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">AirflowMesosScheduler</span><span class="p">(</span><span class="n">mesos</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">Scheduler</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Airflow Mesos scheduler implements mesos scheduler interface</span>
 <span class="sd">    to schedule airflow tasks on mesos.</span>
@@ -213,7 +221,6 @@
 <span class="sd">    &#39;airflow run &lt;dag_id&gt; &lt;task_instance_id&gt; &lt;start_date&gt; --local -p=&lt;pickle&gt;&#39;</span>
 <span class="sd">    to run on a mesos slave.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">task_queue</span><span class="p">,</span>
                  <span class="n">result_queue</span><span class="p">,</span>
@@ -227,7 +234,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">task_key_map</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="nf">registered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">frameworkId</span><span class="p">,</span> <span class="n">masterInfo</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler registered to mesos with framework ID </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">frameworkId</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler registered to Mesos with framework ID </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">frameworkId</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;CHECKPOINT&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;FAILOVER_TIMEOUT&#39;</span><span class="p">):</span>
             <span class="c1"># Import here to work around a circular import error</span>
@@ -248,25 +255,25 @@
             <span class="n">Session</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">reregistered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">masterInfo</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler re-registered to mesos&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler re-registered to mesos&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">disconnected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler disconnected from mesos&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler disconnected from mesos&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">offerRescinded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">offerId</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler offer </span><span class="si">%s</span><span class="s2"> rescinded&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">offerId</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler offer </span><span class="si">%s</span><span class="s2"> rescinded&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">offerId</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">frameworkMessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">executorId</span><span class="p">,</span> <span class="n">slaveId</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler received framework message </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler received framework message </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">executorLost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">executorId</span><span class="p">,</span> <span class="n">slaveId</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler executor </span><span class="si">%s</span><span class="s2"> lost&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">executorId</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler executor </span><span class="si">%s</span><span class="s2"> lost&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">executorId</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">slaveLost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">slaveId</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler slave </span><span class="si">%s</span><span class="s2"> lost&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">slaveId</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler slave </span><span class="si">%s</span><span class="s2"> lost&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">slaveId</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler driver aborted </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler driver aborted </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;AirflowScheduler driver aborted </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">resourceOffers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">offers</span><span class="p">):</span>
@@ -280,7 +287,7 @@
                 <span class="k">elif</span> <span class="n">resource</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;mem&quot;</span><span class="p">:</span>
                     <span class="n">offerMem</span> <span class="o">+=</span> <span class="n">resource</span><span class="o">.</span><span class="n">scalar</span><span class="o">.</span><span class="n">value</span>
 
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received offer </span><span class="si">%s</span><span class="s2"> with cpus: </span><span class="si">%s</span><span class="s2"> and mem: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">offer</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">offerCpus</span><span class="p">,</span> <span class="n">offerMem</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received offer </span><span class="si">%s</span><span class="s2"> with cpus: </span><span class="si">%s</span><span class="s2"> and mem: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">offer</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">offerCpus</span><span class="p">,</span> <span class="n">offerMem</span><span class="p">)</span>
 
             <span class="n">remainingCpus</span> <span class="o">=</span> <span class="n">offerCpus</span>
             <span class="n">remainingMem</span> <span class="o">=</span> <span class="n">offerMem</span>
@@ -293,7 +300,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">task_counter</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">task_key_map</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">tid</span><span class="p">)]</span> <span class="o">=</span> <span class="n">key</span>
 
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching task </span><span class="si">%d</span><span class="s2"> using offer </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">tid</span><span class="p">,</span> <span class="n">offer</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching task </span><span class="si">%d</span><span class="s2"> using offer </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">tid</span><span class="p">,</span> <span class="n">offer</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
                 <span class="n">task</span> <span class="o">=</span> <span class="n">mesos_pb2</span><span class="o">.</span><span class="n">TaskInfo</span><span class="p">()</span>
                 <span class="n">task</span><span class="o">.</span><span class="n">task_id</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tid</span><span class="p">)</span>
@@ -323,15 +330,17 @@
             <span class="n">driver</span><span class="o">.</span><span class="n">launchTasks</span><span class="p">(</span><span class="n">offer</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">tasks</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">statusUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver</span><span class="p">,</span> <span class="n">update</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Task </span><span class="si">%s</span><span class="s2"> is in state </span><span class="si">%s</span><span class="s2">, data </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
-                     <span class="n">update</span><span class="o">.</span><span class="n">task_id</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">mesos_pb2</span><span class="o">.</span><span class="n">TaskState</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="n">update</span><span class="o">.</span><span class="n">state</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">update</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Task </span><span class="si">%s</span><span class="s2"> is in state </span><span class="si">%s</span><span class="s2">, data </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">update</span><span class="o">.</span><span class="n">task_id</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">mesos_pb2</span><span class="o">.</span><span class="n">TaskState</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="n">update</span><span class="o">.</span><span class="n">state</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">update</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_key_map</span><span class="p">[</span><span class="n">update</span><span class="o">.</span><span class="n">task_id</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="c1"># The map may not contain an item if the framework re-registered after a failover.</span>
             <span class="c1"># Discard these tasks.</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Unrecognised task key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">update</span><span class="o">.</span><span class="n">task_id</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unrecognised task key </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">update</span><span class="o">.</span><span class="n">task_id</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="k">if</span> <span class="n">update</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">mesos_pb2</span><span class="o">.</span><span class="n">TASK_FINISHED</span><span class="p">:</span>
@@ -345,7 +354,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="MesosExecutor"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.executors.mesos_executor.MesosExecutor">[docs]</a><span class="k">class</span> <span class="nc">MesosExecutor</span><span class="p">(</span><span class="n">BaseExecutor</span><span class="p">):</span>
+<div class="viewcode-block" id="MesosExecutor"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.executors.mesos_executor.MesosExecutor">[docs]</a><span class="k">class</span> <span class="nc">MesosExecutor</span><span class="p">(</span><span class="n">BaseExecutor</span><span class="p">,</span> <span class="n">LoginMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    MesosExecutor allows distributing the execution of task</span>
 <span class="sd">    instances to multiple mesos workers.</span>
@@ -356,7 +365,6 @@
 <span class="sd">    elastic distributed systems to easily be built and run effectively.</span>
 <span class="sd">    See http://mesos.apache.org/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
@@ -364,7 +372,7 @@
         <span class="n">framework</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;MASTER&#39;</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expecting mesos master URL for mesos executor&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expecting mesos master URL for mesos executor&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;mesos.master not provided for mesos executor&quot;</span><span class="p">)</span>
 
         <span class="n">master</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;MASTER&#39;</span><span class="p">)</span>
@@ -400,17 +408,19 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">framework</span><span class="o">.</span><span class="n">checkpoint</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;MesosFramework master : </span><span class="si">%s</span><span class="s1">, name : </span><span class="si">%s</span><span class="s1">, cpu : </span><span class="si">%s</span><span class="s1">, mem : </span><span class="si">%s</span><span class="s1">, checkpoint : </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-            <span class="n">master</span><span class="p">,</span> <span class="n">framework</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">task_cpu</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">task_memory</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">framework</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;MesosFramework master : </span><span class="si">%s</span><span class="s1">, name : </span><span class="si">%s</span><span class="s1">, cpu : </span><span class="si">%s</span><span class="s1">, mem : </span><span class="si">%s</span><span class="s1">, checkpoint : </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">master</span><span class="p">,</span> <span class="n">framework</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">task_cpu</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">task_memory</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">framework</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="n">implicit_acknowledgements</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;AUTHENTICATE&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;DEFAULT_PRINCIPAL&#39;</span><span class="p">):</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expecting authentication principal in the environment&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expecting authentication principal in the environment&quot;</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;mesos.default_principal not provided in authenticated mode&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mesos&#39;</span><span class="p">,</span> <span class="s1">&#39;DEFAULT_SECRET&#39;</span><span class="p">):</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expecting authentication secret in the environment&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expecting authentication secret in the environment&quot;</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;mesos.default_secret not provided in authenticated mode&quot;</span><span class="p">)</span>
 
             <span class="n">credential</span> <span class="o">=</span> <span class="n">mesos_pb2</span><span class="o">.</span><span class="n">Credential</span><span class="p">()</span>

@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../../search.html"/>
     <link rel="top" title="Airflow Documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -76,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../start.html">Quick Start</a></li>
@@ -90,6 +99,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -104,8 +115,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../../index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Airflow</a>
+        
       </nav>
 
 
@@ -118,19 +131,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
-      
-    <li>airflow.contrib.operators.bigquery_operator</li>
+        
+      <li>airflow.contrib.operators.bigquery_operator</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -151,16 +181,47 @@
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-
-<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.bigquery_hook</span> <span class="kn">import</span> <span class="n">BigQueryHook</span>
-<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="kn">import</span> <span class="n">apply_defaults</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.bigquery_hook</span> <span class="k">import</span> <span class="n">BigQueryHook</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
 
 
-<div class="viewcode-block" id="BigQueryOperator"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.bigquery_operator.BigQueryOperator">[docs]</a><span class="k">class</span> <span class="nc">BigQueryOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<div class="viewcode-block" id="BigQueryOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryOperator">[docs]</a><span class="k">class</span> <span class="nc">BigQueryOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Executes BigQuery SQL queries in a specific BigQuery database</span>
+
+<span class="sd">    :param bql: the sql code to be executed</span>
+<span class="sd">    :type bql: Can receive a str representing a sql statement,</span>
+<span class="sd">        a list of str (sql statements), or reference to a template file.</span>
+<span class="sd">        Template reference are recognized by str ending in &#39;.sql&#39;</span>
+<span class="sd">    :param destination_dataset_table: A dotted</span>
+<span class="sd">        (&lt;project&gt;.|&lt;project&gt;:)&lt;dataset&gt;.&lt;table&gt; that, if set, will store the results</span>
+<span class="sd">        of the query.</span>
+<span class="sd">    :type destination_dataset_table: string</span>
+<span class="sd">    :param write_disposition: Specifies the action that occurs if the destination table</span>
+<span class="sd">        already exists. (default: &#39;WRITE_EMPTY&#39;)</span>
+<span class="sd">    :type write_disposition: string</span>
+<span class="sd">    :param create_disposition: Specifies whether the job is allowed to create new tables.</span>
+<span class="sd">        (default: &#39;CREATE_IF_NEEDED&#39;)</span>
+<span class="sd">    :type create_disposition: string</span>
+<span class="sd">    :param bigquery_conn_id: reference to a specific BigQuery hook.</span>
+<span class="sd">    :type bigquery_conn_id: string</span>
+<span class="sd">    :param delegate_to: The account to impersonate, if any.</span>
+<span class="sd">        For this to work, the service account making the request must have domain-wide</span>
+<span class="sd">        delegation enabled.</span>
+<span class="sd">    :type delegate_to: string</span>
+<span class="sd">    :param udf_config: The User Defined Function configuration for the query.</span>
+<span class="sd">        See https://cloud.google.com/bigquery/user-defined-functions for details.</span>
+<span class="sd">    :type udf_config: list</span>
+<span class="sd">    :param use_legacy_sql: Whether to use legacy SQL (true) or standard SQL (false).</span>
+<span class="sd">    :type use_legacy_sql: boolean</span>
+<span class="sd">    :param maximum_billing_tier: Positive integer that serves as a multiplier of the basic price.</span>
+<span class="sd">        Defaults to None, in which case it uses the value set in the project.</span>
+<span class="sd">    :type maximum_billing_tier: integer</span>
+<span class="sd">    :param query_params: a dictionary containing query parameter types and values, passed to</span>
+<span class="sd">        BigQuery.</span>
+<span class="sd">    :type query_params: dict</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bql&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_dataset_table&#39;</span><span class="p">)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sql&#39;</span><span class="p">,)</span>
@@ -169,50 +230,46 @@
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">bql</span><span class="p">,</span>
-                 <span class="n">destination_dataset_table</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
-                 <span class="n">write_disposition</span> <span class="o">=</span> <span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
-                 <span class="n">allow_large_results</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">destination_dataset_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">write_disposition</span><span class="o">=</span><span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
+                 <span class="n">allow_large_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">bigquery_conn_id</span><span class="o">=</span><span class="s1">&#39;bigquery_default&#39;</span><span class="p">,</span>
-                 <span class="n">delegate_to</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                 <span class="n">udf_config</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">udf_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">maximum_billing_tier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
+                 <span class="n">query_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new BigQueryOperator.</span>
-
-<span class="sd">        :param bql: the sql code to be executed</span>
-<span class="sd">        :type bql: Can receive a str representing a sql statement,</span>
-<span class="sd">            a list of str (sql statements), or reference to a template file.</span>
-<span class="sd">            Template reference are recognized by str ending in &#39;.sql&#39;</span>
-<span class="sd">        :param destination_dataset_table: A dotted dataset.table that, if set,</span>
-<span class="sd">            will store the results of the query.</span>
-<span class="sd">        :type destination_dataset_table: string</span>
-<span class="sd">        :param bigquery_conn_id: reference to a specific BigQuery hook.</span>
-<span class="sd">        :type bigquery_conn_id: string</span>
-<span class="sd">        :param delegate_to: The account to impersonate, if any.</span>
-<span class="sd">            For this to work, the service account making the request must have domain-wide delegation enabled.</span>
-<span class="sd">        :type delegate_to: string</span>
-<span class="sd">        :param udf_config: The User Defined Function configuration for the query.</span>
-<span class="sd">            See https://cloud.google.com/bigquery/user-defined-functions for details.</span>
-<span class="sd">        :type udf_config: list</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bql</span> <span class="o">=</span> <span class="n">bql</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">destination_dataset_table</span> <span class="o">=</span> <span class="n">destination_dataset_table</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_disposition</span> <span class="o">=</span> <span class="n">write_disposition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_disposition</span> <span class="o">=</span> <span class="n">create_disposition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allow_large_results</span> <span class="o">=</span> <span class="n">allow_large_results</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span> <span class="o">=</span> <span class="n">bigquery_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">udf_config</span> <span class="o">=</span> <span class="n">udf_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span> <span class="o">=</span> <span class="n">use_legacy_sql</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum_billing_tier</span> <span class="o">=</span> <span class="n">maximum_billing_tier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_params</span> <span class="o">=</span> <span class="n">query_params</span>
 
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bql</span><span class="p">))</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span><span class="n">bigquery_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span><span class="p">,</span> <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bql</span><span class="p">)</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span><span class="n">bigquery_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span><span class="p">,</span>
+                            <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">cursor</span><span class="o">.</span><span class="n">run_query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bql</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_dataset_table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_disposition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_large_results</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">udf_config</span><span class="p">)</span></div>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">run_query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bql</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_dataset_table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_disposition</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">allow_large_results</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">udf_config</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximum_billing_tier</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">create_disposition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_params</span><span class="p">)</span></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -246,7 +303,8 @@
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../../_static/jquery.js"></script>

@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="Airflow Documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -76,7 +82,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
@@ -90,6 +99,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integration.html">Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../code.html">API Reference</a></li>
 </ul>
@@ -104,8 +115,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Airflow</a>
+        
       </nav>
 
 
@@ -118,19 +131,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="index.html">Module code</a> &raquo;</li>
-      
-    <li>hive_to_druid</li>
+        
+      <li>hive_to_druid</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -150,13 +180,13 @@
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.hive_hooks</span> <span class="k">import</span> <span class="n">HiveCliHook</span><span class="p">,</span> <span class="n">HiveMetastoreHook</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.druid_hook</span> <span class="k">import</span> <span class="n">DruidHook</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-
-<span class="kn">from</span> <span class="nn">airflow.hooks.hive_hooks</span> <span class="kn">import</span> <span class="n">HiveCliHook</span><span class="p">,</span> <span class="n">HiveMetastoreHook</span>
-<span class="kn">from</span> <span class="nn">airflow.hooks.druid_hook</span> <span class="kn">import</span> <span class="n">DruidHook</span>
-<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="kn">import</span> <span class="n">apply_defaults</span>
+<span class="n">LOAD_CHECK_INTERVAL</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">DEFAULT_TARGET_PARTITION_SIZE</span> <span class="o">=</span> <span class="mi">5000000</span>
 
 
 <div class="viewcode-block" id="HiveToDruidTransfer"><a class="viewcode-back" href="../code.html#airflow.operators.HiveToDruidTransfer">[docs]</a><span class="k">class</span> <span class="nc">HiveToDruidTransfer</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -189,7 +219,6 @@
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;intervals&#39;</span><span class="p">)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sql&#39;</span><span class="p">,)</span>
-    <span class="c1">#ui_color = &#39;#a0e08c&#39;</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -197,22 +226,26 @@
             <span class="n">sql</span><span class="p">,</span>
             <span class="n">druid_datasource</span><span class="p">,</span>
             <span class="n">ts_dim</span><span class="p">,</span>
-            <span class="n">metric_spec</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">metric_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="s1">&#39;hive_cli_default&#39;</span><span class="p">,</span>
             <span class="n">druid_ingest_conn_id</span><span class="o">=</span><span class="s1">&#39;druid_ingest_default&#39;</span><span class="p">,</span>
             <span class="n">metastore_conn_id</span><span class="o">=</span><span class="s1">&#39;metastore_default&#39;</span><span class="p">,</span>
-            <span class="n">hadoop_dependency_coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-            <span class="n">intervals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">hadoop_dependency_coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">intervals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">num_shards</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">target_partition_size</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">query_granularity</span><span class="o">=</span><span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
+            <span class="n">segment_granularity</span><span class="o">=</span><span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">HiveToDruidTransfer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HiveToDruidTransfer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sql</span> <span class="o">=</span> <span class="n">sql</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">druid_datasource</span> <span class="o">=</span> <span class="n">druid_datasource</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ts_dim</span> <span class="o">=</span> <span class="n">ts_dim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">intervals</span> <span class="ow">or</span> <span class="p">[</span><span class="s1">&#39;{{ ds }}/{{ tomorrow_ds }}&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span> <span class="o">=</span> <span class="n">num_shards</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_partition_size</span> <span class="o">=</span> <span class="n">target_partition_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query_granularity</span> <span class="o">=</span> <span class="n">query_granularity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">segment_granularity</span> <span class="o">=</span> <span class="n">segment_granularity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric_spec</span> <span class="o">=</span> <span class="n">metric_spec</span> <span class="ow">or</span> <span class="p">[{</span>
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;count&quot;</span><span class="p">,</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;count&quot;</span><span class="p">}]</span>
@@ -223,28 +256,30 @@
 
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hive</span> <span class="o">=</span> <span class="n">HiveCliHook</span><span class="p">(</span><span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_conn_id</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting data from Hive&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting data from Hive&quot;</span><span class="p">)</span>
         <span class="n">hive_table</span> <span class="o">=</span> <span class="s1">&#39;druid.&#39;</span> <span class="o">+</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;task_instance_key_str&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="n">sql</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
         <span class="n">hql</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">        set mapred.output.compress=false;</span>
-<span class="s2">        set hive.exec.compress.output=false;</span>
-<span class="s2">        DROP TABLE IF EXISTS {hive_table};</span>
-<span class="s2">        CREATE TABLE {hive_table}</span>
+<span class="s2">        SET mapred.output.compress=false;</span>
+<span class="s2">        SET hive.exec.compress.output=false;</span>
+<span class="s2">        DROP TABLE IF EXISTS </span><span class="si">{hive_table}</span><span class="s2">;</span>
+<span class="s2">        CREATE TABLE </span><span class="si">{hive_table}</span><span class="s2"></span>
 <span class="s2">        ROW FORMAT DELIMITED FIELDS TERMINATED BY  &#39;</span><span class="se">\t</span><span class="s2">&#39;</span>
 <span class="s2">        STORED AS TEXTFILE</span>
 <span class="s2">        TBLPROPERTIES (&#39;serialization.null.format&#39; = &#39;&#39;)</span>
 <span class="s2">        AS</span>
-<span class="s2">        {sql}</span>
+<span class="s2">        </span><span class="si">{sql}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running command:</span><span class="se">\n</span><span class="s2"> {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hql</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running command:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">hql</span><span class="p">)</span>
         <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span>
 
         <span class="n">m</span> <span class="o">=</span> <span class="n">HiveMetastoreHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span><span class="p">)</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
 
+        <span class="c1"># Get the Hive table and extract the columns</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">sd</span><span class="o">.</span><span class="n">cols</span><span class="p">]</span>
 
+        <span class="c1"># Get the path on hdfs</span>
         <span class="n">hdfs_uri</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span><span class="o">.</span><span class="n">sd</span><span class="o">.</span><span class="n">location</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">hdfs_uri</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;/user&#39;</span><span class="p">)</span>
         <span class="n">static_path</span> <span class="o">=</span> <span class="n">hdfs_uri</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span>
@@ -252,25 +287,112 @@
         <span class="n">schema</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="n">hive_table</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
 
         <span class="n">druid</span> <span class="o">=</span> <span class="n">DruidHook</span><span class="p">(</span><span class="n">druid_ingest_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">druid_ingest_conn_id</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserting rows into Druid&quot;</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;HDFS path: &quot;</span> <span class="o">+</span> <span class="n">static_path</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">druid</span><span class="o">.</span><span class="n">load_from_hdfs</span><span class="p">(</span>
-                <span class="n">datasource</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">druid_datasource</span><span class="p">,</span>
-                <span class="n">intervals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span>
-                <span class="n">static_path</span><span class="o">=</span><span class="n">static_path</span><span class="p">,</span> <span class="n">ts_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_dim</span><span class="p">,</span>
-                <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">num_shards</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span><span class="p">,</span> <span class="n">target_partition_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_partition_size</span><span class="p">,</span>
-                <span class="n">metric_spec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_spec</span><span class="p">,</span> <span class="n">hadoop_dependency_coordinates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Load seems to have succeeded!&quot;</span><span class="p">)</span>
+            <span class="n">index_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_ingest_query</span><span class="p">(</span>
+                <span class="n">static_path</span><span class="o">=</span><span class="n">static_path</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserting rows into Druid, hdfs path: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">static_path</span><span class="p">)</span>
+
+            <span class="n">druid</span><span class="o">.</span><span class="n">submit_indexing_job</span><span class="p">(</span><span class="n">index_spec</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Load seems to have succeeded!&quot;</span><span class="p">)</span>
         <span class="k">finally</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s2">&quot;Cleaning up by dropping the temp &quot;</span>
-                <span class="s2">&quot;Hive table {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">))</span>
-            <span class="n">hql</span> <span class="o">=</span> <span class="s2">&quot;DROP TABLE IF EXISTS {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
-            <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Cleaning up by dropping the temp Hive table </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">hive_table</span>
+            <span class="p">)</span>
+            <span class="n">hql</span> <span class="o">=</span> <span class="s2">&quot;DROP TABLE IF EXISTS </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
+            <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HiveToDruidTransfer.construct_ingest_query"><a class="viewcode-back" href="../code.html#airflow.operators.HiveToDruidTransfer.construct_ingest_query">[docs]</a>    <span class="k">def</span> <span class="nf">construct_ingest_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static_path</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds an ingest query for an HDFS TSV load.</span>
+
+<span class="sd">        :param static_path: The path on hdfs where the data is</span>
+<span class="sd">        :type static_path: str</span>
+<span class="sd">        :param columns: List of all the columns that are available</span>
+<span class="sd">        :type columns: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># backward compatibilty for num_shards, but target_partition_size is the default setting</span>
+        <span class="c1"># and overwrites the num_shards</span>
+        <span class="n">num_shards</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span>
+        <span class="n">target_partition_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_partition_size</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_partition_size</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">target_partition_size</span> <span class="o">=</span> <span class="n">DEFAULT_TARGET_PARTITION_SIZE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_shards</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">metric_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;fieldName&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_spec</span> <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;count&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Take all the columns, which are not the time dimension or a metric, as the dimension columns</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metric_names</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_dim</span><span class="p">]</span>
+
+        <span class="n">ingest_query_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;index_hadoop&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;spec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;dataSchema&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;metricsSpec&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_spec</span><span class="p">,</span>
+                    <span class="s2">&quot;granularitySpec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;queryGranularity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_granularity</span><span class="p">,</span>
+                        <span class="s2">&quot;intervals&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;segmentGranularity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_granularity</span><span class="p">,</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;parser&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;parseSpec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="n">columns</span><span class="p">,</span>
+                            <span class="s2">&quot;dimensionsSpec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;dimensionExclusions&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="n">dimensions</span><span class="p">,</span>  <span class="c1"># list of names</span>
+                                <span class="s2">&quot;spatialDimensions&quot;</span><span class="p">:</span> <span class="p">[]</span>
+                            <span class="p">},</span>
+                            <span class="s2">&quot;timestampSpec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_dim</span><span class="p">,</span>
+                                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span>
+                            <span class="p">},</span>
+                            <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;tsv&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;dataSource&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">druid_datasource</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;tuningConfig&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;hadoop&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;jobProperties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;mapreduce.job.user.classpath.first&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;mapreduce.map.output.compress&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;mapreduce.output.fileoutputformat.compress&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;partitionsSpec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;hashed&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;targetPartitionSize&quot;</span><span class="p">:</span> <span class="n">target_partition_size</span><span class="p">,</span>
+                        <span class="s2">&quot;numShards&quot;</span><span class="p">:</span> <span class="n">num_shards</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;ioConfig&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;inputSpec&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="n">static_path</span><span class="p">,</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;static&quot;</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;hadoop&quot;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span><span class="p">:</span>
+            <span class="n">ingest_query_dict</span><span class="p">[</span><span class="s1">&#39;hadoopDependencyCoordinates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span>
+
+        <span class="k">return</span> <span class="n">ingest_query_dict</span></div></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -304,7 +426,8 @@
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>
