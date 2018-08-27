@@ -91,7 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../howto/index.html">How-to Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../ui.html">UI / Screenshots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../profiling.html">Data Profiling</a></li>
@@ -99,8 +99,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -169,39 +171,45 @@
   <h1>Source code for airflow.contrib.hooks.bigquery_hook</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
-<span class="c1"># you may not use this file except in compliance with the License.</span>
-<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1"># </span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1"># </span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
 <span class="c1">#</span>
-<span class="c1"># http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="c1">#</span>
-<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
-<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
-<span class="c1"># See the License for the specific language governing permissions and</span>
-<span class="c1"># limitations under the License.</span>
-<span class="c1">#</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains a BigQuery Hook, as well as a very basic PEP 249</span>
 <span class="sd">implementation for BigQuery.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
-
-<span class="kn">from</span> <span class="nn">apiclient.discovery</span> <span class="k">import</span> <span class="n">build</span><span class="p">,</span> <span class="n">HttpError</span>
-<span class="kn">from</span> <span class="nn">googleapiclient</span> <span class="k">import</span> <span class="n">errors</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">pandas_gbq.gbq</span> <span class="k">import</span> <span class="n">GbqConnector</span><span class="p">,</span> \
-    <span class="n">_parse_data</span> <span class="k">as</span> <span class="n">gbq_parse_data</span><span class="p">,</span> \
-    <span class="n">_check_google_client_version</span> <span class="k">as</span> <span class="n">gbq_check_google_client_version</span><span class="p">,</span> \
-    <span class="n">_test_google_api_imports</span> <span class="k">as</span> <span class="n">gbq_test_google_api_imports</span>
-<span class="kn">from</span> <span class="nn">pandas.tools.merge</span> <span class="k">import</span> <span class="n">concat</span>
+
 <span class="kn">from</span> <span class="nn">past.builtins</span> <span class="k">import</span> <span class="n">basestring</span>
 
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_api_base_hook</span> <span class="k">import</span> <span class="n">GoogleCloudBaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.dbapi_hook</span> <span class="k">import</span> <span class="n">DbApiHook</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
+<span class="kn">from</span> <span class="nn">apiclient.discovery</span> <span class="k">import</span> <span class="n">HttpError</span><span class="p">,</span> <span class="n">build</span>
+<span class="kn">from</span> <span class="nn">googleapiclient</span> <span class="k">import</span> <span class="n">errors</span>
+<span class="kn">from</span> <span class="nn">pandas_gbq.gbq</span> <span class="k">import</span> \
+    <span class="n">_check_google_client_version</span> <span class="k">as</span> <span class="n">gbq_check_google_client_version</span>
+<span class="kn">from</span> <span class="nn">pandas_gbq</span> <span class="k">import</span> <span class="n">read_gbq</span>
+<span class="kn">from</span> <span class="nn">pandas_gbq.gbq</span> <span class="k">import</span> \
+    <span class="n">_test_google_api_imports</span> <span class="k">as</span> <span class="n">gbq_test_google_api_imports</span>
+<span class="kn">from</span> <span class="nn">pandas_gbq.gbq</span> <span class="k">import</span> <span class="n">GbqConnector</span>
 
 
 <div class="viewcode-block" id="BigQueryHook"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook">[docs]</a><span class="k">class</span> <span class="nc">BigQueryHook</span><span class="p">(</span><span class="n">GoogleCloudBaseHook</span><span class="p">,</span> <span class="n">DbApiHook</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
@@ -213,10 +221,11 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">bigquery_conn_id</span><span class="o">=</span><span class="s1">&#39;bigquery_default&#39;</span><span class="p">,</span>
-                 <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">conn_id</span><span class="o">=</span><span class="n">bigquery_conn_id</span><span class="p">,</span>
-            <span class="n">delegate_to</span><span class="o">=</span><span class="n">delegate_to</span><span class="p">)</span>
+            <span class="n">gcp_conn_id</span><span class="o">=</span><span class="n">bigquery_conn_id</span><span class="p">,</span> <span class="n">delegate_to</span><span class="o">=</span><span class="n">delegate_to</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span> <span class="o">=</span> <span class="n">use_legacy_sql</span>
 
 <div class="viewcode-block" id="BigQueryHook.get_conn"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -224,7 +233,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_service</span><span class="p">()</span>
         <span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">BigQueryConnection</span><span class="p">(</span><span class="n">service</span><span class="o">=</span><span class="n">service</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="n">project</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">BigQueryConnection</span><span class="p">(</span>
+            <span class="n">service</span><span class="o">=</span><span class="n">service</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="n">project</span><span class="p">,</span>
+            <span class="n">use_legacy_sql</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BigQueryHook.get_service"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook.get_service">[docs]</a>    <span class="k">def</span> <span class="nf">get_service</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -241,7 +253,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="BigQueryHook.get_pandas_df"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook.get_pandas_df">[docs]</a>    <span class="k">def</span> <span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s1">&#39;legacy&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="BigQueryHook.get_pandas_df"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook.get_pandas_df">[docs]</a>    <span class="k">def</span> <span class="nf">get_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a Pandas DataFrame for the results produced by a BigQuery</span>
 <span class="sd">        query. The DbApiHook method must be overridden because Pandas</span>
@@ -252,35 +264,31 @@
 
 <span class="sd">        :param bql: The BigQuery SQL to execute.</span>
 <span class="sd">        :type bql: string</span>
-<span class="sd">        :param parameters: The parameters to render the SQL query with (not used, leave to override superclass method)</span>
+<span class="sd">        :param parameters: The parameters to render the SQL query with (not</span>
+<span class="sd">            used, leave to override superclass method)</span>
 <span class="sd">        :type parameters: mapping or iterable</span>
 <span class="sd">        :param dialect: Dialect of BigQuery SQL – legacy SQL or standard SQL</span>
-<span class="sd">        :type dialect: string in {&#39;legacy&#39;, &#39;standard&#39;}, default &#39;legacy&#39;</span>
+<span class="sd">            defaults to use `self.use_legacy_sql` if not specified</span>
+<span class="sd">        :type dialect: string in {&#39;legacy&#39;, &#39;standard&#39;}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_service</span><span class="p">()</span>
-        <span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">)</span>
-        <span class="n">connector</span> <span class="o">=</span> <span class="n">BigQueryPandasConnector</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="n">dialect</span><span class="p">)</span>
-        <span class="n">schema</span><span class="p">,</span> <span class="n">pages</span> <span class="o">=</span> <span class="n">connector</span><span class="o">.</span><span class="n">run_query</span><span class="p">(</span><span class="n">bql</span><span class="p">)</span>
-        <span class="n">dataframe_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">dialect</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dialect</span> <span class="o">=</span> <span class="s1">&#39;legacy&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span> <span class="k">else</span> <span class="s1">&#39;standard&#39;</span>
 
-        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">page</span> <span class="o">=</span> <span class="n">pages</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-            <span class="n">dataframe_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gbq_parse_data</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">page</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataframe_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">concat</span><span class="p">(</span><span class="n">dataframe_list</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">gbq_parse_data</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="p">[])</span></div>
+        <span class="k">return</span> <span class="n">read_gbq</span><span class="p">(</span><span class="n">bql</span><span class="p">,</span>
+                        <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">),</span>
+                        <span class="n">dialect</span><span class="o">=</span><span class="n">dialect</span><span class="p">,</span>
+                        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BigQueryHook.table_exists"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook.table_exists">[docs]</a>    <span class="k">def</span> <span class="nf">table_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks for the existence of a table in Google BigQuery.</span>
 
-<span class="sd">        :param project_id: The Google cloud project in which to look for the table. The connection supplied to the hook</span>
-<span class="sd">        must provide access to the specified project.</span>
+<span class="sd">        :param project_id: The Google cloud project in which to look for the</span>
+<span class="sd">            table. The connection supplied to the hook must provide access to</span>
+<span class="sd">            the specified project.</span>
 <span class="sd">        :type project_id: string</span>
-<span class="sd">        :param dataset_id: The name of the dataset in which to look for the table.</span>
-<span class="sd">            storage bucket.</span>
+<span class="sd">        :param dataset_id: The name of the dataset in which to look for the</span>
+<span class="sd">            table.</span>
 <span class="sd">        :type dataset_id: string</span>
 <span class="sd">        :param table_id: The name of the table to check the existence of.</span>
 <span class="sd">        :type table_id: string</span>
@@ -288,10 +296,8 @@
         <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_service</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
-                <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span> <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;404&#39;</span><span class="p">:</span>
@@ -307,7 +313,14 @@
 <span class="sd">    without forcing a three legged OAuth connection. Instead, we can inject</span>
 <span class="sd">    service account credentials into the binding.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">reauth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s1">&#39;legacy&#39;</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="p">,</span>
+                 <span class="n">service</span><span class="p">,</span>
+                 <span class="n">reauth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">dialect</span><span class="o">=</span><span class="s1">&#39;legacy&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryPandasConnector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span>
         <span class="n">gbq_check_google_client_version</span><span class="p">()</span>
         <span class="n">gbq_test_google_api_imports</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
@@ -351,19 +364,280 @@
 <span class="sd">    BigQuery. The methods can be used directly by operators, in cases where a</span>
 <span class="sd">    PEP 249 cursor isn&#39;t needed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">service</span> <span class="o">=</span> <span class="n">service</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span> <span class="o">=</span> <span class="n">use_legacy_sql</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">run_query</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">bql</span><span class="p">,</span> <span class="n">destination_dataset_table</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">write_disposition</span> <span class="o">=</span> <span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
-            <span class="n">allow_large_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">udf_config</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">maximum_billing_tier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
-            <span class="n">query_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_empty_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">project_id</span><span class="p">,</span>
+                           <span class="n">dataset_id</span><span class="p">,</span>
+                           <span class="n">table_id</span><span class="p">,</span>
+                           <span class="n">schema_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{}</span>
+                           <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new, empty table in the dataset.</span>
+
+<span class="sd">        :param project_id: The project to create the table into.</span>
+<span class="sd">        :type project_id: str</span>
+<span class="sd">        :param dataset_id: The dataset to create the table into.</span>
+<span class="sd">        :type dataset_id: str</span>
+<span class="sd">        :param table_id: The Name of the table to be created.</span>
+<span class="sd">        :type table_id: str</span>
+<span class="sd">        :param schema_fields: If set, the schema field list as defined here:</span>
+<span class="sd">        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schema</span>
+
+<span class="sd">        **Example**: ::</span>
+
+<span class="sd">            schema_fields=[{&quot;name&quot;: &quot;emp_name&quot;, &quot;type&quot;: &quot;STRING&quot;, &quot;mode&quot;: &quot;REQUIRED&quot;},</span>
+<span class="sd">                           {&quot;name&quot;: &quot;salary&quot;, &quot;type&quot;: &quot;INTEGER&quot;, &quot;mode&quot;: &quot;NULLABLE&quot;}]</span>
+
+<span class="sd">        :type schema_fields: list</span>
+<span class="sd">        :param time_partitioning: configure optional time partitioning fields i.e.</span>
+<span class="sd">            partition by field, type and expiration as per API specifications.</span>
+
+<span class="sd">            .. seealso::</span>
+<span class="sd">            https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#timePartitioning</span>
+<span class="sd">        :type time_partitioning: dict</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span> <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span>
+
+        <span class="n">table_resource</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;tableReference&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">table_id</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">schema_fields</span><span class="p">:</span>
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;schema&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">schema_fields</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">time_partitioning</span><span class="p">:</span>
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;timePartitioning&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_partitioning</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                      <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Table created successfully: </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                          <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                <span class="s1">&#39;BigQuery job failed. Error was: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">create_external_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">external_project_dataset_table</span><span class="p">,</span>
+                              <span class="n">schema_fields</span><span class="p">,</span>
+                              <span class="n">source_uris</span><span class="p">,</span>
+                              <span class="n">source_format</span><span class="o">=</span><span class="s1">&#39;CSV&#39;</span><span class="p">,</span>
+                              <span class="n">autodetect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span>
+                              <span class="n">ignore_unknown_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">max_bad_records</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                              <span class="n">skip_leading_rows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                              <span class="n">field_delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                              <span class="n">quote_character</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">allow_quoted_newlines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">allow_jagged_rows</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{}</span>
+                              <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new external table in the dataset with the data in Google</span>
+<span class="sd">        Cloud Storage. See here:</span>
+
+<span class="sd">        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#resource</span>
+
+<span class="sd">        for more details about these parameters.</span>
+
+<span class="sd">        :param external_project_dataset_table:</span>
+<span class="sd">            The dotted (&lt;project&gt;.|&lt;project&gt;:)&lt;dataset&gt;.&lt;table&gt;($&lt;partition&gt;) BigQuery</span>
+<span class="sd">            table name to create external table.</span>
+<span class="sd">            If &lt;project&gt; is not included, project will be the</span>
+<span class="sd">            project defined in the connection json.</span>
+<span class="sd">        :type external_project_dataset_table: string</span>
+<span class="sd">        :param schema_fields: The schema field list as defined here:</span>
+<span class="sd">            https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#resource</span>
+<span class="sd">        :type schema_fields: list</span>
+<span class="sd">        :param source_uris: The source Google Cloud</span>
+<span class="sd">            Storage URI (e.g. gs://some-bucket/some-file.txt). A single wild</span>
+<span class="sd">            per-object name can be used.</span>
+<span class="sd">        :type source_uris: list</span>
+<span class="sd">        :param source_format: File format to export.</span>
+<span class="sd">        :type source_format: string</span>
+<span class="sd">        :param autodetect: Try to detect schema and format options automatically.</span>
+<span class="sd">            Any option specified explicitly will be honored.</span>
+<span class="sd">        :type autodetect: bool</span>
+<span class="sd">        :param compression: [Optional] The compression type of the data source.</span>
+<span class="sd">            Possible values include GZIP and NONE.</span>
+<span class="sd">            The default value is NONE.</span>
+<span class="sd">            This setting is ignored for Google Cloud Bigtable,</span>
+<span class="sd">                Google Cloud Datastore backups and Avro formats.</span>
+<span class="sd">        :type compression: string</span>
+<span class="sd">        :param ignore_unknown_values: [Optional] Indicates if BigQuery should allow</span>
+<span class="sd">            extra values that are not represented in the table schema.</span>
+<span class="sd">            If true, the extra values are ignored. If false, records with extra columns</span>
+<span class="sd">            are treated as bad records, and if there are too many bad records, an</span>
+<span class="sd">            invalid error is returned in the job result.</span>
+<span class="sd">        :type ignore_unknown_values: bool</span>
+<span class="sd">        :param max_bad_records: The maximum number of bad records that BigQuery can</span>
+<span class="sd">            ignore when running the job.</span>
+<span class="sd">        :type max_bad_records: int</span>
+<span class="sd">        :param skip_leading_rows: Number of rows to skip when loading from a CSV.</span>
+<span class="sd">        :type skip_leading_rows: int</span>
+<span class="sd">        :param field_delimiter: The delimiter to use when loading from a CSV.</span>
+<span class="sd">        :type field_delimiter: string</span>
+<span class="sd">        :param quote_character: The value that is used to quote data sections in a CSV</span>
+<span class="sd">            file.</span>
+<span class="sd">        :type quote_character: string</span>
+<span class="sd">        :param allow_quoted_newlines: Whether to allow quoted newlines (true) or not</span>
+<span class="sd">            (false).</span>
+<span class="sd">        :type allow_quoted_newlines: boolean</span>
+<span class="sd">        :param allow_jagged_rows: Accept rows that are missing trailing optional columns.</span>
+<span class="sd">            The missing values are treated as nulls. If false, records with missing</span>
+<span class="sd">            trailing columns are treated as bad records, and if there are too many bad</span>
+<span class="sd">            records, an invalid error is returned in the job result. Only applicable when</span>
+<span class="sd">            soure_format is CSV.</span>
+<span class="sd">        :type allow_jagged_rows: bool</span>
+<span class="sd">        :param src_fmt_configs: configure optional fields specific to the source format</span>
+<span class="sd">        :type src_fmt_configs: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">external_table_id</span> <span class="o">=</span> \
+            <span class="n">_split_tablename</span><span class="p">(</span><span class="n">table_input</span><span class="o">=</span><span class="n">external_project_dataset_table</span><span class="p">,</span>
+                             <span class="n">default_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                             <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;external_project_dataset_table&#39;</span><span class="p">)</span>
+
+        <span class="c1"># bigquery only allows certain source formats</span>
+        <span class="c1"># we check to make sure the passed source format is valid</span>
+        <span class="c1"># if it&#39;s not, we raise a ValueError</span>
+        <span class="c1"># Refer to this link for more details:</span>
+        <span class="c1">#   https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#externalDataConfiguration.sourceFormat</span>
+
+        <span class="n">source_format</span> <span class="o">=</span> <span class="n">source_format</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">allowed_formats</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;CSV&quot;</span><span class="p">,</span> <span class="s2">&quot;NEWLINE_DELIMITED_JSON&quot;</span><span class="p">,</span> <span class="s2">&quot;AVRO&quot;</span><span class="p">,</span> <span class="s2">&quot;GOOGLE_SHEETS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;DATASTORE_BACKUP&quot;</span><span class="p">,</span> <span class="s2">&quot;PARQUET&quot;</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">source_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_formats</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a valid source format. &quot;</span>
+                             <span class="s2">&quot;Please use one of the following types: </span><span class="si">{1}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source_format</span><span class="p">,</span> <span class="n">allowed_formats</span><span class="p">))</span>
+
+        <span class="n">compression</span> <span class="o">=</span> <span class="n">compression</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">allowed_compressions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span> <span class="s1">&#39;GZIP&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">compression</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_compressions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a valid compression format. &quot;</span>
+                             <span class="s2">&quot;Please use one of the following types: </span><span class="si">{1}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compression</span><span class="p">,</span> <span class="n">allowed_compressions</span><span class="p">))</span>
+
+        <span class="n">table_resource</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;externalDataConfiguration&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;autodetect&#39;</span><span class="p">:</span> <span class="n">autodetect</span><span class="p">,</span>
+                <span class="s1">&#39;sourceFormat&#39;</span><span class="p">:</span> <span class="n">source_format</span><span class="p">,</span>
+                <span class="s1">&#39;sourceUris&#39;</span><span class="p">:</span> <span class="n">source_uris</span><span class="p">,</span>
+                <span class="s1">&#39;compression&#39;</span><span class="p">:</span> <span class="n">compression</span><span class="p">,</span>
+                <span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">:</span> <span class="n">ignore_unknown_values</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;tableReference&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span>
+                <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">dataset_id</span><span class="p">,</span>
+                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">external_table_id</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">schema_fields</span><span class="p">:</span>
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;externalDataConfiguration&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;schema&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">schema_fields</span>
+                <span class="p">}</span>
+            <span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating external table: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">external_project_dataset_table</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">max_bad_records</span><span class="p">:</span>
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;externalDataConfiguration&#39;</span><span class="p">][</span><span class="s1">&#39;maxBadRecords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_bad_records</span>
+
+        <span class="c1"># if following fields are not specified in src_fmt_configs,</span>
+        <span class="c1"># honor the top-level params for backward-compatibility</span>
+        <span class="k">if</span> <span class="s1">&#39;skipLeadingRows&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;skipLeadingRows&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skip_leading_rows</span>
+        <span class="k">if</span> <span class="s1">&#39;fieldDelimiter&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;fieldDelimiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_delimiter</span>
+        <span class="k">if</span> <span class="s1">&#39;quote_character&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;quote&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_character</span>
+        <span class="k">if</span> <span class="s1">&#39;allowQuotedNewlines&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;allowQuotedNewlines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">allow_quoted_newlines</span>
+        <span class="k">if</span> <span class="s1">&#39;allowJaggedRows&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;allowJaggedRows&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">allow_jagged_rows</span>
+
+        <span class="n">src_fmt_to_param_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="s1">&#39;csvOptions&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GOOGLE_SHEETS&#39;</span><span class="p">:</span> <span class="s1">&#39;googleSheetsOptions&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">src_fmt_to_configs_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;csvOptions&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s1">&#39;allowJaggedRows&#39;</span><span class="p">,</span> <span class="s1">&#39;allowQuotedNewlines&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;fieldDelimiter&#39;</span><span class="p">,</span> <span class="s1">&#39;skipLeadingRows&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;quote&#39;</span>
+            <span class="p">],</span>
+            <span class="s1">&#39;googleSheetsOptions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;skipLeadingRows&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">source_format</span> <span class="ow">in</span> <span class="n">src_fmt_to_param_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="n">valid_configs</span> <span class="o">=</span> <span class="n">src_fmt_to_configs_mapping</span><span class="p">[</span>
+                <span class="n">src_fmt_to_param_mapping</span><span class="p">[</span><span class="n">source_format</span><span class="p">]</span>
+            <span class="p">]</span>
+
+            <span class="n">src_fmt_configs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_configs</span>
+            <span class="p">}</span>
+
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;externalDataConfiguration&#39;</span><span class="p">][</span><span class="n">src_fmt_to_param_mapping</span><span class="p">[</span>
+                <span class="n">source_format</span><span class="p">]]</span> <span class="o">=</span> <span class="n">src_fmt_configs</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;External table created successfully: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                          <span class="n">external_project_dataset_table</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s1">&#39;BigQuery job failed. Error was: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">run_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">bql</span><span class="p">,</span>
+                  <span class="n">destination_dataset_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">write_disposition</span><span class="o">=</span><span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
+                  <span class="n">allow_large_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">flatten_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">udf_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">maximum_billing_tier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">maximum_bytes_billed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
+                  <span class="n">query_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">schema_update_options</span><span class="o">=</span><span class="p">(),</span>
+                  <span class="n">priority</span><span class="o">=</span><span class="s1">&#39;INTERACTIVE&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes a BigQuery SQL query. Optionally persists results in a BigQuery</span>
 <span class="sd">        table. See here:</span>
@@ -379,23 +653,66 @@
 <span class="sd">        :param write_disposition: What to do if the table already exists in</span>
 <span class="sd">            BigQuery.</span>
 <span class="sd">        :type write_disposition: string</span>
-<span class="sd">        :param create_disposition: Specifies whether the job is allowed to create new tables.</span>
-<span class="sd">        :type create_disposition: string</span>
 <span class="sd">        :param allow_large_results: Whether to allow large results.</span>
 <span class="sd">        :type allow_large_results: boolean</span>
+<span class="sd">        :param flatten_results: If true and query uses legacy SQL dialect, flattens</span>
+<span class="sd">            all nested and repeated fields in the query results. ``allowLargeResults``</span>
+<span class="sd">            must be true if this is set to false. For standard SQL queries, this</span>
+<span class="sd">            flag is ignored and results are never flattened.</span>
+<span class="sd">        :type flatten_results: boolean</span>
 <span class="sd">        :param udf_config: The User Defined Function configuration for the query.</span>
 <span class="sd">            See https://cloud.google.com/bigquery/user-defined-functions for details.</span>
-<span class="sd">        :type udf_config: list</span>
 <span class="sd">        :param use_legacy_sql: Whether to use legacy SQL (true) or standard SQL (false).</span>
+<span class="sd">            If `None`, defaults to `self.use_legacy_sql`.</span>
 <span class="sd">        :type use_legacy_sql: boolean</span>
-<span class="sd">        :param maximum_billing_tier: Positive integer that serves as a multiplier of the basic price.</span>
+<span class="sd">        :type udf_config: list</span>
+<span class="sd">        :param maximum_billing_tier: Positive integer that serves as a</span>
+<span class="sd">            multiplier of the basic price.</span>
 <span class="sd">        :type maximum_billing_tier: integer</span>
+<span class="sd">        :param maximum_bytes_billed: Limits the bytes billed for this job.</span>
+<span class="sd">            Queries that will have bytes billed beyond this limit will fail</span>
+<span class="sd">            (without incurring a charge). If unspecified, this will be</span>
+<span class="sd">            set to your project default.</span>
+<span class="sd">        :type maximum_bytes_billed: float</span>
+<span class="sd">        :param create_disposition: Specifies whether the job is allowed to</span>
+<span class="sd">            create new tables.</span>
+<span class="sd">        :type create_disposition: string</span>
+<span class="sd">        :param query_params a dictionary containing query parameter types and</span>
+<span class="sd">            values, passed to BigQuery</span>
+<span class="sd">        :type query_params: dict</span>
+<span class="sd">        :param schema_update_options: Allows the schema of the desitination</span>
+<span class="sd">            table to be updated as a side effect of the query job.</span>
+<span class="sd">        :type schema_update_options: tuple</span>
+<span class="sd">        :param priority: Specifies a priority for the query.</span>
+<span class="sd">            Possible values include INTERACTIVE and BATCH.</span>
+<span class="sd">            The default value is INTERACTIVE.</span>
+<span class="sd">        :type priority: string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># BigQuery also allows you to define how you want a table&#39;s schema to change</span>
+        <span class="c1"># as a side effect of a query job</span>
+        <span class="c1"># for more details:</span>
+        <span class="c1">#   https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.query.schemaUpdateOptions</span>
+        <span class="n">allowed_schema_update_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;ALLOW_FIELD_ADDITION&#39;</span><span class="p">,</span> <span class="s2">&quot;ALLOW_FIELD_RELAXATION&quot;</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">allowed_schema_update_options</span><span class="p">)</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span>
+                <span class="nb">set</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> contains invalid schema update options. &quot;</span>
+                <span class="s2">&quot;Please only use one or more of the following options: </span><span class="si">{1}</span><span class="s2">&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">,</span> <span class="n">allowed_schema_update_options</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">use_legacy_sql</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_legacy_sql</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span>
+
         <span class="n">configuration</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;query&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;query&#39;</span><span class="p">:</span> <span class="n">bql</span><span class="p">,</span>
                 <span class="s1">&#39;useLegacySql&#39;</span><span class="p">:</span> <span class="n">use_legacy_sql</span><span class="p">,</span>
-                <span class="s1">&#39;maximumBillingTier&#39;</span><span class="p">:</span> <span class="n">maximum_billing_tier</span>
+                <span class="s1">&#39;maximumBillingTier&#39;</span><span class="p">:</span> <span class="n">maximum_billing_tier</span><span class="p">,</span>
+                <span class="s1">&#39;maximumBytesBilled&#39;</span><span class="p">:</span> <span class="n">maximum_bytes_billed</span><span class="p">,</span>
+                <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">priority</span>
             <span class="p">}</span>
         <span class="p">}</span>
 
@@ -407,9 +724,14 @@
                 <span class="n">_split_tablename</span><span class="p">(</span><span class="n">table_input</span><span class="o">=</span><span class="n">destination_dataset_table</span><span class="p">,</span>
                                  <span class="n">default_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">)</span>
             <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-                <span class="s1">&#39;allowLargeResults&#39;</span><span class="p">:</span> <span class="n">allow_large_results</span><span class="p">,</span>
-                <span class="s1">&#39;writeDisposition&#39;</span><span class="p">:</span> <span class="n">write_disposition</span><span class="p">,</span>
-                <span class="s1">&#39;createDisposition&#39;</span><span class="p">:</span> <span class="n">create_disposition</span><span class="p">,</span>
+                <span class="s1">&#39;allowLargeResults&#39;</span><span class="p">:</span>
+                <span class="n">allow_large_results</span><span class="p">,</span>
+                <span class="s1">&#39;flattenResults&#39;</span><span class="p">:</span>
+                <span class="n">flatten_results</span><span class="p">,</span>
+                <span class="s1">&#39;writeDisposition&#39;</span><span class="p">:</span>
+                <span class="n">write_disposition</span><span class="p">,</span>
+                <span class="s1">&#39;createDisposition&#39;</span><span class="p">:</span>
+                <span class="n">create_disposition</span><span class="p">,</span>
                 <span class="s1">&#39;destinationTable&#39;</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">destination_project</span><span class="p">,</span>
                     <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">destination_dataset</span><span class="p">,</span>
@@ -419,17 +741,38 @@
         <span class="k">if</span> <span class="n">udf_config</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">udf_config</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
             <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-                <span class="s1">&#39;userDefinedFunctionResources&#39;</span><span class="p">:</span> <span class="n">udf_config</span>
+                <span class="s1">&#39;userDefinedFunctionResources&#39;</span><span class="p">:</span>
+                <span class="n">udf_config</span>
             <span class="p">})</span>
 
         <span class="k">if</span> <span class="n">query_params</span><span class="p">:</span>
-            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">][</span><span class="s1">&#39;queryParameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_params</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_legacy_sql</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Query paramaters are not allowed when using &quot;</span>
+                                 <span class="s2">&quot;legacy SQL&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">][</span><span class="s1">&#39;queryParameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_params</span>
+
+        <span class="k">if</span> <span class="n">schema_update_options</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">write_disposition</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;WRITE_APPEND&quot;</span><span class="p">,</span> <span class="s2">&quot;WRITE_TRUNCATE&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;schema_update_options is only &quot;</span>
+                                 <span class="s2">&quot;allowed if write_disposition is &quot;</span>
+                                 <span class="s2">&quot;&#39;WRITE_APPEND&#39; or &#39;WRITE_TRUNCATE&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;Adding experimental &quot;</span>
+                    <span class="s2">&quot;&#39;schemaUpdateOptions&#39;: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">))</span>
+                <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">][</span>
+                    <span class="s1">&#39;schemaUpdateOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">schema_update_options</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_with_configuration</span><span class="p">(</span><span class="n">configuration</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">run_extract</span><span class="p">(</span>  <span class="c1"># noqa</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">source_project_dataset_table</span><span class="p">,</span> <span class="n">destination_cloud_storage_uris</span><span class="p">,</span>
-            <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span> <span class="n">export_format</span><span class="o">=</span><span class="s1">&#39;CSV&#39;</span><span class="p">,</span> <span class="n">field_delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">source_project_dataset_table</span><span class="p">,</span>
+            <span class="n">destination_cloud_storage_uris</span><span class="p">,</span>
+            <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span>
+            <span class="n">export_format</span><span class="o">=</span><span class="s1">&#39;CSV&#39;</span><span class="p">,</span>
+            <span class="n">field_delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
             <span class="n">print_header</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes a BigQuery extract command to copy data from BigQuery to</span>
@@ -512,10 +855,10 @@
 <span class="sd">        :param create_disposition: The create disposition if the table doesn&#39;t exist.</span>
 <span class="sd">        :type create_disposition: string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">source_project_dataset_tables</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">[</span><span class="n">source_project_dataset_tables</span><span class="p">]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_project_dataset_tables</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">source_project_dataset_tables</span><span class="p">)</span>
+        <span class="n">source_project_dataset_tables</span> <span class="o">=</span> <span class="p">([</span>
+            <span class="n">source_project_dataset_tables</span>
+        <span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_project_dataset_tables</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span>
+            <span class="n">source_project_dataset_tables</span><span class="p">)</span>
 
         <span class="n">source_project_dataset_tables_fixup</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">source_project_dataset_table</span> <span class="ow">in</span> <span class="n">source_project_dataset_tables</span><span class="p">:</span>
@@ -524,9 +867,12 @@
                                  <span class="n">default_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
                                  <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;source_project_dataset_table&#39;</span><span class="p">)</span>
             <span class="n">source_project_dataset_tables_fixup</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">source_project</span><span class="p">,</span>
-                <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">source_dataset</span><span class="p">,</span>
-                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">source_table</span>
+                <span class="s1">&#39;projectId&#39;</span><span class="p">:</span>
+                <span class="n">source_project</span><span class="p">,</span>
+                <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span>
+                <span class="n">source_dataset</span><span class="p">,</span>
+                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span>
+                <span class="n">source_table</span>
             <span class="p">})</span>
 
         <span class="n">destination_project</span><span class="p">,</span> <span class="n">destination_dataset</span><span class="p">,</span> <span class="n">destination_table</span> <span class="o">=</span> \
@@ -549,7 +895,8 @@
 
     <span class="k">def</span> <span class="nf">run_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">destination_project_dataset_table</span><span class="p">,</span>
-                 <span class="n">schema_fields</span><span class="p">,</span> <span class="n">source_uris</span><span class="p">,</span>
+                 <span class="n">schema_fields</span><span class="p">,</span>
+                 <span class="n">source_uris</span><span class="p">,</span>
                  <span class="n">source_format</span><span class="o">=</span><span class="s1">&#39;CSV&#39;</span><span class="p">,</span>
                  <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
                  <span class="n">skip_leading_rows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -557,10 +904,12 @@
                  <span class="n">field_delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
                  <span class="n">max_bad_records</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                  <span class="n">quote_character</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">ignore_unknown_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">allow_quoted_newlines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">allow_jagged_rows</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">schema_update_options</span><span class="o">=</span><span class="p">(),</span>
-                 <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{}):</span>
+                 <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes a BigQuery load command to load data from Google Cloud Storage</span>
 <span class="sd">        to BigQuery. See here:</span>
@@ -570,9 +919,11 @@
 <span class="sd">        For more details about these parameters.</span>
 
 <span class="sd">        :param destination_project_dataset_table:</span>
-<span class="sd">            The dotted (&lt;project&gt;.|&lt;project&gt;:)&lt;dataset&gt;.&lt;table&gt; BigQuery table to load</span>
-<span class="sd">            data into. If &lt;project&gt; is not included, project will be the project defined</span>
-<span class="sd">            in the connection json.</span>
+<span class="sd">            The dotted (&lt;project&gt;.|&lt;project&gt;:)&lt;dataset&gt;.&lt;table&gt;($&lt;partition&gt;) BigQuery</span>
+<span class="sd">            table to load data into. If &lt;project&gt; is not included, project will be the</span>
+<span class="sd">            project defined in the connection json. If a partition is specified the</span>
+<span class="sd">            operator will automatically append the data, create a new partition or create</span>
+<span class="sd">            a new DAY partitioned table.</span>
 <span class="sd">        :type destination_project_dataset_table: string</span>
 <span class="sd">        :param schema_fields: The schema field list as defined here:</span>
 <span class="sd">            https://cloud.google.com/bigquery/docs/reference/v2/jobs#configuration.load</span>
@@ -594,20 +945,34 @@
 <span class="sd">        :param max_bad_records: The maximum number of bad records that BigQuery can</span>
 <span class="sd">            ignore when running the job.</span>
 <span class="sd">        :type max_bad_records: int</span>
-<span class="sd">        :param quote_character: The value that is used to quote data sections in a CSV file.</span>
+<span class="sd">        :param quote_character: The value that is used to quote data sections in a CSV</span>
+<span class="sd">            file.</span>
 <span class="sd">        :type quote_character: string</span>
-<span class="sd">        :param allow_quoted_newlines: Whether to allow quoted newlines (true) or not (false).</span>
+<span class="sd">        :param ignore_unknown_values: [Optional] Indicates if BigQuery should allow</span>
+<span class="sd">            extra values that are not represented in the table schema.</span>
+<span class="sd">            If true, the extra values are ignored. If false, records with extra columns</span>
+<span class="sd">            are treated as bad records, and if there are too many bad records, an</span>
+<span class="sd">            invalid error is returned in the job result.</span>
+<span class="sd">        :type ignore_unknown_values: bool</span>
+<span class="sd">        :param allow_quoted_newlines: Whether to allow quoted newlines (true) or not</span>
+<span class="sd">            (false).</span>
 <span class="sd">        :type allow_quoted_newlines: boolean</span>
 <span class="sd">        :param allow_jagged_rows: Accept rows that are missing trailing optional columns.</span>
-<span class="sd">            The missing values are treated as nulls. If false, records with missing trailing columns</span>
-<span class="sd">            are treated as bad records, and if there are too many bad records, an invalid error is</span>
-<span class="sd">            returned in the job result. Only applicable when soure_format is CSV.</span>
+<span class="sd">            The missing values are treated as nulls. If false, records with missing</span>
+<span class="sd">            trailing columns are treated as bad records, and if there are too many bad</span>
+<span class="sd">            records, an invalid error is returned in the job result. Only applicable when</span>
+<span class="sd">            soure_format is CSV.</span>
 <span class="sd">        :type allow_jagged_rows: bool</span>
 <span class="sd">        :param schema_update_options: Allows the schema of the desitination</span>
 <span class="sd">            table to be updated as a side effect of the load job.</span>
-<span class="sd">        :type schema_update_options: list</span>
+<span class="sd">        :type schema_update_options: tuple</span>
 <span class="sd">        :param src_fmt_configs: configure optional fields specific to the source format</span>
 <span class="sd">        :type src_fmt_configs: dict</span>
+<span class="sd">        :param time_partitioning: configure optional time partitioning fields i.e.</span>
+<span class="sd">            partition by field, type and</span>
+<span class="sd">            expiration as per API specifications. Note that &#39;field&#39; is not available in</span>
+<span class="sd">            concurrency with dataset.table$partition.</span>
+<span class="sd">        :type time_partitioning: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># bigquery only allows certain source formats</span>
@@ -616,26 +981,28 @@
         <span class="c1"># Refer to this link for more details:</span>
         <span class="c1">#   https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.query.tableDefinitions.(key).sourceFormat</span>
         <span class="n">source_format</span> <span class="o">=</span> <span class="n">source_format</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="n">allowed_formats</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CSV&quot;</span><span class="p">,</span> <span class="s2">&quot;NEWLINE_DELIMITED_JSON&quot;</span><span class="p">,</span> <span class="s2">&quot;AVRO&quot;</span><span class="p">,</span> <span class="s2">&quot;GOOGLE_SHEETS&quot;</span><span class="p">,</span> <span class="s2">&quot;DATASTORE_BACKUP&quot;</span><span class="p">]</span>
+        <span class="n">allowed_formats</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;CSV&quot;</span><span class="p">,</span> <span class="s2">&quot;NEWLINE_DELIMITED_JSON&quot;</span><span class="p">,</span> <span class="s2">&quot;AVRO&quot;</span><span class="p">,</span> <span class="s2">&quot;GOOGLE_SHEETS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;DATASTORE_BACKUP&quot;</span><span class="p">,</span> <span class="s2">&quot;PARQUET&quot;</span>
+        <span class="p">]</span>
         <span class="k">if</span> <span class="n">source_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_formats</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a valid source format. &quot;</span>
-                    <span class="s2">&quot;Please use one of the following types: </span><span class="si">{1}</span><span class="s2">&quot;</span>
-                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source_format</span><span class="p">,</span> <span class="n">allowed_formats</span><span class="p">))</span>
+                             <span class="s2">&quot;Please use one of the following types: </span><span class="si">{1}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source_format</span><span class="p">,</span> <span class="n">allowed_formats</span><span class="p">))</span>
 
         <span class="c1"># bigquery also allows you to define how you want a table&#39;s schema to change</span>
         <span class="c1"># as a side effect of a load</span>
         <span class="c1"># for more details:</span>
-        <span class="c1">#   https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schemaUpdateOptions</span>
+        <span class="c1"># https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schemaUpdateOptions</span>
         <span class="n">allowed_schema_update_options</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;ALLOW_FIELD_ADDITION&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;ALLOW_FIELD_RELAXATION&quot;</span>
+            <span class="s1">&#39;ALLOW_FIELD_ADDITION&#39;</span><span class="p">,</span> <span class="s2">&quot;ALLOW_FIELD_RELAXATION&quot;</span>
         <span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">allowed_schema_update_options</span><span class="p">)</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">allowed_schema_update_options</span><span class="p">)</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span>
+                <span class="nb">set</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> contains invalid schema update options. &quot;</span>
                 <span class="s2">&quot;Please only use one or more of the following options: </span><span class="si">{1}</span><span class="s2">&quot;</span>
-                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">,</span> <span class="n">allowed_schema_update_options</span><span class="p">)</span>
-            <span class="p">)</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">,</span> <span class="n">allowed_schema_update_options</span><span class="p">))</span>
 
         <span class="n">destination_project</span><span class="p">,</span> <span class="n">destination_dataset</span><span class="p">,</span> <span class="n">destination_table</span> <span class="o">=</span> \
             <span class="n">_split_tablename</span><span class="p">(</span><span class="n">table_input</span><span class="o">=</span><span class="n">destination_project_dataset_table</span><span class="p">,</span>
@@ -653,26 +1020,40 @@
                 <span class="s1">&#39;sourceFormat&#39;</span><span class="p">:</span> <span class="n">source_format</span><span class="p">,</span>
                 <span class="s1">&#39;sourceUris&#39;</span><span class="p">:</span> <span class="n">source_uris</span><span class="p">,</span>
                 <span class="s1">&#39;writeDisposition&#39;</span><span class="p">:</span> <span class="n">write_disposition</span><span class="p">,</span>
+                <span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">:</span> <span class="n">ignore_unknown_values</span>
             <span class="p">}</span>
         <span class="p">}</span>
+
+        <span class="c1"># if it is a partitioned table ($ is in the table name) add partition load option</span>
+        <span class="k">if</span> <span class="s1">&#39;$&#39;</span> <span class="ow">in</span> <span class="n">destination_project_dataset_table</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">time_partitioning</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot specify field partition and partition name &quot;</span>
+                    <span class="s2">&quot;(dataset.table$partition) at the same time&quot;</span>
+                <span class="p">)</span>
+            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;timePartitioning&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;DAY&#39;</span><span class="p">)</span>
+
+        <span class="c1"># can specify custom time partitioning options based on a field, or adding</span>
+        <span class="c1"># expiration</span>
+        <span class="k">if</span> <span class="n">time_partitioning</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;load&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;timePartitioning&#39;</span><span class="p">):</span>
+                <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;timePartitioning&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;timePartitioning&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">time_partitioning</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">schema_fields</span><span class="p">:</span>
-            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;schema&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">schema_fields</span>
-            <span class="p">}</span>
+            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;schema&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">schema_fields</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">schema_update_options</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">write_disposition</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;WRITE_APPEND&quot;</span><span class="p">,</span> <span class="s2">&quot;WRITE_TRUNCATE&quot;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;schema_update_options is only &quot;</span>
-                    <span class="s2">&quot;allowed if write_disposition is &quot;</span>
-                    <span class="s2">&quot;&#39;WRITE_APPEND&#39; or &#39;WRITE_TRUNCATE&#39;.&quot;</span>
-                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;schema_update_options is only &quot;</span>
+                                 <span class="s2">&quot;allowed if write_disposition is &quot;</span>
+                                 <span class="s2">&quot;&#39;WRITE_APPEND&#39; or &#39;WRITE_TRUNCATE&#39;.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                     <span class="s2">&quot;Adding experimental &quot;</span>
-                    <span class="s2">&quot;&#39;schemaUpdateOptions&#39;: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">)</span>
-                <span class="p">)</span>
-                <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;schemaUpdateOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">schema_update_options</span>
+                    <span class="s2">&quot;&#39;schemaUpdateOptions&#39;: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_update_options</span><span class="p">))</span>
+                <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span>
+                    <span class="s1">&#39;schemaUpdateOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">schema_update_options</span>
 
         <span class="k">if</span> <span class="n">max_bad_records</span><span class="p">:</span>
             <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">][</span><span class="s1">&#39;maxBadRecords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_bad_records</span>
@@ -683,22 +1064,29 @@
             <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;skipLeadingRows&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skip_leading_rows</span>
         <span class="k">if</span> <span class="s1">&#39;fieldDelimiter&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
             <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;fieldDelimiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_delimiter</span>
-        <span class="k">if</span> <span class="n">quote_character</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;ignoreUnknownValues&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ignore_unknown_values</span>
+        <span class="k">if</span> <span class="n">quote_character</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;quote&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_character</span>
         <span class="k">if</span> <span class="n">allow_quoted_newlines</span><span class="p">:</span>
             <span class="n">src_fmt_configs</span><span class="p">[</span><span class="s1">&#39;allowQuotedNewlines&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">allow_quoted_newlines</span>
 
         <span class="n">src_fmt_to_configs_mapping</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;allowJaggedRows&#39;</span><span class="p">,</span> <span class="s1">&#39;allowQuotedNewlines&#39;</span><span class="p">,</span> <span class="s1">&#39;autodetect&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;fieldDelimiter&#39;</span><span class="p">,</span> <span class="s1">&#39;skipLeadingRows&#39;</span><span class="p">,</span> <span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;nullMarker&#39;</span><span class="p">,</span> <span class="s1">&#39;quote&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s1">&#39;allowJaggedRows&#39;</span><span class="p">,</span> <span class="s1">&#39;allowQuotedNewlines&#39;</span><span class="p">,</span> <span class="s1">&#39;autodetect&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;fieldDelimiter&#39;</span><span class="p">,</span> <span class="s1">&#39;skipLeadingRows&#39;</span><span class="p">,</span> <span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;nullMarker&#39;</span><span class="p">,</span> <span class="s1">&#39;quote&#39;</span>
+            <span class="p">],</span>
             <span class="s1">&#39;DATASTORE_BACKUP&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;projectionFields&#39;</span><span class="p">],</span>
             <span class="s1">&#39;NEWLINE_DELIMITED_JSON&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;autodetect&#39;</span><span class="p">,</span> <span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;PARQUET&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;autodetect&#39;</span><span class="p">,</span> <span class="s1">&#39;ignoreUnknownValues&#39;</span><span class="p">],</span>
             <span class="s1">&#39;AVRO&#39;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="p">}</span>
         <span class="n">valid_configs</span> <span class="o">=</span> <span class="n">src_fmt_to_configs_mapping</span><span class="p">[</span><span class="n">source_format</span><span class="p">]</span>
-        <span class="n">src_fmt_configs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                           <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_configs</span><span class="p">}</span>
+        <span class="n">src_fmt_configs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">src_fmt_configs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_configs</span>
+        <span class="p">}</span>
         <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;load&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">src_fmt_configs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">allow_jagged_rows</span><span class="p">:</span>
@@ -720,43 +1108,99 @@
 <span class="sd">            details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">jobs</span><span class="p">()</span>
-        <span class="n">job_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;configuration&#39;</span><span class="p">:</span> <span class="n">configuration</span>
-        <span class="p">}</span>
+        <span class="n">job_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;configuration&#39;</span><span class="p">:</span> <span class="n">configuration</span><span class="p">}</span>
 
         <span class="c1"># Send query and wait for reply.</span>
         <span class="n">query_reply</span> <span class="o">=</span> <span class="n">jobs</span> \
             <span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">job_data</span><span class="p">)</span> \
             <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="n">job_id</span> <span class="o">=</span> <span class="n">query_reply</span><span class="p">[</span><span class="s1">&#39;jobReference&#39;</span><span class="p">][</span><span class="s1">&#39;jobId&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span> <span class="o">=</span> <span class="n">query_reply</span><span class="p">[</span><span class="s1">&#39;jobReference&#39;</span><span class="p">][</span><span class="s1">&#39;jobId&#39;</span><span class="p">]</span>
 
         <span class="c1"># Wait for query to finish.</span>
         <span class="n">keep_polling_job</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">keep_polling_job</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">job</span> <span class="o">=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">jobId</span><span class="o">=</span><span class="n">job_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+                <span class="n">job</span> <span class="o">=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                    <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;DONE&#39;</span><span class="p">):</span>
                     <span class="n">keep_polling_job</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="c1"># Check if job had errors.</span>
                     <span class="k">if</span> <span class="s1">&#39;errorResult&#39;</span> <span class="ow">in</span> <span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]:</span>
                         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                            <span class="s1">&#39;BigQuery job failed. Final error was: </span><span class="si">{}</span><span class="s1">. The job was: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                                <span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;errorResult&#39;</span><span class="p">],</span> <span class="n">job</span>
-                            <span class="p">)</span>
-                        <span class="p">)</span>
+                            <span class="s1">&#39;BigQuery job failed. Final error was: </span><span class="si">{}</span><span class="s1">. The job was: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span>
+                            <span class="nb">format</span><span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;errorResult&#39;</span><span class="p">],</span> <span class="n">job</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Waiting for job to complete : </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Waiting for job to complete : </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
                     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
             <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">503</span><span class="p">]:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Retryable error, waiting for job to complete: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Retryable error, waiting for job to complete: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
                     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                        <span class="s1">&#39;BigQuery job status check failed. Final error was: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+                        <span class="s1">&#39;BigQuery job status check failed. Final error was: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">job_id</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span>
+
+    <span class="k">def</span> <span class="nf">poll_job_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">):</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">jobs</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">job</span> <span class="o">=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">jobId</span><span class="o">=</span><span class="n">job_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;DONE&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">503</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Retryable error while polling job with id </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s1">&#39;BigQuery job status check failed. Final error was: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">err</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">cancel_query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cancel all started queries that have not yet completed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">jobs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span> <span class="ow">and</span>
+                <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_job_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Attempting to cancel job : </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
+            <span class="n">jobs</span><span class="o">.</span><span class="n">cancel</span><span class="p">(</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No running BigQuery jobs to cancel.&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Wait for all the calls to cancel to finish</span>
+        <span class="n">max_polling_attempts</span> <span class="o">=</span> <span class="mi">12</span>
+        <span class="n">polling_attempts</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">job_complete</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">polling_attempts</span> <span class="o">&lt;</span> <span class="n">max_polling_attempts</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">job_complete</span><span class="p">):</span>
+            <span class="n">polling_attempts</span> <span class="o">=</span> <span class="n">polling_attempts</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">job_complete</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_job_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">job_complete</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Job successfully canceled: </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">polling_attempts</span> <span class="o">==</span> <span class="n">max_polling_attempts</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;Stopping polling due to timeout. Job with id </span><span class="si">%s</span><span class="s2"> &quot;</span>
+                    <span class="s2">&quot;has not completed cancel and may or may not finish.&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Waiting for canceled job with id </span><span class="si">%s</span><span class="s1"> to finish.&#39;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">running_job_id</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -773,14 +1217,17 @@
         <span class="k">return</span> <span class="n">tables_resource</span><span class="p">[</span><span class="s1">&#39;schema&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">get_tabledata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">,</span>
-                      <span class="n">max_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">max_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selected_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">start_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the data of a given dataset.table.</span>
+<span class="sd">        Get the data of a given dataset.table and optionally with selected columns.</span>
 <span class="sd">        see https://cloud.google.com/bigquery/docs/reference/v2/tabledata/list</span>
 
 <span class="sd">        :param dataset_id: the dataset ID of the requested table.</span>
 <span class="sd">        :param table_id: the table ID of the requested table.</span>
 <span class="sd">        :param max_results: the maximum results to return.</span>
+<span class="sd">        :param selected_fields: List of fields to return (comma-separated). If</span>
+<span class="sd">            unspecified, all fields are returned.</span>
 <span class="sd">        :param page_token: page token, returned from a previous call,</span>
 <span class="sd">            identifying the result set.</span>
 <span class="sd">        :param start_index: zero based index of the starting row to read.</span>
@@ -789,19 +1236,20 @@
         <span class="n">optional_params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">max_results</span><span class="p">:</span>
             <span class="n">optional_params</span><span class="p">[</span><span class="s1">&#39;maxResults&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_results</span>
+        <span class="k">if</span> <span class="n">selected_fields</span><span class="p">:</span>
+            <span class="n">optional_params</span><span class="p">[</span><span class="s1">&#39;selectedFields&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected_fields</span>
         <span class="k">if</span> <span class="n">page_token</span><span class="p">:</span>
             <span class="n">optional_params</span><span class="p">[</span><span class="s1">&#39;pageToken&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">page_token</span>
         <span class="k">if</span> <span class="n">start_index</span><span class="p">:</span>
             <span class="n">optional_params</span><span class="p">[</span><span class="s1">&#39;startIndex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start_index</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tabledata</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">list</span><span class="p">(</span>
-                <span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
-                <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">,</span> <span class="o">**</span><span class="n">optional_params</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tabledata</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+            <span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+            <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+            <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">optional_params</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">run_table_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deletion_dataset_table</span><span class="p">,</span> <span class="n">ignore_if_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">run_table_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deletion_dataset_table</span><span class="p">,</span>
+                         <span class="n">ignore_if_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Delete an existing table from the dataset;</span>
 <span class="sd">        If the table does not exist, return an error unless ignore_if_missing</span>
@@ -825,20 +1273,18 @@
                              <span class="n">default_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">tables_resource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span> \
                 <span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">deletion_project</span><span class="p">,</span>
                         <span class="n">datasetId</span><span class="o">=</span><span class="n">deletion_dataset</span><span class="p">,</span>
                         <span class="n">tableId</span><span class="o">=</span><span class="n">deletion_table</span><span class="p">)</span> \
                 <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleted table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
-                          <span class="n">deletion_project</span><span class="p">,</span> <span class="n">deletion_dataset</span><span class="p">,</span> <span class="n">deletion_table</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleted table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">deletion_project</span><span class="p">,</span>
+                          <span class="n">deletion_dataset</span><span class="p">,</span> <span class="n">deletion_table</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">HttpError</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_if_missing</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                    <span class="s1">&#39;Table deletion failed. Table does not exist.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Table deletion failed. Table does not exist.&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Table does not exist. Skipping.&#39;</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">run_table_upsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_resource</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -859,20 +1305,19 @@
         <span class="c1"># check to see if the table exists</span>
         <span class="n">table_id</span> <span class="o">=</span> <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;tableReference&#39;</span><span class="p">][</span><span class="s1">&#39;tableId&#39;</span><span class="p">]</span>
         <span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span> <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span>
-        <span class="n">tables_list_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                                                      <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="n">tables_list_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+            <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span> <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables_list_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tables&#39;</span><span class="p">,</span> <span class="p">[]):</span>
                 <span class="k">if</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;tableReference&#39;</span><span class="p">][</span><span class="s1">&#39;tableId&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">table_id</span><span class="p">:</span>
                     <span class="c1"># found the table, do update</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="s1">&#39;Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> exists, updating.&#39;</span><span class="p">,</span>
-                        <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span>
-                    <span class="p">)</span>
-                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                                                        <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
-                                                        <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">,</span>
-                                                        <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> exists, updating.&#39;</span><span class="p">,</span>
+                                  <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                        <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                        <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                        <span class="n">tableId</span><span class="o">=</span><span class="n">table_id</span><span class="p">,</span>
+                        <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
             <span class="c1"># If there is a next page, we need to check the next page.</span>
             <span class="k">if</span> <span class="s1">&#39;nextPageToken&#39;</span> <span class="ow">in</span> <span class="n">tables_list_resp</span><span class="p">:</span>
                 <span class="n">tables_list_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span>\
@@ -883,20 +1328,19 @@
             <span class="c1"># If there is no next page, then the table doesn&#39;t exist.</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># do insert</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s1">&#39;Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> does not exist. creating.&#39;</span><span class="p">,</span>
-                    <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span>
-                <span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                                                    <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
-                                                    <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> does not exist. creating.&#39;</span><span class="p">,</span>
+                              <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+                    <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                    <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
+                    <span class="n">body</span><span class="o">=</span><span class="n">table_resource</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">run_grant_dataset_view_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                       <span class="n">source_dataset</span><span class="p">,</span>
                                       <span class="n">view_dataset</span><span class="p">,</span>
                                       <span class="n">view_table</span><span class="p">,</span>
-                                      <span class="n">source_project</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                                      <span class="n">view_project</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                                      <span class="n">source_project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                      <span class="n">view_project</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Grant authorized view access of a dataset to a view table.</span>
 <span class="sd">        If this view has already been granted access to the dataset, do nothing.</span>
@@ -923,28 +1367,36 @@
 
         <span class="c1"># we don&#39;t want to clobber any existing accesses, so we have to get</span>
         <span class="c1"># info on the dataset before we can add view access</span>
-        <span class="n">source_dataset_resource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">datasets</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">source_project</span><span class="p">,</span>
-                                                              <span class="n">datasetId</span><span class="o">=</span><span class="n">source_dataset</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="n">access</span> <span class="o">=</span> <span class="n">source_dataset_resource</span><span class="p">[</span><span class="s1">&#39;access&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;access&#39;</span> <span class="ow">in</span> <span class="n">source_dataset_resource</span> <span class="k">else</span> <span class="p">[]</span>
-        <span class="n">view_access</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">view_project</span><span class="p">,</span>
-                                <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">view_dataset</span><span class="p">,</span>
-                                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">view_table</span><span class="p">}}</span>
+        <span class="n">source_dataset_resource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">datasets</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">projectId</span><span class="o">=</span><span class="n">source_project</span><span class="p">,</span> <span class="n">datasetId</span><span class="o">=</span><span class="n">source_dataset</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="n">access</span> <span class="o">=</span> <span class="n">source_dataset_resource</span><span class="p">[</span>
+            <span class="s1">&#39;access&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;access&#39;</span> <span class="ow">in</span> <span class="n">source_dataset_resource</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">view_access</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;projectId&#39;</span><span class="p">:</span> <span class="n">view_project</span><span class="p">,</span>
+                <span class="s1">&#39;datasetId&#39;</span><span class="p">:</span> <span class="n">view_dataset</span><span class="p">,</span>
+                <span class="s1">&#39;tableId&#39;</span><span class="p">:</span> <span class="n">view_table</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
         <span class="c1"># check to see if the view we want to add already exists.</span>
         <span class="k">if</span> <span class="n">view_access</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">access</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Granting table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> authorized view access to </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> dataset.&#39;</span><span class="p">,</span>
-                <span class="n">view_project</span><span class="p">,</span> <span class="n">view_dataset</span><span class="p">,</span> <span class="n">view_table</span><span class="p">,</span> <span class="n">source_project</span><span class="p">,</span> <span class="n">source_dataset</span>
-            <span class="p">)</span>
+                <span class="n">view_project</span><span class="p">,</span> <span class="n">view_dataset</span><span class="p">,</span> <span class="n">view_table</span><span class="p">,</span> <span class="n">source_project</span><span class="p">,</span>
+                <span class="n">source_dataset</span><span class="p">)</span>
             <span class="n">access</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">view_access</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">datasets</span><span class="p">()</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">projectId</span><span class="o">=</span><span class="n">source_project</span><span class="p">,</span>
-                                                 <span class="n">datasetId</span><span class="o">=</span><span class="n">source_dataset</span><span class="p">,</span>
-                                                 <span class="n">body</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;access&#39;</span><span class="p">:</span> <span class="n">access</span><span class="p">})</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">datasets</span><span class="p">()</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="n">source_project</span><span class="p">,</span>
+                <span class="n">datasetId</span><span class="o">=</span><span class="n">source_dataset</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;access&#39;</span><span class="p">:</span> <span class="n">access</span>
+                <span class="p">})</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># if view is already in access, do nothing.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> already has authorized view access to </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> dataset.&#39;</span><span class="p">,</span>
-                <span class="n">view_project</span><span class="p">,</span> <span class="n">view_dataset</span><span class="p">,</span> <span class="n">view_table</span><span class="p">,</span> <span class="n">source_project</span><span class="p">,</span> <span class="n">source_dataset</span>
-            <span class="p">)</span>
+                <span class="n">view_project</span><span class="p">,</span> <span class="n">view_dataset</span><span class="p">,</span> <span class="n">view_table</span><span class="p">,</span> <span class="n">source_project</span><span class="p">,</span>
+                <span class="n">source_dataset</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">source_dataset_resource</span>
 
 
@@ -957,8 +1409,11 @@
 <span class="sd">    https://github.com/dropbox/PyHive/blob/master/pyhive/common.py</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryCursor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">service</span><span class="o">=</span><span class="n">service</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryCursor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">service</span><span class="o">=</span><span class="n">service</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+            <span class="n">use_legacy_sql</span><span class="o">=</span><span class="n">use_legacy_sql</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffersize</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page_token</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span> <span class="o">=</span> <span class="kc">None</span>
@@ -988,7 +1443,8 @@
 <span class="sd">        :param parameters: Parameters to substitute into the query.</span>
 <span class="sd">        :type parameters: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bql</span> <span class="o">=</span> <span class="n">_bind_parameters</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span> <span class="k">if</span> <span class="n">parameters</span> <span class="k">else</span> <span class="n">operation</span>
+        <span class="n">bql</span> <span class="o">=</span> <span class="n">_bind_parameters</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span>
+                               <span class="n">parameters</span><span class="p">)</span> <span class="k">if</span> <span class="n">parameters</span> <span class="k">else</span> <span class="n">operation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_query</span><span class="p">(</span><span class="n">bql</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">seq_of_parameters</span><span class="p">):</span>
@@ -997,9 +1453,9 @@
 
 <span class="sd">        :param operation: The query to execute.</span>
 <span class="sd">        :type operation: string</span>
-<span class="sd">        :param parameters: List of dictionary parameters to substitute into the</span>
+<span class="sd">        :param seq_of_parameters: List of dictionary parameters to substitute into the</span>
 <span class="sd">            query.</span>
-<span class="sd">        :type parameters: list</span>
+<span class="sd">        :type seq_of_parameters: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">seq_of_parameters</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
@@ -1021,14 +1477,10 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_pages_loaded</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
 
-            <span class="n">query_results</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">jobs</span><span class="p">()</span>
-                <span class="o">.</span><span class="n">getQueryResults</span><span class="p">(</span>
-                    <span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
-                    <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">,</span>
-                    <span class="n">pageToken</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">page_token</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-            <span class="p">)</span>
+            <span class="n">query_results</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">jobs</span><span class="p">()</span><span class="o">.</span><span class="n">getQueryResults</span><span class="p">(</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">,</span>
+                <span class="n">pageToken</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">page_token</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">())</span>
 
             <span class="k">if</span> <span class="s1">&#39;rows&#39;</span> <span class="ow">in</span> <span class="n">query_results</span> <span class="ow">and</span> <span class="n">query_results</span><span class="p">[</span><span class="s1">&#39;rows&#39;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">page_token</span> <span class="o">=</span> <span class="n">query_results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pageToken&#39;</span><span class="p">)</span>
@@ -1057,13 +1509,14 @@
 
     <span class="k">def</span> <span class="nf">fetchmany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fetch the next set of rows of a query result, returning a sequence of sequences (e.g. a</span>
-<span class="sd">        list of tuples). An empty sequence is returned when no more rows are available.</span>
-<span class="sd">        The number of rows to fetch per call is specified by the parameter. If it is not given, the</span>
-<span class="sd">        cursor&#39;s arraysize determines the number of rows to be fetched. The method should try to</span>
-<span class="sd">        fetch as many rows as indicated by the size parameter. If this is not possible due to the</span>
-<span class="sd">        specified number of rows not being available, fewer rows may be returned.</span>
-<span class="sd">        An :py:class:`~pyhive.exc.Error` (or subclass) exception is raised if the previous call to</span>
+<span class="sd">        Fetch the next set of rows of a query result, returning a sequence of sequences</span>
+<span class="sd">        (e.g. a list of tuples). An empty sequence is returned when no more rows are</span>
+<span class="sd">        available. The number of rows to fetch per call is specified by the parameter.</span>
+<span class="sd">        If it is not given, the cursor&#39;s arraysize determines the number of rows to be</span>
+<span class="sd">        fetched. The method should try to fetch as many rows as indicated by the size</span>
+<span class="sd">        parameter. If this is not possible due to the specified number of rows not being</span>
+<span class="sd">        available, fewer rows may be returned. An :py:class:`~pyhive.exc.Error`</span>
+<span class="sd">        (or subclass) exception is raised if the previous call to</span>
 <span class="sd">        :py:meth:`execute` did not produce any result set or no call was issued yet.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1079,8 +1532,8 @@
 
     <span class="k">def</span> <span class="nf">fetchall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fetch all (remaining) rows of a query result, returning them as a sequence of sequences</span>
-<span class="sd">        (e.g. a list of tuples).</span>
+<span class="sd">        Fetch all (remaining) rows of a query result, returning them as a sequence of</span>
+<span class="sd">        sequences (e.g. a list of tuples).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -1163,10 +1616,9 @@
             <span class="k">return</span> <span class="s2">&quot;Format exception for </span><span class="si">{var}</span><span class="s2">: &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">table_input</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">table_input</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">((</span>
-            <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Use either : or . to specify project &#39;</span>
-            <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">((</span><span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Use either : or . to specify project &#39;</span>
+                         <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                             <span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
 
     <span class="n">cmpt</span> <span class="o">=</span> <span class="n">table_input</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">project_id</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1179,16 +1631,14 @@
             <span class="n">project_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">rest</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">((</span>
-            <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Expect format of (&lt;project:)&lt;dataset&gt;.&lt;table&gt;, &#39;</span>
-            <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">((</span><span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Expect format of (&lt;project:)&lt;dataset&gt;.&lt;table&gt;, &#39;</span>
+                         <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                             <span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
 
     <span class="n">cmpt</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmpt</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">{var}</span><span class="s2">Use either : or . to specify project&quot;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">{var}</span><span class="s2">Use either : or . to specify project&quot;</span>
+                                    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">))</span>
         <span class="n">project_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">table_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
@@ -1197,19 +1647,18 @@
         <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">table_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">((</span>
-            <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Expect format of (&lt;project.|&lt;project:)&lt;dataset&gt;.&lt;table&gt;, &#39;</span>
-            <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Expect format of (&lt;project.|&lt;project:)&lt;dataset&gt;.&lt;table&gt;, &#39;</span>
+             <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">var_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;Project not included in </span><span class="si">{var}</span><span class="s1">: </span><span class="si">{input}</span><span class="s1">; using project &quot;</span><span class="si">{project}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">var</span><span class="o">=</span><span class="n">var_name</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">default_project_id</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Project not included in </span><span class="si">{var}</span><span class="s1">: </span><span class="si">{input}</span><span class="s1">; &#39;</span>
+                     <span class="s1">&#39;using project &quot;</span><span class="si">{project}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                         <span class="n">var</span><span class="o">=</span><span class="n">var_name</span><span class="p">,</span>
+                         <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">,</span>
+                         <span class="n">project</span><span class="o">=</span><span class="n">default_project_id</span><span class="p">))</span>
         <span class="n">project_id</span> <span class="o">=</span> <span class="n">default_project_id</span>
 
     <span class="k">return</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span>

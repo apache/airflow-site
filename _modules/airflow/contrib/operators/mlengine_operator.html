@@ -91,7 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../howto/index.html">How-to Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../ui.html">UI / Screenshots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../profiling.html">Data Profiling</a></li>
@@ -99,8 +99,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -184,75 +186,15 @@
 <span class="c1"># limitations under the License.</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">apiclient</span> <span class="k">import</span> <span class="n">errors</span>
+
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_mlengine_hook</span> <span class="k">import</span> <span class="n">MLEngineHook</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.operators</span> <span class="k">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
-<span class="kn">from</span> <span class="nn">apiclient</span> <span class="k">import</span> <span class="n">errors</span>
-
 <span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
-
-
-<span class="k">def</span> <span class="nf">_create_prediction_input</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span>
-                             <span class="n">region</span><span class="p">,</span>
-                             <span class="n">data_format</span><span class="p">,</span>
-                             <span class="n">input_paths</span><span class="p">,</span>
-                             <span class="n">output_path</span><span class="p">,</span>
-                             <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">version_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">uri</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">max_worker_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="n">runtime_version</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create the batch prediction input from the given parameters.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        A subset of arguments documented in __init__ method of class</span>
-<span class="sd">        MLEngineBatchPredictionOperator</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A dictionary representing the predictionInput object as documented</span>
-<span class="sd">        in https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError: if a unique model/version origin cannot be determined.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">prediction_input</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;dataFormat&#39;</span><span class="p">:</span> <span class="n">data_format</span><span class="p">,</span>
-        <span class="s1">&#39;inputPaths&#39;</span><span class="p">:</span> <span class="n">input_paths</span><span class="p">,</span>
-        <span class="s1">&#39;outputPath&#39;</span><span class="p">:</span> <span class="n">output_path</span><span class="p">,</span>
-        <span class="s1">&#39;region&#39;</span><span class="p">:</span> <span class="n">region</span>
-    <span class="p">}</span>
-
-    <span class="k">if</span> <span class="n">uri</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">or</span> <span class="n">version_name</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s1">&#39;Ambiguous model origin: Both uri and model/version name are provided.&#39;</span>
-            <span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Ambiguous model origin.&#39;</span><span class="p">)</span>
-        <span class="n">prediction_input</span><span class="p">[</span><span class="s1">&#39;uri&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">uri</span>
-    <span class="k">elif</span> <span class="n">model_name</span><span class="p">:</span>
-        <span class="n">origin_name</span> <span class="o">=</span> <span class="s1">&#39;projects/</span><span class="si">{}</span><span class="s1">/models/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">version_name</span><span class="p">:</span>
-            <span class="n">prediction_input</span><span class="p">[</span><span class="s1">&#39;modelName&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">origin_name</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">prediction_input</span><span class="p">[</span><span class="s1">&#39;versionName&#39;</span><span class="p">]</span> <span class="o">=</span> \
-                <span class="n">origin_name</span> <span class="o">+</span> <span class="s1">&#39;/versions/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_name</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-            <span class="s1">&#39;Missing model origin: Batch prediction expects a model, &#39;</span>
-            <span class="s1">&#39;a model &amp; version combination, or a URI to savedModel.&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Missing model origin.&#39;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">max_worker_count</span><span class="p">:</span>
-        <span class="n">prediction_input</span><span class="p">[</span><span class="s1">&#39;maxWorkerCount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_worker_count</span>
-    <span class="k">if</span> <span class="n">runtime_version</span><span class="p">:</span>
-        <span class="n">prediction_input</span><span class="p">[</span><span class="s1">&#39;runtimeVersion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">runtime_version</span>
-
-    <span class="k">return</span> <span class="n">prediction_input</span>
 
 
 <span class="k">def</span> <span class="nf">_normalize_mlengine_job_id</span><span class="p">(</span><span class="n">job_id</span><span class="p">):</span>
@@ -268,10 +210,27 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        A valid job_id representation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d&#39;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+
+    <span class="c1"># Add a prefix when a job_id starts with a digit or a template</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d|\{{2}&#39;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">match</span> <span class="ow">and</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">job_id</span> <span class="o">=</span> <span class="s1">&#39;z_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[^0-9a-zA-Z]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="s1">&#39;z_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="n">job_id</span>
+
+    <span class="c1"># Clean up &#39;bad&#39; characters except templates</span>
+    <span class="n">tracker</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cleansed_job_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\{{2}.+?\}</span><span class="si">{2}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">job</span><span class="p">):</span>
+        <span class="n">cleansed_job_id</span> <span class="o">+=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9a-zA-Z]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span>
+                                  <span class="n">job</span><span class="p">[</span><span class="n">tracker</span><span class="p">:</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()])</span>
+        <span class="n">cleansed_job_id</span> <span class="o">+=</span> <span class="n">job</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">():</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()]</span>
+        <span class="n">tracker</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+
+    <span class="c1"># Clean up last substring or the full string if no templates</span>
+    <span class="n">cleansed_job_id</span> <span class="o">+=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9a-zA-Z]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">job</span><span class="p">[</span><span class="n">tracker</span><span class="p">:])</span>
+
+    <span class="k">return</span> <span class="n">cleansed_job_id</span>
 
 
 <div class="viewcode-block" id="MLEngineBatchPredictionOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineBatchPredictionOperator">[docs]</a><span class="k">class</span> <span class="nc">MLEngineBatchPredictionOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -289,14 +248,20 @@
 
 <span class="sd">    In options 2 and 3, both model and version name should contain the</span>
 <span class="sd">    minimal identifier. For instance, call</span>
+
+<span class="sd">    ::</span>
+
 <span class="sd">        MLEngineBatchPredictionOperator(</span>
 <span class="sd">            ...,</span>
 <span class="sd">            model_name=&#39;my_model&#39;,</span>
 <span class="sd">            version_name=&#39;my_version&#39;,</span>
 <span class="sd">            ...)</span>
+
 <span class="sd">    if the desired model version is</span>
 <span class="sd">    &quot;projects/my_project/models/my_model/versions/my_version&quot;.</span>
 
+<span class="sd">    See https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs</span>
+<span class="sd">    for further documentation on the parameters.</span>
 
 <span class="sd">    :param project_id: The Google Cloud project name where the</span>
 <span class="sd">        prediction job is submitted.</span>
@@ -358,11 +323,18 @@
 <span class="sd">    :type delegate_to: string</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: if a unique model/version origin cannot be determined.</span>
+<span class="sd">        ``ValueError``: if a unique model/version origin cannot be determined.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;prediction_job_request&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;_project_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_job_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_region&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_input_paths&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_output_path&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_model_name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_version_name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_uri&#39;</span><span class="p">,</span>
     <span class="p">]</span>
 
     <span class="nd">@apply_defaults</span>
@@ -384,45 +356,91 @@
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MLEngineBatchPredictionOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span> <span class="o">=</span> <span class="n">project_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span> <span class="o">=</span> <span class="n">job_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_format</span> <span class="o">=</span> <span class="n">data_format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_paths</span> <span class="o">=</span> <span class="n">input_paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_path</span> <span class="o">=</span> <span class="n">output_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version_name</span> <span class="o">=</span> <span class="n">version_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uri</span> <span class="o">=</span> <span class="n">uri</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_worker_count</span> <span class="o">=</span> <span class="n">max_worker_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runtime_version</span> <span class="o">=</span> <span class="n">runtime_version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">prediction_input</span> <span class="o">=</span> <span class="n">_create_prediction_input</span><span class="p">(</span>
-                <span class="n">project_id</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">input_paths</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span>
-                <span class="n">model_name</span><span class="p">,</span> <span class="n">version_name</span><span class="p">,</span> <span class="n">uri</span><span class="p">,</span> <span class="n">max_worker_count</span><span class="p">,</span>
-                <span class="n">runtime_version</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s1">&#39;Cannot create batch prediction job request due to: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">e</span>
-            <span class="p">)</span>
-            <span class="k">raise</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Google Cloud project id is required.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                <span class="s1">&#39;An unique job id is required for Google MLEngine prediction &#39;</span>
+                <span class="s1">&#39;job.&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_job_request</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;jobId&#39;</span><span class="p">:</span> <span class="n">_normalize_mlengine_job_id</span><span class="p">(</span><span class="n">job_id</span><span class="p">),</span>
-            <span class="s1">&#39;predictionInput&#39;</span><span class="p">:</span> <span class="n">prediction_input</span>
-        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uri</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version_name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Ambiguous model origin: Both uri and &#39;</span>
+                                       <span class="s1">&#39;model/version name are provided.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                <span class="s1">&#39;Missing model: Batch prediction expects &#39;</span>
+                <span class="s1">&#39;a model name when a version name is provided.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_uri</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                <span class="s1">&#39;Missing model origin: Batch prediction expects a model, &#39;</span>
+                <span class="s1">&#39;a model &amp; version combination, or a URI to a savedModel.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">MLEngineHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="n">_normalize_mlengine_job_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span><span class="p">)</span>
+        <span class="n">prediction_request</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;jobId&#39;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
+            <span class="s1">&#39;predictionInput&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;dataFormat&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_format</span><span class="p">,</span>
+                <span class="s1">&#39;inputPaths&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_paths</span><span class="p">,</span>
+                <span class="s1">&#39;outputPath&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_path</span><span class="p">,</span>
+                <span class="s1">&#39;region&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uri</span><span class="p">:</span>
+            <span class="n">prediction_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">][</span><span class="s1">&#39;uri&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uri</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">:</span>
+            <span class="n">origin_name</span> <span class="o">=</span> <span class="s1">&#39;projects/</span><span class="si">{}</span><span class="s1">/models/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version_name</span><span class="p">:</span>
+                <span class="n">prediction_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">][</span>
+                    <span class="s1">&#39;modelName&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">origin_name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prediction_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">][</span><span class="s1">&#39;versionName&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">origin_name</span> <span class="o">+</span> <span class="s1">&#39;/versions/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_version_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_worker_count</span><span class="p">:</span>
+            <span class="n">prediction_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">][</span>
+                <span class="s1">&#39;maxWorkerCount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_worker_count</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime_version</span><span class="p">:</span>
+            <span class="n">prediction_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">][</span>
+                <span class="s1">&#39;runtimeVersion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime_version</span>
+
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">MLEngineHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gcp_conn_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_to</span><span class="p">)</span>
+
+        <span class="c1"># Helper method to check if the existing job&#39;s prediction input is the</span>
+        <span class="c1"># same as the request we get here.</span>
         <span class="k">def</span> <span class="nf">check_existing_job</span><span class="p">(</span><span class="n">existing_job</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">existing_job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">prediction_job_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">]</span>
+                <span class="n">prediction_request</span><span class="p">[</span><span class="s1">&#39;predictionInput&#39;</span><span class="p">]</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">finished_prediction_job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">prediction_job_request</span><span class="p">,</span>
-                <span class="n">check_existing_job</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="n">prediction_request</span><span class="p">,</span> <span class="n">check_existing_job</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span><span class="p">:</span>
             <span class="k">raise</span>
 
         <span class="k">if</span> <span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;SUCCEEDED&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s1">&#39;Batch prediction job failed: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="nb">str</span><span class="p">(</span><span class="n">finished_prediction_job</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;MLEngine batch prediction job failed: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">finished_prediction_job</span><span class="p">)))</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;errorMessage&#39;</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;predictionOutput&#39;</span><span class="p">]</span></div>
@@ -445,8 +463,9 @@
 <span class="sd">    :type model: dict</span>
 
 <span class="sd">    :param operation: The operation to perform. Available operations are:</span>
-<span class="sd">        &#39;create&#39;: Creates a new model as provided by the `model` parameter.</span>
-<span class="sd">        &#39;get&#39;: Gets a particular model where the name is specified in `model`.</span>
+
+<span class="sd">        * ``create``: Creates a new model as provided by the `model` parameter.</span>
+<span class="sd">        * ``get``: Gets a particular model where the name is specified in `model`.</span>
 
 <span class="sd">    :param gcp_conn_id: The connection ID to use when fetching connection info.</span>
 <span class="sd">    :type gcp_conn_id: string</span>
@@ -515,23 +534,25 @@
 <span class="sd">    :type version: dict</span>
 
 <span class="sd">    :param operation: The operation to perform. Available operations are:</span>
-<span class="sd">        &#39;create&#39;: Creates a new version in the model specified by `model_name`,</span>
+
+<span class="sd">        *   ``create``: Creates a new version in the model specified by `model_name`,</span>
 <span class="sd">            in which case the `version` parameter should contain all the</span>
 <span class="sd">            information to create that version</span>
 <span class="sd">            (e.g. `name`, `deploymentUrl`).</span>
-<span class="sd">        &#39;get&#39;: Gets full information of a particular version in the model</span>
+
+<span class="sd">        *   ``get``: Gets full information of a particular version in the model</span>
 <span class="sd">            specified by `model_name`.</span>
 <span class="sd">            The name of the version should be specified in the `version`</span>
 <span class="sd">            parameter.</span>
 
-<span class="sd">        &#39;list&#39;: Lists all available versions of the model specified</span>
+<span class="sd">        *   ``list``: Lists all available versions of the model specified</span>
 <span class="sd">            by `model_name`.</span>
 
-<span class="sd">        &#39;delete&#39;: Deletes the version specified in `version` parameter from the</span>
+<span class="sd">        *   ``delete``: Deletes the version specified in `version` parameter from the</span>
 <span class="sd">            model specified by `model_name`).</span>
 <span class="sd">            The name of the version should be specified in the `version`</span>
 <span class="sd">            parameter.</span>
-<span class="sd">     :type operation: string</span>
+<span class="sd">    :type operation: string</span>
 
 <span class="sd">    :param gcp_conn_id: The connection ID to use when fetching connection info.</span>
 <span class="sd">    :type gcp_conn_id: string</span>
@@ -581,9 +602,8 @@
             <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">,</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span> <span class="o">==</span> <span class="s1">&#39;set_default&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">set_default_version</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">set_default_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">list_versions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span> <span class="o">==</span> <span class="s1">&#39;delete&#39;</span><span class="p">:</span>
@@ -625,6 +645,16 @@
 <span class="sd">    :param scale_tier: Resource tier for MLEngine training job.</span>
 <span class="sd">    :type scale_tier: string</span>
 
+<span class="sd">    :param runtime_version: The Google Cloud ML runtime version to use for training.</span>
+<span class="sd">    :type runtime_version: string</span>
+
+<span class="sd">    :param python_version: The version of Python used in training.</span>
+<span class="sd">    :type python_version: string</span>
+
+<span class="sd">    :param job_dir: A Google Cloud Storage path in which to store training</span>
+<span class="sd">        outputs and other data needed for training.</span>
+<span class="sd">    :type job_dir: string</span>
+
 <span class="sd">    :param gcp_conn_id: The connection ID to use when fetching connection info.</span>
 <span class="sd">    :type gcp_conn_id: string</span>
 
@@ -648,6 +678,9 @@
         <span class="s1">&#39;_training_args&#39;</span><span class="p">,</span>
         <span class="s1">&#39;_region&#39;</span><span class="p">,</span>
         <span class="s1">&#39;_scale_tier&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_runtime_version&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_python_version&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_job_dir&#39;</span>
     <span class="p">]</span>
 
     <span class="nd">@apply_defaults</span>
@@ -659,6 +692,9 @@
                  <span class="n">training_args</span><span class="p">,</span>
                  <span class="n">region</span><span class="p">,</span>
                  <span class="n">scale_tier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">runtime_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">python_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">job_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;PRODUCTION&#39;</span><span class="p">,</span>
@@ -672,6 +708,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_training_args</span> <span class="o">=</span> <span class="n">training_args</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_region</span> <span class="o">=</span> <span class="n">region</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scale_tier</span> <span class="o">=</span> <span class="n">scale_tier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runtime_version</span> <span class="o">=</span> <span class="n">runtime_version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_python_version</span> <span class="o">=</span> <span class="n">python_version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_job_dir</span> <span class="o">=</span> <span class="n">job_dir</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
@@ -706,9 +745,19 @@
             <span class="p">}</span>
         <span class="p">}</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime_version</span><span class="p">:</span>
+            <span class="n">training_request</span><span class="p">[</span><span class="s1">&#39;trainingInput&#39;</span><span class="p">][</span><span class="s1">&#39;runtimeVersion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_runtime_version</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_python_version</span><span class="p">:</span>
+            <span class="n">training_request</span><span class="p">[</span><span class="s1">&#39;trainingInput&#39;</span><span class="p">][</span><span class="s1">&#39;pythonVersion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_python_version</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_dir</span><span class="p">:</span>
+            <span class="n">training_request</span><span class="p">[</span><span class="s1">&#39;trainingInput&#39;</span><span class="p">][</span><span class="s1">&#39;jobDir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_dir</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s1">&#39;DRY_RUN&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;In dry_run mode.&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;MLEngine Training job request is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">training_request</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;MLEngine Training job request is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">training_request</span><span class="p">))</span>
             <span class="k">return</span>
 
         <span class="n">hook</span> <span class="o">=</span> <span class="n">MLEngineHook</span><span class="p">(</span>
@@ -719,6 +768,7 @@
         <span class="k">def</span> <span class="nf">check_existing_job</span><span class="p">(</span><span class="n">existing_job</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">existing_job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;trainingInput&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> \
                 <span class="n">training_request</span><span class="p">[</span><span class="s1">&#39;trainingInput&#39;</span><span class="p">]</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">finished_training_job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="n">training_request</span><span class="p">,</span> <span class="n">check_existing_job</span><span class="p">)</span>

@@ -92,7 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto/index.html">How-to Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ui.html">UI / Screenshots</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Concepts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#core-ideas">Core Ideas</a><ul>
@@ -138,8 +138,10 @@
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lineage.html">Lineage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">API Reference</a></li>
 </ul>
@@ -234,6 +236,11 @@ right handling of any unexpected issues.</p>
 the <code class="docutils literal"><span class="pre">DAG</span></code> objects. You can have as many DAGs as you want, each describing an
 arbitrary number of tasks. In general, each one should correspond to a single
 logical workflow.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When searching for DAGs, Airflow will only consider files where the string
+“airflow” and “DAG” both appear in the contents of the <code class="docutils literal"><span class="pre">.py</span></code> file.</p>
+</div>
 <div class="section" id="scope">
 <h4>Scope<a class="headerlink" href="#scope" title="Permalink to this headline">¶</a></h4>
 <p>Airflow will load any <code class="docutils literal"><span class="pre">DAG</span></code> object it can import from a DAGfile. Critically,
@@ -242,7 +249,7 @@ DAGs. Only <code class="docutils literal"><span class="pre">dag_1</span></code> 
 scope.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">dag_1</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="s1">&#39;this_dag_will_be_discovered&#39;</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">my_function</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_function</span><span class="p">():</span>
     <span class="n">dag_2</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="s1">&#39;but_this_dag_will_not&#39;</span><span class="p">)</span>
 
 <span class="n">my_function</span><span class="p">()</span>
@@ -256,9 +263,10 @@ doesn’t try to load it as a standalone DAG.</p>
 <h4>Default Arguments<a class="headerlink" href="#default-arguments" title="Permalink to this headline">¶</a></h4>
 <p>If a dictionary of <code class="docutils literal"><span class="pre">default_args</span></code> is passed to a DAG, it will apply them to
 any of its operators. This makes it easy to apply a common parameter to many operators without having to type it many times.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">default_args</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-    <span class="n">owner</span><span class="o">=</span><span class="s1">&#39;Airflow&#39;</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;start_date&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s1">&#39;owner&#39;</span><span class="p">:</span> <span class="s1">&#39;Airflow&#39;</span>
+<span class="p">}</span>
 
 <span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="s1">&#39;my_dag&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">)</span>
 <span class="n">op</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;dummy&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
@@ -465,7 +473,7 @@ UI. As slots free up, queued tasks start running based on the
 execution parallelism is only limited to the executor’s setting.</p>
 </div>
 <div class="section" id="connections">
-<h3>Connections<a class="headerlink" href="#connections" title="Permalink to this headline">¶</a></h3>
+<span id="concepts-connections"></span><h3>Connections<a class="headerlink" href="#connections" title="Permalink to this headline">¶</a></h3>
 <p>The connection information to external systems is stored in the Airflow
 metadata database and managed in the UI (<code class="docutils literal"><span class="pre">Menu</span> <span class="pre">-&gt;</span> <span class="pre">Admin</span> <span class="pre">-&gt;</span> <span class="pre">Connections</span></code>)
 A <code class="docutils literal"><span class="pre">conn_id</span></code> is defined there and hostname / login / password / schema
@@ -477,16 +485,11 @@ is the case, and when the <strong>hooks</strong> uses the <code class="docutils 
 from <code class="docutils literal"><span class="pre">BaseHook</span></code>, Airflow will choose one connection randomly, allowing
 for some basic load balancing and fault tolerance when used in conjunction
 with retries.</p>
-<p>Airflow also has the ability to reference connections via environment
-variables from the operating system. The environment variable needs to be
-prefixed with <code class="docutils literal"><span class="pre">AIRFLOW_CONN_</span></code> to be considered a connection. When
-referencing the connection in the Airflow pipeline, the <code class="docutils literal"><span class="pre">conn_id</span></code> should
-be the name of the variable without the prefix. For example, if the <code class="docutils literal"><span class="pre">conn_id</span></code>
-is named <code class="docutils literal"><span class="pre">postgres_master</span></code> the environment variable should be named
-<code class="docutils literal"><span class="pre">AIRFLOW_CONN_POSTGRES_MASTER</span></code> (note that the environment variable must be
-all uppercase). Airflow assumes the value returned from the environment
-variable to be in a URI format (e.g.
-<code class="docutils literal"><span class="pre">postgres://user:password&#64;localhost:5432/master</span></code> or <code class="docutils literal"><span class="pre">s3://accesskey:secretkey&#64;S3</span></code>).</p>
+<p>Many hooks have a default <code class="docutils literal"><span class="pre">conn_id</span></code>, where operators using that hook do not
+need to supply an explicit connection ID. For example, the default
+<code class="docutils literal"><span class="pre">conn_id</span></code> for the <a class="reference internal" href="code.html#airflow.hooks.postgres_hook.PostgresHook" title="airflow.hooks.postgres_hook.PostgresHook"><code class="xref py py-class docutils literal"><span class="pre">PostgresHook</span></code></a> is
+<code class="docutils literal"><span class="pre">postgres_default</span></code>.</p>
+<p>See <a class="reference internal" href="howto/manage-connections.html"><span class="doc">Managing Connections</span></a> for how to create and manage connections.</p>
 </div>
 <div class="section" id="queues">
 <h3>Queues<a class="headerlink" href="#queues" title="Permalink to this headline">¶</a></h3>
@@ -527,7 +530,7 @@ XComs when they are pushed by being returned from execute functions (as
 opposed to XComs that are pushed manually).</p>
 <p>If <code class="docutils literal"><span class="pre">xcom_pull</span></code> is passed a single string for <code class="docutils literal"><span class="pre">task_ids</span></code>, then the most
 recent XCom value from that task is returned; if a list of <code class="docutils literal"><span class="pre">task_ids</span></code> is
-passed, then a correpsonding list of XCom values is returned.</p>
+passed, then a corresponding list of XCom values is returned.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># inside a PythonOperator called &#39;pushing_task&#39;</span>
 <span class="k">def</span> <span class="nf">push_function</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">value</span>
@@ -550,7 +553,8 @@ for inter-task communication rather than global settings.</p>
 <p>Variables are a generic way to store and retrieve arbitrary content or
 settings as a simple key value store within Airflow. Variables can be
 listed, created, updated and deleted from the UI (<code class="docutils literal"><span class="pre">Admin</span> <span class="pre">-&gt;</span> <span class="pre">Variables</span></code>),
-code or CLI. While your pipeline code definition and most of your constants
+code or CLI. In addition, json settings files can be bulk uploaded through
+the UI. While your pipeline code definition and most of your constants
 and variables should be defined in code and stored in source control,
 it can be useful to have some variables or configuration items
 accessible and modifiable through the UI.</p>
@@ -562,6 +566,14 @@ accessible and modifiable through the UI.</p>
 <p>The second call assumes <code class="docutils literal"><span class="pre">json</span></code> content and will be deserialized into
 <code class="docutils literal"><span class="pre">bar</span></code>. Note that <code class="docutils literal"><span class="pre">Variable</span></code> is a sqlalchemy model and can be used
 as such.</p>
+<p>You can use a variable from a jinja template with the syntax :</p>
+<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="n">echo</span> <span class="p">{{</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span><span class="o">.&lt;</span><span class="n">variable_name</span><span class="o">&gt;</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>or if you need to deserialize a json object from the variable :</p>
+<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="n">echo</span> <span class="p">{{</span> <span class="n">var</span><span class="o">.</span><span class="n">json</span><span class="o">.&lt;</span><span class="n">variable_name</span><span class="o">&gt;</span> <span class="p">}}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="branching">
 <h3>Branching<a class="headerlink" href="#branching" title="Permalink to this headline">¶</a></h3>
@@ -840,7 +852,7 @@ content if defined:</p>
 </tr>
 </tbody>
 </table>
-<p>Please note that for dags, dag_md is the only attribute interpreted.</p>
+<p>Please note that for dags, doc_md is the only attribute interpreted.</p>
 <p>This is especially useful if your tasks are built dynamically from
 configuration files, it allows you to expose the configuration that led
 to the related tasks in Airflow.</p>

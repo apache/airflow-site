@@ -36,7 +36,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="Airflow Documentation" href="index.html"/>
-        <link rel="next" title="Experimental Rest API" href="api.html"/>
+        <link rel="next" title="Time zones" href="timezone.html"/>
         <link rel="prev" title="Plugins" href="plugins.html"/> 
 
   
@@ -92,7 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto/index.html">How-to Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ui.html">UI / Screenshots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="profiling.html">Data Profiling</a></li>
@@ -120,6 +120,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#oauth-authentication">OAuth Authentication</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#github-enterprise-ghe-authentication">GitHub Enterprise (GHE) Authentication</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#setting-up-ghe-authentication">Setting up GHE Authentication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-ghe-authentication-with-github-com">Using GHE Authentication with github.com</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#google-authentication">Google Authentication</a><ul>
@@ -135,8 +136,10 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lineage.html">Lineage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">API Reference</a></li>
 </ul>
@@ -223,7 +226,7 @@ uses bcrypt before storing passwords.</p>
 </pre></div>
 </div>
 <p>When password auth is enabled, an initial user credential will need to be created before anyone can login. An initial
-user was not created in the migrations for this authenication backend to prevent default Airflow installations from
+user was not created in the migrations for this authentication backend to prevent default Airflow installations from
 attack. Creating a new user has to be done via a Python REPL on the same machine Airflow is installed.</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># navigate to the airflow installation directory</span>
 $ <span class="nb">cd</span> ~/airflow
@@ -425,17 +428,26 @@ backend. In order to setup an application:</p>
 <li>Select ‘Applications’ from the left hand nav</li>
 <li>Select the ‘Developer Applications’ tab</li>
 <li>Click ‘Register new application’</li>
-<li>Fill in the required information (the ‘Authorization callback URL’ must be fully qualifed e.g. <a class="reference external" href="http://airflow.example.com/example/ghe_oauth/callback">http://airflow.example.com/example/ghe_oauth/callback</a>)</li>
+<li>Fill in the required information (the ‘Authorization callback URL’ must be fully qualified e.g. <a class="reference external" href="http://airflow.example.com/example/ghe_oauth/callback">http://airflow.example.com/example/ghe_oauth/callback</a>)</li>
 <li>Click ‘Register application’</li>
 <li>Copy ‘Client ID’, ‘Client Secret’, and your callback route to your airflow.cfg according to the above example</li>
+</ol>
+</div>
+<div class="section" id="using-ghe-authentication-with-github-com">
+<h4>Using GHE Authentication with github.com<a class="headerlink" href="#using-ghe-authentication-with-github-com" title="Permalink to this headline">¶</a></h4>
+<p>It is possible to use GHE authentication with github.com:</p>
+<ol class="arabic simple">
+<li><a class="reference external" href="https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/">Create an Oauth App</a></li>
+<li>Copy ‘Client ID’, ‘Client Secret’ to your airflow.cfg according to the above example</li>
+<li>Set <code class="docutils literal"><span class="pre">host</span> <span class="pre">=</span> <span class="pre">github.com</span></code> and <code class="docutils literal"><span class="pre">oauth_callback_route</span> <span class="pre">=</span> <span class="pre">/oauth/callback</span></code> in airflow.cfg</li>
 </ol>
 </div>
 </div>
 <div class="section" id="google-authentication">
 <h3>Google Authentication<a class="headerlink" href="#google-authentication" title="Permalink to this headline">¶</a></h3>
 <p>The Google authentication backend can be used to authenticate users
-against Google using OAuth2. You must specify a domain to restrict login
-to only members of that domain.</p>
+against Google using OAuth2. You must specify the domains to restrict
+login, separated with a comma, to only members of those domains.</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>webserver<span class="o">]</span>
 <span class="nv">authenticate</span> <span class="o">=</span> True
 <span class="nv">auth_backend</span> <span class="o">=</span> airflow.contrib.auth.backends.google_auth
@@ -444,7 +456,7 @@ to only members of that domain.</p>
 <span class="nv">client_id</span> <span class="o">=</span> google_client_id
 <span class="nv">client_secret</span> <span class="o">=</span> google_client_secret
 <span class="nv">oauth_callback_route</span> <span class="o">=</span> /oauth2callback
-<span class="nv">domain</span> <span class="o">=</span> example.com
+<span class="nv">domain</span> <span class="o">=</span> <span class="s2">&quot;example1.com,example2.com&quot;</span>
 </pre></div>
 </div>
 <div class="section" id="setting-up-google-authentication">
@@ -453,14 +465,13 @@ to only members of that domain.</p>
 backend. In order to setup an application:</p>
 <ol class="arabic simple">
 <li>Navigate to <a class="reference external" href="https://console.developers.google.com/apis/">https://console.developers.google.com/apis/</a></li>
+<li>Select ‘Credentials’ from the left hand nav</li>
+<li>Click ‘Create credentials’ and choose ‘OAuth client ID’</li>
+<li>Choose ‘Web application’</li>
+<li>Fill in the required information (the ‘Authorized redirect URIs’ must be fully qualified e.g. <a class="reference external" href="http://airflow.example.com/oauth2callback">http://airflow.example.com/oauth2callback</a>)</li>
+<li>Click ‘Create’</li>
+<li>Copy ‘Client ID’, ‘Client Secret’, and your redirect URI to your airflow.cfg according to the above example</li>
 </ol>
-<p>2. Select ‘Credentials’ from the left hand nav
-2. Select ‘Credentials’ from the left hand nav
-3. Click ‘Create credentials’ and choose ‘OAuth client ID’
-4. Choose ‘Web application’
-5. Fill in the required information (the ‘Authorized redirect URIs’ must be fully qualifed e.g. <a class="reference external" href="http://airflow.example.com/oauth2callback">http://airflow.example.com/oauth2callback</a>)
-6. Click ‘Create’
-7. Copy ‘Client ID’, ‘Client Secret’, and your redirect URI to your airflow.cfg according to the above example</p>
 </div>
 </div>
 </div>
@@ -528,7 +539,7 @@ not set.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="Experimental Rest API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="timezone.html" class="btn btn-neutral float-right" title="Time zones" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="plugins.html" class="btn btn-neutral" title="Plugins" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

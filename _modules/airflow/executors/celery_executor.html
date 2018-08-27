@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -30,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="Airflow Documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -40,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -76,13 +82,16 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../project.html">Project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../howto/index.html">How-to Guides</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ui.html">UI / Screenshots</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../profiling.html">Data Profiling</a></li>
@@ -90,6 +99,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../scheduler.html">Scheduling &amp; Triggers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -104,8 +117,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">Airflow</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Airflow</a>
+        
       </nav>
 
 
@@ -118,19 +133,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>airflow.executors.celery_executor</li>
+        
+      <li>airflow.executors.celery_executor</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -139,66 +171,72 @@
   <h1>Source code for airflow.executors.celery_executor</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
-<span class="c1"># you may not use this file except in compliance with the License.</span>
-<span class="c1"># You may obtain a copy of the License at</span>
-<span class="c1">#</span>
-<span class="c1"># http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="c1">#</span>
-<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
-<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
-<span class="c1"># See the License for the specific language governing permissions and</span>
-<span class="c1"># limitations under the License.</span>
+<span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1"># </span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1"># </span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
 
-<span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">object</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">Celery</span>
-<span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">states</span> <span class="k">as</span> <span class="n">celery_states</span>
+<span class="kn">from</span> <span class="nn">celery</span> <span class="k">import</span> <span class="n">Celery</span>
+<span class="kn">from</span> <span class="nn">celery</span> <span class="k">import</span> <span class="n">states</span> <span class="k">as</span> <span class="n">celery_states</span>
 
-<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.executors.base_executor</span> <span class="kn">import</span> <span class="n">BaseExecutor</span>
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">configuration</span>
+<span class="kn">from</span> <span class="nn">airflow.config_templates.default_celery</span> <span class="k">import</span> <span class="n">DEFAULT_CELERY_CONFIG</span>
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
+<span class="kn">from</span> <span class="nn">airflow.executors.base_executor</span> <span class="k">import</span> <span class="n">BaseExecutor</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">configuration</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.module_loading</span> <span class="k">import</span> <span class="n">import_string</span>
 
-<span class="n">PARALLELISM</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;PARALLELISM&#39;</span><span class="p">)</span>
+<span class="n">PARALLELISM</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;PARALLELISM&#39;</span><span class="p">)</span>
 
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">To start the celery worker, run the command:</span>
 <span class="sd">airflow worker</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="n">DEFAULT_QUEUE</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;DEFAULT_QUEUE&#39;</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">CeleryConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">CELERY_ACCEPT_CONTENT</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;pickle&#39;</span><span class="p">]</span>
-    <span class="n">CELERYD_PREFETCH_MULTIPLIER</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">CELERY_ACKS_LATE</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">BROKER_URL</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;BROKER_URL&#39;</span><span class="p">)</span>
-    <span class="n">CELERY_RESULT_BACKEND</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;CELERY_RESULT_BACKEND&#39;</span><span class="p">)</span>
-    <span class="n">CELERYD_CONCURRENCY</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;CELERYD_CONCURRENCY&#39;</span><span class="p">)</span>
-    <span class="n">CELERY_DEFAULT_QUEUE</span> <span class="o">=</span> <span class="n">DEFAULT_QUEUE</span>
-    <span class="n">CELERY_DEFAULT_EXCHANGE</span> <span class="o">=</span> <span class="n">DEFAULT_QUEUE</span>
+<span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;celery_config_options&#39;</span><span class="p">):</span>
+    <span class="n">celery_configuration</span> <span class="o">=</span> <span class="n">import_string</span><span class="p">(</span>
+        <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;celery_config_options&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">celery_configuration</span> <span class="o">=</span> <span class="n">DEFAULT_CELERY_CONFIG</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">Celery</span><span class="p">(</span>
-    <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;CELERY_APP_NAME&#39;</span><span class="p">),</span>
-    <span class="n">config_source</span><span class="o">=</span><span class="n">CeleryConfig</span><span class="p">)</span>
+    <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;CELERY_APP_NAME&#39;</span><span class="p">),</span>
+    <span class="n">config_source</span><span class="o">=</span><span class="n">celery_configuration</span><span class="p">)</span>
 
 
-<span class="nd">@app.task</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing command in Celery &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing command in Celery: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+                              <span class="n">close_fds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;execute_command encountered a CalledProcessError&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+
         <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Celery command failed&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="CeleryExecutor"><a class="viewcode-back" href="../../../code.html#airflow.executors.CeleryExecutor">[docs]</a><span class="k">class</span> <span class="nc">CeleryExecutor</span><span class="p">(</span><span class="n">BaseExecutor</span><span class="p">):</span>
+<div class="viewcode-block" id="CeleryExecutor"><a class="viewcode-back" href="../../../code.html#airflow.executors.celery_executor.CeleryExecutor">[docs]</a><span class="k">class</span> <span class="nc">CeleryExecutor</span><span class="p">(</span><span class="n">BaseExecutor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CeleryExecutor is recommended for production use of Airflow. It allows</span>
 <span class="sd">    distributing the execution of task instances to multiple worker nodes.</span>
@@ -207,50 +245,56 @@
 <span class="sd">    vast amounts of messages, while providing operations with the tools</span>
 <span class="sd">    required to maintain such a system.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="nf">execute_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">DEFAULT_QUEUE</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span> <span class="s2">&quot;[celery] queuing {key} through celery, &quot;</span>
-                       <span class="s2">&quot;queue={queue}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+    <span class="k">def</span> <span class="nf">execute_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span>
+                      <span class="n">queue</span><span class="o">=</span><span class="n">DEFAULT_CELERY_CONFIG</span><span class="p">[</span><span class="s1">&#39;task_default_queue&#39;</span><span class="p">],</span>
+                      <span class="n">executor_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span> <span class="s2">&quot;[celery] queuing </span><span class="si">{key}</span><span class="s2"> through celery, &quot;</span>
+                       <span class="s2">&quot;queue=</span><span class="si">{queue}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">execute_command</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span>
             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">command</span><span class="p">],</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">PENDING</span>
 
     <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Inquiring about </span><span class="si">%s</span><span class="s2"> celery task(s)&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="k">async</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="k">async</span><span class="o">.</span><span class="n">state</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">state</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">REVOKED</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unexpected state: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="k">async</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="k">async</span><span class="o">.</span><span class="n">state</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error syncing the celery executor, ignoring it:&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Inquiring about {} celery task(s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">)))</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">async</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-            <span class="n">state</span> <span class="o">=</span> <span class="n">async</span><span class="o">.</span><span class="n">state</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">state</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">REVOKED</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unexpected state: &quot;</span> <span class="o">+</span> <span class="n">async</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">async</span><span class="o">.</span><span class="n">state</span>
-
-    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synchronous</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synchronous</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">synchronous</span><span class="p">:</span>
             <span class="k">while</span> <span class="nb">any</span><span class="p">([</span>
-                    <span class="n">async</span><span class="o">.</span><span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">READY_STATES</span>
-                    <span class="k">for</span> <span class="n">async</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">values</span><span class="p">()]):</span>
+                    <span class="k">async</span><span class="o">.</span><span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">READY_STATES</span>
+                    <span class="k">for</span> <span class="k">async</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">values</span><span class="p">()]):</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span></div>
 </pre></div>
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
@@ -284,7 +328,8 @@
             VERSION:'',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
