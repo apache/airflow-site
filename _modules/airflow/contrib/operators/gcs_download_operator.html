@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../../search.html"/>
-    <link rel="top" title="Airflow Documentation" href="../../../../index.html"/>
-        <link rel="up" title="Module code" href="../../../index.html"/> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -116,7 +107,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../../index.html">Airflow</a>
@@ -124,9 +115,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -156,8 +148,6 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
-        
       </li>
     
   </ul>
@@ -178,9 +168,9 @@
 <span class="c1"># to you under the Apache License, Version 2.0 (the</span>
 <span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
 <span class="c1"># with the License.  You may obtain a copy of the License at</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing,</span>
 <span class="c1"># software distributed under the License is distributed on an</span>
 <span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
@@ -199,25 +189,26 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads a file from Google Cloud Storage.</span>
 
-<span class="sd">    :param bucket: The Google cloud storage bucket where the object is.</span>
+<span class="sd">    :param bucket: The Google cloud storage bucket where the object is. (templated)</span>
 <span class="sd">    :type bucket: string</span>
 <span class="sd">    :param object: The name of the object to download in the Google cloud</span>
-<span class="sd">        storage bucket.</span>
+<span class="sd">        storage bucket. (templated)</span>
 <span class="sd">    :type object: string</span>
 <span class="sd">    :param filename: The file path on the local file system (where the</span>
-<span class="sd">        operator is being executed) that the file should be downloaded to.</span>
+<span class="sd">        operator is being executed) that the file should be downloaded to. (templated)</span>
 <span class="sd">        If no filename passed, the downloaded data will not be stored on the local file</span>
 <span class="sd">        system.</span>
 <span class="sd">    :type filename: string</span>
 <span class="sd">    :param store_to_xcom_key: If this param is set, the operator will push</span>
 <span class="sd">        the contents of the downloaded file to XCom with the key set in this</span>
-<span class="sd">        parameter. If not set, the downloaded data will not be pushed to XCom.</span>
+<span class="sd">        parameter. If not set, the downloaded data will not be pushed to XCom. (templated)</span>
 <span class="sd">    :type store_to_xcom_key: string</span>
 <span class="sd">    :param google_cloud_storage_conn_id: The connection ID to use when</span>
 <span class="sd">        connecting to Google cloud storage.</span>
 <span class="sd">    :type google_cloud_storage_conn_id: string</span>
 <span class="sd">    :param delegate_to: The account to impersonate, if any.</span>
-<span class="sd">        For this to work, the service account making the request must have domain-wide delegation enabled.</span>
+<span class="sd">        For this to work, the service account making the request must have</span>
+<span class="sd">        domain-wide delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span> <span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="s1">&#39;store_to_xcom_key&#39;</span><span class="p">,)</span>
@@ -255,14 +246,14 @@
             <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">file_bytes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">48000</span><span class="p">:</span>
                 <span class="n">context</span><span class="p">[</span><span class="s1">&#39;ti&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xcom_push</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">store_to_xcom_key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">file_bytes</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The size of the downloaded file is too large to push to XCom!&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;The size of the downloaded file is too large to push to XCom!&#39;</span>
+                <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">file_bytes</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -274,7 +265,7 @@
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -293,6 +284,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
             VERSION:'',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -305,19 +297,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

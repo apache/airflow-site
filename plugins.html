@@ -24,27 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Airflow Documentation" href="index.html"/>
-        <link rel="next" title="Security" href="security.html"/>
-        <link rel="prev" title="Scheduling &amp; Triggers" href="scheduler.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Security" href="security.html" />
+    <link rel="prev" title="Scheduling &amp; Triggers" href="scheduler.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -123,7 +115,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Airflow</a>
@@ -131,9 +123,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -179,8 +172,8 @@
 <h1>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h1>
 <p>Airflow has a simple plugin manager built-in that can integrate external
 features to its core by simply dropping files in your
-<code class="docutils literal"><span class="pre">$AIRFLOW_HOME/plugins</span></code> folder.</p>
-<p>The python modules in the <code class="docutils literal"><span class="pre">plugins</span></code> folder get imported,
+<code class="docutils literal notranslate"><span class="pre">$AIRFLOW_HOME/plugins</span></code> folder.</p>
+<p>The python modules in the <code class="docutils literal notranslate"><span class="pre">plugins</span></code> folder get imported,
 and <strong>hooks</strong>, <strong>operators</strong>, <strong>sensors</strong>, <strong>macros</strong>, <strong>executors</strong> and web <strong>views</strong>
 get integrated to Airflow’s main collections and become available for use.</p>
 <div class="section" id="what-for">
@@ -218,10 +211,10 @@ they should land, alert people, and expose visualizations of outages</li>
 <div class="section" id="interface">
 <h2>Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <p>To create a plugin you will need to derive the
-<code class="docutils literal"><span class="pre">airflow.plugins_manager.AirflowPlugin</span></code> class and reference the objects
+<code class="docutils literal notranslate"><span class="pre">airflow.plugins_manager.AirflowPlugin</span></code> class and reference the objects
 you want to plug into Airflow. Here’s what the class you need to derive
 looks like:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AirflowPlugin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AirflowPlugin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="c1"># The name of your plugin (str)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># A list of class(es) derived from BaseOperator</span>
@@ -243,12 +236,26 @@ looks like:</p>
     <span class="n">menu_links</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
 </div>
+<p>You can derive it by inheritance (please refer to the example below).
+Please note <code class="docutils literal notranslate"><span class="pre">name</span></code> inside this class must be specified.</p>
+<p>After the plugin is imported into Airflow,
+you can invoke it using statement like</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow.</span><span class="p">{</span><span class="nb">type</span><span class="p">,</span> <span class="n">like</span> <span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;sensors&quot;</span><span class="p">}</span><span class="o">.</span><span class="p">{</span><span class="n">name</span> <span class="n">specificed</span> <span class="n">inside</span> <span class="n">the</span> <span class="n">plugin</span> <span class="n">class</span><span class="p">}</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>When you write your own plugins, make sure you understand them well.
+There are some essential properties for each type of plugin.
+For example,</p>
+<ul class="simple">
+<li>For <code class="docutils literal notranslate"><span class="pre">Operator</span></code> plugin, an <code class="docutils literal notranslate"><span class="pre">execute</span></code> method is compulsory.</li>
+<li>For <code class="docutils literal notranslate"><span class="pre">Sensor</span></code> plugin, a <code class="docutils literal notranslate"><span class="pre">poke</span></code> method returning a Boolean value is compulsory.</li>
+</ul>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>The code below defines a plugin that injects a set of dummy object
 definitions in Airflow.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># This is the class you derive to create a plugin</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is the class you derive to create a plugin</span>
 <span class="kn">from</span> <span class="nn">airflow.plugins_manager</span> <span class="k">import</span> <span class="n">AirflowPlugin</span>
 
 <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Blueprint</span>
@@ -319,9 +326,7 @@ definitions in Airflow.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -342,7 +347,7 @@ definitions in Airflow.</p>
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -361,6 +366,7 @@ definitions in Airflow.</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -373,19 +379,13 @@ definitions in Airflow.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="Airflow Documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -116,7 +107,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">Airflow</a>
@@ -124,9 +115,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -155,8 +147,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -340,7 +330,9 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;autocommit&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="c1"># If autocommit was set to False for db that supports autocommit,</span>
+            <span class="c1"># or if db does not supports autocommit, we do a manual commit.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_autocommit</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
                 <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DbApiHook.set_autocommit"><a class="viewcode-back" href="../../../code.html#airflow.hooks.dbapi_hook.DbApiHook.set_autocommit">[docs]</a>    <span class="k">def</span> <span class="nf">set_autocommit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">autocommit</span><span class="p">):</span>
@@ -354,13 +346,28 @@
                 <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_name_attr</span><span class="p">))</span>
         <span class="n">conn</span><span class="o">.</span><span class="n">autocommit</span> <span class="o">=</span> <span class="n">autocommit</span></div>
 
+<div class="viewcode-block" id="DbApiHook.get_autocommit"><a class="viewcode-back" href="../../../code.html#airflow.hooks.dbapi_hook.DbApiHook.get_autocommit">[docs]</a>    <span class="k">def</span> <span class="nf">get_autocommit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get autocommit setting for the provided connection.</span>
+<span class="sd">        Return True if conn.autocommit is set to True.</span>
+<span class="sd">        Return False if conn.autocommit is not set or set to False or conn</span>
+<span class="sd">        does not support autocommit.</span>
+<span class="sd">        :param conn: Connection to get autocommit setting from.</span>
+<span class="sd">        :type conn: connection object.</span>
+<span class="sd">        :return: connection autocommit setting.</span>
+<span class="sd">        :rtype bool.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;autocommit&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">supports_autocommit</span></div>
+
 <div class="viewcode-block" id="DbApiHook.get_cursor"><a class="viewcode-back" href="../../../code.html#airflow.hooks.dbapi_hook.DbApiHook.get_cursor">[docs]</a>    <span class="k">def</span> <span class="nf">get_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a cursor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DbApiHook.insert_rows"><a class="viewcode-back" href="../../../code.html#airflow.hooks.dbapi_hook.DbApiHook.insert_rows">[docs]</a>    <span class="k">def</span> <span class="nf">insert_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">target_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">commit_every</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<div class="viewcode-block" id="DbApiHook.insert_rows"><a class="viewcode-back" href="../../../code.html#airflow.hooks.dbapi_hook.DbApiHook.insert_rows">[docs]</a>    <span class="k">def</span> <span class="nf">insert_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">target_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">commit_every</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                    <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A generic way to insert a set of tuples into a table,</span>
 <span class="sd">        a new transaction is created every commit_every rows</span>
@@ -374,6 +381,8 @@
 <span class="sd">        :param commit_every: The maximum number of rows to insert in one</span>
 <span class="sd">            transaction. Set to 0 to insert all rows in one transaction.</span>
 <span class="sd">        :type commit_every: int</span>
+<span class="sd">        :param replace: Whether to replace instead of insert</span>
+<span class="sd">        :type replace: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">target_fields</span><span class="p">:</span>
             <span class="n">target_fields</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_fields</span><span class="p">)</span>
@@ -389,12 +398,16 @@
 
             <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">())</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
-                    <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">lst</span> <span class="o">=</span> <span class="p">[]</span>
                     <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
-                        <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_serialize_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">conn</span><span class="p">))</span>
-                    <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                        <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_serialize_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">conn</span><span class="p">))</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
                     <span class="n">placeholders</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-                    <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO </span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2"> VALUES (</span><span class="si">{2}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span><span class="p">:</span>
+                        <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO &quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;REPLACE INTO &quot;</span>
+                    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2"> VALUES (</span><span class="si">{2}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">table</span><span class="p">,</span>
                         <span class="n">target_fields</span><span class="p">,</span>
                         <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">placeholders</span><span class="p">))</span>
@@ -452,9 +465,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -466,7 +477,7 @@
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -485,6 +496,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -497,19 +509,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

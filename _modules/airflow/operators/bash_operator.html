@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="Airflow Documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -116,7 +107,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../index.html">Airflow</a>
@@ -124,9 +115,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -155,8 +147,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -195,20 +185,10 @@
 <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">STDOUT</span><span class="p">,</span> <span class="n">PIPE</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">gettempdir</span><span class="p">,</span> <span class="n">NamedTemporaryFile</span>
 
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">conf</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.file</span> <span class="k">import</span> <span class="n">TemporaryDirectory</span>
-
-
-<span class="c1"># These variables are required in cases when BashOperator tasks use airflow specific code,</span>
-<span class="c1"># e.g. they import packages in the airflow context and the possibility of impersonation</span>
-<span class="c1"># gives not guarantee that these variables are available in the impersonated environment.</span>
-<span class="c1"># Hence, we need to propagate them in the Bash script used as a wrapper of commands in</span>
-<span class="c1"># this BashOperator.</span>
-<span class="n">PYTHONPATH_VAR</span> <span class="o">=</span> <span class="s1">&#39;PYTHONPATH&#39;</span>
-<span class="n">AIRFLOW_HOME_VAR</span> <span class="o">=</span> <span class="s1">&#39;AIRFLOW_HOME&#39;</span>
 
 
 <div class="viewcode-block" id="BashOperator"><a class="viewcode-back" href="../../../code.html#airflow.operators.bash_operator.BashOperator">[docs]</a><span class="k">class</span> <span class="nc">BashOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -216,7 +196,7 @@
 <span class="sd">    Execute a Bash script, command or set of commands.</span>
 
 <span class="sd">    :param bash_command: The command, set of commands or reference to a</span>
-<span class="sd">        bash script (must be &#39;.sh&#39;) to be executed.</span>
+<span class="sd">        bash script (must be &#39;.sh&#39;) to be executed. (templated)</span>
 <span class="sd">    :type bash_command: string</span>
 <span class="sd">    :param xcom_push: If xcom_push is True, the last line written to stdout</span>
 <span class="sd">        will also be pushed to an XCom when the bash command completes.</span>
@@ -254,18 +234,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Tmp dir root location: </span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">gettempdir</span><span class="p">())</span>
 
-        <span class="n">airflow_home_value</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="n">AIRFLOW_HOME_VAR</span><span class="p">)</span>
-        <span class="n">pythonpath_value</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PYTHONPATH_VAR</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-
-        <span class="n">bash_command</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;export </span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">; &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">AIRFLOW_HOME_VAR</span><span class="p">,</span> <span class="n">airflow_home_value</span><span class="p">)</span> <span class="o">+</span>
-                        <span class="s1">&#39;export </span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">; &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">PYTHONPATH_VAR</span><span class="p">,</span> <span class="n">pythonpath_value</span><span class="p">)</span> <span class="o">+</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">bash_command</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lineage_data</span> <span class="o">=</span> <span class="n">bash_command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineage_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bash_command</span>
 
         <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;airflowtmp&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp_dir</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">bash_command</span><span class="p">,</span> <span class="s1">&#39;utf_8&#39;</span><span class="p">))</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bash_command</span><span class="p">,</span> <span class="s1">&#39;utf_8&#39;</span><span class="p">))</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
                 <span class="n">fname</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span>
                 <span class="n">script_location</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
@@ -281,7 +255,7 @@
                             <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sig</span><span class="p">),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">)</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">setsid</span><span class="p">()</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running command: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">bash_command</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running command: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bash_command</span><span class="p">)</span>
                 <span class="n">sp</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span>
                     <span class="p">[</span><span class="s1">&#39;bash&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">],</span>
                     <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">,</span>
@@ -313,9 +287,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -327,7 +299,7 @@
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -346,6 +318,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -358,19 +331,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

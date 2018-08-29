@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../../search.html"/>
-    <link rel="top" title="Airflow Documentation" href="../../../../index.html"/>
-        <link rel="up" title="Module code" href="../../../index.html"/> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -116,7 +107,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../../index.html">Airflow</a>
@@ -124,9 +115,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -156,8 +148,6 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
-        
       </li>
     
   </ul>
@@ -178,9 +168,9 @@
 <span class="c1"># to you under the Apache License, Version 2.0 (the</span>
 <span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
 <span class="c1"># with the License.  You may obtain a copy of the License at</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing,</span>
 <span class="c1"># software distributed under the License is distributed on an</span>
 <span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
@@ -204,21 +194,27 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute a job on AWS Batch Service</span>
 
+<span class="sd">    .. warning: the queue parameter was renamed to job_queue to segreggate the</span>
+<span class="sd">                internal CeleryExecutor queue from the AWS Batch internal queue.</span>
+
 <span class="sd">    :param job_name: the name for the job that will run on AWS Batch</span>
 <span class="sd">    :type job_name: str</span>
 <span class="sd">    :param job_definition: the job definition name on AWS Batch</span>
 <span class="sd">    :type job_definition: str</span>
-<span class="sd">    :param queue: the queue name on AWS Batch</span>
-<span class="sd">    :type queue: str</span>
-<span class="sd">    :param: overrides: the same parameter that boto3 will receive on containerOverrides:</span>
+<span class="sd">    :param job_queue: the queue name on AWS Batch</span>
+<span class="sd">    :type job_queue: str</span>
+<span class="sd">    :param: overrides: the same parameter that boto3 will receive on</span>
+<span class="sd">            containerOverrides (templated):</span>
 <span class="sd">            http://boto3.readthedocs.io/en/latest/reference/services/batch.html#submit_job</span>
 <span class="sd">    :type: overrides: dict</span>
-<span class="sd">    :param max_retries: exponential backoff retries while waiter is not merged</span>
+<span class="sd">    :param max_retries: exponential backoff retries while waiter is not merged, 4200 = 48 hours</span>
 <span class="sd">    :type max_retries: int</span>
 <span class="sd">    :param aws_conn_id: connection id of AWS credentials / region name. If None,</span>
-<span class="sd">            credential boto3 strategy will be used (http://boto3.readthedocs.io/en/latest/guide/configuration.html).</span>
+<span class="sd">            credential boto3 strategy will be used</span>
+<span class="sd">            (http://boto3.readthedocs.io/en/latest/guide/configuration.html).</span>
 <span class="sd">    :type aws_conn_id: str</span>
-<span class="sd">    :param region_name: region name to use in AWS Hook. Override the region_name in connection (if provided)</span>
+<span class="sd">    :param region_name: region name to use in AWS Hook.</span>
+<span class="sd">        Override the region_name in connection (if provided)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#c3dae0&#39;</span>
@@ -227,7 +223,7 @@
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;overrides&#39;</span><span class="p">,)</span>
 
     <span class="nd">@apply_defaults</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_name</span><span class="p">,</span> <span class="n">job_definition</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">overrides</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">288</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_name</span><span class="p">,</span> <span class="n">job_definition</span><span class="p">,</span> <span class="n">job_queue</span><span class="p">,</span> <span class="n">overrides</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">4200</span><span class="p">,</span>
                  <span class="n">aws_conn_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AWSBatchOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -235,7 +231,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region_name</span> <span class="o">=</span> <span class="n">region_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span> <span class="o">=</span> <span class="n">job_definition</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span> <span class="o">=</span> <span class="n">job_queue</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">overrides</span> <span class="o">=</span> <span class="n">overrides</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_retries</span> <span class="o">=</span> <span class="n">max_retries</span>
 
@@ -247,7 +243,7 @@
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Running AWS Batch Job - Job definition: </span><span class="si">%s</span><span class="s1"> - on queue </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AWSBatchOperator overrides: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
 
@@ -259,7 +255,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">submit_job</span><span class="p">(</span>
                 <span class="n">jobName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
-                <span class="n">jobQueue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="p">,</span>
+                <span class="n">jobQueue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="p">,</span>
                 <span class="n">jobDefinition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span>
                 <span class="n">containerOverrides</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
 
@@ -296,14 +292,15 @@
             <span class="n">retry</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">retries</span> <span class="o">=</span> <span class="mi">0</span>
 
-            <span class="k">while</span> <span class="n">retries</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_retries</span> <span class="ow">or</span> <span class="n">retry</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">retries</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_retries</span> <span class="ow">and</span> <span class="n">retry</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AWS Batch retry in the next </span><span class="si">%s</span><span class="s1"> seconds&#39;</span><span class="p">,</span> <span class="n">retries</span><span class="p">)</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">describe_jobs</span><span class="p">(</span>
                     <span class="n">jobs</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;jobs&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;SUCCEEDED&#39;</span><span class="p">,</span> <span class="s1">&#39;FAILED&#39;</span><span class="p">]:</span>
                     <span class="n">retry</span> <span class="o">=</span> <span class="kc">False</span>
 
-                <span class="n">sleep</span><span class="p">(</span><span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">retries</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+                <span class="n">sleep</span><span class="p">(</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">retries</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
                 <span class="n">retries</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">_check_success_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -321,10 +318,12 @@
                 <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;FAILED&#39;</span> <span class="ow">or</span>
                             <span class="n">container</span><span class="p">[</span><span class="s1">&#39;container&#39;</span><span class="p">][</span><span class="s1">&#39;exitCode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;@@@@&quot;</span><span class="p">)</span>
-                        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;This containers encounter an error during execution </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job</span><span class="p">))</span>
+                        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                            <span class="s1">&#39;This containers encounter an error during &#39;</span>
+                            <span class="s1">&#39;execution </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;SUCCEEDED&#39;</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;This task is still pending </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                    <span class="s1">&#39;This task is still pending </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]))</span>
 
     <span class="k">def</span> <span class="nf">get_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">AwsHook</span><span class="p">(</span>
@@ -340,9 +339,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -354,7 +351,7 @@
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -373,6 +370,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
             VERSION:'',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -385,19 +383,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

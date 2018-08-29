@@ -24,26 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../../../genindex.html"/>
-        <link rel="search" title="Search" href="../../../../search.html"/>
-    <link rel="top" title="Airflow Documentation" href="../../../../index.html"/>
-        <link rel="up" title="Module code" href="../../../index.html"/> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -116,7 +107,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../../../index.html">Airflow</a>
@@ -124,9 +115,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -155,8 +147,6 @@
     
     
       <li class="wy-breadcrumbs-aside">
-        
-            
         
       </li>
     
@@ -197,10 +187,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copies objects from a bucket to another, with renaming if requested.</span>
 
-<span class="sd">    :param source_bucket: The source Google cloud storage bucket where the object is.</span>
+<span class="sd">    :param source_bucket: The source Google cloud storage bucket where the</span>
+<span class="sd">         object is. (templated)</span>
 <span class="sd">    :type source_bucket: string</span>
 <span class="sd">    :param source_object: The source name of the object to copy in the Google cloud</span>
-<span class="sd">        storage bucket.</span>
+<span class="sd">        storage bucket. (templated)</span>
 <span class="sd">        If wildcards are used in this argument:</span>
 <span class="sd">            You can use only one wildcard for objects (filenames) within your</span>
 <span class="sd">            bucket. The wildcard can appear inside the object name or at the</span>
@@ -208,13 +199,18 @@
 <span class="sd">            unsupported.</span>
 <span class="sd">    :type source_object: string</span>
 <span class="sd">    :param destination_bucket: The destination Google cloud storage bucket</span>
-<span class="sd">    where the object should be.</span>
+<span class="sd">    where the object should be. (templated)</span>
 <span class="sd">    :type destination_bucket: string</span>
 <span class="sd">    :param destination_object: The destination name of the object in the</span>
-<span class="sd">    destination Google cloud</span>
-<span class="sd">        storage bucket.</span>
+<span class="sd">        destination Google cloud storage bucket. (templated)</span>
 <span class="sd">        If a wildcard is supplied in the source_object argument, this is the</span>
 <span class="sd">        prefix that will be prepended to the final destination objects&#39; paths.</span>
+<span class="sd">        Note that the source path&#39;s part before the wildcard will be removed;</span>
+<span class="sd">        if it needs to be retained it should be appended to destination_object.</span>
+<span class="sd">        For example, with prefix ``foo/*`` and destination_object `&#39;blah/``, the</span>
+<span class="sd">        file ``foo/baz`` will be copied to ``blah/baz``; to retain the prefix write</span>
+<span class="sd">        the destination_object as e.g. ``blah/foo``, in which case the copied file</span>
+<span class="sd">        will be named ``blah/foo/baz``.</span>
 <span class="sd">    :type destination_object: string</span>
 <span class="sd">    :param move_object: When move object is True, the object is moved instead</span>
 <span class="sd">    of copied to the new location.</span>
@@ -228,6 +224,44 @@
 <span class="sd">        For this to work, the service account making the request must have</span>
 <span class="sd">        domain-wide delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
+
+<span class="sd">    **Examples**:</span>
+<span class="sd">        The following Operator would copy a single file named</span>
+<span class="sd">        ``sales/sales-2017/january.avro`` in the ``data`` bucket to the file named</span>
+<span class="sd">        ``copied_sales/2017/january-backup.avro` in the ``data_backup`` bucket ::</span>
+<span class="sd">            copy_single_file = GoogleCloudStorageToGoogleCloudStorageOperator(</span>
+<span class="sd">                task_id=&#39;copy_single_file&#39;,</span>
+<span class="sd">                source_bucket=&#39;data&#39;,</span>
+<span class="sd">                source_object=&#39;sales/sales-2017/january.avro&#39;,</span>
+<span class="sd">                destination_bucket=&#39;data_backup&#39;,</span>
+<span class="sd">                destination_object=&#39;copied_sales/2017/january-backup.avro&#39;,</span>
+<span class="sd">                google_cloud_storage_conn_id=google_cloud_conn_id</span>
+<span class="sd">            )</span>
+
+<span class="sd">        The following Operator would copy all the Avro files from ``sales/sales-2017``</span>
+<span class="sd">        folder (i.e. with names starting with that prefix) in ``data`` bucket to the</span>
+<span class="sd">        ``copied_sales/2017`` folder in the ``data_backup`` bucket. ::</span>
+<span class="sd">            copy_files = GoogleCloudStorageToGoogleCloudStorageOperator(</span>
+<span class="sd">                task_id=&#39;copy_files&#39;,</span>
+<span class="sd">                source_bucket=&#39;data&#39;,</span>
+<span class="sd">                source_object=&#39;sales/sales-2017/*.avro&#39;,</span>
+<span class="sd">                destination_bucket=&#39;data_backup&#39;,</span>
+<span class="sd">                destination_object=&#39;copied_sales/2017/&#39;,</span>
+<span class="sd">                google_cloud_storage_conn_id=google_cloud_conn_id</span>
+<span class="sd">            )</span>
+
+<span class="sd">        The following Operator would move all the Avro files from ``sales/sales-2017``</span>
+<span class="sd">        folder (i.e. with names starting with that prefix) in ``data`` bucket to the</span>
+<span class="sd">        same folder in the ``data_backup`` bucket, deleting the original files in the</span>
+<span class="sd">        process. ::</span>
+<span class="sd">            move_files = GoogleCloudStorageToGoogleCloudStorageOperator(</span>
+<span class="sd">                task_id=&#39;move_files&#39;,</span>
+<span class="sd">                source_bucket=&#39;data&#39;,</span>
+<span class="sd">                source_object=&#39;sales/sales-2017/*.avro&#39;,</span>
+<span class="sd">                destination_bucket=&#39;data_backup&#39;,</span>
+<span class="sd">                move_object=True,</span>
+<span class="sd">                google_cloud_storage_conn_id=google_cloud_conn_id</span>
+<span class="sd">            )</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;source_bucket&#39;</span><span class="p">,</span> <span class="s1">&#39;source_object&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_bucket&#39;</span><span class="p">,</span>
                        <span class="s1">&#39;destination_object&#39;</span><span class="p">,)</span>
@@ -244,8 +278,8 @@
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">GoogleCloudStorageToGoogleCloudStorageOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GoogleCloudStorageToGoogleCloudStorageOperator</span><span class="p">,</span>
+              <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span> <span class="o">=</span> <span class="n">source_bucket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span> <span class="o">=</span> <span class="n">source_object</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span> <span class="o">=</span> <span class="n">destination_bucket</span>
@@ -253,6 +287,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">move_object</span> <span class="o">=</span> <span class="n">move_object</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span> <span class="o">=</span> <span class="n">google_cloud_storage_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wildcard</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
 
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 
@@ -260,51 +295,43 @@
             <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span>
         <span class="p">)</span>
+        <span class="n">log_message</span> <span class="o">=</span> <span class="s1">&#39;Executing copy of gs://</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1"> to gs://</span><span class="si">{2}</span><span class="s1">/</span><span class="si">{3}</span><span class="s1">&#39;</span>
 
-        <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">:</span>
-            <span class="n">wildcard_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
-            <span class="n">objects</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span>
-                                <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">[:</span><span class="n">wildcard_position</span><span class="p">],</span>
-                                <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">[</span><span class="n">wildcard_position</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wildcard</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">:</span>
+            <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wildcard</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">source_object</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span><span class="p">:</span>
-                    <span class="n">destination_object</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span><span class="p">,</span>
-                                                        <span class="n">source_object</span><span class="p">[</span><span class="n">wildcard_position</span><span class="p">:])</span>
-                <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">destination_object</span> <span class="o">=</span> <span class="n">source_object</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing copy of gs://</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1"> to &#39;</span>
-                              <span class="s1">&#39;gs://</span><span class="si">{2}</span><span class="s1">/</span><span class="si">{3}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span>
-                                                    <span class="n">source_object</span><span class="p">,</span>
-                                                    <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="p">,</span>
-                                                    <span class="n">destination_object</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">destination_object</span> <span class="o">=</span> <span class="n">source_object</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span>
+                                                               <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="n">log_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="n">source_object</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="p">,</span> <span class="n">destination_object</span><span class="p">)</span>
+                <span class="p">)</span>
 
-                <span class="n">hook</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="n">source_object</span><span class="p">,</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="p">,</span> <span class="n">destination_object</span><span class="p">)</span>
+                <span class="n">hook</span><span class="o">.</span><span class="n">rewrite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="n">source_object</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="p">,</span> <span class="n">destination_object</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">move_object</span><span class="p">:</span>
                     <span class="n">hook</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="n">source_object</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s1">&#39;Executing copy of gs://</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1"> to &#39;</span>
-                <span class="s1">&#39;gs://</span><span class="si">{2}</span><span class="s1">/</span><span class="si">{3}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span>
-                <span class="p">)</span>
+                <span class="n">log_message</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">hook</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span><span class="p">)</span>
+            <span class="n">hook</span><span class="o">.</span><span class="n">rewrite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_object</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">move_object</span><span class="p">:</span>
                 <span class="n">hook</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -316,7 +343,7 @@
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -335,6 +362,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
             VERSION:'',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -347,19 +375,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
