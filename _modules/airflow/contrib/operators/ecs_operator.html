@@ -178,6 +178,7 @@
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
 
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
@@ -194,17 +195,18 @@
 <span class="sd">    :type task_definition: str</span>
 <span class="sd">    :param cluster: the cluster name on EC2 Container Service</span>
 <span class="sd">    :type cluster: str</span>
-<span class="sd">    :param: overrides: the same parameter that boto3 will receive (templated):</span>
-<span class="sd">            http://boto3.readthedocs.org/en/latest/reference/services/ecs.html#ECS.Client.run_task</span>
-<span class="sd">    :type: overrides: dict</span>
+<span class="sd">    :param overrides: the same parameter that boto3 will receive (templated):</span>
+<span class="sd">        http://boto3.readthedocs.org/en/latest/reference/services/ecs.html#ECS.Client.run_task</span>
+<span class="sd">    :type overrides: dict</span>
 <span class="sd">    :param aws_conn_id: connection id of AWS credentials / region name. If None,</span>
-<span class="sd">            credential boto3 strategy will be used</span>
-<span class="sd">            (http://boto3.readthedocs.io/en/latest/guide/configuration.html).</span>
+<span class="sd">        credential boto3 strategy will be used</span>
+<span class="sd">        (http://boto3.readthedocs.io/en/latest/guide/configuration.html).</span>
 <span class="sd">    :type aws_conn_id: str</span>
 <span class="sd">    :param region_name: region name to use in AWS Hook.</span>
 <span class="sd">        Override the region_name in connection (if provided)</span>
+<span class="sd">    :type region_name: str</span>
 <span class="sd">    :param launch_type: the launch type on which to run your task (&#39;EC2&#39; or &#39;FARGATE&#39;)</span>
-<span class="sd">    :type: launch_type: str</span>
+<span class="sd">    :type launch_type: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#f0ede4&#39;</span>
@@ -226,7 +228,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hook</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="ECSOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.ecs_operator.ECSOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Running ECS Task - Task definition: </span><span class="si">%s</span><span class="s1"> - on cluster </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">task_definition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span>
@@ -255,7 +257,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_task_ended</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_success_task</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ECS Task has been successfully executed: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ECS Task has been successfully executed: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_wait_for_task_ended</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">waiter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s1">&#39;tasks_stopped&#39;</span><span class="p">)</span>
@@ -276,6 +278,15 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">]:</span>
+            <span class="c1"># This is a `stoppedReason` that indicates a task has not</span>
+            <span class="c1"># successfully finished, but there is no other indication of failure</span>
+            <span class="c1"># in the response.</span>
+            <span class="c1"># See, https://docs.aws.amazon.com/AmazonECS/latest/developerguide/stopped-task-errors.html # noqa E501</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Host EC2 \(instance .+?\) (stopped|terminated)\.&#39;</span><span class="p">,</span>
+                        <span class="n">task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stoppedReason&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                    <span class="s1">&#39;The task was stopped because the host instance terminated: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span>
+                    <span class="nb">format</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stoppedReason&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)))</span>
             <span class="n">containers</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s1">&#39;containers&#39;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lastStatus&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;STOPPED&#39;</span> <span class="ow">and</span> \
@@ -294,12 +305,12 @@
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ECSOperator.on_kill"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.ecs_operator.ECSOperator.on_kill">[docs]</a>    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">stop_task</span><span class="p">(</span>
             <span class="n">cluster</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">,</span>
             <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">arn</span><span class="p">,</span>
             <span class="n">reason</span><span class="o">=</span><span class="s1">&#39;Task killed by the user&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -330,20 +341,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

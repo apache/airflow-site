@@ -204,8 +204,10 @@
 <span class="sd">    :type local_filepath: str</span>
 <span class="sd">    :param remote_filepath: remote file path to get or put. (templated)</span>
 <span class="sd">    :type remote_filepath: str</span>
-<span class="sd">    :param operation: specify operation &#39;get&#39; or &#39;put&#39;, defaults to get</span>
+<span class="sd">    :param operation: specify operation &#39;get&#39; or &#39;put&#39;, defaults to put</span>
 <span class="sd">    :type get: bool</span>
+<span class="sd">    :param confirm: specify if the SFTP operation should be confirmed, defaults to True</span>
+<span class="sd">    :type confirm: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;local_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;remote_filepath&#39;</span><span class="p">)</span>
 
@@ -217,6 +219,7 @@
                  <span class="n">local_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">remote_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">operation</span><span class="o">=</span><span class="n">SFTPOperation</span><span class="o">.</span><span class="n">PUT</span><span class="p">,</span>
+                 <span class="n">confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SFTPOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -226,12 +229,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span> <span class="o">=</span> <span class="n">local_filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span> <span class="o">=</span> <span class="n">remote_filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">=</span> <span class="n">operation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confirm</span> <span class="o">=</span> <span class="n">confirm</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span> <span class="ow">or</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">PUT</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported operation value </span><span class="si">{0}</span><span class="s2">, expected </span><span class="si">{1}</span><span class="s2"> or </span><span class="si">{2}</span><span class="s2">&quot;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">,</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">PUT</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="SFTPOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.sftp_operator.SFTPOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">file_msg</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">:</span>
@@ -243,24 +247,26 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span>
 
-            <span class="n">ssh_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-            <span class="n">sftp_client</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
-                <span class="n">file_msg</span> <span class="o">=</span> <span class="s2">&quot;from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span>
-                                                    <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting to transfer </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_msg</span><span class="p">)</span>
-                <span class="n">sftp_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">file_msg</span> <span class="o">=</span> <span class="s2">&quot;from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">,</span>
-                                                    <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting to transfer file </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_msg</span><span class="p">)</span>
-                <span class="n">sftp_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">)</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh_client</span><span class="p">:</span>
+                <span class="n">sftp_client</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
+                    <span class="n">file_msg</span> <span class="o">=</span> <span class="s2">&quot;from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting to transfer </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_msg</span><span class="p">)</span>
+                    <span class="n">sftp_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">file_msg</span> <span class="o">=</span> <span class="s2">&quot;from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting to transfer file </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_msg</span><span class="p">)</span>
+                    <span class="n">sftp_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span>
+                                    <span class="n">confirm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">confirm</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Error while transferring </span><span class="si">{0}</span><span class="s2">, error: </span><span class="si">{1}</span><span class="s2">&quot;</span>
                                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
 </pre></div>
 
            </div>
@@ -291,20 +297,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

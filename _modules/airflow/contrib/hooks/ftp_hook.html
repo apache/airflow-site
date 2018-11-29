@@ -309,7 +309,11 @@
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">conn</span><span class="o">.</span><span class="n">rmd</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="FTPHook.retrieve_file"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.ftp_hook.FTPHook.retrieve_file">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remote_full_path</span><span class="p">,</span> <span class="n">local_full_path_or_buffer</span><span class="p">):</span>
+<div class="viewcode-block" id="FTPHook.retrieve_file"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.ftp_hook.FTPHook.retrieve_file">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">remote_full_path</span><span class="p">,</span>
+            <span class="n">local_full_path_or_buffer</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transfers the remote file to a local location.</span>
 
@@ -322,23 +326,59 @@
 <span class="sd">        :param local_full_path_or_buffer: full path to the local file or a</span>
 <span class="sd">            file-like buffer</span>
 <span class="sd">        :type local_full_path_or_buffer: str or file-like buffer</span>
+<span class="sd">        :param callback: callback which is called each time a block of data</span>
+<span class="sd">            is read. if you do not use a callback, these blocks will be written</span>
+<span class="sd">            to the file or buffer passed in. if you do pass in a callback, note</span>
+<span class="sd">            that writing to a file or buffer will need to be handled inside the</span>
+<span class="sd">            callback.</span>
+<span class="sd">            [default: output_handle.write()]</span>
+<span class="sd">        :type callback: callable</span>
+
+<span class="sd">        Example::</span>
+<span class="sd">            hook = FTPHook(ftp_conn_id=&#39;my_conn&#39;)</span>
+
+<span class="sd">            remote_path = &#39;/path/to/remote/file&#39;</span>
+<span class="sd">            local_path = &#39;/path/to/local/file&#39;</span>
+
+<span class="sd">            # with a custom callback (in this case displaying progress on each read)</span>
+<span class="sd">            def print_progress(percent_progress):</span>
+<span class="sd">                self.log.info(&#39;Percent Downloaded: %s%%&#39; % percent_progress)</span>
+
+<span class="sd">            total_downloaded = 0</span>
+<span class="sd">            total_file_size = hook.get_size(remote_path)</span>
+<span class="sd">            output_handle = open(local_path, &#39;wb&#39;)</span>
+<span class="sd">            def write_to_file_with_progress(data):</span>
+<span class="sd">                total_downloaded += len(data)</span>
+<span class="sd">                output_handle.write(data)</span>
+<span class="sd">                percent_progress = (total_downloaded / total_file_size) * 100</span>
+<span class="sd">                print_progress(percent_progress)</span>
+<span class="sd">            hook.retrieve_file(remote_path, None, callback=write_to_file_with_progress)</span>
+
+<span class="sd">            # without a custom callback data is written to the local_path</span>
+<span class="sd">            hook.retrieve_file(remote_path, local_path)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
 
         <span class="n">is_path</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">local_full_path_or_buffer</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">is_path</span><span class="p">:</span>
-            <span class="n">output_handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">local_full_path_or_buffer</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+        <span class="c1"># without a callback, default to writing to a user-provided file or</span>
+        <span class="c1"># file-like buffer</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_path</span><span class="p">:</span>
+                <span class="n">output_handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">local_full_path_or_buffer</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_handle</span> <span class="o">=</span> <span class="n">local_full_path_or_buffer</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">output_handle</span><span class="o">.</span><span class="n">write</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">output_handle</span> <span class="o">=</span> <span class="n">local_full_path_or_buffer</span>
+            <span class="n">output_handle</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">remote_path</span><span class="p">,</span> <span class="n">remote_file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">remote_full_path</span><span class="p">)</span>
         <span class="n">conn</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">remote_path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Retrieving file from FTP: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">remote_full_path</span><span class="p">)</span>
-        <span class="n">conn</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="s1">&#39;RETR </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">remote_file_name</span><span class="p">,</span> <span class="n">output_handle</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="s1">&#39;RETR </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">remote_file_name</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished retrieving file from FTP: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">remote_full_path</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">is_path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_path</span> <span class="ow">and</span> <span class="n">output_handle</span><span class="p">:</span>
             <span class="n">output_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="FTPHook.store_file"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.ftp_hook.FTPHook.store_file">[docs]</a>    <span class="k">def</span> <span class="nf">store_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remote_full_path</span><span class="p">,</span> <span class="n">local_full_path_or_buffer</span><span class="p">):</span>
@@ -390,7 +430,13 @@
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">from_name</span><span class="p">,</span> <span class="n">to_name</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_mod_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="FTPHook.get_mod_time"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.ftp_hook.FTPHook.get_mod_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_mod_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a datetime object representing the last time the file was modified</span>
+
+<span class="sd">        :param path: remote file path</span>
+<span class="sd">        :type path: string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">ftp_mdtm</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">sendcmd</span><span class="p">(</span><span class="s1">&#39;MDTM &#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">)</span>
         <span class="n">time_val</span> <span class="o">=</span> <span class="n">ftp_mdtm</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
@@ -399,6 +445,16 @@
             <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">time_val</span><span class="p">,</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">time_val</span><span class="p">,</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FTPHook.get_size"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.ftp_hook.FTPHook.get_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the size of a file (in bytes)</span>
+
+<span class="sd">        :param path: remote file path</span>
+<span class="sd">        :type path: string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="FTPSHook"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.ftp_hook.FTPSHook">[docs]</a><span class="k">class</span> <span class="nc">FTPSHook</span><span class="p">(</span><span class="n">FTPHook</span><span class="p">):</span>
@@ -448,20 +504,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

@@ -204,6 +204,7 @@
 <span class="sd">    be provided with the parameter ``docker_conn_id``.</span>
 
 <span class="sd">    :param image: Docker image from which to create the container.</span>
+<span class="sd">        If image tag is omitted, &quot;latest&quot; will be used.</span>
 <span class="sd">    :type image: str</span>
 <span class="sd">    :param api_version: Remote API version. Set to ``auto`` to automatically</span>
 <span class="sd">        detect the server&#39;s version.</span>
@@ -214,12 +215,16 @@
 <span class="sd">        This value gets multiplied with 1024. See</span>
 <span class="sd">        https://docs.docker.com/engine/reference/run/#cpu-share-constraint</span>
 <span class="sd">    :type cpus: float</span>
+<span class="sd">    :param dns: Docker custom DNS servers</span>
+<span class="sd">    :type dns: list of strings</span>
+<span class="sd">    :param dns_search: Docker custom DNS search domain</span>
+<span class="sd">    :type dns_search: list of strings</span>
 <span class="sd">    :param docker_url: URL of the host running the docker daemon.</span>
 <span class="sd">        Default is unix://var/run/docker.sock</span>
 <span class="sd">    :type docker_url: str</span>
 <span class="sd">    :param environment: Environment variables to set in the container. (templated)</span>
 <span class="sd">    :type environment: dict</span>
-<span class="sd">    :param force_pull: Pull the docker image on every run. Default is false.</span>
+<span class="sd">    :param force_pull: Pull the docker image on every run. Default is False.</span>
 <span class="sd">    :type force_pull: bool</span>
 <span class="sd">    :param mem_limit: Maximum amount of memory the container can use.</span>
 <span class="sd">        Either a float value, which represents the limit in bytes,</span>
@@ -260,6 +265,9 @@
 <span class="sd">    :type xcom_all: bool</span>
 <span class="sd">    :param docker_conn_id: ID of the Airflow connection to use</span>
 <span class="sd">    :type docker_conn_id: str</span>
+<span class="sd">    :param shm_size: Size of ``/dev/shm`` in bytes. The size must be</span>
+<span class="sd">        greater than 0. If omitted uses system default.</span>
+<span class="sd">    :type shm_size: int</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;command&#39;</span><span class="p">,</span> <span class="s1">&#39;environment&#39;</span><span class="p">,)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sh&#39;</span><span class="p">,</span> <span class="s1">&#39;.bash&#39;</span><span class="p">,)</span>
@@ -288,6 +296,9 @@
             <span class="n">xcom_push</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">xcom_all</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">docker_conn_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">dns_search</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">shm_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -295,6 +306,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">api_version</span> <span class="o">=</span> <span class="n">api_version</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cpus</span> <span class="o">=</span> <span class="n">cpus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dns</span> <span class="o">=</span> <span class="n">dns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dns_search</span> <span class="o">=</span> <span class="n">dns_search</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">docker_url</span> <span class="o">=</span> <span class="n">docker_url</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">force_pull</span> <span class="o">=</span> <span class="n">force_pull</span>
@@ -313,7 +326,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">xcom_push_flag</span> <span class="o">=</span> <span class="n">xcom_push</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xcom_all</span> <span class="o">=</span> <span class="n">xcom_all</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">docker_conn_id</span> <span class="o">=</span> <span class="n">docker_conn_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shm_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shm_size&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shm_size</span> <span class="o">=</span> <span class="n">shm_size</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cli</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="kc">None</span>
@@ -326,7 +339,7 @@
             <span class="n">tls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__get_tls_config</span><span class="p">()</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="DockerOperator.execute"><a class="viewcode-back" href="../../../code.html#airflow.operators.docker_operator.DockerOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting docker container from image </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
 
         <span class="n">tls_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_tls_config</span><span class="p">()</span>
@@ -340,18 +353,12 @@
                 <span class="n">tls</span><span class="o">=</span><span class="n">tls_config</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">+</span> <span class="s1">&#39;:latest&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_pull</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">image</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Pulling docker image </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">pull</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span>
-
-        <span class="n">cpu_shares</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpus</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_pull</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Pulling docker image </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">pull</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="k">if</span> <span class="s1">&#39;status&#39;</span> <span class="ow">in</span> <span class="n">output</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span>
 
         <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;airflowtmp&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">host_tmp_dir</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="s1">&#39;AIRFLOW_TMP_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmp_dir</span>
@@ -359,14 +366,16 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
                 <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_command</span><span class="p">(),</span>
-                <span class="n">cpu_shares</span><span class="o">=</span><span class="n">cpu_shares</span><span class="p">,</span>
                 <span class="n">environment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="p">,</span>
                 <span class="n">host_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">create_host_config</span><span class="p">(</span>
                     <span class="n">binds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">volumes</span><span class="p">,</span>
                     <span class="n">network_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">network_mode</span><span class="p">,</span>
-                    <span class="n">shm_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shm_size</span><span class="p">),</span>
-                <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
-                <span class="n">mem_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mem_limit</span><span class="p">,</span>
+                    <span class="n">shm_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shm_size</span><span class="p">,</span>
+                    <span class="n">dns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dns</span><span class="p">,</span>
+                    <span class="n">dns_search</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dns_search</span><span class="p">,</span>
+                    <span class="n">cpu_shares</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpus</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)),</span>
+                    <span class="n">mem_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mem_limit</span><span class="p">),</span>
+                <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
                 <span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
                 <span class="n">working_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">working_dir</span>
             <span class="p">)</span>
@@ -379,13 +388,13 @@
                     <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
-            <span class="n">exit_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">exit_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;docker container failed&#39;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;StatusCode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;docker container failed: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xcom_push_flag</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">logs</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span> \
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xcom_all</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xcom_all</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">get_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -394,10 +403,10 @@
             <span class="n">commands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
         <span class="k">return</span> <span class="n">commands</span>
 
-    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DockerOperator.on_kill"><a class="viewcode-back" href="../../../code.html#airflow.operators.docker_operator.DockerOperator.on_kill">[docs]</a>    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Stopping docker container&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span></div>
 
     <span class="k">def</span> <span class="nf">__get_tls_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tls_config</span> <span class="o">=</span> <span class="kc">None</span>
@@ -441,20 +450,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
 
   
 

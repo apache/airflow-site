@@ -185,6 +185,7 @@
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
 <span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">exceptions</span> <span class="k">as</span> <span class="n">requests_exceptions</span>
 <span class="kn">from</span> <span class="nn">requests.auth</span> <span class="k">import</span> <span class="n">AuthBase</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
 
 <span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
 
@@ -193,6 +194,9 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">urlparse</span>
 
+<span class="n">RESTART_CLUSTER_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;api/2.0/clusters/restart&quot;</span><span class="p">)</span>
+<span class="n">START_CLUSTER_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;api/2.0/clusters/start&quot;</span><span class="p">)</span>
+<span class="n">TERMINATE_CLUSTER_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;api/2.0/clusters/delete&quot;</span><span class="p">)</span>
 
 <span class="n">SUBMIT_RUN_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;api/2.0/jobs/runs/submit&#39;</span><span class="p">)</span>
 <span class="n">GET_RUN_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;api/2.0/jobs/runs/get&#39;</span><span class="p">)</span>
@@ -208,7 +212,8 @@
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">databricks_conn_id</span><span class="o">=</span><span class="s1">&#39;databricks_default&#39;</span><span class="p">,</span>
             <span class="n">timeout_seconds</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span>
-            <span class="n">retry_limit</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">retry_limit</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">retry_delay</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param databricks_conn_id: The name of the databricks connection to use.</span>
 <span class="sd">        :type databricks_conn_id: string</span>
@@ -218,12 +223,17 @@
 <span class="sd">        :param retry_limit: The number of times to retry the connection in case of</span>
 <span class="sd">            service outages.</span>
 <span class="sd">        :type retry_limit: int</span>
+<span class="sd">        :param retry_delay: The number of seconds to wait between retries (it</span>
+<span class="sd">            might be a floating point number).</span>
+<span class="sd">        :type retry_delay: float</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">databricks_conn_id</span> <span class="o">=</span> <span class="n">databricks_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">databricks_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">databricks_conn_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span> <span class="o">=</span> <span class="n">timeout_seconds</span>
-        <span class="k">assert</span> <span class="n">retry_limit</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Retry limit must be greater than equal to 1&#39;</span>
+        <span class="k">if</span> <span class="n">retry_limit</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Retry limit must be greater than equal to 1&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span> <span class="o">=</span> <span class="n">retry_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">retry_delay</span> <span class="o">=</span> <span class="n">retry_delay</span>
 
     <span class="k">def</span> <span class="nf">_parse_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -278,7 +288,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Unexpected HTTP Method: &#39;</span> <span class="o">+</span> <span class="n">method</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">attempt_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">attempt_num</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">request_func</span><span class="p">(</span>
                     <span class="n">url</span><span class="p">,</span>
@@ -286,21 +297,29 @@
                     <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
                     <span class="n">headers</span><span class="o">=</span><span class="n">USER_AGENT_HEADER</span><span class="p">,</span>
                     <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">requests_exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_retryable_error</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
                     <span class="c1"># In this case, the user probably made a mistake.</span>
                     <span class="c1"># Don&#39;t retry.</span>
                     <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Response: </span><span class="si">{0}</span><span class="s1">, Status Code: </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">))</span>
-            <span class="k">except</span> <span class="p">(</span><span class="n">requests_exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">,</span>
-                    <span class="n">requests_exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s1">&#39;Attempt </span><span class="si">%s</span><span class="s1"> API Request to Databricks failed with reason: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="n">attempt_num</span><span class="p">,</span> <span class="n">e</span>
-                <span class="p">)</span>
-        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">((</span><span class="s1">&#39;API requests to Databricks failed </span><span class="si">{}</span><span class="s1"> times. &#39;</span> <span class="o">+</span>
-                               <span class="s1">&#39;Giving up.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span><span class="p">))</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">))</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log_request_error</span><span class="p">(</span><span class="n">attempt_num</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">attempt_num</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">((</span><span class="s1">&#39;API requests to Databricks failed </span><span class="si">{}</span><span class="s1"> times. &#39;</span> <span class="o">+</span>
+                                        <span class="s1">&#39;Giving up.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span><span class="p">))</span>
+
+            <span class="n">attempt_num</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_delay</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_log_request_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attempt_num</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s1">&#39;Attempt </span><span class="si">%s</span><span class="s1"> API Request to Databricks failed with reason: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">attempt_num</span><span class="p">,</span> <span class="n">error</span>
+        <span class="p">)</span>
 
 <div class="viewcode-block" id="DatabricksHook.submit_run"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.databricks_hook.DatabricksHook.submit_run">[docs]</a>    <span class="k">def</span> <span class="nf">submit_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -331,7 +350,22 @@
 
     <span class="k">def</span> <span class="nf">cancel_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">):</span>
         <span class="n">json</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;run_id&#39;</span><span class="p">:</span> <span class="n">run_id</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_do_api_call</span><span class="p">(</span><span class="n">CANCEL_RUN_ENDPOINT</span><span class="p">,</span> <span class="n">json</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_api_call</span><span class="p">(</span><span class="n">CANCEL_RUN_ENDPOINT</span><span class="p">,</span> <span class="n">json</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">restart_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_api_call</span><span class="p">(</span><span class="n">RESTART_CLUSTER_ENDPOINT</span><span class="p">,</span> <span class="n">json</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">start_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_api_call</span><span class="p">(</span><span class="n">START_CLUSTER_ENDPOINT</span><span class="p">,</span> <span class="n">json</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">terminate_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_api_call</span><span class="p">(</span><span class="n">TERMINATE_CLUSTER_ENDPOINT</span><span class="p">,</span> <span class="n">json</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_retryable_error</span><span class="p">(</span><span class="n">exception</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">requests_exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">)</span> \
+        <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">requests_exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">)</span> \
+        <span class="ow">or</span> <span class="n">exception</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">exception</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">500</span>
 
 
 <span class="n">RUN_LIFE_CYCLE_STATES</span> <span class="o">=</span> <span class="p">[</span>
@@ -417,20 +451,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

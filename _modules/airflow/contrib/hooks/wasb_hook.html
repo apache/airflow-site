@@ -179,6 +179,7 @@
 <span class="c1"># under the License.</span>
 <span class="c1">#</span>
 
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
 
 <span class="kn">from</span> <span class="nn">azure.storage.blob</span> <span class="k">import</span> <span class="n">BlockBlobService</span>
@@ -308,7 +309,47 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">get_blob_to_text</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span>
                                                 <span class="n">blob_name</span><span class="p">,</span>
-                                                <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">content</span></div></div>
+                                                <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">content</span></div>
+
+<div class="viewcode-block" id="WasbHook.delete_file"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.wasb_hook.WasbHook.delete_file">[docs]</a>    <span class="k">def</span> <span class="nf">delete_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">blob_name</span><span class="p">,</span> <span class="n">is_prefix</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">ignore_if_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a file from Azure Blob Storage.</span>
+
+<span class="sd">        :param container_name: Name of the container.</span>
+<span class="sd">        :type container_name: str</span>
+<span class="sd">        :param blob_name: Name of the blob.</span>
+<span class="sd">        :type blob_name: str</span>
+<span class="sd">        :param is_prefix: If blob_name is a prefix, delete all matching files</span>
+<span class="sd">        :type is_prefix: bool</span>
+<span class="sd">        :param ignore_if_missing: if True, then return success even if the</span>
+<span class="sd">        blob does not exist.</span>
+<span class="sd">        :type ignore_if_missing: bool</span>
+<span class="sd">        :param kwargs: Optional keyword arguments that</span>
+<span class="sd">            `BlockBlobService.create_blob_from_path()` takes.</span>
+<span class="sd">        :type kwargs: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">is_prefix</span><span class="p">:</span>
+            <span class="n">blobs_to_delete</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">blob</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span>
+                    <span class="n">container_name</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">blob_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_blob</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">blob_name</span><span class="p">):</span>
+            <span class="n">blobs_to_delete</span> <span class="o">=</span> <span class="p">[</span><span class="n">blob_name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blobs_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_if_missing</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">blobs_to_delete</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Blob(s) not found: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">blob_name</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">blob_uri</span> <span class="ow">in</span> <span class="n">blobs_to_delete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleting blob: &quot;</span> <span class="o">+</span> <span class="n">blob_uri</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">delete_blob</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span>
+                                        <span class="n">blob_uri</span><span class="p">,</span>
+                                        <span class="n">delete_snapshots</span><span class="o">=</span><span class="s1">&#39;include&#39;</span><span class="p">,</span>
+                                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -339,20 +380,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

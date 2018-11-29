@@ -228,6 +228,26 @@
         <span class="n">s3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resource_type</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="S3Hook.create_bucket"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.create_bucket">[docs]</a>    <span class="k">def</span> <span class="nf">create_bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an Amazon S3 bucket.</span>
+
+<span class="sd">        :param bucket_name: The name of the bucket</span>
+<span class="sd">        :type bucket_name: str</span>
+<span class="sd">        :param region_name: The name of the aws region in which to create the bucket.</span>
+<span class="sd">        :type region_name: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s3_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">region_name</span><span class="p">:</span>
+            <span class="n">region_name</span> <span class="o">=</span> <span class="n">s3_conn</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">region_name</span>
+        <span class="k">if</span> <span class="n">region_name</span> <span class="o">==</span> <span class="s1">&#39;us-east-1&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
+                                          <span class="n">CreateBucketConfiguration</span><span class="o">=</span><span class="p">{</span>
+                                              <span class="s1">&#39;LocationConstraint&#39;</span><span class="p">:</span> <span class="n">region_name</span>
+                                          <span class="p">})</span></div>
+
 <div class="viewcode-block" id="S3Hook.check_for_prefix"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.check_for_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that a prefix exists in a bucket</span>
@@ -537,7 +557,128 @@
         <span class="n">filelike_buffer</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">bytes_data</span><span class="p">)</span>
 
         <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-        <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">filelike_buffer</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span></div></div>
+        <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">filelike_buffer</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="S3Hook.load_file_obj"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.load_file_obj">[docs]</a>    <span class="k">def</span> <span class="nf">load_file_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">file_obj</span><span class="p">,</span>
+                      <span class="n">key</span><span class="p">,</span>
+                      <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">encrypt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads a file object to S3</span>
+
+<span class="sd">        :param file_obj: The file-like object to set as the content for the S3 key.</span>
+<span class="sd">        :type file_obj: file-like object</span>
+<span class="sd">        :param key: S3 key that will point to the file</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :param bucket_name: Name of the bucket in which to store the file</span>
+<span class="sd">        :type bucket_name: str</span>
+<span class="sd">        :param replace: A flag that indicates whether to overwrite the key</span>
+<span class="sd">            if it already exists.</span>
+<span class="sd">        :type replace: bool</span>
+<span class="sd">        :param encrypt: If True, S3 encrypts the file on the server,</span>
+<span class="sd">            and the file is stored in encrypted form at rest in S3.</span>
+<span class="sd">        :type encrypt: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The key </span><span class="si">{key}</span><span class="s2"> already exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">))</span>
+
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">encrypt</span><span class="p">:</span>
+            <span class="n">extra_args</span><span class="p">[</span><span class="s1">&#39;ServerSideEncryption&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;AES256&quot;</span>
+
+        <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">file_obj</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="S3Hook.copy_object"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.copy_object">[docs]</a>    <span class="k">def</span> <span class="nf">copy_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">source_bucket_key</span><span class="p">,</span>
+                    <span class="n">dest_bucket_key</span><span class="p">,</span>
+                    <span class="n">source_bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">dest_bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">source_version_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a copy of an object that is already stored in S3.</span>
+
+<span class="sd">        Note: the S3 connection used here needs to have access to both</span>
+<span class="sd">        source and destination bucket/key.</span>
+
+<span class="sd">        :param source_bucket_key: The key of the source object.</span>
+
+<span class="sd">            It can be either full s3:// style url or relative path from root level.</span>
+
+<span class="sd">            When it&#39;s specified as a full s3:// url, please omit source_bucket_name.</span>
+<span class="sd">        :type source_bucket_key: str</span>
+<span class="sd">        :param dest_bucket_key: The key of the object to copy to.</span>
+
+<span class="sd">            The convention to specify `dest_bucket_key` is the same</span>
+<span class="sd">            as `source_bucket_key`.</span>
+<span class="sd">        :type dest_bucket_key: str</span>
+<span class="sd">        :param source_bucket_name: Name of the S3 bucket where the source object is in.</span>
+
+<span class="sd">            It should be omitted when `source_bucket_key` is provided as a full s3:// url.</span>
+<span class="sd">        :type source_bucket_name: str</span>
+<span class="sd">        :param dest_bucket_name: Name of the S3 bucket to where the object is copied.</span>
+
+<span class="sd">            It should be omitted when `dest_bucket_key` is provided as a full s3:// url.</span>
+<span class="sd">        :type dest_bucket_name: str</span>
+<span class="sd">        :param source_version_id: Version ID of the source object (OPTIONAL)</span>
+<span class="sd">        :type source_version_id: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">dest_bucket_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dest_bucket_name</span><span class="p">,</span> <span class="n">dest_bucket_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">dest_bucket_key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">dest_bucket_key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;If dest_bucket_name is provided, &#39;</span> <span class="o">+</span>
+                                       <span class="s1">&#39;dest_bucket_key should be relative path &#39;</span> <span class="o">+</span>
+                                       <span class="s1">&#39;from root level, rather than a full s3:// url&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">source_bucket_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">source_bucket_name</span><span class="p">,</span> <span class="n">source_bucket_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">source_bucket_key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">source_bucket_key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;If source_bucket_name is provided, &#39;</span> <span class="o">+</span>
+                                       <span class="s1">&#39;source_bucket_key should be relative path &#39;</span> <span class="o">+</span>
+                                       <span class="s1">&#39;from root level, rather than a full s3:// url&#39;</span><span class="p">)</span>
+
+        <span class="n">CopySource</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Bucket&#39;</span><span class="p">:</span> <span class="n">source_bucket_name</span><span class="p">,</span>
+                      <span class="s1">&#39;Key&#39;</span><span class="p">:</span> <span class="n">source_bucket_key</span><span class="p">,</span>
+                      <span class="s1">&#39;VersionId&#39;</span><span class="p">:</span> <span class="n">source_version_id</span><span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">copy_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">dest_bucket_name</span><span class="p">,</span>
+                                               <span class="n">Key</span><span class="o">=</span><span class="n">dest_bucket_key</span><span class="p">,</span>
+                                               <span class="n">CopySource</span><span class="o">=</span><span class="n">CopySource</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="S3Hook.delete_objects"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.delete_objects">[docs]</a>    <span class="k">def</span> <span class="nf">delete_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">bucket</span><span class="p">,</span>
+                       <span class="n">keys</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param bucket: Name of the bucket in which you are going to delete object(s)</span>
+<span class="sd">        :type bucket: str</span>
+<span class="sd">        :param keys: The key(s) to delete from S3 bucket.</span>
+
+<span class="sd">            When ``keys`` is a string, it&#39;s supposed to be the key name of</span>
+<span class="sd">            the single object to delete.</span>
+
+<span class="sd">            When ``keys`` is a list, it&#39;s supposed to be the list of the</span>
+<span class="sd">            keys to delete.</span>
+<span class="sd">        :type keys: str or list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">keys</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">keys</span><span class="p">]</span>
+
+        <span class="n">delete_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">}</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">delete_objects</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                                                  <span class="n">Delete</span><span class="o">=</span><span class="n">delete_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div></div>
 </pre></div>
 
            </div>
@@ -568,20 +709,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
 
   
 

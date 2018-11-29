@@ -95,6 +95,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#why-build-on-top-of-airflow">Why build on top of Airflow?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#interface">Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#note-on-role-based-views">Note on role based views</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
@@ -230,26 +231,16 @@ looks like:</p>
     <span class="c1"># A list of objects created from a class derived</span>
     <span class="c1"># from flask_admin.BaseView</span>
     <span class="n">admin_views</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># A list of Blueprint object created from flask.Blueprint</span>
+    <span class="c1"># A list of Blueprint object created from flask.Blueprint. For use with the flask_admin based GUI</span>
     <span class="n">flask_blueprints</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># A list of menu links (flask_admin.base.MenuLink)</span>
+    <span class="c1"># A list of menu links (flask_admin.base.MenuLink). For use with the flask_admin based GUI</span>
     <span class="n">menu_links</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># A list of dictionaries containing FlaskAppBuilder BaseView object and some metadata. See example below</span>
+    <span class="n">appbuilder_views</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># A list of dictionaries containing FlaskAppBuilder BaseView object and some metadata. See example below</span>
+    <span class="n">appbuilder_menu_items</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
 </div>
-<p>You can derive it by inheritance (please refer to the example below).
-Please note <code class="docutils literal notranslate"><span class="pre">name</span></code> inside this class must be specified.</p>
-<p>After the plugin is imported into Airflow,
-you can invoke it using statement like</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow.</span><span class="p">{</span><span class="nb">type</span><span class="p">,</span> <span class="n">like</span> <span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;sensors&quot;</span><span class="p">}</span><span class="o">.</span><span class="p">{</span><span class="n">name</span> <span class="n">specificed</span> <span class="n">inside</span> <span class="n">the</span> <span class="n">plugin</span> <span class="n">class</span><span class="p">}</span> <span class="kn">import</span> <span class="o">*</span>
-</pre></div>
-</div>
-<p>When you write your own plugins, make sure you understand them well.
-There are some essential properties for each type of plugin.
-For example,</p>
-<ul class="simple">
-<li>For <code class="docutils literal notranslate"><span class="pre">Operator</span></code> plugin, an <code class="docutils literal notranslate"><span class="pre">execute</span></code> method is compulsory.</li>
-<li>For <code class="docutils literal notranslate"><span class="pre">Sensor</span></code> plugin, a <code class="docutils literal notranslate"><span class="pre">poke</span></code> method returning a Boolean value is compulsory.</li>
-</ul>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
@@ -308,6 +299,22 @@ definitions in Airflow.</p>
     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Menu Link&#39;</span><span class="p">,</span>
     <span class="n">url</span><span class="o">=</span><span class="s1">&#39;https://airflow.incubator.apache.org/&#39;</span><span class="p">)</span>
 
+<span class="c1"># Creating a flask appbuilder BaseView</span>
+<span class="k">class</span> <span class="nc">TestAppBuilderBaseView</span><span class="p">(</span><span class="n">AppBuilderBaseView</span><span class="p">):</span>
+    <span class="nd">@expose</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;test_plugin/test.html&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Hello galaxy!&quot;</span><span class="p">)</span>
+<span class="n">v_appbuilder_view</span> <span class="o">=</span> <span class="n">TestAppBuilderBaseView</span><span class="p">()</span>
+<span class="n">v_appbuilder_package</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Test View&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;Test Plugin&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;view&quot;</span><span class="p">:</span> <span class="n">v_appbuilder_view</span><span class="p">}</span>
+
+<span class="c1"># Creating a flask appbuilder Menu Item</span>
+<span class="n">appbuilder_mitem</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Google&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;Search&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;category_icon&quot;</span><span class="p">:</span> <span class="s2">&quot;fa-th&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.google.com&quot;</span><span class="p">}</span>
+
 <span class="c1"># Defining the plugin class</span>
 <span class="k">class</span> <span class="nc">AirflowTestPlugin</span><span class="p">(</span><span class="n">AirflowPlugin</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;test_plugin&quot;</span>
@@ -319,8 +326,16 @@ definitions in Airflow.</p>
     <span class="n">admin_views</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
     <span class="n">flask_blueprints</span> <span class="o">=</span> <span class="p">[</span><span class="n">bp</span><span class="p">]</span>
     <span class="n">menu_links</span> <span class="o">=</span> <span class="p">[</span><span class="n">ml</span><span class="p">]</span>
+    <span class="n">appbuilder_views</span> <span class="o">=</span> <span class="p">[</span><span class="n">v_appbuilder_package</span><span class="p">]</span>
+    <span class="n">appbuilder_menu_items</span> <span class="o">=</span> <span class="p">[</span><span class="n">appbuilder_mitem</span><span class="p">]</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="note-on-role-based-views">
+<h2>Note on role based views<a class="headerlink" href="#note-on-role-based-views" title="Permalink to this headline">¶</a></h2>
+<p>Airflow 1.10 introduced role based views using FlaskAppBuilder. You can configure which UI is used by setting
+rbac = True. To support plugin views and links for both versions of the UI and maintain backwards compatibility,
+the fields appbuilder_views and appbuilder_menu_items were added to the AirflowTestPlugin class.</p>
 </div>
 </div>
 
@@ -362,20 +377,13 @@ definitions in Airflow.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
 
   
 

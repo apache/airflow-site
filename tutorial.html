@@ -213,7 +213,7 @@ complicated, a line by line explanation follows below.</p>
     <span class="c1"># &#39;end_date&#39;: datetime(2016, 1, 1),</span>
 <span class="p">}</span>
 
-<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="s1">&#39;tutorial&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">)</span>
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span><span class="s1">&#39;tutorial&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">schedule_interval</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="c1"># t1, t2 and t3 are examples of tasks created by instantiating operators</span>
 <span class="n">t1</span> <span class="o">=</span> <span class="n">BashOperator</span><span class="p">(</span>
@@ -311,7 +311,7 @@ that defines the <code class="docutils literal notranslate"><span class="pre">da
 We also pass the default argument dictionary that we just defined and
 define a <code class="docutils literal notranslate"><span class="pre">schedule_interval</span></code> of 1 day for the DAG.</p>
 <div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span>
-    <span class="s1">&#39;tutorial&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">schedule_interval</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="s1">&#39;tutorial&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">schedule_interval</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -403,20 +403,33 @@ in templates, make sure to read through the <a class="reference internal" href="
 </div>
 <div class="section" id="setting-up-dependencies">
 <h2>Setting up Dependencies<a class="headerlink" href="#setting-up-dependencies" title="Permalink to this headline">¶</a></h2>
-<p>We have two simple tasks that do not depend on each other. Here’s a few ways
+<p>We have tasks <cite>t1</cite>, <cite>t2</cite> and <cite>t3</cite> that do not depend on each other. Here’s a few ways
 you can define dependencies between them:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t2</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t1</span><span class="o">.</span><span class="n">set_downstream</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="c1"># This means that t2 will depend on t1</span>
-<span class="c1"># running successfully to run</span>
-<span class="c1"># It is equivalent to</span>
-<span class="c1"># t1.set_downstream(t2)</span>
+<span class="c1"># running successfully to run.</span>
+<span class="c1"># It is equivalent to:</span>
+<span class="n">t2</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
 
-<span class="n">t3</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+<span class="c1"># The bit shift operator can also be</span>
+<span class="c1"># used to chain operations:</span>
+<span class="n">t1</span> <span class="o">&gt;&gt;</span> <span class="n">t2</span>
 
-<span class="c1"># all of this is equivalent to</span>
-<span class="c1"># dag.set_dependency(&#39;print_date&#39;, &#39;sleep&#39;)</span>
-<span class="c1"># dag.set_dependency(&#39;print_date&#39;, &#39;templated&#39;)</span>
+<span class="c1"># And the upstream dependency with the</span>
+<span class="c1"># bit shift operator:</span>
+<span class="n">t2</span> <span class="o">&lt;&lt;</span> <span class="n">t1</span>
+
+<span class="c1"># Chaining multiple dependencies becomes</span>
+<span class="c1"># concise with the bit shift operator:</span>
+<span class="n">t1</span> <span class="o">&gt;&gt;</span> <span class="n">t2</span> <span class="o">&gt;&gt;</span> <span class="n">t3</span>
+
+<span class="c1"># A list of tasks can also be set as</span>
+<span class="c1"># dependencies. These operations</span>
+<span class="c1"># all have the same effect:</span>
+<span class="n">t1</span><span class="o">.</span><span class="n">set_downstream</span><span class="p">([</span><span class="n">t2</span><span class="p">,</span> <span class="n">t3</span><span class="p">])</span>
+<span class="n">t1</span> <span class="o">&gt;&gt;</span> <span class="p">[</span><span class="n">t2</span><span class="p">,</span> <span class="n">t3</span><span class="p">]</span>
+<span class="p">[</span><span class="n">t2</span><span class="p">,</span> <span class="n">t3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">t1</span>
 </pre></div>
 </div>
 <p>Note that when executing your script, Airflow will raise exceptions when
@@ -428,8 +441,8 @@ than once.</p>
 <p>Alright, so we have a pretty basic DAG. At this point your code should look
 something like this:</p>
 <div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Code that goes along with the Airflow located at:</span>
-<span class="sd">http://airflow.readthedocs.org/en/latest/tutorial.html</span>
+<span class="sd">Code that goes along with the Airflow tutorial located at:</span>
+<span class="sd">https://github.com/apache/incubator-airflow/blob/master/airflow/example_dags/tutorial.py</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">DAG</span>
 <span class="kn">from</span> <span class="nn">airflow.operators.bash_operator</span> <span class="k">import</span> <span class="n">BashOperator</span>
@@ -452,7 +465,7 @@ something like this:</p>
 <span class="p">}</span>
 
 <span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span>
-    <span class="s1">&#39;tutorial&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">schedule_interval</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="s1">&#39;tutorial&#39;</span><span class="p">,</span> <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">schedule_interval</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
 <span class="c1"># t1, t2 and t3 are examples of tasks created by instantiating operators</span>
 <span class="n">t1</span> <span class="o">=</span> <span class="n">BashOperator</span><span class="p">(</span>
@@ -624,20 +637,13 @@ running against it should get it to get triggered and run every day.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
 
   
 

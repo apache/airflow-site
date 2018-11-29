@@ -123,6 +123,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#packaged-dags">Packaged dags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#airflowignore">.airflowignore</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="profiling.html">Data Profiling</a></li>
@@ -469,7 +470,7 @@ execution parallelism is only limited to the executor’s setting.</p>
 <div class="section" id="connections">
 <span id="concepts-connections"></span><h3>Connections<a class="headerlink" href="#connections" title="Permalink to this headline">¶</a></h3>
 <p>The connection information to external systems is stored in the Airflow
-metadata database and managed in the UI (<code class="docutils literal notranslate"><span class="pre">Menu</span> <span class="pre">-&gt;</span> <span class="pre">Admin</span> <span class="pre">-&gt;</span> <span class="pre">Connections</span></code>)
+metadata database and managed in the UI (<code class="docutils literal notranslate"><span class="pre">Menu</span> <span class="pre">-&gt;</span> <span class="pre">Admin</span> <span class="pre">-&gt;</span> <span class="pre">Connections</span></code>).
 A <code class="docutils literal notranslate"><span class="pre">conn_id</span></code> is defined there and hostname / login / password / schema
 information attached to it. Airflow pipelines can simply refer to the
 centrally managed <code class="docutils literal notranslate"><span class="pre">conn_id</span></code> without having to hard code any of this
@@ -479,15 +480,6 @@ is the case, and when the <strong>hooks</strong> uses the <code class="docutils 
 from <code class="docutils literal notranslate"><span class="pre">BaseHook</span></code>, Airflow will choose one connection randomly, allowing
 for some basic load balancing and fault tolerance when used in conjunction
 with retries.</p>
-<p>Airflow also has the ability to reference connections via environment
-variables from the operating system. But it only supports URI format. If you
-need to specify <code class="docutils literal notranslate"><span class="pre">extra</span></code> for your connection, please use web UI.</p>
-<p>If connections with the same <code class="docutils literal notranslate"><span class="pre">conn_id</span></code> are defined in both Airflow metadata
-database and environment variables, only the one in environment variables
-will be referenced by Airflow (for example, given <code class="docutils literal notranslate"><span class="pre">conn_id</span></code> <code class="docutils literal notranslate"><span class="pre">postgres_master</span></code>,
-Airflow will search for <code class="docutils literal notranslate"><span class="pre">AIRFLOW_CONN_POSTGRES_MASTER</span></code>
-in environment variables first and directly reference it if found,
-before it starts to search in metadata database).</p>
 <p>Many hooks have a default <code class="docutils literal notranslate"><span class="pre">conn_id</span></code>, where operators using that hook do not
 need to supply an explicit connection ID. For example, the default
 <code class="docutils literal notranslate"><span class="pre">conn_id</span></code> for the <a class="reference internal" href="code.html#airflow.hooks.postgres_hook.PostgresHook" title="airflow.hooks.postgres_hook.PostgresHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">PostgresHook</span></code></a> is
@@ -496,14 +488,14 @@ need to supply an explicit connection ID. For example, the default
 </div>
 <div class="section" id="queues">
 <h3>Queues<a class="headerlink" href="#queues" title="Permalink to this headline">¶</a></h3>
-<p>When using the CeleryExecutor, the celery queues that tasks are sent to
+<p>When using the CeleryExecutor, the Celery queues that tasks are sent to
 can be specified. <code class="docutils literal notranslate"><span class="pre">queue</span></code> is an attribute of BaseOperator, so any
 task can be assigned to any queue. The default queue for the environment
 is defined in the <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code>’s <code class="docutils literal notranslate"><span class="pre">celery</span> <span class="pre">-&gt;</span> <span class="pre">default_queue</span></code>. This defines
 the queue that tasks get assigned to when not specified, as well as which
 queue Airflow workers listen to when started.</p>
 <p>Workers can listen to one or multiple queues of tasks. When a worker is
-started (using the command <code class="docutils literal notranslate"><span class="pre">airflow</span> <span class="pre">worker</span></code>), a set of comma delimited
+started (using the command <code class="docutils literal notranslate"><span class="pre">airflow</span> <span class="pre">worker</span></code>), a set of comma-delimited
 queue names can be specified (e.g. <code class="docutils literal notranslate"><span class="pre">airflow</span> <span class="pre">worker</span> <span class="pre">-q</span> <span class="pre">spark</span></code>). This worker
 will then only pick up tasks wired to the specified queue(s).</p>
 <p>This can be useful if you need specialized workers, either from a
@@ -950,6 +942,28 @@ to be available on the system if a module needs those. In other words only
 pure python modules can be packaged.</p>
 </div>
 </div>
+<div class="section" id="airflowignore">
+<h2>.airflowignore<a class="headerlink" href="#airflowignore" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">.airflowignore</span></code> file specifies the directories or files in <code class="docutils literal notranslate"><span class="pre">DAG_FOLDER</span></code>
+that Airflow should intentionally ignore. Each line in <code class="docutils literal notranslate"><span class="pre">.airflowignore</span></code>
+specifies a regular expression pattern, and directories or files whose names
+(not DAG id) match any of the patterns would be ignored (under the hood,
+<code class="docutils literal notranslate"><span class="pre">re.findall()</span></code> is used to match the pattern). Overall it works like a
+<code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> file.</p>
+<p><code class="docutils literal notranslate"><span class="pre">.airflowignore</span></code> file should be put in your <code class="docutils literal notranslate"><span class="pre">DAG_FOLDER</span></code>.
+For example, you can prepare a <code class="docutils literal notranslate"><span class="pre">.airflowignore</span></code> file with contents</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">project_a</span>
+<span class="n">tenant_</span><span class="p">[</span>\<span class="n">d</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Then files like “project_a_dag_1.py”, “TESTING_project_a.py”, “tenant_1.py”,
+“project_a/dag_1.py”, and “tenant_1/dag_1.py” in your <code class="docutils literal notranslate"><span class="pre">DAG_FOLDER</span></code> would be ignored
+(If a directory’s name matches any of the patterns, this directory and all its subfolders
+would not be scanned by Airflow at all. This improves efficiency of DAG finding).</p>
+<p>The scope of a <code class="docutils literal notranslate"><span class="pre">.airflowignore</span></code> file is the directory it is in plus all its subfolders.
+You can also prepare <code class="docutils literal notranslate"><span class="pre">.airflowignore</span></code> file for a subfolder in <code class="docutils literal notranslate"><span class="pre">DAG_FOLDER</span></code> and it
+would only be applicable for that subfolder.</p>
+</div>
 </div>
 
 
@@ -990,20 +1004,13 @@ pure python modules can be packaged.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
 
   
 

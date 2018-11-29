@@ -182,11 +182,14 @@
 <span class="kn">import</span> <span class="nn">pysftp</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.ssh_hook</span> <span class="k">import</span> <span class="n">SSHHook</span>
 
 
-<div class="viewcode-block" id="SFTPHook"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.sftp_hook.SFTPHook">[docs]</a><span class="k">class</span> <span class="nc">SFTPHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
+<div class="viewcode-block" id="SFTPHook"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.sftp_hook.SFTPHook">[docs]</a><span class="k">class</span> <span class="nc">SFTPHook</span><span class="p">(</span><span class="n">SSHHook</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This hook is inherited from SSH hook. Please refer to SSH hook for the input</span>
+<span class="sd">    arguments.</span>
+
 <span class="sd">    Interact with SFTP. Aims to be interchangeable with FTPHook.</span>
 
 <span class="sd">    Pitfalls: - In contrast with FTPHook describe_directory only returns size, type and</span>
@@ -200,32 +203,74 @@
 <span class="sd">    Errors that may occur throughout but should be handled downstream.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftp_conn_id</span><span class="o">=</span><span class="s1">&#39;sftp_default&#39;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ftp_conn_id</span> <span class="o">=</span> <span class="n">ftp_conn_id</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftp_conn_id</span><span class="o">=</span><span class="s1">&#39;sftp_default&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ssh_conn_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ftp_conn_id</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SFTPHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">private_key_pass</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Fail for unverified hosts, unless this is explicitly allowed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_host_key_check</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">extra_options</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span>
+                <span class="k">if</span> <span class="s1">&#39;private_key_pass&#39;</span> <span class="ow">in</span> <span class="n">extra_options</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">private_key_pass</span> <span class="o">=</span> <span class="n">extra_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;private_key_pass&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+                <span class="c1"># For backward compatibility</span>
+                <span class="c1"># TODO: remove in Airflow 2.1</span>
+                <span class="kn">import</span> <span class="nn">warnings</span>
+                <span class="k">if</span> <span class="s1">&#39;ignore_hostkey_verification&#39;</span> <span class="ow">in</span> <span class="n">extra_options</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s1">&#39;Extra option `ignore_hostkey_verification` is deprecated.&#39;</span>
+                        <span class="s1">&#39;Please use `no_host_key_check` instead.&#39;</span>
+                        <span class="s1">&#39;This option will be removed in Airflow 2.1&#39;</span><span class="p">,</span>
+                        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">no_host_key_check</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+                        <span class="n">extra_options</span><span class="p">[</span><span class="s1">&#39;ignore_hostkey_verification&#39;</span><span class="p">]</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+
+                <span class="k">if</span> <span class="s1">&#39;no_host_key_check&#39;</span> <span class="ow">in</span> <span class="n">extra_options</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">no_host_key_check</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+                        <span class="n">extra_options</span><span class="p">[</span><span class="s1">&#39;no_host_key_check&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+
+                <span class="k">if</span> <span class="s1">&#39;private_key&#39;</span> <span class="ow">in</span> <span class="n">extra_options</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s1">&#39;Extra option `private_key` is deprecated.&#39;</span>
+                        <span class="s1">&#39;Please use `key_file` instead.&#39;</span>
+                        <span class="s1">&#39;This option will be removed in Airflow 2.1&#39;</span><span class="p">,</span>
+                        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">key_file</span> <span class="o">=</span> <span class="n">extra_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;private_key&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SFTPHook.get_conn"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.sftp_hook.SFTPHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns an SFTP connection object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ftp_conn_id</span><span class="p">)</span>
             <span class="n">cnopts</span> <span class="o">=</span> <span class="n">pysftp</span><span class="o">.</span><span class="n">CnOpts</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;ignore_hostkey_verification&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">extra_dejson</span> <span class="ow">and</span>
-                    <span class="n">params</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s1">&#39;ignore_hostkey_verification&#39;</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">no_host_key_check</span><span class="p">:</span>
                 <span class="n">cnopts</span><span class="o">.</span><span class="n">hostkeys</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">cnopts</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compress</span>
             <span class="n">conn_params</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
-                <span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
-                <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
+                <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span><span class="p">,</span>
+                <span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
+                <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
                 <span class="s1">&#39;cnopts&#39;</span><span class="p">:</span> <span class="n">cnopts</span>
             <span class="p">}</span>
-            <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">password</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">conn_params</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">password</span>
-            <span class="k">if</span> <span class="s1">&#39;private_key&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">:</span>
-                <span class="n">conn_params</span><span class="p">[</span><span class="s1">&#39;private_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s1">&#39;private_key&#39;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s1">&#39;private_key_pass&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">:</span>
-                <span class="n">conn_params</span><span class="p">[</span><span class="s1">&#39;private_key_pass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">[</span><span class="s1">&#39;private_key_pass&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">conn_params</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_file</span><span class="p">:</span>
+                <span class="n">conn_params</span><span class="p">[</span><span class="s1">&#39;private_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_file</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">private_key_pass</span><span class="p">:</span>
+                <span class="n">conn_params</span><span class="p">[</span><span class="s1">&#39;private_key_pass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">private_key_pass</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">pysftp</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="o">**</span><span class="n">conn_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span></div>
 
@@ -358,20 +403,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

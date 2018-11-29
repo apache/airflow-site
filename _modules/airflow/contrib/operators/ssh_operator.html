@@ -227,7 +227,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_xcom_push</span> <span class="o">=</span> <span class="n">do_xcom_push</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="SSHOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.ssh_operator.SSHOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span><span class="n">ssh_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">)</span>
@@ -238,84 +238,83 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span>
 
-            <span class="n">ssh_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;no command specified so nothing to execute here.&quot;</span><span class="p">)</span>
 
-            <span class="c1"># Auto apply tty when its required in case of sudo</span>
-            <span class="n">get_pty</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;sudo&#39;</span><span class="p">):</span>
-                <span class="n">get_pty</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh_client</span><span class="p">:</span>
+                <span class="c1"># Auto apply tty when its required in case of sudo</span>
+                <span class="n">get_pty</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;sudo&#39;</span><span class="p">):</span>
+                    <span class="n">get_pty</span> <span class="o">=</span> <span class="kc">True</span>
 
-            <span class="c1"># set timeout taken as params</span>
-            <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">exec_command</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span>
-                                                            <span class="n">get_pty</span><span class="o">=</span><span class="n">get_pty</span><span class="p">,</span>
-                                                            <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
-                                                            <span class="p">)</span>
-            <span class="c1"># get channels</span>
-            <span class="n">channel</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span>
+                <span class="c1"># set timeout taken as params</span>
+                <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">exec_command</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span>
+                                                                <span class="n">get_pty</span><span class="o">=</span><span class="n">get_pty</span><span class="p">,</span>
+                                                                <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
+                                                                <span class="p">)</span>
+                <span class="c1"># get channels</span>
+                <span class="n">channel</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span>
 
-            <span class="c1"># closing stdin</span>
-            <span class="n">stdin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">shutdown_write</span><span class="p">()</span>
+                <span class="c1"># closing stdin</span>
+                <span class="n">stdin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">shutdown_write</span><span class="p">()</span>
 
-            <span class="n">agg_stdout</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
-            <span class="n">agg_stderr</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+                <span class="n">agg_stdout</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+                <span class="n">agg_stderr</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
 
-            <span class="c1"># capture any initial output in case channel is closed already</span>
-            <span class="n">stdout_buffer_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">in_buffer</span><span class="p">)</span>
+                <span class="c1"># capture any initial output in case channel is closed already</span>
+                <span class="n">stdout_buffer_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">in_buffer</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">stdout_buffer_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">agg_stdout</span> <span class="o">+=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">stdout_buffer_length</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">stdout_buffer_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">agg_stdout</span> <span class="o">+=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">stdout_buffer_length</span><span class="p">)</span>
 
-            <span class="c1"># read from both stdout and stderr</span>
-            <span class="k">while</span> <span class="ow">not</span> <span class="n">channel</span><span class="o">.</span><span class="n">closed</span> <span class="ow">or</span> \
-                    <span class="n">channel</span><span class="o">.</span><span class="n">recv_ready</span><span class="p">()</span> <span class="ow">or</span> \
-                    <span class="n">channel</span><span class="o">.</span><span class="n">recv_stderr_ready</span><span class="p">():</span>
-                <span class="n">readq</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">channel</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">readq</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">recv_ready</span><span class="p">():</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">in_buffer</span><span class="p">))</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span>
-                        <span class="n">agg_stdout</span> <span class="o">+=</span> <span class="n">line</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
-                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">recv_stderr_ready</span><span class="p">():</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="n">stderr</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_stderr</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">in_stderr_buffer</span><span class="p">))</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span>
-                        <span class="n">agg_stderr</span> <span class="o">+=</span> <span class="n">line</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">exit_status_ready</span><span class="p">()</span>\
-                        <span class="ow">and</span> <span class="ow">not</span> <span class="n">stderr</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_stderr_ready</span><span class="p">()</span>\
-                        <span class="ow">and</span> <span class="ow">not</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_ready</span><span class="p">():</span>
-                    <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">shutdown_read</span><span class="p">()</span>
-                    <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                    <span class="k">break</span>
+                <span class="c1"># read from both stdout and stderr</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="n">channel</span><span class="o">.</span><span class="n">closed</span> <span class="ow">or</span> \
+                        <span class="n">channel</span><span class="o">.</span><span class="n">recv_ready</span><span class="p">()</span> <span class="ow">or</span> \
+                        <span class="n">channel</span><span class="o">.</span><span class="n">recv_stderr_ready</span><span class="p">():</span>
+                    <span class="n">readq</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">channel</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">readq</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">recv_ready</span><span class="p">():</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">in_buffer</span><span class="p">))</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span>
+                            <span class="n">agg_stdout</span> <span class="o">+=</span> <span class="n">line</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">recv_stderr_ready</span><span class="p">():</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">stderr</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_stderr</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">in_stderr_buffer</span><span class="p">))</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span>
+                            <span class="n">agg_stderr</span> <span class="o">+=</span> <span class="n">line</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">exit_status_ready</span><span class="p">()</span>\
+                            <span class="ow">and</span> <span class="ow">not</span> <span class="n">stderr</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_stderr_ready</span><span class="p">()</span>\
+                            <span class="ow">and</span> <span class="ow">not</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_ready</span><span class="p">():</span>
+                        <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">shutdown_read</span><span class="p">()</span>
+                        <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="k">break</span>
 
-            <span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">stderr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">stderr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-            <span class="n">exit_status</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_exit_status</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">exit_status</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># returning output if do_xcom_push is set</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_xcom_push</span><span class="p">:</span>
-                    <span class="n">enable_pickling</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span>
-                        <span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;enable_xcom_pickling&#39;</span>
-                    <span class="p">)</span>
-                    <span class="k">if</span> <span class="n">enable_pickling</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="n">agg_stdout</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">agg_stdout</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">exit_status</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">recv_exit_status</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">exit_status</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># returning output if do_xcom_push is set</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_xcom_push</span><span class="p">:</span>
+                        <span class="n">enable_pickling</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span>
+                            <span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;enable_xcom_pickling&#39;</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">enable_pickling</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">agg_stdout</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">agg_stdout</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
 
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">error_msg</span> <span class="o">=</span> <span class="n">agg_stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;error running cmd: </span><span class="si">{0}</span><span class="s2">, error: </span><span class="si">{1}</span><span class="s2">&quot;</span>
-                                       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error_msg</span> <span class="o">=</span> <span class="n">agg_stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;error running cmd: </span><span class="si">{0}</span><span class="s2">, error: </span><span class="si">{1}</span><span class="s2">&quot;</span>
+                                           <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">))</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;SSH operator error: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">tunnel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ssh_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
@@ -350,20 +349,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

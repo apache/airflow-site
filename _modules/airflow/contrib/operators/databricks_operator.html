@@ -307,6 +307,9 @@
 <span class="sd">    :param databricks_retry_limit: Amount of times retry if the Databricks backend is</span>
 <span class="sd">        unreachable. Its value must be greater than or equal to 1.</span>
 <span class="sd">    :type databricks_retry_limit: int</span>
+<span class="sd">    :param databricks_retry_delay: Number of seconds to wait between retries (it</span>
+<span class="sd">            might be a floating point number).</span>
+<span class="sd">    :type databricks_retry_delay: float</span>
 <span class="sd">    :param do_xcom_push: Whether we should push run_id and run_page_url to xcom.</span>
 <span class="sd">    :type do_xcom_push: boolean</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -329,6 +332,7 @@
             <span class="n">databricks_conn_id</span><span class="o">=</span><span class="s1">&#39;databricks_default&#39;</span><span class="p">,</span>
             <span class="n">polling_period_seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
             <span class="n">databricks_retry_limit</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">databricks_retry_delay</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">do_xcom_push</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -339,6 +343,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">databricks_conn_id</span> <span class="o">=</span> <span class="n">databricks_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">polling_period_seconds</span> <span class="o">=</span> <span class="n">polling_period_seconds</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">databricks_retry_limit</span> <span class="o">=</span> <span class="n">databricks_retry_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">databricks_retry_delay</span> <span class="o">=</span> <span class="n">databricks_retry_delay</span>
         <span class="k">if</span> <span class="n">spark_jar_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">[</span><span class="s1">&#39;spark_jar_task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark_jar_task</span>
         <span class="k">if</span> <span class="n">notebook_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -393,9 +398,10 @@
     <span class="k">def</span> <span class="nf">get_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">DatabricksHook</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">databricks_conn_id</span><span class="p">,</span>
-            <span class="n">retry_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">databricks_retry_limit</span><span class="p">)</span>
+            <span class="n">retry_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">databricks_retry_limit</span><span class="p">,</span>
+            <span class="n">retry_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">databricks_retry_delay</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="DatabricksSubmitRunOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.databricks_operator.DatabricksSubmitRunOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hook</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">submit_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_xcom_push</span><span class="p">:</span>
@@ -421,15 +427,15 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> in run state: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="n">run_state</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_log_run_page_url</span><span class="p">(</span><span class="n">run_page_url</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Sleeping for </span><span class="si">%s</span><span class="s1"> seconds.&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">polling_period_seconds</span><span class="p">)</span>
-                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polling_period_seconds</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polling_period_seconds</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DatabricksSubmitRunOperator.on_kill"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.databricks_operator.DatabricksSubmitRunOperator.on_kill">[docs]</a>    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hook</span><span class="p">()</span>
         <span class="n">hook</span><span class="o">.</span><span class="n">cancel_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Task: </span><span class="si">%s</span><span class="s1"> with run_id: </span><span class="si">%s</span><span class="s1"> was requested to be cancelled.&#39;</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -460,20 +466,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

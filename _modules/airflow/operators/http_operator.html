@@ -207,6 +207,10 @@
 <span class="sd">        &#39;requests&#39; documentation (options to modify timeout, ssl, etc.)</span>
 <span class="sd">    :type extra_options: A dictionary of options, where key is string and value</span>
 <span class="sd">        depends on the option that&#39;s being modified.</span>
+<span class="sd">    :param xcom_push: Push the response to Xcom (default: False)</span>
+<span class="sd">    :type xcom_push: bool</span>
+<span class="sd">    :param log_response: Log the response (default: False)</span>
+<span class="sd">    :type log_response: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;endpoint&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,)</span>
@@ -222,7 +226,9 @@
                  <span class="n">response_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">extra_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">xcom_push</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;http_default&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                 <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;http_default&#39;</span><span class="p">,</span>
+                 <span class="n">log_response</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If xcom_push is True, response of an HTTP request will also</span>
 <span class="sd">        be pushed to an XCom.</span>
@@ -236,8 +242,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">response_check</span> <span class="o">=</span> <span class="n">response_check</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">extra_options</span> <span class="o">=</span> <span class="n">extra_options</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xcom_push_flag</span> <span class="o">=</span> <span class="n">xcom_push</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_response</span> <span class="o">=</span> <span class="n">log_response</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleHttpOperator.execute"><a class="viewcode-back" href="../../../code.html#airflow.operators.http_operator.SimpleHttpOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">http</span> <span class="o">=</span> <span class="n">HttpHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">http_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">http_conn_id</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calling HTTP method&quot;</span><span class="p">)</span>
@@ -250,7 +257,9 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_check</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Response check returned False.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xcom_push_flag</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span></div>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_response</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -281,20 +290,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
 
   
 

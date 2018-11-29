@@ -242,18 +242,19 @@
 <span class="sd">    :param query_params: a dictionary containing query parameter types and</span>
 <span class="sd">        values, passed to BigQuery.</span>
 <span class="sd">    :type query_params: dict</span>
+<span class="sd">    :param labels: a dictionary containing labels for the job/query,</span>
+<span class="sd">        passed to BigQuery</span>
+<span class="sd">    :type labels: dict</span>
 <span class="sd">    :param priority: Specifies a priority for the query.</span>
 <span class="sd">        Possible values include INTERACTIVE and BATCH.</span>
 <span class="sd">        The default value is INTERACTIVE.</span>
 <span class="sd">    :type priority: string</span>
 <span class="sd">    :param time_partitioning: configure optional time partitioning fields i.e.</span>
-<span class="sd">        partition by field, type and</span>
-<span class="sd">        expiration as per API specifications. Note that &#39;field&#39; is not available in</span>
-<span class="sd">        conjunction with dataset.table$partition.</span>
+<span class="sd">        partition by field, type and expiration as per API specifications.</span>
 <span class="sd">    :type time_partitioning: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bql&#39;</span><span class="p">,</span> <span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_dataset_table&#39;</span><span class="p">)</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bql&#39;</span><span class="p">,</span> <span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_dataset_table&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sql&#39;</span><span class="p">,</span> <span class="p">)</span>
     <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#e4f0e8&#39;</span>
 
@@ -264,7 +265,7 @@
                  <span class="n">destination_dataset_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">write_disposition</span><span class="o">=</span><span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
                  <span class="n">allow_large_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">flatten_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">flatten_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">bigquery_conn_id</span><span class="o">=</span><span class="s1">&#39;bigquery_default&#39;</span><span class="p">,</span>
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">udf_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -274,6 +275,7 @@
                  <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
                  <span class="n">schema_update_options</span><span class="o">=</span><span class="p">(),</span>
                  <span class="n">query_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">priority</span><span class="o">=</span><span class="s1">&#39;INTERACTIVE&#39;</span><span class="p">,</span>
                  <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{},</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
@@ -294,6 +296,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">maximum_bytes_billed</span> <span class="o">=</span> <span class="n">maximum_bytes_billed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">schema_update_options</span> <span class="o">=</span> <span class="n">schema_update_options</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">query_params</span> <span class="o">=</span> <span class="n">query_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bq_cursor</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span> <span class="o">=</span> <span class="n">time_partitioning</span>
@@ -312,7 +315,7 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> missing 1 required positional &#39;</span>
                             <span class="s1">&#39;argument: `sql`&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="BigQueryOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bq_cursor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
             <span class="n">hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span>
@@ -332,16 +335,17 @@
             <span class="n">maximum_bytes_billed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximum_bytes_billed</span><span class="p">,</span>
             <span class="n">create_disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">create_disposition</span><span class="p">,</span>
             <span class="n">query_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">query_params</span><span class="p">,</span>
+            <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span>
             <span class="n">schema_update_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_update_options</span><span class="p">,</span>
             <span class="n">priority</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span>
             <span class="n">time_partitioning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BigQueryOperator.on_kill"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryOperator.on_kill">[docs]</a>    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_kill</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bq_cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Canceling running query due to execution timeout&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bq_cursor</span><span class="o">.</span><span class="n">cancel_query</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bq_cursor</span><span class="o">.</span><span class="n">cancel_query</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="BigQueryCreateEmptyTableOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryCreateEmptyTableOperator">[docs]</a><span class="k">class</span> <span class="nc">BigQueryCreateEmptyTableOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -389,49 +393,52 @@
 <span class="sd">        work, the service account making the request must have domain-wide</span>
 <span class="sd">        delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
+<span class="sd">    :param labels: a dictionary containing labels for the table, passed to BigQuery</span>
 
-<span class="sd">    **Example (with schema JSON in GCS)**: ::</span>
+<span class="sd">        **Example (with schema JSON in GCS)**: ::</span>
 
-<span class="sd">        CreateTable = BigQueryCreateEmptyTableOperator(</span>
-<span class="sd">            task_id=&#39;BigQueryCreateEmptyTableOperator_task&#39;,</span>
-<span class="sd">            dataset_id=&#39;ODS&#39;,</span>
-<span class="sd">            table_id=&#39;Employees&#39;,</span>
-<span class="sd">            project_id=&#39;internal-gcp-project&#39;,</span>
-<span class="sd">            gcs_schema_object=&#39;gs://schema-bucket/employee_schema.json&#39;,</span>
-<span class="sd">            bigquery_conn_id=&#39;airflow-service-account&#39;,</span>
-<span class="sd">            google_cloud_storage_conn_id=&#39;airflow-service-account&#39;</span>
-<span class="sd">        )</span>
+<span class="sd">            CreateTable = BigQueryCreateEmptyTableOperator(</span>
+<span class="sd">                task_id=&#39;BigQueryCreateEmptyTableOperator_task&#39;,</span>
+<span class="sd">                dataset_id=&#39;ODS&#39;,</span>
+<span class="sd">                table_id=&#39;Employees&#39;,</span>
+<span class="sd">                project_id=&#39;internal-gcp-project&#39;,</span>
+<span class="sd">                gcs_schema_object=&#39;gs://schema-bucket/employee_schema.json&#39;,</span>
+<span class="sd">                bigquery_conn_id=&#39;airflow-service-account&#39;,</span>
+<span class="sd">                google_cloud_storage_conn_id=&#39;airflow-service-account&#39;</span>
+<span class="sd">            )</span>
 
-<span class="sd">    **Corresponding Schema file** (``employee_schema.json``): ::</span>
+<span class="sd">        **Corresponding Schema file** (``employee_schema.json``): ::</span>
 
-<span class="sd">        [</span>
-<span class="sd">          {</span>
-<span class="sd">            &quot;mode&quot;: &quot;NULLABLE&quot;,</span>
-<span class="sd">            &quot;name&quot;: &quot;emp_name&quot;,</span>
-<span class="sd">            &quot;type&quot;: &quot;STRING&quot;</span>
-<span class="sd">          },</span>
-<span class="sd">          {</span>
-<span class="sd">            &quot;mode&quot;: &quot;REQUIRED&quot;,</span>
-<span class="sd">            &quot;name&quot;: &quot;salary&quot;,</span>
-<span class="sd">            &quot;type&quot;: &quot;INTEGER&quot;</span>
-<span class="sd">          }</span>
-<span class="sd">        ]</span>
+<span class="sd">            [</span>
+<span class="sd">              {</span>
+<span class="sd">                &quot;mode&quot;: &quot;NULLABLE&quot;,</span>
+<span class="sd">                &quot;name&quot;: &quot;emp_name&quot;,</span>
+<span class="sd">                &quot;type&quot;: &quot;STRING&quot;</span>
+<span class="sd">              },</span>
+<span class="sd">              {</span>
+<span class="sd">                &quot;mode&quot;: &quot;REQUIRED&quot;,</span>
+<span class="sd">                &quot;name&quot;: &quot;salary&quot;,</span>
+<span class="sd">                &quot;type&quot;: &quot;INTEGER&quot;</span>
+<span class="sd">              }</span>
+<span class="sd">            ]</span>
 
-<span class="sd">    **Example (with schema in the DAG)**: ::</span>
+<span class="sd">        **Example (with schema in the DAG)**: ::</span>
 
-<span class="sd">        CreateTable = BigQueryCreateEmptyTableOperator(</span>
-<span class="sd">            task_id=&#39;BigQueryCreateEmptyTableOperator_task&#39;,</span>
-<span class="sd">            dataset_id=&#39;ODS&#39;,</span>
-<span class="sd">            table_id=&#39;Employees&#39;,</span>
-<span class="sd">            project_id=&#39;internal-gcp-project&#39;,</span>
-<span class="sd">            schema_fields=[{&quot;name&quot;: &quot;emp_name&quot;, &quot;type&quot;: &quot;STRING&quot;, &quot;mode&quot;: &quot;REQUIRED&quot;},</span>
-<span class="sd">                           {&quot;name&quot;: &quot;salary&quot;, &quot;type&quot;: &quot;INTEGER&quot;, &quot;mode&quot;: &quot;NULLABLE&quot;}],</span>
-<span class="sd">            bigquery_conn_id=&#39;airflow-service-account&#39;,</span>
-<span class="sd">            google_cloud_storage_conn_id=&#39;airflow-service-account&#39;</span>
-<span class="sd">        )</span>
+<span class="sd">            CreateTable = BigQueryCreateEmptyTableOperator(</span>
+<span class="sd">                task_id=&#39;BigQueryCreateEmptyTableOperator_task&#39;,</span>
+<span class="sd">                dataset_id=&#39;ODS&#39;,</span>
+<span class="sd">                table_id=&#39;Employees&#39;,</span>
+<span class="sd">                project_id=&#39;internal-gcp-project&#39;,</span>
+<span class="sd">                schema_fields=[{&quot;name&quot;: &quot;emp_name&quot;, &quot;type&quot;: &quot;STRING&quot;, &quot;mode&quot;: &quot;REQUIRED&quot;},</span>
+<span class="sd">                               {&quot;name&quot;: &quot;salary&quot;, &quot;type&quot;: &quot;INTEGER&quot;, &quot;mode&quot;: &quot;NULLABLE&quot;}],</span>
+<span class="sd">                bigquery_conn_id=&#39;airflow-service-account&#39;,</span>
+<span class="sd">                google_cloud_storage_conn_id=&#39;airflow-service-account&#39;</span>
+<span class="sd">            )</span>
+<span class="sd">    :type labels: dict</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dataset_id&#39;</span><span class="p">,</span> <span class="s1">&#39;table_id&#39;</span><span class="p">,</span> <span class="s1">&#39;project_id&#39;</span><span class="p">,</span> <span class="s1">&#39;gcs_schema_object&#39;</span><span class="p">)</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dataset_id&#39;</span><span class="p">,</span> <span class="s1">&#39;table_id&#39;</span><span class="p">,</span> <span class="s1">&#39;project_id&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;gcs_schema_object&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">)</span>
     <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#f0eee4&#39;</span>
 
     <span class="nd">@apply_defaults</span>
@@ -445,6 +452,7 @@
                  <span class="n">bigquery_conn_id</span><span class="o">=</span><span class="s1">&#39;bigquery_default&#39;</span><span class="p">,</span>
                  <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryCreateEmptyTableOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -458,8 +466,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span> <span class="o">=</span> <span class="n">google_cloud_storage_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span> <span class="o">=</span> <span class="n">time_partitioning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="BigQueryCreateEmptyTableOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryCreateEmptyTableOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">bq_hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span><span class="n">bigquery_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span><span class="p">,</span>
                                <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
 
@@ -484,8 +493,9 @@
             <span class="n">dataset_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">,</span>
             <span class="n">table_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_id</span><span class="p">,</span>
             <span class="n">schema_fields</span><span class="o">=</span><span class="n">schema_fields</span><span class="p">,</span>
-            <span class="n">time_partitioning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span>
-        <span class="p">)</span></div>
+            <span class="n">time_partitioning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span><span class="p">,</span>
+            <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span>
+        <span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="BigQueryCreateExternalTableOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryCreateExternalTableOperator">[docs]</a><span class="k">class</span> <span class="nc">BigQueryCreateExternalTableOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -557,9 +567,11 @@
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param src_fmt_configs: configure optional fields specific to the source format</span>
 <span class="sd">    :type src_fmt_configs: dict</span>
+<span class="sd">    :param labels a dictionary containing labels for the table, passed to BigQuery</span>
+<span class="sd">    :type labels: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span> <span class="s1">&#39;source_objects&#39;</span><span class="p">,</span>
-                       <span class="s1">&#39;schema_object&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_project_dataset_table&#39;</span><span class="p">)</span>
+                       <span class="s1">&#39;schema_object&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_project_dataset_table&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">)</span>
     <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#f0eee4&#39;</span>
 
     <span class="nd">@apply_defaults</span>
@@ -581,6 +593,7 @@
                  <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryCreateExternalTableOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -607,8 +620,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">src_fmt_configs</span> <span class="o">=</span> <span class="n">src_fmt_configs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="BigQueryCreateExternalTableOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryCreateExternalTableOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">bq_hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span><span class="n">bigquery_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span><span class="p">,</span>
                                <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
 
@@ -640,8 +654,61 @@
             <span class="n">quote_character</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quote_character</span><span class="p">,</span>
             <span class="n">allow_quoted_newlines</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_quoted_newlines</span><span class="p">,</span>
             <span class="n">allow_jagged_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_jagged_rows</span><span class="p">,</span>
-            <span class="n">src_fmt_configs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">src_fmt_configs</span>
-        <span class="p">)</span></div>
+            <span class="n">src_fmt_configs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">src_fmt_configs</span><span class="p">,</span>
+            <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BigQueryDeleteDatasetOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryDeleteDatasetOperator">[docs]</a><span class="k">class</span> <span class="nc">BigQueryDeleteDatasetOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">    This operator deletes an existing dataset from your Project in Big query.</span>
+<span class="sd">    https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets/delete</span>
+<span class="sd">    :param project_id: The project id of the dataset.</span>
+<span class="sd">    :type project_id: string</span>
+<span class="sd">    :param dataset_id: The dataset to be deleted.</span>
+<span class="sd">    :type dataset_id: string</span>
+
+<span class="sd">    **Example**: ::</span>
+
+<span class="sd">        delete_temp_data = BigQueryDeleteDatasetOperator(</span>
+<span class="sd">                                        dataset_id = &#39;temp-dataset&#39;,</span>
+<span class="sd">                                        project_id = &#39;temp-project&#39;,</span>
+<span class="sd">                                        bigquery_conn_id=&#39;_my_gcp_conn_&#39;,</span>
+<span class="sd">                                        task_id=&#39;Deletetemp&#39;,</span>
+<span class="sd">                                        dag=dag)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dataset_id&#39;</span><span class="p">,</span> <span class="s1">&#39;project_id&#39;</span><span class="p">)</span>
+    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#f00004&#39;</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">dataset_id</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">bigquery_conn_id</span><span class="o">=</span><span class="s1">&#39;bigquery_default&#39;</span><span class="p">,</span>
+                 <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="n">dataset_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span> <span class="o">=</span> <span class="n">bigquery_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dataset id: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Project id: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">BigQueryDeleteDatasetOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BigQueryDeleteDatasetOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.bigquery_operator.BigQueryDeleteDatasetOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">bq_hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span><span class="n">bigquery_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span><span class="p">,</span>
+                               <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
+
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">bq_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+        <span class="n">cursor</span><span class="o">.</span><span class="n">delete_dataset</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+            <span class="n">dataset_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span>
+        <span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -672,20 +739,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

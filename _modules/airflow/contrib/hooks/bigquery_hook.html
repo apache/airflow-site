@@ -367,7 +367,8 @@
                            <span class="n">dataset_id</span><span class="p">,</span>
                            <span class="n">table_id</span><span class="p">,</span>
                            <span class="n">schema_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                           <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{}</span>
+                           <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{},</span>
+                           <span class="n">labels</span><span class="o">=</span><span class="kc">None</span>
                            <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new, empty table in the dataset.</span>
@@ -380,6 +381,8 @@
 <span class="sd">        :type table_id: str</span>
 <span class="sd">        :param schema_fields: If set, the schema field list as defined here:</span>
 <span class="sd">        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schema</span>
+<span class="sd">        :param labels: a dictionary containing labels for the table, passed to BigQuery</span>
+<span class="sd">        :type labels: dict</span>
 
 <span class="sd">        **Example**: ::</span>
 
@@ -409,6 +412,9 @@
 
         <span class="k">if</span> <span class="n">time_partitioning</span><span class="p">:</span>
             <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;timePartitioning&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_partitioning</span>
+
+        <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
                       <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">table_id</span><span class="p">)</span>
@@ -441,7 +447,8 @@
                               <span class="n">quote_character</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">allow_quoted_newlines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                               <span class="n">allow_jagged_rows</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                              <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{}</span>
+                              <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{},</span>
+                              <span class="n">labels</span><span class="o">=</span><span class="kc">None</span>
                               <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new external table in the dataset with the data in Google</span>
@@ -502,6 +509,8 @@
 <span class="sd">        :type allow_jagged_rows: bool</span>
 <span class="sd">        :param src_fmt_configs: configure optional fields specific to the source format</span>
 <span class="sd">        :type src_fmt_configs: dict</span>
+<span class="sd">        :param labels: a dictionary containing labels for the table, passed to BigQuery</span>
+<span class="sd">        :type labels: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">external_table_id</span> <span class="o">=</span> \
@@ -600,6 +609,9 @@
             <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;externalDataConfiguration&#39;</span><span class="p">][</span><span class="n">src_fmt_to_param_mapping</span><span class="p">[</span>
                 <span class="n">source_format</span><span class="p">]]</span> <span class="o">=</span> <span class="n">src_fmt_configs</span>
 
+        <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">table_resource</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">tables</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
                 <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
@@ -621,13 +633,14 @@
                   <span class="n">destination_dataset_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">write_disposition</span><span class="o">=</span><span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
                   <span class="n">allow_large_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                  <span class="n">flatten_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">flatten_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">udf_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">use_legacy_sql</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">maximum_billing_tier</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">maximum_bytes_billed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
                   <span class="n">query_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">schema_update_options</span><span class="o">=</span><span class="p">(),</span>
                   <span class="n">priority</span><span class="o">=</span><span class="s1">&#39;INTERACTIVE&#39;</span><span class="p">,</span>
                   <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{}):</span>
@@ -677,6 +690,9 @@
 <span class="sd">        :param query_params a dictionary containing query parameter types and</span>
 <span class="sd">            values, passed to BigQuery</span>
 <span class="sd">        :type query_params: dict</span>
+<span class="sd">        :param labels a dictionary containing labels for the job/query,</span>
+<span class="sd">            passed to BigQuery</span>
+<span class="sd">        :type labels: dict</span>
 <span class="sd">        :param schema_update_options: Allows the schema of the desitination</span>
 <span class="sd">            table to be updated as a side effect of the query job.</span>
 <span class="sd">        :type schema_update_options: tuple</span>
@@ -685,9 +701,7 @@
 <span class="sd">            The default value is INTERACTIVE.</span>
 <span class="sd">        :type priority: string</span>
 <span class="sd">        :param time_partitioning: configure optional time partitioning fields i.e.</span>
-<span class="sd">            partition by field, type and</span>
-<span class="sd">            expiration as per API specifications. Note that &#39;field&#39; is not available in</span>
-<span class="sd">            conjunction with dataset.table$partition.</span>
+<span class="sd">            partition by field, type and expiration as per API specifications.</span>
 <span class="sd">        :type time_partitioning: dict</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -737,9 +751,11 @@
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="n">destination_dataset_table</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">destination_dataset_table</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s1">&#39;Expected destination_dataset_table in the format of &#39;</span>
-                <span class="s1">&#39;&lt;dataset&gt;.&lt;table&gt;. Got: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">destination_dataset_table</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">destination_dataset_table</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;Expected destination_dataset_table name in the format of &#39;</span>
+                    <span class="s1">&#39;&lt;dataset&gt;.&lt;table&gt;. Got: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">destination_dataset_table</span><span class="p">))</span>
             <span class="n">destination_project</span><span class="p">,</span> <span class="n">destination_dataset</span><span class="p">,</span> <span class="n">destination_table</span> <span class="o">=</span> \
                 <span class="n">_split_tablename</span><span class="p">(</span><span class="n">table_input</span><span class="o">=</span><span class="n">destination_dataset_table</span><span class="p">,</span>
                                  <span class="n">default_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">)</span>
@@ -755,7 +771,9 @@
                 <span class="p">}</span>
             <span class="p">})</span>
         <span class="k">if</span> <span class="n">udf_config</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">udf_config</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">udf_config</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;udf_config argument must have a type &#39;list&#39;&quot;</span>
+                                <span class="s2">&quot; not </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">udf_config</span><span class="p">)))</span>
             <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
                 <span class="s1">&#39;userDefinedFunctionResources&#39;</span><span class="p">:</span> <span class="n">udf_config</span>
             <span class="p">})</span>
@@ -766,6 +784,9 @@
                                  <span class="s2">&quot;legacy SQL&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">][</span><span class="s1">&#39;queryParameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_params</span>
+
+        <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
 
         <span class="n">time_partitioning</span> <span class="o">=</span> <span class="n">_cleanse_time_partitioning</span><span class="p">(</span>
             <span class="n">destination_dataset_table</span><span class="p">,</span>
@@ -797,7 +818,8 @@
             <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;NONE&#39;</span><span class="p">,</span>
             <span class="n">export_format</span><span class="o">=</span><span class="s1">&#39;CSV&#39;</span><span class="p">,</span>
             <span class="n">field_delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
-            <span class="n">print_header</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">print_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes a BigQuery extract command to copy data from BigQuery to</span>
 <span class="sd">        Google Cloud Storage. See here:</span>
@@ -822,6 +844,9 @@
 <span class="sd">        :type field_delimiter: string</span>
 <span class="sd">        :param print_header: Whether to print a header for a CSV file extract.</span>
 <span class="sd">        :type print_header: boolean</span>
+<span class="sd">        :param labels: a dictionary containing labels for the job/query,</span>
+<span class="sd">            passed to BigQuery</span>
+<span class="sd">        :type labels: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">source_project</span><span class="p">,</span> <span class="n">source_dataset</span><span class="p">,</span> <span class="n">source_table</span> <span class="o">=</span> \
@@ -842,6 +867,9 @@
             <span class="p">}</span>
         <span class="p">}</span>
 
+        <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+
         <span class="k">if</span> <span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;CSV&#39;</span><span class="p">:</span>
             <span class="c1"># Only set fieldDelimiter and printHeader fields if using CSV.</span>
             <span class="c1"># Google does not like it if you set these fields for other export</span>
@@ -855,7 +883,8 @@
                  <span class="n">source_project_dataset_tables</span><span class="p">,</span>
                  <span class="n">destination_project_dataset_table</span><span class="p">,</span>
                  <span class="n">write_disposition</span><span class="o">=</span><span class="s1">&#39;WRITE_EMPTY&#39;</span><span class="p">,</span>
-                 <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">):</span>
+                 <span class="n">create_disposition</span><span class="o">=</span><span class="s1">&#39;CREATE_IF_NEEDED&#39;</span><span class="p">,</span>
+                 <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes a BigQuery copy command to copy data from one BigQuery table</span>
 <span class="sd">        to another. See here:</span>
@@ -878,6 +907,9 @@
 <span class="sd">        :type write_disposition: string</span>
 <span class="sd">        :param create_disposition: The create disposition if the table doesn&#39;t exist.</span>
 <span class="sd">        :type create_disposition: string</span>
+<span class="sd">        :param labels a dictionary containing labels for the job/query,</span>
+<span class="sd">            passed to BigQuery</span>
+<span class="sd">        :type labels: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">source_project_dataset_tables</span> <span class="o">=</span> <span class="p">([</span>
             <span class="n">source_project_dataset_tables</span>
@@ -914,6 +946,9 @@
                 <span class="p">}</span>
             <span class="p">}</span>
         <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">configuration</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_with_configuration</span><span class="p">(</span><span class="n">configuration</span><span class="p">)</span>
 
@@ -993,9 +1028,7 @@
 <span class="sd">        :param src_fmt_configs: configure optional fields specific to the source format</span>
 <span class="sd">        :type src_fmt_configs: dict</span>
 <span class="sd">        :param time_partitioning: configure optional time partitioning fields i.e.</span>
-<span class="sd">            partition by field, type and</span>
-<span class="sd">            expiration as per API specifications. Note that &#39;field&#39; is not available in</span>
-<span class="sd">            conjunction with dataset.table$partition.</span>
+<span class="sd">            partition by field, type and  expiration as per API specifications.</span>
 <span class="sd">        :type time_partitioning: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1281,10 +1314,10 @@
 <span class="sd">        :type ignore_if_missing: boolean</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">assert</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">deletion_dataset_table</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;Expected deletion_dataset_table in the format of &#39;</span>
-            <span class="s1">&#39;&lt;dataset&gt;.&lt;table&gt;. Got: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">deletion_dataset_table</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">deletion_dataset_table</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Expected deletion_dataset_table name in the format of &#39;</span>
+                <span class="s1">&#39;&lt;dataset&gt;.&lt;table&gt;. Got: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">deletion_dataset_table</span><span class="p">))</span>
         <span class="n">deletion_project</span><span class="p">,</span> <span class="n">deletion_dataset</span><span class="p">,</span> <span class="n">deletion_table</span> <span class="o">=</span> \
             <span class="n">_split_tablename</span><span class="p">(</span><span class="n">table_input</span><span class="o">=</span><span class="n">deletion_dataset_table</span><span class="p">,</span>
                              <span class="n">default_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">)</span>
@@ -1412,9 +1445,33 @@
             <span class="c1"># if view is already in access, do nothing.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s1">&#39;Table </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1"> already has authorized view access to </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> dataset.&#39;</span><span class="p">,</span>
-                <span class="n">view_project</span><span class="p">,</span> <span class="n">view_dataset</span><span class="p">,</span> <span class="n">view_table</span><span class="p">,</span> <span class="n">source_project</span><span class="p">,</span>
-                <span class="n">source_dataset</span><span class="p">)</span>
+                <span class="n">view_project</span><span class="p">,</span> <span class="n">view_dataset</span><span class="p">,</span> <span class="n">view_table</span><span class="p">,</span> <span class="n">source_project</span><span class="p">,</span> <span class="n">source_dataset</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">source_dataset_resource</span>
+
+    <span class="k">def</span> <span class="nf">delete_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a dataset of Big query in your project.</span>
+<span class="sd">        :param project_id: The name of the project where we have the dataset .</span>
+<span class="sd">        :type project_id: str</span>
+<span class="sd">        :param dataset_id: The dataset to be delete.</span>
+<span class="sd">        :type dataset_id: str</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span> <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleting from project: </span><span class="si">%s</span><span class="s1">  Dataset:</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                      <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">datasets</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+                <span class="n">projectId</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">datasetId</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Dataset deleted successfully: In project </span><span class="si">%s</span><span class="s1"> &#39;</span>
+                          <span class="s1">&#39;Dataset </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                <span class="s1">&#39;BigQuery job failed. Error was: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">BigQueryCursor</span><span class="p">(</span><span class="n">BigQueryBaseCursor</span><span class="p">):</span>
@@ -1617,14 +1674,17 @@
     <span class="k">elif</span> <span class="n">bq_type</span> <span class="o">==</span> <span class="s1">&#39;FLOAT&#39;</span> <span class="ow">or</span> <span class="n">bq_type</span> <span class="o">==</span> <span class="s1">&#39;TIMESTAMP&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">string_field</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">bq_type</span> <span class="o">==</span> <span class="s1">&#39;BOOLEAN&#39;</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">string_field</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">string_field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> must have value &#39;true&#39; or &#39;false&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">string_field</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">string_field</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">string_field</span>
 
 
 <span class="k">def</span> <span class="nf">_split_tablename</span><span class="p">(</span><span class="n">table_input</span><span class="p">,</span> <span class="n">default_project_id</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="n">default_project_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;INTERNAL: No default project is specified&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">default_project_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;INTERNAL: No default project is specified&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">var_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1636,7 +1696,6 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">((</span><span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">Use either : or . to specify project &#39;</span>
                          <span class="s1">&#39;got </span><span class="si">{input}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                              <span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">),</span> <span class="nb">input</span><span class="o">=</span><span class="n">table_input</span><span class="p">))</span>
-
     <span class="n">cmpt</span> <span class="o">=</span> <span class="n">table_input</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">project_id</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">rest</span> <span class="o">=</span> <span class="n">table_input</span>
@@ -1654,8 +1713,10 @@
 
     <span class="n">cmpt</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmpt</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">{var}</span><span class="s2">Use either : or . to specify project&quot;</span>
-                                    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{var}</span><span class="s2">Use either : or . to specify project&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">var</span><span class="o">=</span><span class="n">var_print</span><span class="p">(</span><span class="n">var_name</span><span class="p">)))</span>
         <span class="n">project_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">table_id</span> <span class="o">=</span> <span class="n">cmpt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
@@ -1685,12 +1746,7 @@
     <span class="c1"># if it is a partitioned table ($ is in the table name) add partition load option</span>
     <span class="n">time_partitioning_out</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">destination_dataset_table</span> <span class="ow">and</span> <span class="s1">&#39;$&#39;</span> <span class="ow">in</span> <span class="n">destination_dataset_table</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">time_partitioning_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field&#39;</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s2">&quot;Cannot specify field partition and partition name &quot;</span>
-            <span class="s2">&quot;(dataset.table$partition) at the same time&quot;</span>
-        <span class="p">)</span>
         <span class="n">time_partitioning_out</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;DAY&#39;</span>
-
     <span class="n">time_partitioning_out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">time_partitioning_in</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">time_partitioning_out</span>
 </pre></div>
@@ -1723,20 +1779,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 

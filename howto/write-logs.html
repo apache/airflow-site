@@ -197,7 +197,7 @@
 directory.</p>
 <p>In addition, users can supply a remote location for storing logs and log
 backups in cloud storage.</p>
-<p>In the Airflow Web UI, local logs take precedence over remote logs. If local logs
+<p>In the Airflow Web UI, local logs take precedance over remote logs. If local logs
 can not be found or accessed, the remote logs will be displayed. Note that logs
 are only sent to remote storage once a task completes (including failure). In other
 words, remote logs for running tasks are unavailable. Logs are stored in the log
@@ -269,59 +269,22 @@ Follow the steps below to enable Azure Blob Storage logging.</p>
 <div class="section" id="writing-logs-to-google-cloud-storage">
 <span id="write-logs-gcp"></span><h2>Writing Logs to Google Cloud Storage<a class="headerlink" href="#writing-logs-to-google-cloud-storage" title="Permalink to this headline">¶</a></h2>
 <p>Follow the steps below to enable Google Cloud Storage logging.</p>
+<p>To enable this feature, <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code> must be configured as in this
+example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>core<span class="o">]</span>
+<span class="c1"># Airflow can store logs remotely in AWS S3, Google Cloud Storage or Elastic Search.</span>
+<span class="c1"># Users must supply an Airflow connection id that provides access to the storage</span>
+<span class="c1"># location. If remote_logging is set to true, see UPDATING.md for additional</span>
+<span class="c1"># configuration requirements.</span>
+<span class="nv">remote_logging</span> <span class="o">=</span> True
+<span class="nv">remote_base_log_folder</span> <span class="o">=</span> gs://my-bucket/path/to/logs
+<span class="nv">remote_log_conn_id</span> <span class="o">=</span> MyGCSConn
+</pre></div>
+</div>
 <ol class="arabic">
-<li><p class="first">Airflow’s logging system requires a custom .py file to be located in the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>, so that it’s importable from Airflow. Start by creating a directory to store the config file. <code class="docutils literal notranslate"><span class="pre">$AIRFLOW_HOME/config</span></code> is recommended.</p>
+<li><p class="first">Install the <code class="docutils literal notranslate"><span class="pre">gcp_api</span></code> package first, like so: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">apache-airflow[gcp_api]</span></code>.</p>
 </li>
-<li><p class="first">Create empty files called <code class="docutils literal notranslate"><span class="pre">$AIRFLOW_HOME/config/log_config.py</span></code> and <code class="docutils literal notranslate"><span class="pre">$AIRFLOW_HOME/config/__init__.py</span></code>.</p>
-</li>
-<li><p class="first">Copy the contents of <code class="docutils literal notranslate"><span class="pre">airflow/config_templates/airflow_local_settings.py</span></code> into the <code class="docutils literal notranslate"><span class="pre">log_config.py</span></code> file that was just created in the step above.</p>
-</li>
-<li><p class="first">Customize the following portions of the template:</p>
-<blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add this variable to the top of the file. Note the trailing slash.</span>
-<span class="nv">GCS_LOG_FOLDER</span> <span class="o">=</span> <span class="s1">&#39;gs://&lt;bucket where logs should be persisted&gt;/&#39;</span>
-
-<span class="c1"># Rename DEFAULT_LOGGING_CONFIG to LOGGING CONFIG</span>
-<span class="nv">LOGGING_CONFIG</span> <span class="o">=</span> ...
-
-<span class="c1"># Add a GCSTaskHandler to the &#39;handlers&#39; block of the LOGGING_CONFIG variable</span>
-<span class="s1">&#39;gcs.task&#39;</span>: <span class="o">{</span>
-    <span class="s1">&#39;class&#39;</span>: <span class="s1">&#39;airflow.utils.log.gcs_task_handler.GCSTaskHandler&#39;</span>,
-    <span class="s1">&#39;formatter&#39;</span>: <span class="s1">&#39;airflow.task&#39;</span>,
-    <span class="s1">&#39;base_log_folder&#39;</span>: os.path.expanduser<span class="o">(</span>BASE_LOG_FOLDER<span class="o">)</span>,
-    <span class="s1">&#39;gcs_log_folder&#39;</span>: GCS_LOG_FOLDER,
-    <span class="s1">&#39;filename_template&#39;</span>: FILENAME_TEMPLATE,
-<span class="o">}</span>,
-
-<span class="c1"># Update the airflow.task and airflow.task_runner blocks to be &#39;gcs.task&#39; instead of &#39;file.task&#39;.</span>
-<span class="s1">&#39;loggers&#39;</span>: <span class="o">{</span>
-    <span class="s1">&#39;airflow.task&#39;</span>: <span class="o">{</span>
-        <span class="s1">&#39;handlers&#39;</span>: <span class="o">[</span><span class="s1">&#39;gcs.task&#39;</span><span class="o">]</span>,
-        ...
-    <span class="o">}</span>,
-    <span class="s1">&#39;airflow.task_runner&#39;</span>: <span class="o">{</span>
-        <span class="s1">&#39;handlers&#39;</span>: <span class="o">[</span><span class="s1">&#39;gcs.task&#39;</span><span class="o">]</span>,
-        ...
-    <span class="o">}</span>,
-    <span class="s1">&#39;airflow&#39;</span>: <span class="o">{</span>
-        <span class="s1">&#39;handlers&#39;</span>: <span class="o">[</span><span class="s1">&#39;console&#39;</span><span class="o">]</span>,
-        ...
-    <span class="o">}</span>,
-<span class="o">}</span>
-</pre></div>
-</div>
-</div></blockquote>
-</li>
-<li><p class="first">Make sure a Google Cloud Platform connection hook has been defined in Airflow. The hook should have read and write access to the Google Cloud Storage bucket defined above in <code class="docutils literal notranslate"><span class="pre">GCS_LOG_FOLDER</span></code>.</p>
-</li>
-<li><p class="first">Update <code class="docutils literal notranslate"><span class="pre">$AIRFLOW_HOME/airflow.cfg</span></code> to contain:</p>
-<blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">task_log_reader</span> <span class="o">=</span> gcs.task
-<span class="nv">logging_config_class</span> <span class="o">=</span> log_config.LOGGING_CONFIG
-<span class="nv">remote_log_conn_id</span> <span class="o">=</span> &lt;name of the Google cloud platform hook&gt;
-</pre></div>
-</div>
-</div></blockquote>
+<li><p class="first">Make sure a Google Cloud Platform connection hook has been defined in Airflow. The hook should have read and write access to the Google Cloud Storage bucket defined above in <code class="docutils literal notranslate"><span class="pre">remote_base_log_folder</span></code>.</p>
 </li>
 <li><p class="first">Restart the Airflow webserver and scheduler, and trigger (or wait for) a new task execution.</p>
 </li>
@@ -340,12 +303,6 @@ Follow the steps below to enable Azure Blob Storage logging.</p>
 </li>
 </ol>
 <p>Note the top line that says it’s reading from the remote log file.</p>
-<p>Please be aware that if you were persisting logs to Google Cloud Storage
-using the old-style airflow.cfg configuration method, the old logs will no
-longer be visible in the Airflow UI, though they’ll still exist in Google
-Cloud Storage. This is a backwards incompatbile change. If you are unhappy
-with it, you can change the <code class="docutils literal notranslate"><span class="pre">FILENAME_TEMPLATE</span></code> to reflect the old-style
-log filename format.</p>
 </div>
 </div>
 
@@ -387,20 +344,13 @@ log filename format.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
 
   
 

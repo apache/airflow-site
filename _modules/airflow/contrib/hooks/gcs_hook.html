@@ -185,7 +185,10 @@
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_api_base_hook</span> <span class="k">import</span> <span class="n">GoogleCloudBaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 
+<span class="kn">import</span> <span class="nn">gzip</span> <span class="k">as</span> <span class="nn">gz</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 
 <div class="viewcode-block" id="GoogleCloudStorageHook"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcs_hook.GoogleCloudStorageHook">[docs]</a><span class="k">class</span> <span class="nc">GoogleCloudStorageHook</span><span class="p">(</span><span class="n">GoogleCloudBaseHook</span><span class="p">):</span>
@@ -332,7 +335,8 @@
         <span class="k">return</span> <span class="n">downloaded_file_bytes</span></div>
 
     <span class="c1"># pylint:disable=redefined-builtin</span>
-<div class="viewcode-block" id="GoogleCloudStorageHook.upload"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcs_hook.GoogleCloudStorageHook.upload">[docs]</a>    <span class="k">def</span> <span class="nf">upload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mime_type</span><span class="o">=</span><span class="s1">&#39;application/octet-stream&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="GoogleCloudStorageHook.upload"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcs_hook.GoogleCloudStorageHook.upload">[docs]</a>    <span class="k">def</span> <span class="nf">upload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
+               <span class="n">mime_type</span><span class="o">=</span><span class="s1">&#39;application/octet-stream&#39;</span><span class="p">,</span> <span class="n">gzip</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Uploads a local file to Google Cloud Storage.</span>
 
@@ -343,15 +347,31 @@
 <span class="sd">        :param filename: The local file path to the file to be uploaded.</span>
 <span class="sd">        :type filename: string</span>
 <span class="sd">        :param mime_type: The MIME type to set when uploading the file.</span>
-<span class="sd">        :type mime_type: string</span>
+<span class="sd">        :type mime_type: str</span>
+<span class="sd">        :param gzip: Option to compress file for upload</span>
+<span class="sd">        :type gzip: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">gzip</span><span class="p">:</span>
+            <span class="n">filename_gz</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.gz&#39;</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_in</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">gz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename_gz</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_out</span><span class="p">:</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">f_in</span><span class="p">,</span> <span class="n">f_out</span><span class="p">)</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">filename_gz</span>
+
         <span class="n">media</span> <span class="o">=</span> <span class="n">MediaFileUpload</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mime_type</span><span class="p">)</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">service</span> \
                 <span class="o">.</span><span class="n">objects</span><span class="p">()</span> \
                 <span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">object</span><span class="p">,</span> <span class="n">media_body</span><span class="o">=</span><span class="n">media</span><span class="p">)</span> \
                 <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+            <span class="c1"># Clean up gzip file</span>
+            <span class="k">if</span> <span class="n">gzip</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ex</span><span class="o">.</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;404&#39;</span><span class="p">:</span>
@@ -638,15 +658,16 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating Bucket: </span><span class="si">%s</span><span class="s1">; Location: </span><span class="si">%s</span><span class="s1">; Storage Class: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
                       <span class="n">bucket_name</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">storage_class</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">storage_class</span> <span class="ow">in</span> <span class="n">storage_classes</span><span class="p">,</span> \
-            <span class="s1">&#39;Invalid value (</span><span class="si">{}</span><span class="s1">) passed to storage_class. Value should be &#39;</span> \
-            <span class="s1">&#39;one of </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">storage_class</span><span class="p">,</span> <span class="n">storage_classes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">storage_class</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">storage_classes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Invalid value (</span><span class="si">{}</span><span class="s1">) passed to storage_class. Value should be &#39;</span>
+                <span class="s1">&#39;one of </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">storage_class</span><span class="p">,</span> <span class="n">storage_classes</span><span class="p">))</span>
 
-        <span class="k">assert</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;[a-zA-Z0-9]+&#39;</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> \
-            <span class="s1">&#39;Bucket names must start with a number or letter.&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;[a-zA-Z0-9]+&#39;</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Bucket names must start with a number or letter.&#39;</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;[a-zA-Z0-9]+&#39;</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> \
-            <span class="s1">&#39;Bucket names must end with a number or letter.&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;[a-zA-Z0-9]+&#39;</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Bucket names must end with a number or letter.&#39;</span><span class="p">)</span>
 
         <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="n">bucket_resource</span> <span class="o">=</span> <span class="p">{</span>
@@ -726,20 +747,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    
 
   
 
