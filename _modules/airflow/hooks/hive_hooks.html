@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -182,28 +189,37 @@
 
 <span class="kn">import</span> <span class="nn">contextlib</span>
 <span class="kn">import</span> <span class="nn">os</span>
-
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">past.builtins</span> <span class="k">import</span> <span class="n">basestring</span><span class="p">,</span> <span class="n">unicode</span>
-
-<span class="kn">import</span> <span class="nn">unicodecsv</span> <span class="k">as</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">NamedTemporaryFile</span>
-<span class="kn">import</span> <span class="nn">hmsclient</span>
 
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">conf</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">unicodecsv</span> <span class="k">as</span> <span class="nn">csv</span>
+<span class="kn">from</span> <span class="nn">past.builtins</span> <span class="k">import</span> <span class="n">basestring</span>
+<span class="kn">from</span> <span class="nn">past.builtins</span> <span class="k">import</span> <span class="n">unicode</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">zip</span>
+
+<span class="kn">import</span> <span class="nn">airflow.security.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">configuration</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.helpers</span> <span class="k">import</span> <span class="n">as_flattened_list</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.file</span> <span class="k">import</span> <span class="n">TemporaryDirectory</span>
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">configuration</span>
-<span class="kn">import</span> <span class="nn">airflow.security.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.helpers</span> <span class="k">import</span> <span class="n">as_flattened_list</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.operator_helpers</span> <span class="k">import</span> <span class="n">AIRFLOW_VAR_NAME_FORMAT_MAPPING</span>
 
 <span class="n">HIVE_QUEUE_PRIORITIES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VERY_HIGH&#39;</span><span class="p">,</span> <span class="s1">&#39;HIGH&#39;</span><span class="p">,</span> <span class="s1">&#39;NORMAL&#39;</span><span class="p">,</span> <span class="s1">&#39;LOW&#39;</span><span class="p">,</span> <span class="s1">&#39;VERY_LOW&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="get_context_from_env_var"><a class="viewcode-back" href="../../../code.html#airflow.hooks.hive_hooks.get_context_from_env_var">[docs]</a><span class="k">def</span> <span class="nf">get_context_from_env_var</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract context from env variable, e.g. dag_id, task_id and execution_date,</span>
+<span class="sd">    so that they can be used inside BashOperator and PythonOperator.</span>
+<span class="sd">    :return: The context of interest.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">format_map</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">format_map</span><span class="p">[</span><span class="s1">&#39;env_var_format&#39;</span><span class="p">],</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">format_map</span> <span class="ow">in</span> <span class="n">AIRFLOW_VAR_NAME_FORMAT_MAPPING</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span></div>
 
 
 <div class="viewcode-block" id="HiveCliHook"><a class="viewcode-back" href="../../../code.html#airflow.hooks.hive_hooks.HiveCliHook">[docs]</a><span class="k">class</span> <span class="nc">HiveCliHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
@@ -253,8 +269,8 @@
                     <span class="s2">&quot;Invalid Mapred Queue Priority.  Valid values are: &quot;</span>
                     <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HIVE_QUEUE_PRIORITIES</span><span class="p">)))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span> <span class="o">=</span> <span class="n">mapred_queue</span> <span class="ow">or</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hive&#39;</span><span class="p">,</span>
-                                                     <span class="s1">&#39;default_hive_mapred_queue&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span> <span class="o">=</span> <span class="n">mapred_queue</span> <span class="ow">or</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hive&#39;</span><span class="p">,</span>
+                                                              <span class="s1">&#39;default_hive_mapred_queue&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue_priority</span> <span class="o">=</span> <span class="n">mapred_queue_priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mapred_job_name</span> <span class="o">=</span> <span class="n">mapred_job_name</span>
 
@@ -287,6 +303,7 @@
                 <span class="n">jdbc_url</span> <span class="o">+=</span> <span class="s2">&quot;;auth=&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth</span>
 
             <span class="n">jdbc_url</span> <span class="o">=</span> <span class="n">jdbc_url</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+            <span class="n">jdbc_url</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jdbc_url</span><span class="p">)</span>
 
             <span class="n">cmd_extra</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="n">jdbc_url</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span><span class="p">:</span>
@@ -298,7 +315,8 @@
 
         <span class="k">return</span> <span class="p">[</span><span class="n">hive_bin</span><span class="p">]</span> <span class="o">+</span> <span class="n">cmd_extra</span> <span class="o">+</span> <span class="n">hive_params_list</span>
 
-    <span class="k">def</span> <span class="nf">_prepare_hiveconf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_prepare_hiveconf</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function prepares a list of hiveconf params</span>
 <span class="sd">        from a dictionary of key value pairs.</span>
@@ -345,10 +363,15 @@
 
         <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;airflow_hiveop_&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp_dir</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">hql</span> <span class="o">=</span> <span class="n">hql</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">hql</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
                 <span class="n">hive_cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_cli_cmd</span><span class="p">()</span>
-                <span class="n">hive_conf_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_hiveconf</span><span class="p">(</span><span class="n">hive_conf</span><span class="p">)</span>
+                <span class="n">env_context</span> <span class="o">=</span> <span class="n">get_context_from_env_var</span><span class="p">()</span>
+                <span class="c1"># Only extend the hive_conf if it is defined.</span>
+                <span class="k">if</span> <span class="n">hive_conf</span><span class="p">:</span>
+                    <span class="n">env_context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hive_conf</span><span class="p">)</span>
+                <span class="n">hive_conf_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_hiveconf</span><span class="p">(</span><span class="n">env_context</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapred_queue</span><span class="p">:</span>
                     <span class="n">hive_conf_params</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                         <span class="p">[</span><span class="s1">&#39;-hiveconf&#39;</span><span class="p">,</span>
@@ -640,6 +663,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a Hive thrift client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">hmsclient</span>
         <span class="kn">from</span> <span class="nn">thrift.transport</span> <span class="k">import</span> <span class="n">TSocket</span><span class="p">,</span> <span class="n">TTransport</span>
         <span class="kn">from</span> <span class="nn">thrift.protocol</span> <span class="k">import</span> <span class="n">TBinaryProtocol</span>
         <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn</span>
@@ -933,7 +957,7 @@
             <span class="n">username</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">login</span> <span class="ow">or</span> <span class="n">username</span><span class="p">,</span>
             <span class="n">database</span><span class="o">=</span><span class="n">schema</span> <span class="ow">or</span> <span class="n">db</span><span class="o">.</span><span class="n">schema</span> <span class="ow">or</span> <span class="s1">&#39;default&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fetch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fetch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">pyhive.exc</span> <span class="k">import</span> <span class="n">ProgrammingError</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hql</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
             <span class="n">hql</span> <span class="o">=</span> <span class="p">[</span><span class="n">hql</span><span class="p">]</span>
@@ -941,12 +965,21 @@
         <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">closing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">(</span><span class="n">schema</span><span class="p">))</span> <span class="k">as</span> <span class="n">conn</span><span class="p">,</span> \
                 <span class="n">contextlib</span><span class="o">.</span><span class="n">closing</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">())</span> <span class="k">as</span> <span class="n">cur</span><span class="p">:</span>
             <span class="n">cur</span><span class="o">.</span><span class="n">arraysize</span> <span class="o">=</span> <span class="n">fetch_size</span> <span class="ow">or</span> <span class="mi">1000</span>
+
+            <span class="n">env_context</span> <span class="o">=</span> <span class="n">get_context_from_env_var</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">hive_conf</span><span class="p">:</span>
+                <span class="n">env_context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hive_conf</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">env_context</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;set </span><span class="si">{}</span><span class="s2">=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+
             <span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">hql</span><span class="p">:</span>
                 <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
                 <span class="c1"># we only get results of statements that returns</span>
                 <span class="n">lowered_statement</span> <span class="o">=</span> <span class="n">statement</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">lowered_statement</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;select&#39;</span><span class="p">)</span> <span class="ow">or</span>
-                   <span class="n">lowered_statement</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;with&#39;</span><span class="p">)):</span>
+                    <span class="n">lowered_statement</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;with&#39;</span><span class="p">)</span> <span class="ow">or</span>
+                    <span class="p">(</span><span class="n">lowered_statement</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;set&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                     <span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lowered_statement</span><span class="p">)):</span>
                     <span class="n">description</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">previous_description</span> <span class="ow">and</span> <span class="n">previous_description</span> <span class="o">!=</span> <span class="n">description</span><span class="p">:</span>
                         <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;The statements are producing different descriptions:</span>
@@ -966,16 +999,25 @@
                     <span class="k">except</span> <span class="n">ProgrammingError</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;get_results returned no records&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fetch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">results_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_results</span><span class="p">(</span><span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">fetch_size</span><span class="o">=</span><span class="n">fetch_size</span><span class="p">)</span>
+<div class="viewcode-block" id="HiveServer2Hook.get_results"><a class="viewcode-back" href="../../../code.html#airflow.hooks.hive_hooks.HiveServer2Hook.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fetch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get results of the provided hql in target schema.</span>
+<span class="sd">        :param hql: hql to be executed.</span>
+<span class="sd">        :param schema: target schema, default to &#39;default&#39;.</span>
+<span class="sd">        :param fetch_size max size of result to fetch.</span>
+<span class="sd">        :param hive_conf: hive_conf to execute alone with the hql.</span>
+<span class="sd">        :return: results of hql execution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_results</span><span class="p">(</span><span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span>
+                                         <span class="n">fetch_size</span><span class="o">=</span><span class="n">fetch_size</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="n">hive_conf</span><span class="p">)</span>
         <span class="n">header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">results_iter</span><span class="p">)</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_iter</span><span class="p">),</span>
             <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="n">header</span>
         <span class="p">}</span>
-        <span class="k">return</span> <span class="n">results</span>
+        <span class="k">return</span> <span class="n">results</span></div>
 
-    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span>
+<div class="viewcode-block" id="HiveServer2Hook.to_csv"><a class="viewcode-back" href="../../../code.html#airflow.hooks.hive_hooks.HiveServer2Hook.to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">hql</span><span class="p">,</span>
             <span class="n">csv_filepath</span><span class="p">,</span>
@@ -983,9 +1025,23 @@
             <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
             <span class="n">lineterminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="n">output_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">fetch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+            <span class="n">fetch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">hive_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute hql in target schema and write results to a csv file.</span>
+<span class="sd">        :param hql: hql to be executed.</span>
+<span class="sd">        :param csv_filepath: filepath of csv to write results into.</span>
+<span class="sd">        :param schema: target schema, , default to &#39;default&#39;.</span>
+<span class="sd">        :param delimiter: delimiter of the csv file.</span>
+<span class="sd">        :param lineterminator: lineterminator of the csv file.</span>
+<span class="sd">        :param output_header: header of the csv file.</span>
+<span class="sd">        :param fetch_size: number of result rows to write into the csv file.</span>
+<span class="sd">        :param hive_conf: hive_conf to execute alone with the hql.</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">results_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_results</span><span class="p">(</span><span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">fetch_size</span><span class="o">=</span><span class="n">fetch_size</span><span class="p">)</span>
+        <span class="n">results_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_results</span><span class="p">(</span><span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span>
+                                         <span class="n">fetch_size</span><span class="o">=</span><span class="n">fetch_size</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="n">hive_conf</span><span class="p">)</span>
         <span class="n">header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">results_iter</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1011,7 +1067,7 @@
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">csv_filepath</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done. Loaded a total of </span><span class="si">%s</span><span class="s2"> rows.&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done. Loaded a total of </span><span class="si">%s</span><span class="s2"> rows.&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HiveServer2Hook.get_records"><a class="viewcode-back" href="../../../code.html#airflow.hooks.hive_hooks.HiveServer2Hook.get_records">[docs]</a>    <span class="k">def</span> <span class="nf">get_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hql</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1075,6 +1131,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

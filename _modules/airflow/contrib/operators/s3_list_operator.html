@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -199,6 +206,16 @@
 <span class="sd">    :type delimiter: string</span>
 <span class="sd">    :param aws_conn_id: The connection ID to use when connecting to S3 storage.</span>
 <span class="sd">    :type aws_conn_id: string</span>
+<span class="sd">    :parame verify: Whether or not to verify SSL certificates for S3 connection.</span>
+<span class="sd">        By default SSL certificates are verified.</span>
+<span class="sd">        You can provide the following values:</span>
+<span class="sd">        - False: do not validate SSL certificates. SSL will still be used</span>
+<span class="sd">                 (unless use_ssl is False), but SSL certificates will not be</span>
+<span class="sd">                 verified.</span>
+<span class="sd">        - path/to/cert/bundle.pem: A filename of the CA cert bundle to uses.</span>
+<span class="sd">                 You can specify this argument if you want to use a different</span>
+<span class="sd">                 CA cert bundle than the one used by botocore.</span>
+<span class="sd">    :type verify: bool or str</span>
 
 <span class="sd">    **Example**:</span>
 <span class="sd">        The following operator would list all the files</span>
@@ -222,6 +239,7 @@
                  <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                  <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                  <span class="n">aws_conn_id</span><span class="o">=</span><span class="s1">&#39;aws_default&#39;</span><span class="p">,</span>
+                 <span class="n">verify</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">S3ListOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -229,9 +247,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">=</span> <span class="n">delimiter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="n">verify</span>
 
-<div class="viewcode-block" id="S3ListOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.s3_list_operator.S3ListOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Getting the list of files from bucket: </span><span class="si">{0}</span><span class="s1"> in prefix: </span><span class="si">{1}</span><span class="s1"> (Delimiter </span><span class="si">{2}</span><span class="s1">)&#39;</span><span class="o">.</span>
@@ -240,7 +259,7 @@
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">list_keys</span><span class="p">(</span>
             <span class="n">bucket_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
             <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
-            <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">)</span></div></div>
+            <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -277,6 +296,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

@@ -57,6 +57,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -96,13 +100,17 @@
 <li class="toctree-l2"><a class="reference internal" href="#interface">Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#note-on-role-based-views">Note on role based views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plugins-as-python-packages">Plugins as Python packages</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">API Reference</a></li>
 </ul>
@@ -297,7 +305,7 @@ definitions in Airflow.</p>
 <span class="n">ml</span> <span class="o">=</span> <span class="n">MenuLink</span><span class="p">(</span>
     <span class="n">category</span><span class="o">=</span><span class="s1">&#39;Test Plugin&#39;</span><span class="p">,</span>
     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Test Menu Link&#39;</span><span class="p">,</span>
-    <span class="n">url</span><span class="o">=</span><span class="s1">&#39;https://airflow.incubator.apache.org/&#39;</span><span class="p">)</span>
+    <span class="n">url</span><span class="o">=</span><span class="s1">&#39;https://airflow.apache.org/&#39;</span><span class="p">)</span>
 
 <span class="c1"># Creating a flask appbuilder BaseView</span>
 <span class="k">class</span> <span class="nc">TestAppBuilderBaseView</span><span class="p">(</span><span class="n">AppBuilderBaseView</span><span class="p">):</span>
@@ -336,6 +344,55 @@ definitions in Airflow.</p>
 <p>Airflow 1.10 introduced role based views using FlaskAppBuilder. You can configure which UI is used by setting
 rbac = True. To support plugin views and links for both versions of the UI and maintain backwards compatibility,
 the fields appbuilder_views and appbuilder_menu_items were added to the AirflowTestPlugin class.</p>
+</div>
+<div class="section" id="plugins-as-python-packages">
+<h2>Plugins as Python packages<a class="headerlink" href="#plugins-as-python-packages" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to load plugins via <a href="#id1"><span class="problematic" id="id2">`setuptools' entrypoint&lt;https://packaging.python.org/guides/creating-and-discovering-plugins/#using-package-metadata&gt;`_</span></a> mechanism. To do this link
+your plugin using an entrypoint in your package. If the package is installed, airflow
+will automatically load the registered plugins from the entrypoint list.</p>
+<p>_Note_: Neither the entrypoint name (eg, <cite>my_plugin</cite>) nor the name of the
+plugin class will contribute towards the module and class name of the plugin
+itself. The structure is determined by
+<cite>airflow.plugins_manager.AirflowPlugin.name</cite> and the class name of the plugin
+component with the pattern <cite>airflow.{component}.{name}.{component_class_name}</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># my_package/my_plugin.py</span>
+<span class="kn">from</span> <span class="nn">airflow.plugins_manager</span> <span class="kn">import</span> <span class="n">AirflowPlugin</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="kn">import</span> <span class="n">BaseHook</span>
+
+<span class="k">class</span> <span class="nc">MyOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+  <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MyHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
+  <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MyAirflowPlugin</span><span class="p">(</span><span class="n">AirflowPlugin</span><span class="p">):</span>
+  <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;my_namespace&#39;</span>
+  <span class="n">operators</span> <span class="o">=</span> <span class="p">[</span><span class="n">MyOperator</span><span class="p">]</span>
+  <span class="n">hooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">MyHook</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">setuptools</span> <span class="kn">import</span> <span class="n">setup</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my-package&quot;</span><span class="p">,</span>
+    <span class="o">...</span>
+    <span class="n">entry_points</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;airflow.plugins&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;my_plugin = my_package.my_plugin:MyAirflowPlugin&#39;</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>This will create a hook, and an operator accessible at:</dt>
+<dd><ul class="first last simple">
+<li><cite>airflow.hooks.my_namespace.MyHook</cite></li>
+<li><cite>airflow.operators.my_namespace.MyOperator</cite></li>
+</ul>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -383,6 +440,7 @@ the fields appbuilder_views and appbuilder_menu_items were added to the AirflowT
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
 
   

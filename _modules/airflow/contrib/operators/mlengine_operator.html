@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -176,7 +183,7 @@
 <span class="c1"># limitations under the License.</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">from</span> <span class="nn">apiclient</span> <span class="k">import</span> <span class="n">errors</span>
+<span class="kn">from</span> <span class="nn">googleapiclient.errors</span> <span class="k">import</span> <span class="n">HttpError</span>
 
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_mlengine_hook</span> <span class="k">import</span> <span class="n">MLEngineHook</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
@@ -382,7 +389,7 @@
                 <span class="s1">&#39;Missing model origin: Batch prediction expects a model, &#39;</span>
                 <span class="s1">&#39;a model &amp; version combination, or a URI to a savedModel.&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MLEngineBatchPredictionOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineBatchPredictionOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">job_id</span> <span class="o">=</span> <span class="n">_normalize_mlengine_job_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span><span class="p">)</span>
         <span class="n">prediction_request</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;jobId&#39;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
@@ -425,7 +432,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">finished_prediction_job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="n">prediction_request</span><span class="p">,</span> <span class="n">check_existing_job</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span><span class="p">:</span>
             <span class="k">raise</span>
 
         <span class="k">if</span> <span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;SUCCEEDED&#39;</span><span class="p">:</span>
@@ -433,7 +440,7 @@
                 <span class="nb">str</span><span class="p">(</span><span class="n">finished_prediction_job</span><span class="p">)))</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;errorMessage&#39;</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;predictionOutput&#39;</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="n">finished_prediction_job</span><span class="p">[</span><span class="s1">&#39;predictionOutput&#39;</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="MLEngineModelOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineModelOperator">[docs]</a><span class="k">class</span> <span class="nc">MLEngineModelOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -443,7 +450,6 @@
 <span class="sd">    :param project_id: The Google Cloud project name to which MLEngine</span>
 <span class="sd">        model belongs. (templated)</span>
 <span class="sd">    :type project_id: string</span>
-
 <span class="sd">    :param model: A dictionary containing the information about the model.</span>
 <span class="sd">        If the `operation` is `create`, then the `model` parameter should</span>
 <span class="sd">        contain all the information about this model such as `name`.</span>
@@ -451,15 +457,13 @@
 <span class="sd">        If the `operation` is `get`, the `model` parameter</span>
 <span class="sd">        should contain the `name` of the model.</span>
 <span class="sd">    :type model: dict</span>
-
 <span class="sd">    :param operation: The operation to perform. Available operations are:</span>
 
 <span class="sd">        * ``create``: Creates a new model as provided by the `model` parameter.</span>
 <span class="sd">        * ``get``: Gets a particular model where the name is specified in `model`.</span>
-
+<span class="sd">    :type operation: string</span>
 <span class="sd">    :param gcp_conn_id: The connection ID to use when fetching connection info.</span>
 <span class="sd">    :type gcp_conn_id: string</span>
-
 <span class="sd">    :param delegate_to: The account to impersonate, if any.</span>
 <span class="sd">        For this to work, the service account making the request must have</span>
 <span class="sd">        domain-wide delegation enabled.</span>
@@ -486,7 +490,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
 
-<div class="viewcode-block" id="MLEngineModelOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineModelOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">MLEngineHook</span><span class="p">(</span>
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gcp_conn_id</span><span class="p">,</span> <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_delegate_to</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span> <span class="o">==</span> <span class="s1">&#39;create&#39;</span><span class="p">:</span>
@@ -494,7 +498,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span> <span class="o">==</span> <span class="s1">&#39;get&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown operation: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">))</span></div></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown operation: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="MLEngineVersionOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineVersionOperator">[docs]</a><span class="k">class</span> <span class="nc">MLEngineVersionOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -580,7 +584,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
 
-<div class="viewcode-block" id="MLEngineVersionOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineVersionOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version_name</span>
 
@@ -602,7 +606,7 @@
             <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">delete_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_name</span><span class="p">,</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown operation: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">))</span></div></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown operation: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="MLEngineTrainingOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineTrainingOperator">[docs]</a><span class="k">class</span> <span class="nc">MLEngineTrainingOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -725,7 +729,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Google Compute Engine region is required.&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MLEngineTrainingOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mlengine_operator.MLEngineTrainingOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">job_id</span> <span class="o">=</span> <span class="n">_normalize_mlengine_job_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_id</span><span class="p">)</span>
         <span class="n">training_request</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;jobId&#39;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
@@ -765,13 +769,13 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">finished_training_job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_project_id</span><span class="p">,</span> <span class="n">training_request</span><span class="p">,</span> <span class="n">check_existing_job</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span><span class="p">:</span>
             <span class="k">raise</span>
 
         <span class="k">if</span> <span class="n">finished_training_job</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;SUCCEEDED&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;MLEngine training job failed: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="nb">str</span><span class="p">(</span><span class="n">finished_training_job</span><span class="p">)))</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">finished_training_job</span><span class="p">[</span><span class="s1">&#39;errorMessage&#39;</span><span class="p">])</span></div></div>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">finished_training_job</span><span class="p">[</span><span class="s1">&#39;errorMessage&#39;</span><span class="p">])</span></div>
 </pre></div>
 
            </div>
@@ -808,6 +812,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

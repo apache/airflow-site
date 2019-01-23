@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -242,10 +249,8 @@
 <div class="viewcode-block" id="GcfFunctionDeployOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_function_operator.GcfFunctionDeployOperator">[docs]</a><span class="k">class</span> <span class="nc">GcfFunctionDeployOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a function in Google Cloud Functions.</span>
+<span class="sd">    If a function with this name already exists, it will be updated.</span>
 
-<span class="sd">    :param project_id: Google Cloud Platform Project ID where the function should</span>
-<span class="sd">        be created.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param location: Google Cloud Platform region where the function should be created.</span>
 <span class="sd">    :type location: str</span>
 <span class="sd">    :param body: Body of the Cloud Functions definition. The body must be a</span>
@@ -254,9 +259,14 @@
 <span class="sd">        . Different API versions require different variants of the Cloud Functions</span>
 <span class="sd">        dictionary.</span>
 <span class="sd">    :type body: dict or google.cloud.functions.v1.CloudFunction</span>
-<span class="sd">    :param gcp_conn_id: The connection ID to use to connect to Google Cloud Platform.</span>
+<span class="sd">    :param project_id: (Optional) Google Cloud Platform project ID where the function</span>
+<span class="sd">        should be created.</span>
+<span class="sd">    :type project_id: str</span>
+<span class="sd">    :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud</span>
+<span class="sd">         Platform - default &#39;google_cloud_default&#39;.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
-<span class="sd">    :param api_version: API version used (for example v1 or v1beta1).</span>
+<span class="sd">    :param api_version: (Optional) API version used (for example v1 - default -  or</span>
+<span class="sd">        v1beta1).</span>
 <span class="sd">    :type api_version: str</span>
 <span class="sd">    :param zip_path: Path to zip file containing source code of the function. If the path</span>
 <span class="sd">        is set, the sourceUploadUrl should not be specified in the body or it should</span>
@@ -266,12 +276,15 @@
 <span class="sd">    :param validate_body: If set to False, body validation is not performed.</span>
 <span class="sd">    :type validate_body: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># [START gcf_function_deploy_template_fields]</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;gcp_conn_id&#39;</span><span class="p">,</span> <span class="s1">&#39;api_version&#39;</span><span class="p">)</span>
+    <span class="c1"># [END gcf_function_deploy_template_fields]</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">location</span><span class="p">,</span>
                  <span class="n">body</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1&#39;</span><span class="p">,</span>
                  <span class="n">zip_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -279,8 +292,6 @@
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">location</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">full_location</span> <span class="o">=</span> <span class="s1">&#39;projects/</span><span class="si">{}</span><span class="s1">/locations/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
-                                                               <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">body</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_version</span> <span class="o">=</span> <span class="n">api_version</span>
@@ -295,8 +306,6 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">GcfFunctionDeployOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_validate_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;project_id&#39; is missing&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;location&#39; is missing&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
@@ -308,7 +317,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_field_validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_create_new_function</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">create_new_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">create_new_function</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+            <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_update_function</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">update_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -328,7 +340,8 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">_upload_source_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">upload_function_zip</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">full_location</span><span class="p">,</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">upload_function_zip</span><span class="p">(</span><span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                                              <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
                                               <span class="n">zip_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zip_path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_airflow_version_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -337,21 +350,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="p">{</span><span class="s1">&#39;airflow-version&#39;</span><span class="p">:</span> <span class="s1">&#39;v&#39;</span> <span class="o">+</span> <span class="n">version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)})</span>
 
-<div class="viewcode-block" id="GcfFunctionDeployOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_function_operator.GcfFunctionDeployOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zip_path_preprocessor</span><span class="o">.</span><span class="n">should_upload_function</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="n">SOURCE_UPLOAD_URL</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upload_source_code</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="n">GCF_SOURCE_UPLOAD_URL</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upload_source_code</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_all_body_fields</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_airflow_version_label</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_function_exists</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_create_new_function</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_update_function</span><span class="p">()</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_function</span><span class="p">()</span></div>
 
 
-<span class="n">SOURCE_ARCHIVE_URL</span> <span class="o">=</span> <span class="s1">&#39;sourceArchiveUrl&#39;</span>
-<span class="n">SOURCE_UPLOAD_URL</span> <span class="o">=</span> <span class="s1">&#39;sourceUploadUrl&#39;</span>
+<span class="n">GCF_SOURCE_ARCHIVE_URL</span> <span class="o">=</span> <span class="s1">&#39;sourceArchiveUrl&#39;</span>
+<span class="n">GCF_SOURCE_UPLOAD_URL</span> <span class="o">=</span> <span class="s1">&#39;sourceUploadUrl&#39;</span>
 <span class="n">SOURCE_REPOSITORY</span> <span class="o">=</span> <span class="s1">&#39;sourceRepository&#39;</span>
-<span class="n">ZIP_PATH</span> <span class="o">=</span> <span class="s1">&#39;zip_path&#39;</span>
+<span class="n">GCF_ZIP_PATH</span> <span class="o">=</span> <span class="s1">&#39;zip_path&#39;</span>
 
 
 <span class="k">class</span> <span class="nc">ZipPathPreprocessor</span><span class="p">:</span>
@@ -384,28 +397,28 @@
         <span class="k">return</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dictionary</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dictionary</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_verify_upload_url_and_no_zip_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_present_and_empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">SOURCE_UPLOAD_URL</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_present_and_empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">GCF_SOURCE_UPLOAD_URL</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">zip_path</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
                     <span class="s2">&quot;Parameter &#39;</span><span class="si">{}</span><span class="s2">&#39; is empty in the body and argument &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span>
                     <span class="s2">&quot;is missing or empty. You need to have non empty &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span>
                     <span class="s2">&quot;when &#39;</span><span class="si">{}</span><span class="s2">&#39; is present and empty.&quot;</span><span class="o">.</span>
-                    <span class="nb">format</span><span class="p">(</span><span class="n">SOURCE_UPLOAD_URL</span><span class="p">,</span> <span class="n">ZIP_PATH</span><span class="p">,</span> <span class="n">ZIP_PATH</span><span class="p">,</span> <span class="n">SOURCE_UPLOAD_URL</span><span class="p">))</span>
+                    <span class="nb">format</span><span class="p">(</span><span class="n">GCF_SOURCE_UPLOAD_URL</span><span class="p">,</span> <span class="n">GCF_ZIP_PATH</span><span class="p">,</span> <span class="n">GCF_ZIP_PATH</span><span class="p">,</span> <span class="n">GCF_SOURCE_UPLOAD_URL</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_verify_upload_url_and_zip_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">SOURCE_UPLOAD_URL</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zip_path</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="n">SOURCE_UPLOAD_URL</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">GCF_SOURCE_UPLOAD_URL</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zip_path</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="n">GCF_SOURCE_UPLOAD_URL</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">upload_function</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Only one of &#39;</span><span class="si">{}</span><span class="s2">&#39; in body or &#39;</span><span class="si">{}</span><span class="s2">&#39; argument &quot;</span>
                                        <span class="s2">&quot;allowed. Found both.&quot;</span>
-                                       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">SOURCE_UPLOAD_URL</span><span class="p">,</span> <span class="n">ZIP_PATH</span><span class="p">))</span>
+                                       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GCF_SOURCE_UPLOAD_URL</span><span class="p">,</span> <span class="n">GCF_ZIP_PATH</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_verify_archive_url_and_zip_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">SOURCE_ARCHIVE_URL</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zip_path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">GCF_SOURCE_ARCHIVE_URL</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zip_path</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Only one of &#39;</span><span class="si">{}</span><span class="s2">&#39; in body or &#39;</span><span class="si">{}</span><span class="s2">&#39; argument &quot;</span>
                                    <span class="s2">&quot;allowed. Found both.&quot;</span>
-                                   <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">SOURCE_ARCHIVE_URL</span><span class="p">,</span> <span class="n">ZIP_PATH</span><span class="p">))</span>
+                                   <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GCF_SOURCE_ARCHIVE_URL</span><span class="p">,</span> <span class="n">GCF_ZIP_PATH</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">should_upload_function</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upload_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -437,6 +450,9 @@
 <span class="sd">    :param api_version: API version used (for example v1 or v1beta1).</span>
 <span class="sd">    :type api_version: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># [START gcf_function_delete_template_fields]</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;gcp_conn_id&#39;</span><span class="p">,</span> <span class="s1">&#39;api_version&#39;</span><span class="p">)</span>
+    <span class="c1"># [END gcf_function_delete_template_fields]</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -460,7 +476,7 @@
                 <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
                     <span class="s1">&#39;Parameter name must match pattern: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">FUNCTION_NAME_PATTERN</span><span class="p">))</span>
 
-<div class="viewcode-block" id="GcfFunctionDeleteOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_function_operator.GcfFunctionDeleteOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -469,7 +485,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The function does not exist in this project&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;An error occurred. Exiting.&#39;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="n">e</span></div></div>
+                <span class="k">raise</span> <span class="n">e</span></div>
 </pre></div>
 
            </div>
@@ -506,6 +522,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

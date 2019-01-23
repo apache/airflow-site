@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -178,6 +185,7 @@
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
 <span class="kn">import</span> <span class="nn">ftplib</span>
+<span class="kn">import</span> <span class="nn">re</span>
 
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.ftp_hook</span> <span class="k">import</span> <span class="n">FTPHook</span><span class="p">,</span> <span class="n">FTPSHook</span>
 <span class="kn">from</span> <span class="nn">airflow.sensors.base_sensor_operator</span> <span class="k">import</span> <span class="n">BaseSensorOperator</span>
@@ -187,24 +195,53 @@
 <div class="viewcode-block" id="FTPSensor"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.sensors.ftp_sensor.FTPSensor">[docs]</a><span class="k">class</span> <span class="nc">FTPSensor</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Waits for a file or directory to be present on FTP.</span>
-
-<span class="sd">    :param path: Remote file or directory path</span>
-<span class="sd">    :type path: str</span>
-<span class="sd">    :param ftp_conn_id: The connection to run the sensor against</span>
-<span class="sd">    :type ftp_conn_id: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">,)</span>
 
+    <span class="sd">&quot;&quot;&quot;Errors that are transient in nature, and where action can be retried&quot;&quot;&quot;</span>
+    <span class="n">transient_errors</span> <span class="o">=</span> <span class="p">[</span><span class="mi">421</span><span class="p">,</span> <span class="mi">425</span><span class="p">,</span> <span class="mi">426</span><span class="p">,</span> <span class="mi">434</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="mi">451</span><span class="p">,</span> <span class="mi">452</span><span class="p">]</span>
+
+    <span class="n">error_code_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;([\d]+)&quot;</span><span class="p">)</span>
+
     <span class="nd">@apply_defaults</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">ftp_conn_id</span><span class="o">=</span><span class="s1">&#39;ftp_default&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="n">ftp_conn_id</span><span class="o">=</span><span class="s1">&#39;ftp_default&#39;</span><span class="p">,</span>
+            <span class="n">fail_on_transient_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new FTP sensor</span>
+
+<span class="sd">        :param path: Remote file or directory path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :param fail_on_transient_errors: Fail on all errors,</span>
+<span class="sd">            including 4xx transient errors. Default True.</span>
+<span class="sd">        :type fail_on_transient_errors: bool</span>
+<span class="sd">        :param ftp_conn_id: The connection to run the sensor against</span>
+<span class="sd">        :type ftp_conn_id: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="nb">super</span><span class="p">(</span><span class="n">FTPSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ftp_conn_id</span> <span class="o">=</span> <span class="n">ftp_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fail_on_transient_errors</span> <span class="o">=</span> <span class="n">fail_on_transient_errors</span>
 
     <span class="k">def</span> <span class="nf">_create_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return connection hook.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">FTPHook</span><span class="p">(</span><span class="n">ftp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ftp_conn_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_error_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract error code from ftp exception&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_code_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">matches</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">code</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">e</span>
 
 <div class="viewcode-block" id="FTPSensor.poke"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.sensors.ftp_sensor.FTPSensor.poke">[docs]</a>    <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_hook</span><span class="p">()</span> <span class="k">as</span> <span class="n">hook</span><span class="p">:</span>
@@ -212,8 +249,11 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">hook</span><span class="o">.</span><span class="n">get_mod_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">error_perm</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">error</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;Can&#39;t check for file existence&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Ftp error encountered: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="n">error_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_error_code</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">error_code</span> <span class="o">!=</span> <span class="mi">550</span><span class="p">)</span> <span class="ow">and</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fail_on_transient_errors</span> <span class="ow">or</span>
+                            <span class="p">(</span><span class="n">error_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transient_errors</span><span class="p">))):</span>
                     <span class="k">raise</span> <span class="n">e</span>
 
                 <span class="k">return</span> <span class="kc">False</span>
@@ -262,6 +302,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

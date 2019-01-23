@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -319,6 +326,21 @@
                                                            <span class="n">child_policy_args</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">TokenAwarePolicy</span><span class="p">(</span><span class="n">child_policy</span><span class="p">)</span>
 
+<div class="viewcode-block" id="CassandraHook.table_exists"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.cassandra_hook.CassandraHook.table_exists">[docs]</a>    <span class="k">def</span> <span class="nf">table_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a table exists in Cassandra</span>
+
+<span class="sd">        :param table: Target Cassandra table.</span>
+<span class="sd">                      Use dot notation to target a specific keyspace.</span>
+<span class="sd">        :type table: string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keyspace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyspace</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+            <span class="n">keyspace</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">cluster_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">metadata</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">keyspace</span> <span class="ow">in</span> <span class="n">cluster_metadata</span><span class="o">.</span><span class="n">keyspaces</span> <span class="ow">and</span>
+                <span class="n">table</span> <span class="ow">in</span> <span class="n">cluster_metadata</span><span class="o">.</span><span class="n">keyspaces</span><span class="p">[</span><span class="n">keyspace</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="CassandraHook.record_exists"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.cassandra_hook.CassandraHook.record_exists">[docs]</a>    <span class="k">def</span> <span class="nf">record_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if a record exists in Cassandra</span>
@@ -329,12 +351,12 @@
 <span class="sd">        :param keys: The keys and their values to check the existence.</span>
 <span class="sd">        :type keys: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">keyspace</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">keyspace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyspace</span>
         <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
             <span class="n">keyspace</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">ks</span> <span class="o">=</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">=%(</span><span class="si">{}</span><span class="s2">)s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">cql</span> <span class="o">=</span> <span class="s2">&quot;SELECT * FROM </span><span class="si">{keyspace}</span><span class="s2">.</span><span class="si">{table}</span><span class="s2"> WHERE </span><span class="si">{keys}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">keyspace</span><span class="o">=</span><span class="p">(</span><span class="n">keyspace</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyspace</span><span class="p">),</span> <span class="n">table</span><span class="o">=</span><span class="n">table</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="n">ks</span><span class="p">)</span>
+            <span class="n">keyspace</span><span class="o">=</span><span class="n">keyspace</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="n">table</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="n">ks</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cql</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
@@ -377,6 +399,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

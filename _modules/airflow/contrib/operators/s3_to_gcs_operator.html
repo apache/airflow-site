@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -202,6 +209,16 @@
 <span class="sd">    :type delimiter: string</span>
 <span class="sd">    :param aws_conn_id: The source S3 connection</span>
 <span class="sd">    :type aws_conn_id: string</span>
+<span class="sd">    :parame verify: Whether or not to verify SSL certificates for S3 connection.</span>
+<span class="sd">        By default SSL certificates are verified.</span>
+<span class="sd">        You can provide the following values:</span>
+<span class="sd">        - False: do not validate SSL certificates. SSL will still be used</span>
+<span class="sd">                 (unless use_ssl is False), but SSL certificates will not be</span>
+<span class="sd">                 verified.</span>
+<span class="sd">        - path/to/cert/bundle.pem: A filename of the CA cert bundle to uses.</span>
+<span class="sd">                 You can specify this argument if you want to use a different</span>
+<span class="sd">                 CA cert bundle than the one used by botocore.</span>
+<span class="sd">    :type verify: bool or str</span>
 <span class="sd">    :param dest_gcs_conn_id: The destination connection ID to use</span>
 <span class="sd">        when connecting to Google Cloud Storage.</span>
 <span class="sd">    :type dest_gcs_conn_id: string</span>
@@ -218,7 +235,9 @@
 
 
 <span class="sd">    **Example**:</span>
+
 <span class="sd">    .. code-block:: python</span>
+
 <span class="sd">       s3_to_gcs_op = S3ToGoogleCloudStorageOperator(</span>
 <span class="sd">            task_id=&#39;s3_to_gcs_example&#39;,</span>
 <span class="sd">            bucket=&#39;my-s3-bucket&#39;,</span>
@@ -241,6 +260,7 @@
                  <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                  <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                  <span class="n">aws_conn_id</span><span class="o">=</span><span class="s1">&#39;aws_default&#39;</span><span class="p">,</span>
+                 <span class="n">verify</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">dest_gcs_conn_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">dest_gcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -259,6 +279,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dest_gcs</span> <span class="o">=</span> <span class="n">dest_gcs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">replace</span> <span class="o">=</span> <span class="n">replace</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="n">verify</span>
 
         <span class="k">if</span> <span class="n">dest_gcs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gcs_object_is_directory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dest_gcs</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -268,7 +289,7 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;The destination Google Cloud Storage path &#39;</span>
                                    <span class="s1">&#39;must end with a slash &quot;/&quot; or be empty.&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="S3ToGoogleCloudStorageOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.s3_to_gcs_operator.S3ToGoogleCloudStorageOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="c1"># use the super method to list all the files in an S3 bucket/key</span>
         <span class="n">files</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">S3ToGoogleCloudStorageOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
@@ -298,7 +319,7 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">existing_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-            <span class="n">files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">existing_files</span><span class="p">)</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">existing_files</span><span class="p">))</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> files are going to be synced: </span><span class="si">{1}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="n">files</span><span class="p">))</span>
@@ -307,7 +328,7 @@
                     <span class="s1">&#39;There are no new files to sync. Have a nice day!&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">files</span><span class="p">:</span>
-            <span class="n">hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
+            <span class="n">hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
                 <span class="c1"># GCS hook builds its own in-memory file so we have to create</span>
@@ -341,11 +362,12 @@
                 <span class="s1">&#39;In sync, no files needed to be uploaded to Google Cloud&#39;</span>
                 <span class="s1">&#39;Storage&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">files</span></div>
+        <span class="k">return</span> <span class="n">files</span>
 
     <span class="c1"># Following functionality may be better suited in</span>
     <span class="c1"># airflow/contrib/hooks/gcs_hook.py</span>
-    <span class="k">def</span> <span class="nf">_gcs_object_is_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_gcs_object_is_directory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="n">bucket</span><span class="p">,</span> <span class="n">blob</span> <span class="o">=</span> <span class="n">_parse_gcs_url</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">blob</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span></div>
@@ -385,6 +407,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -200,13 +207,15 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">filepath</span><span class="p">,</span>
                  <span class="n">hdfs_conn_id</span><span class="o">=</span><span class="s1">&#39;hdfs_default&#39;</span><span class="p">,</span>
-                 <span class="n">ignored_ext</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;_COPYING_&#39;</span><span class="p">],</span>
+                 <span class="n">ignored_ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">ignore_copying</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                  <span class="n">file_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">hook</span><span class="o">=</span><span class="n">HDFSHook</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">HdfsSensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ignored_ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ignored_ext</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_COPYING_&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="o">=</span> <span class="n">filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hdfs_conn_id</span> <span class="o">=</span> <span class="n">hdfs_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file_size</span> <span class="o">=</span> <span class="n">file_size</span>
@@ -247,12 +256,12 @@
         <span class="k">if</span> <span class="n">ignore_copying</span><span class="p">:</span>
             <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
             <span class="n">regex_builder</span> <span class="o">=</span> <span class="s2">&quot;^.*\.(</span><span class="si">%s</span><span class="s2">$)$&quot;</span> <span class="o">%</span> <span class="s1">&#39;$|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored_ext</span><span class="p">)</span>
-            <span class="n">ignored_extentions_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regex_builder</span><span class="p">)</span>
+            <span class="n">ignored_extensions_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regex_builder</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s1">&#39;Filtering result for ignored extensions: </span><span class="si">%s</span><span class="s1"> in files </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">ignored_extentions_regex</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">)</span>
+                <span class="n">ignored_extensions_regex</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ignored_extentions_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">])]</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ignored_extensions_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">])]</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;HdfsSensor.poke: after ext filter result is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
@@ -312,6 +321,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

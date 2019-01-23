@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../code.html">API Reference</a></li>
 </ul>
@@ -187,7 +194,7 @@
 
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">BuiltinImportError</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">timedelta</span>
 
 <span class="kn">import</span> <span class="nn">dill</span>
@@ -214,12 +221,13 @@
 
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">urlparse</span><span class="p">,</span> <span class="n">quote</span><span class="p">,</span> <span class="n">parse_qsl</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">urlparse</span><span class="p">,</span> <span class="n">quote</span><span class="p">,</span> <span class="n">parse_qsl</span><span class="p">,</span> <span class="n">unquote</span>
 
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">PickleType</span><span class="p">,</span>
-    <span class="n">Index</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">LargeBinary</span><span class="p">,</span> <span class="n">UniqueConstraint</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="k">import</span> <span class="n">func</span><span class="p">,</span> <span class="n">or_</span><span class="p">,</span> <span class="n">and_</span><span class="p">,</span> <span class="n">true</span> <span class="k">as</span> <span class="n">sqltrue</span>
+    <span class="n">Boolean</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">ForeignKeyConstraint</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span>
+    <span class="n">Integer</span><span class="p">,</span> <span class="n">LargeBinary</span><span class="p">,</span> <span class="n">PickleType</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">UniqueConstraint</span><span class="p">,</span>
+    <span class="n">and_</span><span class="p">,</span> <span class="n">asc</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">or_</span><span class="p">,</span> <span class="n">true</span> <span class="k">as</span> <span class="n">sqltrue</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="k">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="k">import</span> <span class="n">reconstructor</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">synonym</span>
 
@@ -232,7 +240,8 @@
 <span class="kn">from</span> <span class="nn">airflow.executors</span> <span class="k">import</span> <span class="n">GetDefaultExecutor</span><span class="p">,</span> <span class="n">LocalExecutor</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">configuration</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">AirflowDagCycleException</span><span class="p">,</span> <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowSkipException</span><span class="p">,</span> <span class="n">AirflowTaskTimeout</span>
+    <span class="n">AirflowDagCycleException</span><span class="p">,</span> <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowSkipException</span><span class="p">,</span> <span class="n">AirflowTaskTimeout</span><span class="p">,</span>
+    <span class="n">AirflowRescheduleException</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">airflow.dag.base_dag</span> <span class="k">import</span> <span class="n">BaseDag</span><span class="p">,</span> <span class="n">BaseDagBag</span>
 <span class="kn">from</span> <span class="nn">airflow.lineage</span> <span class="k">import</span> <span class="n">apply_lineage</span><span class="p">,</span> <span class="n">prepare_lineage</span>
@@ -438,12 +447,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">import_errors</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">has_logged</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">if</span> <span class="n">include_examples</span><span class="p">:</span>
-            <span class="n">example_dag_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span>
-                <span class="s1">&#39;example_dags&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">collect_dags</span><span class="p">(</span><span class="n">example_dag_folder</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">collect_dags</span><span class="p">(</span><span class="n">dag_folder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collect_dags</span><span class="p">(</span><span class="n">dag_folder</span><span class="p">,</span> <span class="n">include_examples</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DagBag.size"><a class="viewcode-back" href="../../code.html#airflow.models.DagBag.size">[docs]</a>    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -609,39 +613,28 @@
         <span class="k">return</span> <span class="n">found_dags</span></div>
 
 <div class="viewcode-block" id="DagBag.kill_zombies"><a class="viewcode-back" href="../../code.html#airflow.models.DagBag.kill_zombies">[docs]</a>    <span class="nd">@provide_session</span>
-    <span class="k">def</span> <span class="nf">kill_zombies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">kill_zombies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zombies</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fails tasks that haven&#39;t had a heartbeat in too long</span>
+<span class="sd">        Fail given zombie tasks, which are tasks that haven&#39;t</span>
+<span class="sd">        had a heartbeat for too long, in the current DagBag.</span>
+
+<span class="sd">        :param zombies: zombie task instances to kill.</span>
+<span class="sd">        :type zombies: SimpleTaskInstance</span>
+<span class="sd">        :param session: DB session.</span>
+<span class="sd">        :type Session.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">airflow.jobs</span> <span class="k">import</span> <span class="n">LocalTaskJob</span> <span class="k">as</span> <span class="n">LJ</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finding &#39;running&#39; jobs without a recent heartbeat&quot;</span><span class="p">)</span>
-        <span class="n">TI</span> <span class="o">=</span> <span class="n">TaskInstance</span>
-        <span class="n">secs</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;scheduler&#39;</span><span class="p">,</span> <span class="s1">&#39;scheduler_zombie_task_threshold&#39;</span><span class="p">)</span>
-        <span class="n">limit_dttm</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">secs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failing jobs without heartbeat after </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">limit_dttm</span><span class="p">)</span>
-
-        <span class="n">tis</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TI</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LJ</span><span class="p">,</span> <span class="n">TI</span><span class="o">.</span><span class="n">job_id</span> <span class="o">==</span> <span class="n">LJ</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TI</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-                <span class="n">or_</span><span class="p">(</span>
-                    <span class="n">LJ</span><span class="o">.</span><span class="n">state</span> <span class="o">!=</span> <span class="n">State</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">,</span>
-                    <span class="n">LJ</span><span class="o">.</span><span class="n">latest_heartbeat</span> <span class="o">&lt;</span> <span class="n">limit_dttm</span><span class="p">,</span>
-                <span class="p">))</span>
-            <span class="o">.</span><span class="n">all</span><span class="p">()</span>
-        <span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">tis</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">ti</span> <span class="ow">and</span> <span class="n">ti</span><span class="o">.</span><span class="n">dag_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="p">:</span>
-                <span class="n">dag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="p">[</span><span class="n">ti</span><span class="o">.</span><span class="n">dag_id</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">ti</span><span class="o">.</span><span class="n">task_id</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">task_ids</span><span class="p">:</span>
-                    <span class="n">task</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
-
-                    <span class="c1"># now set non db backed vars on ti</span>
-                    <span class="n">ti</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
+        <span class="k">for</span> <span class="n">zombie</span> <span class="ow">in</span> <span class="n">zombies</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">zombie</span><span class="o">.</span><span class="n">dag_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="p">:</span>
+                <span class="n">dag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="p">[</span><span class="n">zombie</span><span class="o">.</span><span class="n">dag_id</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">zombie</span><span class="o">.</span><span class="n">task_id</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">task_ids</span><span class="p">:</span>
+                    <span class="n">task</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">zombie</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
+                    <span class="n">ti</span> <span class="o">=</span> <span class="n">TaskInstance</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">zombie</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+                    <span class="c1"># Get properties needed for failure handling from SimpleTaskInstance.</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">start_date</span> <span class="o">=</span> <span class="n">zombie</span><span class="o">.</span><span class="n">start_date</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">end_date</span> <span class="o">=</span> <span class="n">zombie</span><span class="o">.</span><span class="n">end_date</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">try_number</span> <span class="o">=</span> <span class="n">zombie</span><span class="o">.</span><span class="n">try_number</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">zombie</span><span class="o">.</span><span class="n">state</span>
                     <span class="n">ti</span><span class="o">.</span><span class="n">test_mode</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;unit_test_mode&#39;</span><span class="p">)</span>
-
                     <span class="n">ti</span><span class="o">.</span><span class="n">handle_failure</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> detected as zombie&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ti</span><span class="p">),</span>
                                       <span class="n">ti</span><span class="o">.</span><span class="n">test_mode</span><span class="p">,</span> <span class="n">ti</span><span class="o">.</span><span class="n">get_template_context</span><span class="p">())</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -688,7 +681,8 @@
 <div class="viewcode-block" id="DagBag.collect_dags"><a class="viewcode-back" href="../../code.html#airflow.models.DagBag.collect_dags">[docs]</a>    <span class="k">def</span> <span class="nf">collect_dags</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">dag_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">only_if_updated</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">only_if_updated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">include_examples</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;LOAD_EXAMPLES&#39;</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a file path or a folder, this method looks for python modules,</span>
 <span class="sd">        imports them and adds them to the dagbag collection.</span>
@@ -708,7 +702,7 @@
         <span class="n">stats</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">FileLoadStat</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
             <span class="s1">&#39;FileLoadStat&#39;</span><span class="p">,</span> <span class="s2">&quot;file duration dag_num task_num dags&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">list_py_file_paths</span><span class="p">(</span><span class="n">dag_folder</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">list_py_file_paths</span><span class="p">(</span><span class="n">dag_folder</span><span class="p">,</span> <span class="n">include_examples</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">ts</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
                 <span class="n">found_dags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span>
@@ -753,22 +747,7 @@
             <span class="n">dag_num</span><span class="o">=</span><span class="nb">sum</span><span class="p">([</span><span class="n">o</span><span class="o">.</span><span class="n">dag_num</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">]),</span>
             <span class="n">task_num</span><span class="o">=</span><span class="nb">sum</span><span class="p">([</span><span class="n">o</span><span class="o">.</span><span class="n">task_num</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">]),</span>
             <span class="n">table</span><span class="o">=</span><span class="n">pprinttable</span><span class="p">(</span><span class="n">stats</span><span class="p">),</span>
-        <span class="p">)</span></div>
-
-    <span class="nd">@provide_session</span>
-    <span class="k">def</span> <span class="nf">deactivate_inactive_dags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">active_dag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">dag</span><span class="o">.</span><span class="n">dag_id</span> <span class="k">for</span> <span class="n">dag</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
-        <span class="k">for</span> <span class="n">dag</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
-                <span class="n">DagModel</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">~</span><span class="n">DagModel</span><span class="o">.</span><span class="n">dag_id</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">active_dag_ids</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-            <span class="n">dag</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span>
-        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-
-    <span class="nd">@provide_session</span>
-    <span class="k">def</span> <span class="nf">paused_dags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">dag_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">dp</span><span class="o">.</span><span class="n">dag_id</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">DagModel</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-            <span class="n">DagModel</span><span class="o">.</span><span class="n">is_paused</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="kc">True</span><span class="p">))]</span>
-        <span class="k">return</span> <span class="n">dag_ids</span></div>
+        <span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="User"><a class="viewcode-back" href="../../code.html#airflow.models.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -777,7 +756,7 @@
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">username</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="n">ID_LEN</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">email</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">500</span><span class="p">))</span>
-    <span class="n">superuser</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">superuser</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
@@ -843,7 +822,11 @@
         <span class="p">(</span><span class="s1">&#39;snowflake&#39;</span><span class="p">,</span> <span class="s1">&#39;Snowflake&#39;</span><span class="p">,),</span>
         <span class="p">(</span><span class="s1">&#39;segment&#39;</span><span class="p">,</span> <span class="s1">&#39;Segment&#39;</span><span class="p">,),</span>
         <span class="p">(</span><span class="s1">&#39;azure_data_lake&#39;</span><span class="p">,</span> <span class="s1">&#39;Azure Data Lake&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;azure_cosmos&#39;</span><span class="p">,</span> <span class="s1">&#39;Azure CosmosDB&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;cassandra&#39;</span><span class="p">,</span> <span class="s1">&#39;Cassandra&#39;</span><span class="p">,),</span>
+        <span class="p">(</span><span class="s1">&#39;qubole&#39;</span><span class="p">,</span> <span class="s1">&#39;Qubole&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mongo&#39;</span><span class="p">,</span> <span class="s1">&#39;MongoDB&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;gcpcloudsql&#39;</span><span class="p">,</span> <span class="s1">&#39;Google Cloud SQL&#39;</span><span class="p">),</span>
     <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
@@ -866,16 +849,17 @@
     <span class="k">def</span> <span class="nf">parse_from_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">):</span>
         <span class="n">temp_uri</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
         <span class="n">hostname</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">hostname</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">if</span> <span class="s1">&#39;</span><span class="si">%2f</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">hostname</span><span class="p">:</span>
-            <span class="n">hostname</span> <span class="o">=</span> <span class="n">hostname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%2f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%2F</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
         <span class="n">conn_type</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">scheme</span>
         <span class="k">if</span> <span class="n">conn_type</span> <span class="o">==</span> <span class="s1">&#39;postgresql&#39;</span><span class="p">:</span>
             <span class="n">conn_type</span> <span class="o">=</span> <span class="s1">&#39;postgres&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">=</span> <span class="n">conn_type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">hostname</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">login</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">username</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">password</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span> <span class="k">if</span> <span class="n">hostname</span> <span class="k">else</span> <span class="n">hostname</span>
+        <span class="n">quoted_schema</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">quoted_schema</span><span class="p">)</span> <span class="k">if</span> <span class="n">quoted_schema</span> <span class="k">else</span> <span class="n">quoted_schema</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">login</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">temp_uri</span><span class="o">.</span><span class="n">username</span><span class="p">)</span> \
+            <span class="k">if</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">username</span> <span class="k">else</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">temp_uri</span><span class="o">.</span><span class="n">password</span><span class="p">)</span> \
+            <span class="k">if</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">password</span> <span class="k">else</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">password</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">port</span>
         <span class="k">if</span> <span class="n">temp_uri</span><span class="o">.</span><span class="n">query</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">extra</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">parse_qsl</span><span class="p">(</span><span class="n">temp_uri</span><span class="o">.</span><span class="n">query</span><span class="p">)))</span>
@@ -980,14 +964,34 @@
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">==</span> <span class="s1">&#39;azure_data_lake&#39;</span><span class="p">:</span>
                 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.azure_data_lake_hook</span> <span class="k">import</span> <span class="n">AzureDataLakeHook</span>
                 <span class="k">return</span> <span class="n">AzureDataLakeHook</span><span class="p">(</span><span class="n">azure_data_lake_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">==</span> <span class="s1">&#39;azure_cosmos&#39;</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.azure_cosmos_hook</span> <span class="k">import</span> <span class="n">AzureCosmosDBHook</span>
+                <span class="k">return</span> <span class="n">AzureCosmosDBHook</span><span class="p">(</span><span class="n">azure_cosmos_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">==</span> <span class="s1">&#39;cassandra&#39;</span><span class="p">:</span>
                 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.cassandra_hook</span> <span class="k">import</span> <span class="n">CassandraHook</span>
                 <span class="k">return</span> <span class="n">CassandraHook</span><span class="p">(</span><span class="n">cassandra_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">==</span> <span class="s1">&#39;mongo&#39;</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.mongo_hook</span> <span class="k">import</span> <span class="n">MongoHook</span>
+                <span class="k">return</span> <span class="n">MongoHook</span><span class="p">(</span><span class="n">conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">==</span> <span class="s1">&#39;gcpcloudsql&#39;</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_sql_hook</span> <span class="k">import</span> <span class="n">CloudSqlDatabaseHook</span>
+                <span class="k">return</span> <span class="n">CloudSqlDatabaseHook</span><span class="p">(</span><span class="n">gcp_cloudsql_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span>
+
+    <span class="k">def</span> <span class="nf">debug_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;id: </span><span class="si">{}</span><span class="s2">. Host: </span><span class="si">{}</span><span class="s2">, Port: </span><span class="si">{}</span><span class="s2">, Schema: </span><span class="si">{}</span><span class="s2">, &quot;</span>
+                <span class="s2">&quot;Login: </span><span class="si">{}</span><span class="s2">, Password: </span><span class="si">{}</span><span class="s2">, extra: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span>
+                <span class="nb">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
+                       <span class="s2">&quot;XXXXXXXX&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">extra_dejson</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">extra_dejson</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1067,6 +1071,7 @@
 
     <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;ti_dag_state&#39;</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">,</span> <span class="n">state</span><span class="p">),</span>
+        <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;ti_dag_date&#39;</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">),</span>
         <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;ti_state&#39;</span><span class="p">,</span> <span class="n">state</span><span class="p">),</span>
         <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;ti_state_lkp&#39;</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">,</span> <span class="n">state</span><span class="p">),</span>
         <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;ti_pool&#39;</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">priority_weight</span><span class="p">),</span>
@@ -1117,7 +1122,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">try_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the try number that this task number will be when it is acutally</span>
+<span class="sd">        Return the try number that this task number will be when it is actually</span>
 <span class="sd">        run.</span>
 
 <span class="sd">        If the TI is currently running, this will match the column in the</span>
@@ -1847,11 +1852,15 @@
         <span class="k">except</span> <span class="n">AirflowSkipException</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">(</span><span class="n">lock_for_update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">SKIPPED</span>
+        <span class="k">except</span> <span class="n">AirflowRescheduleException</span> <span class="k">as</span> <span class="n">reschedule_exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_reschedule</span><span class="p">(</span><span class="n">reschedule_exception</span><span class="p">,</span> <span class="n">test_mode</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+            <span class="k">return</span>
         <span class="k">except</span> <span class="n">AirflowException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">()</span>
-            <span class="c1"># for case when task is marked as success externally</span>
+            <span class="c1"># for case when task is marked as success/failed externally</span>
             <span class="c1"># current behavior doesn&#39;t hit the success callback</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="ow">in</span> <span class="p">{</span><span class="n">State</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">,</span> <span class="n">State</span><span class="o">.</span><span class="n">FAILED</span><span class="p">}:</span>
                 <span class="k">return</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">handle_failure</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">test_mode</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
@@ -1915,6 +1924,32 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render_templates</span><span class="p">()</span>
         <span class="n">task_copy</span><span class="o">.</span><span class="n">dry_run</span><span class="p">()</span>
+
+    <span class="nd">@provide_session</span>
+    <span class="k">def</span> <span class="nf">_handle_reschedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reschedule_exception</span><span class="p">,</span> <span class="n">test_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Don&#39;t record reschedule request in test mode</span>
+        <span class="k">if</span> <span class="n">test_mode</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_duration</span><span class="p">()</span>
+
+        <span class="c1"># Log reschedule request</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">TaskReschedule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_number</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="p">,</span>
+                    <span class="n">reschedule_exception</span><span class="o">.</span><span class="n">reschedule_date</span><span class="p">))</span>
+
+        <span class="c1"># set state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">UP_FOR_RESCHEDULE</span>
+
+        <span class="c1"># Decrement try_number so subsequent runs will use the same try number and write</span>
+        <span class="c1"># to same log file.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_try_number</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Rescheduling task, marking task as UP_FOR_RESCHEDULE&#39;</span><span class="p">)</span>
 
     <span class="nd">@provide_session</span>
     <span class="k">def</span> <span class="nf">handle_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">test_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1982,30 +2017,6 @@
         <span class="k">if</span> <span class="s1">&#39;tables&#39;</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
             <span class="n">tables</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tables&#39;</span><span class="p">]</span>
 
-        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
-        <span class="n">yesterday_ds</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">tomorrow_ds</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
-
-        <span class="n">prev_execution_date</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">previous_schedule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
-        <span class="n">next_execution_date</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">following_schedule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
-
-        <span class="n">next_ds</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">next_execution_date</span><span class="p">:</span>
-            <span class="n">next_ds</span> <span class="o">=</span> <span class="n">next_execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
-
-        <span class="n">prev_ds</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">prev_execution_date</span><span class="p">:</span>
-            <span class="n">prev_ds</span> <span class="o">=</span> <span class="n">prev_execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
-
-        <span class="n">ds_nodash</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">ts_nodash</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">yesterday_ds_nodash</span> <span class="o">=</span> <span class="n">yesterday_ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">tomorrow_ds_nodash</span> <span class="o">=</span> <span class="n">tomorrow_ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-
-        <span class="n">ti_key_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{task.dag_id}</span><span class="s2">__</span><span class="si">{task.task_id}</span><span class="s2">__</span><span class="si">{ds_nodash}</span><span class="s2">&quot;</span>
-        <span class="n">ti_key_str</span> <span class="o">=</span> <span class="n">ti_key_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
         <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">run_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">dag_run</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2022,6 +2033,43 @@
             <span class="n">run_id</span> <span class="o">=</span> <span class="n">dag_run</span><span class="o">.</span><span class="n">run_id</span> <span class="k">if</span> <span class="n">dag_run</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">session</span><span class="o">.</span><span class="n">expunge_all</span><span class="p">()</span>
             <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="n">yesterday_ds</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">tomorrow_ds</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># For manually triggered dagruns that aren&#39;t run on a schedule, next/previous</span>
+        <span class="c1"># schedule dates don&#39;t make sense, and should be set to execution date for</span>
+        <span class="c1"># consistency with how execution_date is set for manually triggered tasks, i.e.</span>
+        <span class="c1"># triggered_date == execution_date.</span>
+        <span class="k">if</span> <span class="n">dag_run</span> <span class="ow">and</span> <span class="n">dag_run</span><span class="o">.</span><span class="n">external_trigger</span><span class="p">:</span>
+            <span class="n">prev_execution_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span>
+            <span class="n">next_execution_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prev_execution_date</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">previous_schedule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+            <span class="n">next_execution_date</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">following_schedule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+
+        <span class="n">next_ds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">next_ds_nodash</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">next_execution_date</span><span class="p">:</span>
+            <span class="n">next_ds</span> <span class="o">=</span> <span class="n">next_execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">next_ds_nodash</span> <span class="o">=</span> <span class="n">next_ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="n">prev_ds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">prev_ds_nodash</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">prev_execution_date</span><span class="p">:</span>
+            <span class="n">prev_ds</span> <span class="o">=</span> <span class="n">prev_execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">prev_ds_nodash</span> <span class="o">=</span> <span class="n">prev_ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="n">ds_nodash</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">ts_nodash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">T%H%M%S&#39;</span><span class="p">)</span>
+        <span class="n">ts_nodash_with_tz</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">yesterday_ds_nodash</span> <span class="o">=</span> <span class="n">yesterday_ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">tomorrow_ds_nodash</span> <span class="o">=</span> <span class="n">tomorrow_ds</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="n">ti_key_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{task.dag_id}</span><span class="s2">__</span><span class="si">{task.task_id}</span><span class="s2">__</span><span class="si">{ds_nodash}</span><span class="s2">&quot;</span>
+        <span class="n">ti_key_str</span> <span class="o">=</span> <span class="n">ti_key_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
             <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
@@ -2063,10 +2111,13 @@
             <span class="s1">&#39;dag&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="p">,</span>
             <span class="s1">&#39;ds&#39;</span><span class="p">:</span> <span class="n">ds</span><span class="p">,</span>
             <span class="s1">&#39;next_ds&#39;</span><span class="p">:</span> <span class="n">next_ds</span><span class="p">,</span>
+            <span class="s1">&#39;next_ds_nodash&#39;</span><span class="p">:</span> <span class="n">next_ds_nodash</span><span class="p">,</span>
             <span class="s1">&#39;prev_ds&#39;</span><span class="p">:</span> <span class="n">prev_ds</span><span class="p">,</span>
+            <span class="s1">&#39;prev_ds_nodash&#39;</span><span class="p">:</span> <span class="n">prev_ds_nodash</span><span class="p">,</span>
             <span class="s1">&#39;ds_nodash&#39;</span><span class="p">:</span> <span class="n">ds_nodash</span><span class="p">,</span>
             <span class="s1">&#39;ts&#39;</span><span class="p">:</span> <span class="n">ts</span><span class="p">,</span>
             <span class="s1">&#39;ts_nodash&#39;</span><span class="p">:</span> <span class="n">ts_nodash</span><span class="p">,</span>
+            <span class="s1">&#39;ts_nodash_with_tz&#39;</span><span class="p">:</span> <span class="n">ts_nodash_with_tz</span><span class="p">,</span>
             <span class="s1">&#39;yesterday_ds&#39;</span><span class="p">:</span> <span class="n">yesterday_ds</span><span class="p">,</span>
             <span class="s1">&#39;yesterday_ds_nodash&#39;</span><span class="p">:</span> <span class="n">yesterday_ds_nodash</span><span class="p">,</span>
             <span class="s1">&#39;tomorrow_ds&#39;</span><span class="p">:</span> <span class="n">tomorrow_ds</span><span class="p">,</span>
@@ -2270,6 +2321,66 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
+<div class="viewcode-block" id="TaskReschedule"><a class="viewcode-back" href="../../code.html#airflow.models.TaskReschedule">[docs]</a><span class="k">class</span> <span class="nc">TaskReschedule</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TaskReschedule tracks rescheduled task instances.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;task_reschedule&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">task_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="n">ID_LEN</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">dag_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="n">ID_LEN</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">execution_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UtcDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">try_number</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UtcDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UtcDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">reschedule_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UtcDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;idx_task_reschedule_dag_task_date&#39;</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">,</span>
+              <span class="n">unique</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">ForeignKeyConstraint</span><span class="p">([</span><span class="n">task_id</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">],</span>
+                             <span class="p">[</span><span class="n">TaskInstance</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="n">TaskInstance</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span>
+                              <span class="n">TaskInstance</span><span class="o">.</span><span class="n">execution_date</span><span class="p">],</span>
+                             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;task_reschedule_dag_task_date_fkey&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">,</span> <span class="n">try_number</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span>
+                 <span class="n">reschedule_date</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">dag_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">task_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">=</span> <span class="n">execution_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">try_number</span> <span class="o">=</span> <span class="n">try_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">=</span> <span class="n">start_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span> <span class="o">=</span> <span class="n">end_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reschedule_date</span> <span class="o">=</span> <span class="n">reschedule_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TaskReschedule.find_for_task_instance"><a class="viewcode-back" href="../../code.html#airflow.models.TaskReschedule.find_for_task_instance">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@provide_session</span>
+    <span class="k">def</span> <span class="nf">find_for_task_instance</span><span class="p">(</span><span class="n">task_instance</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns all task reschedules for the task instance and try number,</span>
+<span class="sd">        in ascending order.</span>
+
+<span class="sd">        :param task_instance: the task instance to find task reschedules for</span>
+<span class="sd">        :type task_instance: TaskInstance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">TR</span> <span class="o">=</span> <span class="n">TaskReschedule</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">session</span>
+            <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TR</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TR</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">==</span> <span class="n">task_instance</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span>
+                    <span class="n">TR</span><span class="o">.</span><span class="n">task_id</span> <span class="o">==</span> <span class="n">task_instance</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span>
+                    <span class="n">TR</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">==</span> <span class="n">task_instance</span><span class="o">.</span><span class="n">execution_date</span><span class="p">,</span>
+                    <span class="n">TR</span><span class="o">.</span><span class="n">try_number</span> <span class="o">==</span> <span class="n">task_instance</span><span class="o">.</span><span class="n">try_number</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">asc</span><span class="p">(</span><span class="n">TR</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="p">)</span></div></div>
+
+
 <div class="viewcode-block" id="Log"><a class="viewcode-back" href="../../code.html#airflow.models.Log">[docs]</a><span class="k">class</span> <span class="nc">Log</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used to actively log events to the database</span>
@@ -2285,6 +2396,10 @@
     <span class="n">execution_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UtcDateTime</span><span class="p">)</span>
     <span class="n">owner</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">500</span><span class="p">))</span>
     <span class="n">extra</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;idx_log_dag&#39;</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">task_instance</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dttm</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
@@ -2310,8 +2425,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">owner</span> <span class="ow">or</span> <span class="n">task_owner</span></div>
 
 
-<div class="viewcode-block" id="SkipMixin"><a class="viewcode-back" href="../../code.html#airflow.models.SkipMixin">[docs]</a><span class="k">class</span> <span class="nc">SkipMixin</span><span class="p">(</span><span class="n">LoggingMixin</span><span class="p">):</span>
-<div class="viewcode-block" id="SkipMixin.skip"><a class="viewcode-back" href="../../code.html#airflow.models.SkipMixin.skip">[docs]</a>    <span class="nd">@provide_session</span>
+<span class="k">class</span> <span class="nc">SkipMixin</span><span class="p">(</span><span class="n">LoggingMixin</span><span class="p">):</span>
+    <span class="nd">@provide_session</span>
     <span class="k">def</span> <span class="nf">skip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag_run</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets tasks instances to skipped from the same dag run.</span>
@@ -2349,7 +2464,7 @@
                 <span class="n">ti</span><span class="o">.</span><span class="n">end_date</span> <span class="o">=</span> <span class="n">now</span>
                 <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
 
-            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div></div>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="BaseOperator"><a class="viewcode-back" href="../../code.html#airflow.models.BaseOperator">[docs]</a><span class="nd">@functools</span><span class="o">.</span><span class="n">total_ordering</span>
@@ -2484,7 +2599,7 @@
 <span class="sd">    :param trigger_rule: defines the rule by which dependencies are applied</span>
 <span class="sd">        for the task to get triggered. Options are:</span>
 <span class="sd">        ``{ all_success | all_failed | all_done | one_success |</span>
-<span class="sd">        one_failed | dummy}``</span>
+<span class="sd">        one_failed | none_failed | dummy}``</span>
 <span class="sd">        default is ``all_success``. Options can be set as string or</span>
 <span class="sd">        using the constants defined in the static class</span>
 <span class="sd">        ``airflow.utils.TriggerRule``</span>
@@ -2565,14 +2680,14 @@
         <span class="k">if</span> <span class="n">args</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="c1"># TODO remove *args and **kwargs in Airflow 2.0</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s1">&#39;Invalid arguments were passed to </span><span class="si">{c}</span><span class="s1">. Support for &#39;</span>
-                <span class="s1">&#39;passing such arguments will be dropped in Airflow 2.0. &#39;</span>
-                <span class="s1">&#39;Invalid arguments were:&#39;</span>
+                <span class="s1">&#39;Invalid arguments were passed to </span><span class="si">{c}</span><span class="s1"> (task_id: </span><span class="si">{t}</span><span class="s1">). &#39;</span>
+                <span class="s1">&#39;Support for passing such arguments will be dropped in &#39;</span>
+                <span class="s1">&#39;Airflow 2.0. Invalid arguments were:&#39;</span>
                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">*args: </span><span class="si">{a}</span><span class="se">\n</span><span class="s1">**kwargs: </span><span class="si">{k}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">kwargs</span><span class="p">),</span>
-                <span class="n">category</span><span class="o">=</span><span class="ne">PendingDeprecationWarning</span>
+                    <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">task_id</span><span class="p">),</span>
+                <span class="n">category</span><span class="o">=</span><span class="ne">PendingDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span>
             <span class="p">)</span>
-
         <span class="n">validate_key</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">owner</span>
@@ -2697,10 +2812,10 @@
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span>
-            <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comps</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">task_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
@@ -2974,14 +3089,24 @@
         <span class="c1"># Getting the content of files for template_field / template_ext</span>
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_fields</span><span class="p">:</span>
             <span class="n">content</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">content</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
-                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="k">if</span> <span class="n">content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> \
                     <span class="nb">any</span><span class="p">([</span><span class="n">content</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_ext</span><span class="p">]):</span>
                 <span class="n">env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">get_template_env</span><span class="p">()</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">env</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">content</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">get_template_env</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> \
+                            <span class="nb">any</span><span class="p">([</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_ext</span><span class="p">]):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">get_source</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prepare_template</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -3467,12 +3592,13 @@
         <span class="k">return</span> <span class="s2">&quot;&lt;DAG: </span><span class="si">{self.dag_id}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">dag_id</span><span class="p">):</span>
+
             <span class="c1"># Use getattr() instead of __dict__ as __dict__ doesn&#39;t return</span>
             <span class="c1"># correct values for properties.</span>
-            <span class="nb">all</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comps</span><span class="p">))</span>
+            <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
@@ -3851,8 +3977,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a list of the subdag objects associated to this DAG</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Check SubDag for class but don&#39;t check class directly, see</span>
-        <span class="c1"># https://github.com/airbnb/airflow/issues/1168</span>
+        <span class="c1"># Check SubDag for class but don&#39;t check class directly</span>
         <span class="kn">from</span> <span class="nn">airflow.operators.subdag_operator</span> <span class="k">import</span> <span class="n">SubDagOperator</span>
         <span class="n">subdag_lst</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
@@ -3929,8 +4054,8 @@
 <span class="sd">        :return: list of tasks in topological order</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1"># copy the the tasks so we leave it unmodified</span>
-        <span class="n">graph_unsorted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[:]</span>
+        <span class="c1"># convert into an OrderedDict to speedup lookup while keeping order the same</span>
+        <span class="n">graph_unsorted</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">task</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span>
 
         <span class="n">graph_sorted</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -3953,14 +4078,14 @@
             <span class="c1"># not, we need to bail out as the graph therefore can&#39;t be</span>
             <span class="c1"># sorted.</span>
             <span class="n">acyclic</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph_unsorted</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph_unsorted</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
                 <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">upstream_list</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">graph_unsorted</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">edge</span><span class="o">.</span><span class="n">task_id</span> <span class="ow">in</span> <span class="n">graph_unsorted</span><span class="p">:</span>
                         <span class="k">break</span>
                 <span class="c1"># no edges in upstream tasks</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">acyclic</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="n">graph_unsorted</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">graph_unsorted</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">task_id</span><span class="p">]</span>
                     <span class="n">graph_sorted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">acyclic</span><span class="p">:</span>
@@ -4046,7 +4171,9 @@
         <span class="k">if</span> <span class="n">end_date</span><span class="p">:</span>
             <span class="n">tis</span> <span class="o">=</span> <span class="n">tis</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TI</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">&lt;=</span> <span class="n">end_date</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">only_failed</span><span class="p">:</span>
-            <span class="n">tis</span> <span class="o">=</span> <span class="n">tis</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TI</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">FAILED</span><span class="p">)</span>
+            <span class="n">tis</span> <span class="o">=</span> <span class="n">tis</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span>
+                <span class="n">TI</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span>
+                <span class="n">TI</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">UPSTREAM_FAILED</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">only_running</span><span class="p">:</span>
             <span class="n">tis</span> <span class="o">=</span> <span class="n">tis</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TI</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">State</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
 
@@ -4295,16 +4422,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span></div>
-
-    <span class="nd">@provide_session</span>
-    <span class="k">def</span> <span class="nf">db_merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">BO</span> <span class="o">=</span> <span class="n">BaseOperator</span>
-        <span class="n">tasks</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BO</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BO</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
-            <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-        <span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
 <div class="viewcode-block" id="DAG.run"><a class="viewcode-back" href="../../code.html#airflow.models.DAG.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -5283,12 +5400,13 @@
             <span class="n">no_dependencies_met</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">for</span> <span class="n">ut</span> <span class="ow">in</span> <span class="n">unfinished_tasks</span><span class="p">:</span>
                 <span class="c1"># We need to flag upstream and check for changes because upstream</span>
-                <span class="c1"># failures can result in deadlock false positives</span>
+                <span class="c1"># failures/re-schedules can result in deadlock false positives</span>
                 <span class="n">old_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">state</span>
                 <span class="n">deps_met</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">are_dependencies_met</span><span class="p">(</span>
                     <span class="n">dep_context</span><span class="o">=</span><span class="n">DepContext</span><span class="p">(</span>
                         <span class="n">flag_upstream_failed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">ignore_in_retry_period</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                        <span class="n">ignore_in_retry_period</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">ignore_in_reschedule_period</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
                     <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">deps_met</span> <span class="ow">or</span> <span class="n">old_state</span> <span class="o">!=</span> <span class="n">ut</span><span class="o">.</span><span class="n">current_state</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">):</span>
                     <span class="n">no_dependencies_met</span> <span class="o">=</span> <span class="kc">False</span>
@@ -5377,6 +5495,9 @@
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">task_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">task_ids</span><span class="p">:</span>
+                <span class="n">Stats</span><span class="o">.</span><span class="n">incr</span><span class="p">(</span>
+                    <span class="s2">&quot;task_instance_created-</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span>
+                    <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">ti</span> <span class="o">=</span> <span class="n">TaskInstance</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
                 <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
 
@@ -5500,6 +5621,10 @@
     <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
     <span class="n">notification_sent</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;sm_dag&#39;</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">((</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()))</span></div>
@@ -5601,6 +5726,7 @@
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
     
 
   

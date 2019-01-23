@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -192,11 +199,15 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SSHOperator to execute commands on given remote host using the ssh_hook.</span>
 
-<span class="sd">    :param ssh_hook: predefined ssh_hook to use for remote execution</span>
+<span class="sd">    :param ssh_hook: predefined ssh_hook to use for remote execution.</span>
+<span class="sd">        Either `ssh_hook` or `ssh_conn_id` needs to be provided.</span>
 <span class="sd">    :type ssh_hook: :class:`SSHHook`</span>
-<span class="sd">    :param ssh_conn_id: connection id from airflow Connections</span>
+<span class="sd">    :param ssh_conn_id: connection id from airflow Connections.</span>
+<span class="sd">        `ssh_conn_id` will be ingored if `ssh_hook` is provided.</span>
 <span class="sd">    :type ssh_conn_id: str</span>
-<span class="sd">    :param remote_host: remote host to connect</span>
+<span class="sd">    :param remote_host: remote host to connect (templated)</span>
+<span class="sd">        Nullable. If provided, it will replace the `remote_host` which was</span>
+<span class="sd">        defined in `ssh_hook` or predefined in the connection of `ssh_conn_id`.</span>
 <span class="sd">    :type remote_host: str</span>
 <span class="sd">    :param command: command to execute on remote host. (templated)</span>
 <span class="sd">    :type command: str</span>
@@ -206,7 +217,7 @@
 <span class="sd">    :type do_xcom_push: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;command&#39;</span><span class="p">,)</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;command&#39;</span><span class="p">,</span> <span class="s1">&#39;remote_host&#39;</span><span class="p">)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sh&#39;</span><span class="p">,)</span>
 
     <span class="nd">@apply_defaults</span>
@@ -227,19 +238,28 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_xcom_push</span> <span class="o">=</span> <span class="n">do_xcom_push</span>
 
-<div class="viewcode-block" id="SSHOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.ssh_operator.SSHOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span><span class="n">ssh_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">,</span> <span class="n">SSHHook</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ssh_conn_id is ignored when ssh_hook is provided.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ssh_hook is not provided or invalid. &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;Trying ssh_conn_id to create SSHHook.&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span><span class="n">ssh_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">,</span>
+                                            <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;can not operate without ssh_hook or ssh_conn_id&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Cannot operate without ssh_hook or ssh_conn_id.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;remote_host is provided explicitly. &quot;</span> <span class="o">+</span>
+                              <span class="s2">&quot;It will replace the remote_host which was defined &quot;</span> <span class="o">+</span>
+                              <span class="s2">&quot;in ssh_hook or predefined in connection of ssh_conn_id.&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;no command specified so nothing to execute here.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;SSH command not specified. Aborting.&quot;</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh_client</span><span class="p">:</span>
                 <span class="c1"># Auto apply tty when its required in case of sudo</span>
@@ -314,7 +334,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;SSH operator error: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">tunnel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ssh_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
@@ -355,6 +375,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

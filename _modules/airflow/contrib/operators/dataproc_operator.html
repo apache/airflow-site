@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -235,8 +242,7 @@
 <span class="sd">    :type: custom_image: string</span>
 <span class="sd">    :param properties: dict of properties to set on</span>
 <span class="sd">        config files (e.g. spark-defaults.conf), see</span>
-<span class="sd">        https://cloud.google.com/dataproc/docs/reference/rest/v1/ \</span>
-<span class="sd">        projects.regions.clusters#SoftwareConfig</span>
+<span class="sd">        https://cloud.google.com/dataproc/docs/reference/rest/v1/projects.regions.clusters#SoftwareConfig</span>
 <span class="sd">    :type properties: dict</span>
 <span class="sd">    :param master_machine_type: Compute engine machine type to use for the master node</span>
 <span class="sd">    :type master_machine_type: string</span>
@@ -557,7 +563,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">service_account_scopes</span>
         <span class="k">return</span> <span class="n">cluster_data</span>
 
-<div class="viewcode-block" id="DataprocClusterCreateOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataprocClusterCreateOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating cluster: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span>
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
@@ -593,7 +599,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">e</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataprocClusterScaleOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataprocClusterScaleOperator">[docs]</a><span class="k">class</span> <span class="nc">DataprocClusterScaleOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -699,7 +705,8 @@
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">scale_data</span>
 
-    <span class="k">def</span> <span class="nf">_get_graceful_decommission_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_graceful_decommission_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
         <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(\d+)(s|m|h|d)$&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span>
@@ -719,7 +726,7 @@
             <span class="s2">&quot; should be expressed in day, hours, minutes or seconds. &quot;</span>
             <span class="s2">&quot; i.e. 1d, 4h, 10m, 30s&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DataprocClusterScaleOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataprocClusterScaleOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scaling cluster: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span>
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
@@ -741,7 +748,7 @@
         <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="n">operation_name</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cluster scale operation name: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataprocClusterDeleteOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataprocClusterDeleteOperator">[docs]</a><span class="k">class</span> <span class="nc">DataprocClusterDeleteOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -783,7 +790,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
 
-    <span class="k">def</span> <span class="nf">_wait_for_done</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">):</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">regions</span><span class="p">()</span><span class="o">.</span><span class="n">operations</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -797,7 +805,7 @@
                     <span class="k">return</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DataprocClusterDeleteOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataprocClusterDeleteOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleting cluster: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span>
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
@@ -812,7 +820,7 @@
         <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="n">operation_name</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cluster delete operation name: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_done</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataProcPigOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcPigOperator">[docs]</a><span class="k">class</span> <span class="nc">DataProcPigOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -876,7 +884,19 @@
 <span class="sd">        delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param region: The specified region where the dataproc cluster is created.</span>
-<span class="sd">    :type region: string</span>
+<span class="sd">    :type region: str</span>
+<span class="sd">    :param job_error_states: Job states that should be considered error states.</span>
+<span class="sd">        Any states in this list will result in an error being raised and failure of the</span>
+<span class="sd">        task. Eg, if the ``CANCELLED`` state should also be considered a task failure,</span>
+<span class="sd">        pass in ``[&#39;ERROR&#39;, &#39;CANCELLED&#39;]``. Possible values are currently only</span>
+<span class="sd">        ``&#39;ERROR&#39;`` and ``&#39;CANCELLED&#39;``, but could change in the future. Defaults to</span>
+<span class="sd">        ``[&#39;ERROR&#39;]``.</span>
+<span class="sd">    :type job_error_states: list</span>
+<span class="sd">    :var dataproc_job_id: The actual &quot;jobId&quot; as submitted to the Dataproc API.</span>
+<span class="sd">        This is useful for identifying or linking to the job in the Google Cloud Console</span>
+<span class="sd">        Dataproc UI, as the actual &quot;jobId&quot; submitted to the Dataproc API is appended with</span>
+<span class="sd">        an 8 character random string.</span>
+<span class="sd">    :vartype dataproc_job_id: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;variables&#39;</span><span class="p">,</span> <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dataproc_jars&#39;</span><span class="p">]</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.pg&#39;</span><span class="p">,</span> <span class="s1">&#39;.pig&#39;</span><span class="p">,)</span>
@@ -895,6 +915,7 @@
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+            <span class="n">job_error_states</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -909,8 +930,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_properties</span> <span class="o">=</span> <span class="n">dataproc_pig_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span> <span class="o">=</span> <span class="n">dataproc_pig_jars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
 
-<div class="viewcode-block" id="DataProcPigOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcPigOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span><span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
                             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
         <span class="n">job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job_template</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="s2">&quot;pigJob&quot;</span><span class="p">,</span>
@@ -924,7 +946,10 @@
         <span class="n">job</span><span class="o">.</span><span class="n">add_jar_file_uris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span><span class="p">)</span>
         <span class="n">job</span><span class="o">.</span><span class="n">set_job_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">)</span>
 
-        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div></div>
+        <span class="n">job_to_submit</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_job_id</span> <span class="o">=</span> <span class="n">job_to_submit</span><span class="p">[</span><span class="s2">&quot;job&quot;</span><span class="p">][</span><span class="s2">&quot;reference&quot;</span><span class="p">][</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+
+        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_to_submit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataProcHiveOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcHiveOperator">[docs]</a><span class="k">class</span> <span class="nc">DataProcHiveOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -956,7 +981,19 @@
 <span class="sd">        delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param region: The specified region where the dataproc cluster is created.</span>
-<span class="sd">    :type region: string</span>
+<span class="sd">    :type region: str</span>
+<span class="sd">    :param job_error_states: Job states that should be considered error states.</span>
+<span class="sd">        Any states in this list will result in an error being raised and failure of the</span>
+<span class="sd">        task. Eg, if the ``CANCELLED`` state should also be considered a task failure,</span>
+<span class="sd">        pass in ``[&#39;ERROR&#39;, &#39;CANCELLED&#39;]``. Possible values are currently only</span>
+<span class="sd">        ``&#39;ERROR&#39;`` and ``&#39;CANCELLED&#39;``, but could change in the future. Defaults to</span>
+<span class="sd">        ``[&#39;ERROR&#39;]``.</span>
+<span class="sd">    :type job_error_states: list</span>
+<span class="sd">    :var dataproc_job_id: The actual &quot;jobId&quot; as submitted to the Dataproc API.</span>
+<span class="sd">        This is useful for identifying or linking to the job in the Google Cloud Console</span>
+<span class="sd">        Dataproc UI, as the actual &quot;jobId&quot; submitted to the Dataproc API is appended with</span>
+<span class="sd">        an 8 character random string.</span>
+<span class="sd">    :vartype dataproc_job_id: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;variables&#39;</span><span class="p">,</span> <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dataproc_jars&#39;</span><span class="p">]</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.q&#39;</span><span class="p">,)</span>
@@ -975,6 +1012,7 @@
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+            <span class="n">job_error_states</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -989,8 +1027,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_properties</span> <span class="o">=</span> <span class="n">dataproc_hive_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span> <span class="o">=</span> <span class="n">dataproc_hive_jars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
 
-<div class="viewcode-block" id="DataProcHiveOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcHiveOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span><span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
                             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
 
@@ -1005,7 +1044,10 @@
         <span class="n">job</span><span class="o">.</span><span class="n">add_jar_file_uris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span><span class="p">)</span>
         <span class="n">job</span><span class="o">.</span><span class="n">set_job_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">)</span>
 
-        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div></div>
+        <span class="n">job_to_submit</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_job_id</span> <span class="o">=</span> <span class="n">job_to_submit</span><span class="p">[</span><span class="s2">&quot;job&quot;</span><span class="p">][</span><span class="s2">&quot;reference&quot;</span><span class="p">][</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+
+        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_to_submit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataProcSparkSqlOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcSparkSqlOperator">[docs]</a><span class="k">class</span> <span class="nc">DataProcSparkSqlOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -1038,7 +1080,19 @@
 <span class="sd">        delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param region: The specified region where the dataproc cluster is created.</span>
-<span class="sd">    :type region: string</span>
+<span class="sd">    :type region: str</span>
+<span class="sd">    :param job_error_states: Job states that should be considered error states.</span>
+<span class="sd">        Any states in this list will result in an error being raised and failure of the</span>
+<span class="sd">        task. Eg, if the ``CANCELLED`` state should also be considered a task failure,</span>
+<span class="sd">        pass in ``[&#39;ERROR&#39;, &#39;CANCELLED&#39;]``. Possible values are currently only</span>
+<span class="sd">        ``&#39;ERROR&#39;`` and ``&#39;CANCELLED&#39;``, but could change in the future. Defaults to</span>
+<span class="sd">        ``[&#39;ERROR&#39;]``.</span>
+<span class="sd">    :type job_error_states: list</span>
+<span class="sd">    :var dataproc_job_id: The actual &quot;jobId&quot; as submitted to the Dataproc API.</span>
+<span class="sd">        This is useful for identifying or linking to the job in the Google Cloud Console</span>
+<span class="sd">        Dataproc UI, as the actual &quot;jobId&quot; submitted to the Dataproc API is appended with</span>
+<span class="sd">        an 8 character random string.</span>
+<span class="sd">    :vartype dataproc_job_id: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="s1">&#39;variables&#39;</span><span class="p">,</span> <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dataproc_jars&#39;</span><span class="p">]</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.q&#39;</span><span class="p">,)</span>
@@ -1057,6 +1111,7 @@
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+            <span class="n">job_error_states</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -1071,8 +1126,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_properties</span> <span class="o">=</span> <span class="n">dataproc_spark_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span> <span class="o">=</span> <span class="n">dataproc_spark_jars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
 
-<div class="viewcode-block" id="DataProcSparkSqlOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcSparkSqlOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span><span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
                             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
 
@@ -1087,7 +1143,10 @@
         <span class="n">job</span><span class="o">.</span><span class="n">add_jar_file_uris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span><span class="p">)</span>
         <span class="n">job</span><span class="o">.</span><span class="n">set_job_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">)</span>
 
-        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div></div>
+        <span class="n">job_to_submit</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_job_id</span> <span class="o">=</span> <span class="n">job_to_submit</span><span class="p">[</span><span class="s2">&quot;job&quot;</span><span class="p">][</span><span class="s2">&quot;reference&quot;</span><span class="p">][</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+
+        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_to_submit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataProcSparkOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcSparkOperator">[docs]</a><span class="k">class</span> <span class="nc">DataProcSparkOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -1127,7 +1186,19 @@
 <span class="sd">        delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param region: The specified region where the dataproc cluster is created.</span>
-<span class="sd">    :type region: string</span>
+<span class="sd">    :type region: str</span>
+<span class="sd">    :param job_error_states: Job states that should be considered error states.</span>
+<span class="sd">        Any states in this list will result in an error being raised and failure of the</span>
+<span class="sd">        task. Eg, if the ``CANCELLED`` state should also be considered a task failure,</span>
+<span class="sd">        pass in ``[&#39;ERROR&#39;, &#39;CANCELLED&#39;]``. Possible values are currently only</span>
+<span class="sd">        ``&#39;ERROR&#39;`` and ``&#39;CANCELLED&#39;``, but could change in the future. Defaults to</span>
+<span class="sd">        ``[&#39;ERROR&#39;]``.</span>
+<span class="sd">    :type job_error_states: list</span>
+<span class="sd">    :var dataproc_job_id: The actual &quot;jobId&quot; as submitted to the Dataproc API.</span>
+<span class="sd">        This is useful for identifying or linking to the job in the Google Cloud Console</span>
+<span class="sd">        Dataproc UI, as the actual &quot;jobId&quot; submitted to the Dataproc API is appended with</span>
+<span class="sd">        an 8 character random string.</span>
+<span class="sd">    :vartype dataproc_job_id: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;arguments&#39;</span><span class="p">,</span> <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dataproc_jars&#39;</span><span class="p">]</span>
@@ -1148,6 +1219,7 @@
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+            <span class="n">job_error_states</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -1164,8 +1236,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_properties</span> <span class="o">=</span> <span class="n">dataproc_spark_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span> <span class="o">=</span> <span class="n">dataproc_spark_jars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
 
-<div class="viewcode-block" id="DataProcSparkOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcSparkOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span><span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
                             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
         <span class="n">job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job_template</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="s2">&quot;sparkJob&quot;</span><span class="p">,</span>
@@ -1178,7 +1251,10 @@
         <span class="n">job</span><span class="o">.</span><span class="n">add_file_uris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
         <span class="n">job</span><span class="o">.</span><span class="n">set_job_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">)</span>
 
-        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div></div>
+        <span class="n">job_to_submit</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_job_id</span> <span class="o">=</span> <span class="n">job_to_submit</span><span class="p">[</span><span class="s2">&quot;job&quot;</span><span class="p">][</span><span class="s2">&quot;reference&quot;</span><span class="p">][</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+
+        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_to_submit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataProcHadoopOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcHadoopOperator">[docs]</a><span class="k">class</span> <span class="nc">DataProcHadoopOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -1218,7 +1294,19 @@
 <span class="sd">        delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param region: The specified region where the dataproc cluster is created.</span>
-<span class="sd">    :type region: string</span>
+<span class="sd">    :type region: str</span>
+<span class="sd">    :param job_error_states: Job states that should be considered error states.</span>
+<span class="sd">        Any states in this list will result in an error being raised and failure of the</span>
+<span class="sd">        task. Eg, if the ``CANCELLED`` state should also be considered a task failure,</span>
+<span class="sd">        pass in ``[&#39;ERROR&#39;, &#39;CANCELLED&#39;]``. Possible values are currently only</span>
+<span class="sd">        ``&#39;ERROR&#39;`` and ``&#39;CANCELLED&#39;``, but could change in the future. Defaults to</span>
+<span class="sd">        ``[&#39;ERROR&#39;]``.</span>
+<span class="sd">    :type job_error_states: list</span>
+<span class="sd">    :var dataproc_job_id: The actual &quot;jobId&quot; as submitted to the Dataproc API.</span>
+<span class="sd">        This is useful for identifying or linking to the job in the Google Cloud Console</span>
+<span class="sd">        Dataproc UI, as the actual &quot;jobId&quot; submitted to the Dataproc API is appended with</span>
+<span class="sd">        an 8 character random string.</span>
+<span class="sd">    :vartype dataproc_job_id: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;arguments&#39;</span><span class="p">,</span> <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dataproc_jars&#39;</span><span class="p">]</span>
@@ -1239,6 +1327,7 @@
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+            <span class="n">job_error_states</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -1255,8 +1344,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_properties</span> <span class="o">=</span> <span class="n">dataproc_hadoop_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span> <span class="o">=</span> <span class="n">dataproc_hadoop_jars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
 
-<div class="viewcode-block" id="DataProcHadoopOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcHadoopOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span><span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
                             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
         <span class="n">job</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_job_template</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="s2">&quot;hadoopJob&quot;</span><span class="p">,</span>
@@ -1269,7 +1359,10 @@
         <span class="n">job</span><span class="o">.</span><span class="n">add_file_uris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
         <span class="n">job</span><span class="o">.</span><span class="n">set_job_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">)</span>
 
-        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div></div>
+        <span class="n">job_to_submit</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_job_id</span> <span class="o">=</span> <span class="n">job_to_submit</span><span class="p">[</span><span class="s2">&quot;job&quot;</span><span class="p">][</span><span class="s2">&quot;reference&quot;</span><span class="p">][</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+
+        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_to_submit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataProcPySparkOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcPySparkOperator">[docs]</a><span class="k">class</span> <span class="nc">DataProcPySparkOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -1309,7 +1402,19 @@
 <span class="sd">        domain-wide delegation enabled.</span>
 <span class="sd">    :type delegate_to: string</span>
 <span class="sd">    :param region: The specified region where the dataproc cluster is created.</span>
-<span class="sd">    :type region: string</span>
+<span class="sd">    :type region: str</span>
+<span class="sd">    :param job_error_states: Job states that should be considered error states.</span>
+<span class="sd">        Any states in this list will result in an error being raised and failure of the</span>
+<span class="sd">        task. Eg, if the ``CANCELLED`` state should also be considered a task failure,</span>
+<span class="sd">        pass in ``[&#39;ERROR&#39;, &#39;CANCELLED&#39;]``. Possible values are currently only</span>
+<span class="sd">        ``&#39;ERROR&#39;`` and ``&#39;CANCELLED&#39;``, but could change in the future. Defaults to</span>
+<span class="sd">        ``[&#39;ERROR&#39;]``.</span>
+<span class="sd">    :type job_error_states: list</span>
+<span class="sd">    :var dataproc_job_id: The actual &quot;jobId&quot; as submitted to the Dataproc API.</span>
+<span class="sd">        This is useful for identifying or linking to the job in the Google Cloud Console</span>
+<span class="sd">        Dataproc UI, as the actual &quot;jobId&quot; submitted to the Dataproc API is appended with</span>
+<span class="sd">        an 8 character random string.</span>
+<span class="sd">    :vartype dataproc_job_id: string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;arguments&#39;</span><span class="p">,</span> <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dataproc_jars&#39;</span><span class="p">]</span>
@@ -1357,6 +1462,7 @@
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+            <span class="n">job_error_states</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -1373,8 +1479,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_properties</span> <span class="o">=</span> <span class="n">dataproc_pyspark_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_jars</span> <span class="o">=</span> <span class="n">dataproc_pyspark_jars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
 
-<div class="viewcode-block" id="DataProcPySparkOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.dataproc_operator.DataProcPySparkOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DataProcHook</span><span class="p">(</span>
             <span class="n">gcp_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">,</span>
             <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span>
@@ -1400,7 +1507,10 @@
         <span class="n">job</span><span class="o">.</span><span class="n">add_python_file_uris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pyfiles</span><span class="p">)</span>
         <span class="n">job</span><span class="o">.</span><span class="n">set_job_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">)</span>
 
-        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div></div>
+        <span class="n">job_to_submit</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_job_id</span> <span class="o">=</span> <span class="n">job_to_submit</span><span class="p">[</span><span class="s2">&quot;job&quot;</span><span class="p">][</span><span class="s2">&quot;reference&quot;</span><span class="p">][</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span>
+
+        <span class="n">hook</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">hook</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">job_to_submit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DataprocWorkflowTemplateBaseOperator"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.dataproc_operator.DataprocWorkflowTemplateBaseOperator">[docs]</a><span class="k">class</span> <span class="nc">DataprocWorkflowTemplateBaseOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -1423,8 +1533,8 @@
             <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta2&#39;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="DataprocWorkflowTemplateBaseOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.dataproc_operator.DataprocWorkflowTemplateBaseOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span></div>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;plese start a workflow operation&#39;</span><span class="p">)</span></div>
@@ -1551,6 +1661,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

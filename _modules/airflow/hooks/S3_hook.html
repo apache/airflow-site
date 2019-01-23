@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -177,6 +184,7 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
+<span class="kn">from</span> <span class="nn">botocore.exceptions</span> <span class="k">import</span> <span class="n">ClientError</span>
 
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.aws_hook</span> <span class="k">import</span> <span class="n">AwsHook</span>
@@ -203,7 +211,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span>
 
 <div class="viewcode-block" id="S3Hook.check_for_bucket"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.check_for_bucket">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -215,7 +223,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">ClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;Error&quot;</span><span class="p">][</span><span class="s2">&quot;Message&quot;</span><span class="p">])</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="S3Hook.get_bucket"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.get_bucket">[docs]</a>    <span class="k">def</span> <span class="nf">get_bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
@@ -251,6 +260,13 @@
 <div class="viewcode-block" id="S3Hook.check_for_prefix"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.check_for_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that a prefix exists in a bucket</span>
+
+<span class="sd">        :param bucket_name: the name of the bucket</span>
+<span class="sd">        :type bucket_name: str</span>
+<span class="sd">        :param prefix: a key prefix</span>
+<span class="sd">        :type prefix: str</span>
+<span class="sd">        :param delimiter: the delimiter marks key hierarchy.</span>
+<span class="sd">        :type delimiter: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">delimiter</span> <span class="k">if</span> <span class="n">prefix</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">delimiter</span> <span class="k">else</span> <span class="n">prefix</span>
         <span class="n">prefix_split</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\w+[</span><span class="si">{d}</span><span class="s1">])$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="n">delimiter</span><span class="p">),</span> <span class="n">prefix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -349,7 +365,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">ClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;Error&quot;</span><span class="p">][</span><span class="s2">&quot;Message&quot;</span><span class="p">])</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="S3Hook.get_key"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.get_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -384,8 +401,8 @@
 <div class="viewcode-block" id="S3Hook.select_key"><a class="viewcode-back" href="../../../integration.html#airflow.hooks.S3_hook.S3Hook.select_key">[docs]</a>    <span class="k">def</span> <span class="nf">select_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">expression</span><span class="o">=</span><span class="s1">&#39;SELECT * FROM S3Object&#39;</span><span class="p">,</span>
                    <span class="n">expression_type</span><span class="o">=</span><span class="s1">&#39;SQL&#39;</span><span class="p">,</span>
-                   <span class="n">input_serialization</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="p">{}},</span>
-                   <span class="n">output_serialization</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="p">{}}):</span>
+                   <span class="n">input_serialization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">output_serialization</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads a key with S3 Select.</span>
 
@@ -408,6 +425,10 @@
 <span class="sd">            For more details about S3 Select parameters:</span>
 <span class="sd">            http://boto3.readthedocs.io/en/latest/reference/services/s3.html#S3.Client.select_object_content</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">input_serialization</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">input_serialization</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+        <span class="k">if</span> <span class="n">output_serialization</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output_serialization</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;CSV&#39;</span><span class="p">:</span> <span class="p">{}}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
@@ -427,6 +448,13 @@
                                <span class="n">wildcard_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that a key matching a wildcard expression exists in a bucket</span>
+
+<span class="sd">        :param wildcard_key: the path to the key</span>
+<span class="sd">        :type wildcard_key: str</span>
+<span class="sd">        :param bucket_name: the name of the bucket</span>
+<span class="sd">        :type bucket_name: str</span>
+<span class="sd">        :param delimiter: the delimiter marks key hierarchy</span>
+<span class="sd">        :type delimiter: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_wildcard_key</span><span class="p">(</span><span class="n">wildcard_key</span><span class="o">=</span><span class="n">wildcard_key</span><span class="p">,</span>
                                      <span class="n">bucket_name</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
@@ -440,6 +468,8 @@
 <span class="sd">        :type wildcard_key: str</span>
 <span class="sd">        :param bucket_name: the name of the bucket</span>
 <span class="sd">        :type bucket_name: str</span>
+<span class="sd">        :param delimiter: the delimiter marks key hierarchy</span>
+<span class="sd">        :type delimiter: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket_name</span><span class="p">:</span>
             <span class="p">(</span><span class="n">bucket_name</span><span class="p">,</span> <span class="n">wildcard_key</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_s3_url</span><span class="p">(</span><span class="n">wildcard_key</span><span class="p">)</span>
@@ -715,6 +745,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

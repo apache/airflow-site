@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -199,7 +206,7 @@
 <span class="sd">    :type bucket: string</span>
 <span class="sd">    :param source_objects: List of Google cloud storage URIs to load from. (templated)</span>
 <span class="sd">        If source_format is &#39;DATASTORE_BACKUP&#39;, the list must only contain a single URI.</span>
-<span class="sd">    :type object: list</span>
+<span class="sd">    :type source_objects: list of str</span>
 <span class="sd">    :param destination_project_dataset_table: The dotted (&lt;project&gt;.)&lt;dataset&gt;.&lt;table&gt;</span>
 <span class="sd">        BigQuery table to load data into. If &lt;project&gt; is not included,</span>
 <span class="sd">        project will be the project defined in the connection json. (templated)</span>
@@ -210,7 +217,7 @@
 <span class="sd">    :type schema_fields: list</span>
 <span class="sd">    :param schema_object: If set, a GCS object path pointing to a .json file that</span>
 <span class="sd">        contains the schema for the table. (templated)</span>
-<span class="sd">    :param schema_object: string</span>
+<span class="sd">    :type schema_object: string</span>
 <span class="sd">    :param source_format: File format to export.</span>
 <span class="sd">    :type source_format: string</span>
 <span class="sd">    :param compression: [Optional] The compression type of the data source.</span>
@@ -239,7 +246,7 @@
 <span class="sd">        invalid error is returned in the job result.</span>
 <span class="sd">    :type ignore_unknown_values: bool</span>
 <span class="sd">    :param allow_quoted_newlines: Whether to allow quoted newlines (true) or not (false).</span>
-<span class="sd">    :type allow_quoted_newlines: boolean</span>
+<span class="sd">    :type allow_quoted_newlines: bool</span>
 <span class="sd">    :param allow_jagged_rows: Accept rows that are missing trailing optional columns.</span>
 <span class="sd">        The missing values are treated as nulls. If false, records with missing trailing</span>
 <span class="sd">        columns are treated as bad records, and if there are too many bad records, an</span>
@@ -247,7 +254,7 @@
 <span class="sd">        for other formats.</span>
 <span class="sd">    :type allow_jagged_rows: bool</span>
 <span class="sd">    :param max_id_key: If set, the name of a column in the BigQuery table</span>
-<span class="sd">        that&#39;s to be loaded. Thsi will be used to select the MAX value from</span>
+<span class="sd">        that&#39;s to be loaded. This will be used to select the MAX value from</span>
 <span class="sd">        BigQuery after the load occurs. The results will be returned by the</span>
 <span class="sd">        execute() command, which in turn gets stored in XCom for future</span>
 <span class="sd">        operators to use. This can be helpful with incremental loads--during</span>
@@ -275,6 +282,11 @@
 <span class="sd">        Note that &#39;field&#39; is not available in concurrency with</span>
 <span class="sd">        dataset.table$partition.</span>
 <span class="sd">    :type time_partitioning: dict</span>
+<span class="sd">    :param cluster_fields: Request that the result of this load be stored sorted</span>
+<span class="sd">        by one or more columns. This is only available in conjunction with</span>
+<span class="sd">        time_partitioning. The order of columns given determines the sort order.</span>
+<span class="sd">        Not applicable for external tables.</span>
+<span class="sd">    :type cluster_fields: list of str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;bucket&#39;</span><span class="p">,</span> <span class="s1">&#39;source_objects&#39;</span><span class="p">,</span>
                        <span class="s1">&#39;schema_object&#39;</span><span class="p">,</span> <span class="s1">&#39;destination_project_dataset_table&#39;</span><span class="p">)</span>
@@ -304,14 +316,20 @@
                  <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">schema_update_options</span><span class="o">=</span><span class="p">(),</span>
-                 <span class="n">src_fmt_configs</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">src_fmt_configs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">external_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">time_partitioning</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">time_partitioning</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cluster_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">autodetect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">GoogleCloudStorageToBigQueryOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># GCS config</span>
+        <span class="k">if</span> <span class="n">src_fmt_configs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">src_fmt_configs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">time_partitioning</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">time_partitioning</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bucket</span> <span class="o">=</span> <span class="n">bucket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">source_objects</span> <span class="o">=</span> <span class="n">source_objects</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">schema_object</span> <span class="o">=</span> <span class="n">schema_object</span>
@@ -340,20 +358,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">schema_update_options</span> <span class="o">=</span> <span class="n">schema_update_options</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">src_fmt_configs</span> <span class="o">=</span> <span class="n">src_fmt_configs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span> <span class="o">=</span> <span class="n">time_partitioning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_fields</span> <span class="o">=</span> <span class="n">cluster_fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autodetect</span> <span class="o">=</span> <span class="n">autodetect</span>
 
-<div class="viewcode-block" id="GoogleCloudStorageToBigQueryOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcs_to_bq.GoogleCloudStorageToBigQueryOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">bq_hook</span> <span class="o">=</span> <span class="n">BigQueryHook</span><span class="p">(</span><span class="n">bigquery_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigquery_conn_id</span><span class="p">,</span>
                                <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_fields</span> <span class="ow">and</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">schema_object</span> <span class="ow">and</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">source_format</span> <span class="o">!=</span> <span class="s1">&#39;DATASTORE_BACKUP&#39;</span><span class="p">:</span>
-            <span class="n">gcs_hook</span> <span class="o">=</span> <span class="n">GoogleCloudStorageHook</span><span class="p">(</span>
-                <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span><span class="p">,</span>
-                <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
-            <span class="n">schema_fields</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">gcs_hook</span><span class="o">.</span><span class="n">download</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">schema_object</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_object</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_format</span> <span class="o">!=</span> <span class="s1">&#39;DATASTORE_BACKUP&#39;</span><span class="p">:</span>
+                <span class="n">gcs_hook</span> <span class="o">=</span> <span class="n">GoogleCloudStorageHook</span><span class="p">(</span>
+                    <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span><span class="p">,</span>
+                    <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
+                <span class="n">schema_fields</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">gcs_hook</span><span class="o">.</span><span class="n">download</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">schema_object</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_object</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">autodetect</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;At least one of `schema_fields`, `schema_object`, &#39;</span>
+                                 <span class="s1">&#39;or `autodetect` must be passed.&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">schema_fields</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="n">schema_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_fields</span>
 
@@ -384,6 +409,7 @@
                 <span class="n">schema_fields</span><span class="o">=</span><span class="n">schema_fields</span><span class="p">,</span>
                 <span class="n">source_uris</span><span class="o">=</span><span class="n">source_uris</span><span class="p">,</span>
                 <span class="n">source_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source_format</span><span class="p">,</span>
+                <span class="n">autodetect</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">autodetect</span><span class="p">,</span>
                 <span class="n">create_disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">create_disposition</span><span class="p">,</span>
                 <span class="n">skip_leading_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skip_leading_rows</span><span class="p">,</span>
                 <span class="n">write_disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">write_disposition</span><span class="p">,</span>
@@ -395,7 +421,8 @@
                 <span class="n">allow_jagged_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_jagged_rows</span><span class="p">,</span>
                 <span class="n">schema_update_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">schema_update_options</span><span class="p">,</span>
                 <span class="n">src_fmt_configs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">src_fmt_configs</span><span class="p">,</span>
-                <span class="n">time_partitioning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span><span class="p">)</span>
+                <span class="n">time_partitioning</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_partitioning</span><span class="p">,</span>
+                <span class="n">cluster_fields</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_fields</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_id_key</span><span class="p">:</span>
             <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT MAX(</span><span class="si">{}</span><span class="s1">) FROM </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -407,7 +434,7 @@
                 <span class="s1">&#39;Loaded BQ data with max </span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">destination_project_dataset_table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_id_key</span><span class="p">,</span> <span class="n">max_id</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">max_id</span></div></div>
+            <span class="k">return</span> <span class="n">max_id</span></div>
 </pre></div>
 
            </div>
@@ -444,6 +471,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -178,6 +185,8 @@
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
 
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils</span> <span class="k">import</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
@@ -196,7 +205,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Triggers a DAG run for a specified ``dag_id``</span>
 
-<span class="sd">    :param trigger_dag_id: the dag_id to trigger</span>
+<span class="sd">    :param trigger_dag_id: the dag_id to trigger (templated)</span>
 <span class="sd">    :type trigger_dag_id: str</span>
 <span class="sd">    :param python_callable: a reference to a python function that will be</span>
 <span class="sd">        called while passing it the ``context`` object and a placeholder</span>
@@ -208,10 +217,10 @@
 <span class="sd">        to your tasks while executing that DAG run. Your function header</span>
 <span class="sd">        should look like ``def foo(context, dag_run_obj):``</span>
 <span class="sd">    :type python_callable: python callable</span>
-<span class="sd">    :param execution_date: Execution date for the dag</span>
-<span class="sd">    :type execution_date: datetime.datetime</span>
+<span class="sd">    :param execution_date: Execution date for the dag (templated)</span>
+<span class="sd">    :type execution_date: str or datetime.datetime</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">template_fields</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;trigger_dag_id&#39;</span><span class="p">,</span> <span class="s1">&#39;execution_date&#39;</span><span class="p">)</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
     <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#ffefeb&#39;</span>
 
@@ -225,10 +234,26 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">TriggerDagRunOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">python_callable</span> <span class="o">=</span> <span class="n">python_callable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger_dag_id</span> <span class="o">=</span> <span class="n">trigger_dag_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">=</span> <span class="n">execution_date</span>
 
-<div class="viewcode-block" id="TriggerDagRunOperator.execute"><a class="viewcode-back" href="../../../code.html#airflow.operators.dagrun_operator.TriggerDagRunOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">dro</span> <span class="o">=</span> <span class="n">DagRunOrder</span><span class="p">(</span><span class="n">run_id</span><span class="o">=</span><span class="s1">&#39;trig__&#39;</span> <span class="o">+</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">execution_date</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">=</span> <span class="n">execution_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">execution_date</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">=</span> <span class="n">execution_date</span>
+        <span class="k">elif</span> <span class="n">execution_date</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">=</span> <span class="n">execution_date</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Expected str or datetime.datetime type &#39;</span>
+                <span class="s1">&#39;for execution_date. Got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="p">(</span><span class="n">execution_date</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">run_id</span> <span class="o">=</span> <span class="s1">&#39;trig__</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">run_id</span> <span class="o">=</span> <span class="s1">&#39;trig__&#39;</span> <span class="o">+</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="n">dro</span> <span class="o">=</span> <span class="n">DagRunOrder</span><span class="p">(</span><span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">python_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">python_callable</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">dro</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dro</span><span class="p">:</span>
@@ -238,7 +263,7 @@
                         <span class="n">execution_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span><span class="p">,</span>
                         <span class="n">replace_microseconds</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Criteria not met, moving on&quot;</span><span class="p">)</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Criteria not met, moving on&quot;</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -275,6 +300,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

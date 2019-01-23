@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -200,6 +207,16 @@
 <span class="sd">    :type redshift_conn_id: string</span>
 <span class="sd">    :param aws_conn_id: reference to a specific S3 connection</span>
 <span class="sd">    :type aws_conn_id: string</span>
+<span class="sd">    :parame verify: Whether or not to verify SSL certificates for S3 connection.</span>
+<span class="sd">        By default SSL certificates are verified.</span>
+<span class="sd">        You can provide the following values:</span>
+<span class="sd">        - False: do not validate SSL certificates. SSL will still be used</span>
+<span class="sd">                 (unless use_ssl is False), but SSL certificates will not be</span>
+<span class="sd">                 verified.</span>
+<span class="sd">        - path/to/cert/bundle.pem: A filename of the CA cert bundle to uses.</span>
+<span class="sd">                 You can specify this argument if you want to use a different</span>
+<span class="sd">                 CA cert bundle than the one used by botocore.</span>
+<span class="sd">    :type verify: bool or str</span>
 <span class="sd">    :param unload_options: reference to a list of UNLOAD options</span>
 <span class="sd">    :type unload_options: list</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -217,6 +234,7 @@
             <span class="n">s3_key</span><span class="p">,</span>
             <span class="n">redshift_conn_id</span><span class="o">=</span><span class="s1">&#39;redshift_default&#39;</span><span class="p">,</span>
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="s1">&#39;aws_default&#39;</span><span class="p">,</span>
+            <span class="n">verify</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">unload_options</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(),</span>
             <span class="n">autocommit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -229,6 +247,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">s3_key</span> <span class="o">=</span> <span class="n">s3_key</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">redshift_conn_id</span> <span class="o">=</span> <span class="n">redshift_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="n">verify</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unload_options</span> <span class="o">=</span> <span class="n">unload_options</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span> <span class="o">=</span> <span class="n">autocommit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
@@ -238,9 +257,9 @@
            <span class="s1">&#39;PARALLEL OFF&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">uo</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">uo</span> <span class="ow">in</span> <span class="n">unload_options</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">unload_options</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unload_options</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;PARALLEL OFF&#39;</span><span class="p">,</span> <span class="p">]</span>
 
-<div class="viewcode-block" id="RedshiftToS3Transfer.execute"><a class="viewcode-back" href="../../../integration.html#airflow.operators.redshift_to_s3_operator.RedshiftToS3Transfer.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">PostgresHook</span><span class="p">(</span><span class="n">postgres_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">redshift_conn_id</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">s3</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s3</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
         <span class="n">unload_options</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\t\t\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unload_options</span><span class="p">)</span>
 
@@ -297,7 +316,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing UNLOAD command...&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">unload_query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;UNLOAD command complete...&quot;</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;UNLOAD command complete...&quot;</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -334,6 +353,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

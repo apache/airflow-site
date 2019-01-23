@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -194,8 +201,8 @@
 <span class="sd">    :param emr_conn_id: emr connection to use</span>
 <span class="sd">    :type emr_conn_id: str</span>
 <span class="sd">    :param job_flow_overrides: boto3 style arguments to override</span>
-<span class="sd">           emr_connection extra. (templated)</span>
-<span class="sd">    :type steps: dict</span>
+<span class="sd">       emr_connection extra. (templated)</span>
+<span class="sd">    :type job_flow_overrides: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;job_flow_overrides&#39;</span><span class="p">]</span>
     <span class="n">template_ext</span> <span class="o">=</span> <span class="p">()</span>
@@ -207,6 +214,7 @@
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="s1">&#39;s3_default&#39;</span><span class="p">,</span>
             <span class="n">emr_conn_id</span><span class="o">=</span><span class="s1">&#39;emr_default&#39;</span><span class="p">,</span>
             <span class="n">job_flow_overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">EmrCreateJobFlowOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
@@ -214,9 +222,12 @@
         <span class="k">if</span> <span class="n">job_flow_overrides</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">job_flow_overrides</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_overrides</span> <span class="o">=</span> <span class="n">job_flow_overrides</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">region_name</span> <span class="o">=</span> <span class="n">region_name</span>
 
-<div class="viewcode-block" id="EmrCreateJobFlowOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.emr_create_job_flow_operator.EmrCreateJobFlowOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">emr</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span> <span class="n">emr_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">emr_conn_id</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">emr</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
+                      <span class="n">emr_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">emr_conn_id</span><span class="p">,</span>
+                      <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Creating JobFlow using aws-conn-id: </span><span class="si">%s</span><span class="s1">, emr-conn-id: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
@@ -228,7 +239,7 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;JobFlow creation failed: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">response</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;JobFlow with id </span><span class="si">%s</span><span class="s1"> created&#39;</span><span class="p">,</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;JobFlowId&#39;</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;JobFlowId&#39;</span><span class="p">]</span></div></div>
+            <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;JobFlowId&#39;</span><span class="p">]</span></div>
 </pre></div>
 
            </div>
@@ -265,6 +276,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

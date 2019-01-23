@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -206,6 +213,12 @@
 <span class="sd">    :param arguments: arguments of to the entrypoint. (templated)</span>
 <span class="sd">        The docker image&#39;s CMD is used if this is not provided.</span>
 <span class="sd">    :type arguments: list of str</span>
+<span class="sd">    :param image_pull_policy: Specify a policy to cache or always pull an image</span>
+<span class="sd">    :type image_pull_policy: str</span>
+<span class="sd">    :param image_pull_secrets: Any image pull secrets to be given to the pod.</span>
+<span class="sd">                               If more than one secret is required, provide a</span>
+<span class="sd">                               comma separated list: secret_a,secret_b</span>
+<span class="sd">    :type image_pull_secrets: str</span>
 <span class="sd">    :param volume_mounts: volumeMounts for launched pod</span>
 <span class="sd">    :type volume_mounts: list of VolumeMount</span>
 <span class="sd">    :param volumes: volumes for launched pod. Includes ConfigMaps and PersistentVolumes</span>
@@ -239,12 +252,14 @@
 <span class="sd">        /airflow/xcom/return.json in the container will also be pushed to an</span>
 <span class="sd">        XCom when the container completes.</span>
 <span class="sd">    :type xcom_push: bool</span>
-<span class="sd">    :param tolerations: Kubernetes tolerations</span>
-<span class="sd">    :type list of tolerations</span>
+<span class="sd">    :param hostnetwork: If True enable host networking on the pod</span>
+<span class="sd">    :type hostnetwork: bool</span>
+<span class="sd">    :param tolerations: A list of kubernetes tolerations</span>
+<span class="sd">    :type tolerations: list tolerations</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cmds&#39;</span><span class="p">,</span> <span class="s1">&#39;arguments&#39;</span><span class="p">,</span> <span class="s1">&#39;env_vars&#39;</span><span class="p">,</span> <span class="s1">&#39;config_file&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="KubernetesPodOperator.execute"><a class="viewcode-back" href="../../../../kubernetes.html#airflow.contrib.operators.kubernetes_pod_operator.KubernetesPodOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">client</span> <span class="o">=</span> <span class="n">kube_client</span><span class="o">.</span><span class="n">get_kube_client</span><span class="p">(</span><span class="n">in_cluster</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">in_cluster</span><span class="p">,</span>
                                                  <span class="n">cluster_context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_context</span><span class="p">,</span>
@@ -269,6 +284,7 @@
             <span class="n">pod</span><span class="o">.</span><span class="n">secrets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">secrets</span>
             <span class="n">pod</span><span class="o">.</span><span class="n">envs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_vars</span>
             <span class="n">pod</span><span class="o">.</span><span class="n">image_pull_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_pull_policy</span>
+            <span class="n">pod</span><span class="o">.</span><span class="n">image_pull_secrets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_pull_secrets</span>
             <span class="n">pod</span><span class="o">.</span><span class="n">annotations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotations</span>
             <span class="n">pod</span><span class="o">.</span><span class="n">resources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resources</span>
             <span class="n">pod</span><span class="o">.</span><span class="n">affinity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">affinity</span>
@@ -278,13 +294,14 @@
 
             <span class="n">launcher</span> <span class="o">=</span> <span class="n">pod_launcher</span><span class="o">.</span><span class="n">PodLauncher</span><span class="p">(</span><span class="n">kube_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
                                                 <span class="n">extract_xcom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xcom_push</span><span class="p">)</span>
-            <span class="p">(</span><span class="n">final_state</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">run_pod</span><span class="p">(</span>
-                <span class="n">pod</span><span class="p">,</span>
-                <span class="n">startup_timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">startup_timeout_seconds</span><span class="p">,</span>
-                <span class="n">get_logs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_logs</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_delete_operator_pod</span><span class="p">:</span>
-                <span class="n">launcher</span><span class="o">.</span><span class="n">delete_pod</span><span class="p">(</span><span class="n">pod</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">final_state</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">run_pod</span><span class="p">(</span>
+                    <span class="n">pod</span><span class="p">,</span>
+                    <span class="n">startup_timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">startup_timeout_seconds</span><span class="p">,</span>
+                    <span class="n">get_logs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_logs</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_delete_operator_pod</span><span class="p">:</span>
+                    <span class="n">launcher</span><span class="o">.</span><span class="n">delete_pod</span><span class="p">(</span><span class="n">pod</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">final_state</span> <span class="o">!=</span> <span class="n">State</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
@@ -293,7 +310,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xcom_push</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">result</span>
         <span class="k">except</span> <span class="n">AirflowException</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Pod Launching failed: </span><span class="si">{error}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="n">ex</span><span class="p">))</span></div>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Pod Launching failed: </span><span class="si">{error}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="n">ex</span><span class="p">))</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -388,6 +405,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -196,7 +203,7 @@
 <span class="n">PY3</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span>
 
 
-<div class="viewcode-block" id="MySqlToGoogleCloudStorageOperator"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.mysql_to_gcs.MySqlToGoogleCloudStorageOperator">[docs]</a><span class="k">class</span> <span class="nc">MySqlToGoogleCloudStorageOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<div class="viewcode-block" id="MySqlToGoogleCloudStorageOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mysql_to_gcs.MySqlToGoogleCloudStorageOperator">[docs]</a><span class="k">class</span> <span class="nc">MySqlToGoogleCloudStorageOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy data from MySQL to Google cloud storage in JSON format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -262,7 +269,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">schema</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
 
-<div class="viewcode-block" id="MySqlToGoogleCloudStorageOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.mysql_to_gcs.MySqlToGoogleCloudStorageOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_mysql</span><span class="p">()</span>
         <span class="n">files_to_upload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_local_data_files</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
 
@@ -278,7 +285,7 @@
 
         <span class="c1"># Close all temp file handles.</span>
         <span class="k">for</span> <span class="n">file_handle</span> <span class="ow">in</span> <span class="n">files_to_upload</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">file_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+            <span class="n">file_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_query_mysql</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -379,7 +386,8 @@
         <span class="k">for</span> <span class="nb">object</span><span class="p">,</span> <span class="n">tmp_file_handle</span> <span class="ow">in</span> <span class="n">files_to_upload</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">hook</span><span class="o">.</span><span class="n">upload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;application/json&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_convert_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">col_type_dict</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_convert_types</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">col_type_dict</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Takes a value from MySQLdb, and converts it to a value that&#39;s safe for</span>
 <span class="sd">        JSON/Google cloud storage/BigQuery. Dates are converted to UTC seconds.</span>
@@ -424,7 +432,7 @@
                           <span class="s1">&#39;#specifying_a_json_schema_file&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">col_type_dict</span>
 
-<div class="viewcode-block" id="MySqlToGoogleCloudStorageOperator.type_map"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.mysql_to_gcs.MySqlToGoogleCloudStorageOperator.type_map">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="MySqlToGoogleCloudStorageOperator.type_map"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.mysql_to_gcs.MySqlToGoogleCloudStorageOperator.type_map">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">type_map</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mysql_type</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper function that maps from MySQL fields to BigQuery fields. Used</span>
@@ -483,6 +491,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

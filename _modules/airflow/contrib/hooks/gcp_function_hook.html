@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -207,11 +214,25 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">GcfHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gcp_conn_id</span><span class="p">,</span> <span class="n">delegate_to</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_version</span> <span class="o">=</span> <span class="n">api_version</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_full_location</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve full location of the function in the form of</span>
+<span class="sd">        projects/&lt;GCP_PROJECT_ID&gt;/locations/&lt;GCP_LOCATION&gt;</span>
+
+<span class="sd">        :param project_id: The Google Cloud Project project_id where the function belongs.</span>
+<span class="sd">        :type project_id: str</span>
+<span class="sd">        :param location: The location where the function is created.</span>
+<span class="sd">        :type location: str</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;projects/</span><span class="si">{}</span><span class="s1">/locations/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
+
 <div class="viewcode-block" id="GcfHook.get_conn"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the connection to Cloud Functions.</span>
 
-<span class="sd">        :return: Google Cloud Function services object</span>
+<span class="sd">        :return: Google Cloud Function services object.</span>
 <span class="sd">        :rtype: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="p">:</span>
@@ -224,59 +245,46 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the Cloud Function with the given name.</span>
 
-<span class="sd">        :param name: name of the function</span>
+<span class="sd">        :param name: Name of the function.</span>
 <span class="sd">        :type name: str</span>
-<span class="sd">        :return: a CloudFunction object representing the function</span>
+<span class="sd">        :return: A Cloud Functions object representing the function.</span>
 <span class="sd">        :rtype: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">locations</span><span class="p">()</span><span class="o">.</span><span class="n">functions</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="n">NUM_RETRIES</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GcfHook.list_functions"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.list_functions">[docs]</a>    <span class="k">def</span> <span class="nf">list_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_location</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Lists all Cloud Functions created in the location.</span>
-
-<span class="sd">        :param full_location: full location including the project in the form of</span>
-<span class="sd">            of /projects/&lt;PROJECT&gt;/location/&lt;LOCATION&gt;</span>
-<span class="sd">        :type full_location: str</span>
-<span class="sd">        :return: array of CloudFunction objects - representing functions in the location</span>
-<span class="sd">        :rtype: [dict]</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">list_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">locations</span><span class="p">()</span><span class="o">.</span><span class="n">functions</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
-            <span class="n">parent</span><span class="o">=</span><span class="n">full_location</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="n">NUM_RETRIES</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">list_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;functions&quot;</span><span class="p">,</span> <span class="p">[])</span></div>
-
-<div class="viewcode-block" id="GcfHook.create_new_function"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.create_new_function">[docs]</a>    <span class="k">def</span> <span class="nf">create_new_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_location</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+<div class="viewcode-block" id="GcfHook.create_new_function"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.create_new_function">[docs]</a>    <span class="nd">@GoogleCloudBaseHook</span><span class="o">.</span><span class="n">fallback_to_default_project_id</span>
+    <span class="k">def</span> <span class="nf">create_new_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new function in Cloud Function in the location specified in the body.</span>
 
-<span class="sd">        :param full_location: full location including the project in the form of</span>
-<span class="sd">            of /projects/&lt;PROJECT&gt;/location/&lt;LOCATION&gt;</span>
-<span class="sd">        :type full_location: str</span>
-<span class="sd">        :param body: body required by the Cloud Functions insert API</span>
+<span class="sd">        :param location: The location of the function.</span>
+<span class="sd">        :type location: str</span>
+<span class="sd">        :param body: The body required by the Cloud Functions insert API.</span>
 <span class="sd">        :type body: dict</span>
-<span class="sd">        :return: response returned by the operation</span>
-<span class="sd">        :rtype: dict</span>
+<span class="sd">        :param project_id: Optional, Google Cloud Project project_id where the function belongs.</span>
+<span class="sd">            If set to None or missing, the default project_id from the GCP connection is used.</span>
+<span class="sd">        :type project_id: str</span>
+<span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">locations</span><span class="p">()</span><span class="o">.</span><span class="n">functions</span><span class="p">()</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">location</span><span class="o">=</span><span class="n">full_location</span><span class="p">,</span>
+            <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_location</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">location</span><span class="p">),</span>
             <span class="n">body</span><span class="o">=</span><span class="n">body</span>
         <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="n">NUM_RETRIES</span><span class="p">)</span>
         <span class="n">operation_name</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_operation_to_complete</span><span class="p">(</span><span class="n">operation_name</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_operation_to_complete</span><span class="p">(</span><span class="n">operation_name</span><span class="o">=</span><span class="n">operation_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GcfHook.update_function"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.update_function">[docs]</a>    <span class="k">def</span> <span class="nf">update_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">update_mask</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates Cloud Functions according to the specified update mask.</span>
 
-<span class="sd">        :param name: name of the function</span>
+<span class="sd">        :param name: The name of the function.</span>
 <span class="sd">        :type name: str</span>
-<span class="sd">        :param body: body required by the cloud function patch API</span>
-<span class="sd">        :type body: str</span>
-<span class="sd">        :param update_mask: update mask - array of fields that should be patched</span>
+<span class="sd">        :param body: The body required by the cloud function patch API.</span>
+<span class="sd">        :type body: dict</span>
+<span class="sd">        :param update_mask: The update mask - array of fields that should be patched.</span>
 <span class="sd">        :type update_mask: [str]</span>
-<span class="sd">        :return: response returned by the operation</span>
-<span class="sd">        :rtype: dict</span>
+<span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">locations</span><span class="p">()</span><span class="o">.</span><span class="n">functions</span><span class="p">()</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
             <span class="n">updateMask</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">update_mask</span><span class="p">),</span>
@@ -284,27 +292,30 @@
             <span class="n">body</span><span class="o">=</span><span class="n">body</span>
         <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="n">NUM_RETRIES</span><span class="p">)</span>
         <span class="n">operation_name</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_operation_to_complete</span><span class="p">(</span><span class="n">operation_name</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_operation_to_complete</span><span class="p">(</span><span class="n">operation_name</span><span class="o">=</span><span class="n">operation_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GcfHook.upload_function_zip"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.upload_function_zip">[docs]</a>    <span class="k">def</span> <span class="nf">upload_function_zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">zip_path</span><span class="p">):</span>
+<div class="viewcode-block" id="GcfHook.upload_function_zip"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.hooks.gcp_function_hook.GcfHook.upload_function_zip">[docs]</a>    <span class="nd">@GoogleCloudBaseHook</span><span class="o">.</span><span class="n">fallback_to_default_project_id</span>
+    <span class="k">def</span> <span class="nf">upload_function_zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">zip_path</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Uploads zip file with sources.</span>
 
-<span class="sd">        :param parent: Google Cloud Platform project id and region where zip file should</span>
-<span class="sd">         be uploaded in the form of /projects/&lt;PROJECT&gt;/location/&lt;LOCATION&gt;</span>
-<span class="sd">        :type parent: str</span>
-<span class="sd">        :param zip_path: path of the valid .zip file to upload</span>
+<span class="sd">        :param location: The location where the function is created.</span>
+<span class="sd">        :type location: str</span>
+<span class="sd">        :param zip_path: The path of the valid .zip file to upload.</span>
 <span class="sd">        :type zip_path: str</span>
-<span class="sd">        :return: Upload URL that was returned by generateUploadUrl method</span>
+<span class="sd">        :param project_id: Optional, Google Cloud Project project_id where the function belongs.</span>
+<span class="sd">            If set to None or missing, the default project_id from the GCP connection is used.</span>
+<span class="sd">        :type project_id: str</span>
+<span class="sd">        :return: The upload URL that was returned by generateUploadUrl method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">locations</span><span class="p">()</span><span class="o">.</span><span class="n">functions</span><span class="p">()</span><span class="o">.</span><span class="n">generateUploadUrl</span><span class="p">(</span>
-            <span class="n">parent</span><span class="o">=</span><span class="n">parent</span>
+            <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_location</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
         <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="n">NUM_RETRIES</span><span class="p">)</span>
         <span class="n">upload_url</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uploadUrl&#39;</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
             <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
                 <span class="n">url</span><span class="o">=</span><span class="n">upload_url</span><span class="p">,</span>
-                <span class="n">data</span><span class="o">=</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
                 <span class="c1"># Those two headers needs to be specified according to:</span>
                 <span class="c1"># https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions/generateUploadUrl</span>
                 <span class="c1"># nopep8</span>
@@ -319,26 +330,25 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Deletes the specified Cloud Function.</span>
 
-<span class="sd">        :param name: name of the function</span>
+<span class="sd">        :param name: The name of the function.</span>
 <span class="sd">        :type name: str</span>
-<span class="sd">        :return: response returned by the operation</span>
-<span class="sd">        :rtype: dict</span>
+<span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">locations</span><span class="p">()</span><span class="o">.</span><span class="n">functions</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="n">NUM_RETRIES</span><span class="p">)</span>
         <span class="n">operation_name</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_operation_to_complete</span><span class="p">(</span><span class="n">operation_name</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_operation_to_complete</span><span class="p">(</span><span class="n">operation_name</span><span class="o">=</span><span class="n">operation_name</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_wait_for_operation_to_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Waits for the named operation to complete - checks status of the</span>
 <span class="sd">        asynchronous call.</span>
 
-<span class="sd">        :param operation_name: name of the operation</span>
+<span class="sd">        :param operation_name: The name of the operation.</span>
 <span class="sd">        :type operation_name: str</span>
-<span class="sd">        :return: response  returned by the operation</span>
+<span class="sd">        :return: The response returned by the operation.</span>
 <span class="sd">        :rtype: dict</span>
-<span class="sd">        :exception: AirflowException in case error is returned</span>
+<span class="sd">        :exception: AirflowException in case error is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -390,6 +400,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

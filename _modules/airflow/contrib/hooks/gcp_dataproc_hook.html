@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -181,7 +188,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 
-<span class="kn">from</span> <span class="nn">apiclient.discovery</span> <span class="k">import</span> <span class="n">build</span>
+<span class="kn">from</span> <span class="nn">googleapiclient.discovery</span> <span class="k">import</span> <span class="n">build</span>
 <span class="kn">from</span> <span class="nn">zope.deprecation</span> <span class="k">import</span> <span class="n">deprecation</span>
 
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_api_base_hook</span> <span class="k">import</span> <span class="n">GoogleCloudBaseHook</span>
@@ -189,7 +196,8 @@
 
 
 <span class="k">class</span> <span class="nc">_DataProcJob</span><span class="p">(</span><span class="n">LoggingMixin</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataproc_api</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataproc_api</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span>
+                 <span class="n">job_error_states</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataproc_api</span> <span class="o">=</span> <span class="n">dataproc_api</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
@@ -198,6 +206,7 @@
             <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
             <span class="n">body</span><span class="o">=</span><span class="n">job</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">][</span><span class="s1">&#39;jobId&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="o">=</span> <span class="n">job_error_states</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;DataProc job </span><span class="si">%s</span><span class="s1"> is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">])</span>
@@ -210,13 +219,11 @@
                 <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
                 <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
             <span class="k">if</span> <span class="s1">&#39;ERROR&#39;</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;DataProc job </span><span class="si">%s</span><span class="s1"> has errors&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;details&#39;</span><span class="p">])</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">))</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="s1">&#39;CANCELLED&#39;</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;DataProc job </span><span class="si">%s</span><span class="s1"> is cancelled&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>
                 <span class="k">if</span> <span class="s1">&#39;details&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;details&#39;</span><span class="p">])</span>
@@ -231,10 +238,14 @@
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">raise_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="s1">&#39;ERROR&#39;</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Google DataProc job has error&quot;</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;details&#39;</span><span class="p">]))</span>
+        <span class="n">job_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;state&#39;</span><span class="p">]</span>
+        <span class="c1"># We always consider ERROR to be an error state.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span> <span class="ow">and</span> <span class="n">job_state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_error_states</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;ERROR&#39;</span> <span class="o">==</span> <span class="n">job_state</span><span class="p">:</span>
+            <span class="n">ex_message</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;Google DataProc job has state: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">job_state</span><span class="p">)</span>
+            <span class="n">ex_details</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">][</span><span class="s1">&#39;details&#39;</span><span class="p">])</span>
+                          <span class="k">if</span> <span class="s1">&#39;details&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
+                          <span class="k">else</span> <span class="s2">&quot;No details available&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">ex_message</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="n">ex_details</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">job</span>
@@ -377,10 +388,11 @@
             <span class="n">clusterName</span><span class="o">=</span><span class="n">cluster_name</span>
         <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">num_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">):</span>
-        <span class="n">submitted</span> <span class="o">=</span> <span class="n">_DataProcJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">(),</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span> <span class="n">job_error_states</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">submitted</span> <span class="o">=</span> <span class="n">_DataProcJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">(),</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span>
+                                 <span class="n">job_error_states</span><span class="o">=</span><span class="n">job_error_states</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">submitted</span><span class="o">.</span><span class="n">wait_for_done</span><span class="p">():</span>
-            <span class="n">submitted</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="s1">&#39;DataProcTask has errors&#39;</span><span class="p">)</span>
+            <span class="n">submitted</span><span class="o">.</span><span class="n">raise_error</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">create_job_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">cluster_name</span><span class="p">,</span> <span class="n">job_type</span><span class="p">,</span> <span class="n">properties</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_DataProcJobBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">cluster_name</span><span class="p">,</span>
@@ -396,7 +408,7 @@
     <span class="n">DataProcHook</span><span class="p">,</span>
     <span class="s2">&quot;await&quot;</span><span class="p">,</span>
     <span class="n">deprecation</span><span class="o">.</span><span class="n">deprecated</span><span class="p">(</span>
-        <span class="n">DataProcHook</span><span class="o">.</span><span class="n">wait</span><span class="p">,</span> <span class="s2">&quot;renamed to &#39;wait&#39; for Python3.7 compatability&quot;</span>
+        <span class="n">DataProcHook</span><span class="o">.</span><span class="n">wait</span><span class="p">,</span> <span class="s2">&quot;renamed to &#39;wait&#39; for Python3.7 compatibility&quot;</span>
     <span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
@@ -435,6 +447,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

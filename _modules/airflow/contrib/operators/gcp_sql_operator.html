@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -180,15 +187,16 @@
 <span class="kn">from</span> <span class="nn">googleapiclient.errors</span> <span class="k">import</span> <span class="n">HttpError</span>
 
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_sql_hook</span> <span class="k">import</span> <span class="n">CloudSqlHook</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_sql_hook</span> <span class="k">import</span> <span class="n">CloudSqlHook</span><span class="p">,</span> <span class="n">CloudSqlDatabaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.contrib.utils.gcp_field_validator</span> <span class="k">import</span> <span class="n">GcpBodyFieldValidator</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
+<span class="kn">from</span> <span class="nn">airflow.hooks.base_hook</span> <span class="k">import</span> <span class="n">BaseHook</span>
 
 <span class="n">SETTINGS</span> <span class="o">=</span> <span class="s1">&#39;settings&#39;</span>
 <span class="n">SETTINGS_VERSION</span> <span class="o">=</span> <span class="s1">&#39;settingsVersion&#39;</span>
 
-<span class="n">CLOUD_SQL_VALIDATION</span> <span class="o">=</span> <span class="p">[</span>
+<span class="n">CLOUD_SQL_CREATE_VALIDATION</span> <span class="o">=</span> <span class="p">[</span>
     <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
     <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;settings&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
         <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tier&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -256,10 +264,10 @@
     <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;exportContext&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
         <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;fileType&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;uri&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-        <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;databases&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;databases&quot;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">),</span>
         <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sqlExportOptions&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
-            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tables&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">),</span>
-            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;schemaOnly&quot;</span><span class="p">)</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tables&quot;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;schemaOnly&quot;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="p">]),</span>
         <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;csvExportOptions&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
             <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;selectQuery&quot;</span><span class="p">)</span>
@@ -278,7 +286,7 @@
         <span class="p">])</span>
     <span class="p">])</span>
 <span class="p">]</span>
-<span class="n">CLOUD_SQL_DATABASE_INSERT_VALIDATION</span> <span class="o">=</span> <span class="p">[</span>
+<span class="n">CLOUD_SQL_DATABASE_CREATE_VALIDATION</span> <span class="o">=</span> <span class="p">[</span>
     <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;instance&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
     <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
     <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -297,19 +305,20 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract base operator for Google Cloud SQL operators to inherit from.</span>
 
-<span class="sd">    :param project_id: Project ID of the Google Cloud Platform project to operate it.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param instance: Cloud SQL instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID.  f set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
-<span class="sd">    :param api_version: API version used (e.g. v1).</span>
+<span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
 <span class="sd">    :type api_version: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -323,14 +332,15 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_validate_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;project_id&#39; is empty&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;instance&#39; is empty&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;instance&#39; is empty or None&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_check_if_instance_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">get_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">get_instance</span><span class="p">(</span><span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                                           <span class="n">instance</span><span class="o">=</span><span class="n">instance</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">status</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span>
             <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
@@ -339,7 +349,10 @@
 
     <span class="k">def</span> <span class="nf">_check_if_db_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="n">db_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">get_database</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="n">db_name</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">status</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="o">.</span><span class="n">status</span>
             <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
@@ -360,15 +373,15 @@
 <span class="sd">    If an instance with the same name exists, no action will be taken and</span>
 <span class="sd">    the operator will succeed.</span>
 
-<span class="sd">    :param project_id: Project ID of the project to which the newly created Cloud SQL</span>
-<span class="sd">        instances should belong.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param body: Body required by the Cloud SQL insert API, as described in</span>
 <span class="sd">        https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/insert</span>
 <span class="sd">        #request-body</span>
 <span class="sd">    :type body: dict</span>
 <span class="sd">    :param instance: Cloud SQL instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID. If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
@@ -382,9 +395,9 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">body</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="n">validate_body</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -402,17 +415,24 @@
 
     <span class="k">def</span> <span class="nf">_validate_body_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_body</span><span class="p">:</span>
-            <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_VALIDATION</span><span class="p">,</span>
+            <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_CREATE_VALIDATION</span><span class="p">,</span>
                                   <span class="n">api_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloudSqlInstanceCreateOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceCreateOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_body_fields</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_instance_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">create_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">create_instance</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cloud SQL instance with ID </span><span class="si">{}</span><span class="s2"> already exists. &quot;</span>
                           <span class="s2">&quot;Aborting create.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">True</span></div></div>
+
+        <span class="n">instance_resource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">get_instance</span><span class="p">(</span><span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                                                    <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span>
+        <span class="n">service_account_email</span> <span class="o">=</span> <span class="n">instance_resource</span><span class="p">[</span><span class="s2">&quot;serviceAccountEmailAddress&quot;</span><span class="p">]</span>
+        <span class="n">task_instance</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;task_instance&#39;</span><span class="p">]</span>
+        <span class="n">task_instance</span><span class="o">.</span><span class="n">xcom_push</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;service_account_email&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">service_account_email</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudSqlInstancePatchOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstancePatchOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstancePatchOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
@@ -426,13 +446,14 @@
 <span class="sd">    to the rules of patch semantics.</span>
 <span class="sd">    https://cloud.google.com/sql/docs/mysql/admin-api/how-tos/performance#patch</span>
 
-<span class="sd">    :param project_id: Project ID of the project that contains the instance.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param body: Body required by the Cloud SQL patch API, as described in</span>
 <span class="sd">        https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/patch#request-body</span>
 <span class="sd">    :type body: dict</span>
 <span class="sd">    :param instance: Cloud SQL instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID.  If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
@@ -444,9 +465,9 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">body</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -460,23 +481,27 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;body&#39; is empty&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloudSqlInstancePatchOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstancePatchOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_instance_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Cloud SQL instance with ID </span><span class="si">{}</span><span class="s1"> does not exist. &#39;</span>
                                    <span class="s1">&#39;Please specify another instance to patch.&#39;</span>
                                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">patch_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">patch_instance</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+                <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudSqlInstanceDeleteOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDeleteOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstanceDeleteOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes a Cloud SQL instance.</span>
 
-<span class="sd">    :param project_id: Project ID of the project that contains the instance to be deleted.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param instance: Cloud SQL instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID. If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
@@ -488,8 +513,8 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -497,26 +522,29 @@
             <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="n">instance</span><span class="p">,</span> <span class="n">gcp_conn_id</span><span class="o">=</span><span class="n">gcp_conn_id</span><span class="p">,</span>
             <span class="n">api_version</span><span class="o">=</span><span class="n">api_version</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloudSqlInstanceDeleteOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDeleteOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_instance_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cloud SQL instance with ID </span><span class="si">{}</span><span class="s2"> does not exist. Aborting delete.&quot;</span>
                   <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">delete_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">delete_instance</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudSqlInstanceDatabaseCreateOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseCreateOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstanceDatabaseCreateOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a new database inside a Cloud SQL instance.</span>
 
-<span class="sd">    :param project_id: Project ID of the project that contains the instance.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param instance: Database instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
 <span class="sd">    :param body: The request body, as described in</span>
 <span class="sd">        https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/insert#request-body</span>
 <span class="sd">    :type body: dict</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID. If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
@@ -530,9 +558,9 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
                  <span class="n">body</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="n">validate_body</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -550,10 +578,10 @@
 
     <span class="k">def</span> <span class="nf">_validate_body_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_body</span><span class="p">:</span>
-            <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_DATABASE_INSERT_VALIDATION</span><span class="p">,</span>
+            <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_DATABASE_CREATE_VALIDATION</span><span class="p">,</span>
                                   <span class="n">api_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloudSqlInstanceDatabaseCreateOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseCreateOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_body_fields</span><span class="p">()</span>
         <span class="n">database</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">database</span><span class="p">:</span>
@@ -567,7 +595,9 @@
                           <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="n">database</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">create_database</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">create_database</span><span class="p">(</span><span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                                              <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
+                                              <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudSqlInstanceDatabasePatchOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabasePatchOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstanceDatabasePatchOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
@@ -576,8 +606,6 @@
 <span class="sd">    instance using patch semantics.</span>
 <span class="sd">    See: https://cloud.google.com/sql/docs/mysql/admin-api/how-tos/performance#patch</span>
 
-<span class="sd">    :param project_id: Project ID of the project that contains the instance.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param instance: Database instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
 <span class="sd">    :param database: Name of the database to be updated in the instance.</span>
@@ -585,6 +613,8 @@
 <span class="sd">    :param body: The request body, as described in</span>
 <span class="sd">        https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/patch#request-body</span>
 <span class="sd">    :type body: dict</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
@@ -599,10 +629,10 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
                  <span class="n">database</span><span class="p">,</span>
                  <span class="n">body</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="n">validate_body</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -626,7 +656,7 @@
             <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_DATABASE_PATCH_VALIDATION</span><span class="p">,</span>
                                   <span class="n">api_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloudSqlInstanceDatabasePatchOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabasePatchOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_body_fields</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_db_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Cloud SQL instance with ID </span><span class="si">{}</span><span class="s2"> does not contain &quot;</span>
@@ -634,20 +664,24 @@
                                    <span class="s2">&quot;Please specify another database to patch.&quot;</span>
                                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">patch_database</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">patch_database</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudSqlInstanceDatabaseDeleteOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseDeleteOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstanceDatabaseDeleteOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes a database from a Cloud SQL instance.</span>
 
-<span class="sd">    :param project_id: Project ID of the project that contains the instance.</span>
-<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param instance: Database instance ID. This does not include the project ID.</span>
 <span class="sd">    :type instance: str</span>
 <span class="sd">    :param database: Name of the database to be deleted in the instance.</span>
 <span class="sd">    :type database: str</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID. If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
 <span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
 <span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
@@ -660,9 +694,9 @@
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">project_id</span><span class="p">,</span>
                  <span class="n">instance</span><span class="p">,</span>
                  <span class="n">database</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
                  <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -676,15 +710,231 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;database&#39; is empty&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloudSqlInstanceDatabaseDeleteOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseDeleteOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_db_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cloud SQL instance with ID </span><span class="si">{}</span><span class="s2"> does not contain database &#39;</span><span class="si">{}</span><span class="s2">&#39;. &quot;</span>
                   <span class="s2">&quot;Aborting database delete.&quot;</span>
                   <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">delete_database</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
-                                              <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">delete_database</span><span class="p">(</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CloudSqlInstanceExportOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceExportOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstanceExportOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump</span>
+<span class="sd">    or CSV file.</span>
+
+<span class="sd">    Note: This operator is idempotent. If executed multiple times with the same</span>
+<span class="sd">    export file URI, the export file in GCS will simply be overridden.</span>
+
+<span class="sd">    :param instance: Cloud SQL instance ID. This does not include the project ID.</span>
+<span class="sd">    :type instance: str</span>
+<span class="sd">    :param body: The request body, as described in</span>
+<span class="sd">        https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/export#request-body</span>
+<span class="sd">    :type body: dict</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID. If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
+<span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
+<span class="sd">    :type gcp_conn_id: str</span>
+<span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
+<span class="sd">    :type api_version: str</span>
+<span class="sd">    :param validate_body: Whether the body should be validated. Defaults to True.</span>
+<span class="sd">    :type validate_body: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># [START gcp_sql_export_template_fields]</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">,</span> <span class="s1">&#39;instance&#39;</span><span class="p">,</span> <span class="s1">&#39;gcp_conn_id&#39;</span><span class="p">,</span> <span class="s1">&#39;api_version&#39;</span><span class="p">)</span>
+    <span class="c1"># [END gcp_sql_export_template_fields]</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">instance</span><span class="p">,</span>
+                 <span class="n">body</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
+                 <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
+                 <span class="n">validate_body</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_body</span> <span class="o">=</span> <span class="n">validate_body</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CloudSqlInstanceExportOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="n">instance</span><span class="p">,</span> <span class="n">gcp_conn_id</span><span class="o">=</span><span class="n">gcp_conn_id</span><span class="p">,</span>
+            <span class="n">api_version</span><span class="o">=</span><span class="n">api_version</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CloudSqlInstanceExportOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_validate_inputs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;body&#39; is empty&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_body_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_body</span><span class="p">:</span>
+            <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_EXPORT_VALIDATION</span><span class="p">,</span>
+                                  <span class="n">api_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_body_fields</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">export_instance</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+            <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CloudSqlInstanceImportOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceImportOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlInstanceImportOperator</span><span class="p">(</span><span class="n">CloudSqlBaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Imports data into a Cloud SQL instance from a SQL dump or CSV file in Cloud Storage.</span>
+
+<span class="sd">    CSV IMPORT:</span>
+
+<span class="sd">    This operator is NOT idempotent for a CSV import. If the same file is imported</span>
+<span class="sd">    multiple times, the imported data will be duplicated in the database.</span>
+<span class="sd">    Moreover, if there are any unique constraints the duplicate import may result in an</span>
+<span class="sd">    error.</span>
+
+<span class="sd">    SQL IMPORT:</span>
+
+<span class="sd">    This operator is idempotent for a SQL import if it was also exported by Cloud SQL.</span>
+<span class="sd">    The exported SQL contains &#39;DROP TABLE IF EXISTS&#39; statements for all tables</span>
+<span class="sd">    to be imported.</span>
+
+<span class="sd">    If the import file was generated in a different way, idempotence is not guaranteed.</span>
+<span class="sd">    It has to be ensured on the SQL file level.</span>
+
+<span class="sd">    :param instance: Cloud SQL instance ID. This does not include the project ID.</span>
+<span class="sd">    :type instance: str</span>
+<span class="sd">    :param body: The request body, as described in</span>
+<span class="sd">        https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/export#request-body</span>
+<span class="sd">    :type body: dict</span>
+<span class="sd">    :param project_id: Optional, Google Cloud Platform Project ID. If set to None or missing,</span>
+<span class="sd">            the default project_id from the GCP connection is used.</span>
+<span class="sd">    :type project_id: str</span>
+<span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform.</span>
+<span class="sd">    :type gcp_conn_id: str</span>
+<span class="sd">    :param api_version: API version used (e.g. v1beta4).</span>
+<span class="sd">    :type api_version: str</span>
+<span class="sd">    :param validate_body: Whether the body should be validated. Defaults to True.</span>
+<span class="sd">    :type validate_body: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># [START gcp_sql_import_template_fields]</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">,</span> <span class="s1">&#39;instance&#39;</span><span class="p">,</span> <span class="s1">&#39;gcp_conn_id&#39;</span><span class="p">,</span> <span class="s1">&#39;api_version&#39;</span><span class="p">)</span>
+    <span class="c1"># [END gcp_sql_import_template_fields]</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">instance</span><span class="p">,</span>
+                 <span class="n">body</span><span class="p">,</span>
+                 <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
+                 <span class="n">api_version</span><span class="o">=</span><span class="s1">&#39;v1beta4&#39;</span><span class="p">,</span>
+                 <span class="n">validate_body</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_body</span> <span class="o">=</span> <span class="n">validate_body</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CloudSqlInstanceImportOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="n">instance</span><span class="p">,</span> <span class="n">gcp_conn_id</span><span class="o">=</span><span class="n">gcp_conn_id</span><span class="p">,</span>
+            <span class="n">api_version</span><span class="o">=</span><span class="n">api_version</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CloudSqlInstanceImportOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_validate_inputs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;The required parameter &#39;body&#39; is empty&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_body_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_body</span><span class="p">:</span>
+            <span class="n">GcpBodyFieldValidator</span><span class="p">(</span><span class="n">CLOUD_SQL_IMPORT_VALIDATION</span><span class="p">,</span>
+                                  <span class="n">api_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_version</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_body_fields</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="o">.</span><span class="n">import_instance</span><span class="p">(</span>
+            <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+            <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CloudSqlQueryOperator"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlQueryOperator">[docs]</a><span class="k">class</span> <span class="nc">CloudSqlQueryOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs DML or DDL query on an existing Cloud Sql instance. It optionally uses</span>
+<span class="sd">    cloud-sql-proxy to establish secure connection with the database.</span>
+
+<span class="sd">    :param sql: SQL query or list of queries to run (should be DML or DDL query -</span>
+<span class="sd">        this operator does not return any data from the database,</span>
+<span class="sd">        so it is useless to pass it DQL queries. Note that it is responsibility of the</span>
+<span class="sd">        author of the queries to make sure that the queries are idempotent. For example</span>
+<span class="sd">        you can use CREATE TABLE IF NOT EXISTS to create a table.</span>
+<span class="sd">    :type sql: str or [str]</span>
+<span class="sd">    :param parameters: (optional) the parameters to render the SQL query with.</span>
+<span class="sd">    :type parameters: mapping or iterable</span>
+<span class="sd">    :param autocommit: if True, each command is automatically committed.</span>
+<span class="sd">        (default value: False)</span>
+<span class="sd">    :type autocommit: bool</span>
+<span class="sd">    :param gcp_conn_id: The connection ID used to connect to Google Cloud Platform for</span>
+<span class="sd">        cloud-sql-proxy authentication.</span>
+<span class="sd">    :type gcp_conn_id: str</span>
+<span class="sd">    :param gcp_cloudsql_conn_id: The connection ID used to connect to Google Cloud SQL</span>
+<span class="sd">       its schema should be gcpcloudsql://.</span>
+<span class="sd">       See :class:`~airflow.contrib.hooks.gcp_sql_hooks.CloudSqlDatabaseHook` for</span>
+<span class="sd">       details on how to define gcpcloudsql:// connection.</span>
+<span class="sd">    :type gcp_cloudsql_conn_id: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># [START gcp_sql_query_template_fields]</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;gcp_cloudsql_conn_id&#39;</span><span class="p">,</span> <span class="s1">&#39;gcp_conn_id&#39;</span><span class="p">)</span>
+    <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sql&#39;</span><span class="p">,)</span>
+    <span class="c1"># [END gcp_sql_query_template_fields]</span>
+
+    <span class="nd">@apply_defaults</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">sql</span><span class="p">,</span>
+                 <span class="n">autocommit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gcp_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
+                 <span class="n">gcp_cloudsql_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_sql_default&#39;</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CloudSqlQueryOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sql</span> <span class="o">=</span> <span class="n">sql</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span> <span class="o">=</span> <span class="n">gcp_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gcp_cloudsql_conn_id</span> <span class="o">=</span> <span class="n">gcp_cloudsql_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span> <span class="o">=</span> <span class="n">autocommit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gcp_connection</span> <span class="o">=</span> <span class="n">BaseHook</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_conn_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span> <span class="o">=</span> <span class="n">CloudSqlDatabaseHook</span><span class="p">(</span>
+            <span class="n">gcp_cloudsql_conn_id</span><span class="o">=</span><span class="n">gcp_cloudsql_conn_id</span><span class="p">,</span>
+            <span class="n">default_gcp_project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gcp_connection</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;extra__google_cloud_platform__project&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cloud_sql_proxy_runner</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database_hook</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">validate_ssl_certs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">create_connection</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">validate_socket_path_length</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">database_hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">get_database_hook</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">use_proxy</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cloud_sql_proxy_runner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span>\
+                            <span class="n">get_sqlproxy_runner</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">free_reserved_port</span><span class="p">()</span>
+                        <span class="c1"># There is very, very slim chance that the socket will</span>
+                        <span class="c1"># be taken over here by another bind(0).</span>
+                        <span class="c1"># It&#39;s quite unlikely to happen though!</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cloud_sql_proxy_runner</span><span class="o">.</span><span class="n">start_proxy</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">database_hook</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocommit</span><span class="p">,</span>
+                                           <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+                <span class="k">finally</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloud_sql_proxy_runner</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cloud_sql_proxy_runner</span><span class="o">.</span><span class="n">stop_proxy</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cloud_sql_proxy_runner</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">cleanup_database_hook</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span><span class="o">.</span><span class="n">delete_connection</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cloudsql_db_hook</span> <span class="o">=</span> <span class="kc">None</span></div>
 </pre></div>
 
            </div>
@@ -721,6 +971,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

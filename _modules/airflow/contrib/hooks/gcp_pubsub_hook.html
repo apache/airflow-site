@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -180,8 +187,8 @@
 
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="k">import</span> <span class="n">uuid4</span>
 
-<span class="kn">from</span> <span class="nn">apiclient.discovery</span> <span class="k">import</span> <span class="n">build</span>
-<span class="kn">from</span> <span class="nn">apiclient</span> <span class="k">import</span> <span class="n">errors</span>
+<span class="kn">from</span> <span class="nn">googleapiclient.discovery</span> <span class="k">import</span> <span class="n">build</span>
+<span class="kn">from</span> <span class="nn">googleapiclient.errors</span> <span class="k">import</span> <span class="n">HttpError</span>
 
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcp_api_base_hook</span> <span class="k">import</span> <span class="n">GoogleCloudBaseHook</span>
 
@@ -211,7 +218,7 @@
 <div class="viewcode-block" id="PubSubHook.get_conn"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.gcp_pubsub_hook.PubSubHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a Pub/Sub service object.</span>
 
-<span class="sd">        :rtype: apiclient.discovery.Resource</span>
+<span class="sd">        :rtype: googleapiclient.discovery.Resource</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">http_authorized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authorize</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">build</span><span class="p">(</span>
@@ -236,7 +243,7 @@
             <span class="n">topic</span><span class="o">=</span><span class="n">full_topic</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">request</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PubSubException</span><span class="p">(</span>
                 <span class="s1">&#39;Error publishing to topic </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">full_topic</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span></div>
 
@@ -258,7 +265,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">topics</span><span class="p">()</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="n">full_topic</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="p">{})</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Status code 409 indicates that the topic already exists.</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;409&#39;</span><span class="p">:</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Topic already exists: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">full_topic</span><span class="p">)</span>
@@ -285,7 +292,7 @@
         <span class="n">full_topic</span> <span class="o">=</span> <span class="n">_format_topic</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">topic</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">topics</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="n">full_topic</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Status code 409 indicates that the topic was not found</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;404&#39;</span><span class="p">:</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Topic does not exist: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">full_topic</span><span class="p">)</span>
@@ -339,7 +346,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">()</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="n">full_subscription</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Status code 409 indicates that the subscription already exists.</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;409&#39;</span><span class="p">:</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Subscription already exists: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -371,7 +378,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
                 <span class="n">subscription</span><span class="o">=</span><span class="n">full_subscription</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Status code 404 indicates that the subscription was not found</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;404&#39;</span><span class="p">:</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Subscription does not exist: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -416,7 +423,7 @@
             <span class="n">response</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">()</span><span class="o">.</span><span class="n">pull</span><span class="p">(</span>
                 <span class="n">subscription</span><span class="o">=</span><span class="n">full_subscription</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;receivedMessages&#39;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PubSubException</span><span class="p">(</span>
                 <span class="s1">&#39;Error pulling messages from subscription </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">full_subscription</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span></div>
@@ -440,7 +447,7 @@
             <span class="n">service</span><span class="o">.</span><span class="n">projects</span><span class="p">()</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">()</span><span class="o">.</span><span class="n">acknowledge</span><span class="p">(</span>
                 <span class="n">subscription</span><span class="o">=</span><span class="n">full_subscription</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ackIds&#39;</span><span class="p">:</span> <span class="n">ack_ids</span><span class="p">}</span>
             <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">HttpError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PubSubException</span><span class="p">(</span>
                 <span class="s1">&#39;Error acknowledging </span><span class="si">{}</span><span class="s1"> messages pulled from subscription </span><span class="si">{}</span><span class="s1">&#39;</span>
                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ack_ids</span><span class="p">),</span> <span class="n">full_subscription</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span></div></div>
@@ -480,6 +487,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

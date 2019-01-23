@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -198,6 +205,7 @@
 <span class="n">START_CLUSTER_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;api/2.0/clusters/start&quot;</span><span class="p">)</span>
 <span class="n">TERMINATE_CLUSTER_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;api/2.0/clusters/delete&quot;</span><span class="p">)</span>
 
+<span class="n">RUN_NOW_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;api/2.0/jobs/run-now&#39;</span><span class="p">)</span>
 <span class="n">SUBMIT_RUN_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;api/2.0/jobs/runs/submit&#39;</span><span class="p">)</span>
 <span class="n">GET_RUN_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;api/2.0/jobs/runs/get&#39;</span><span class="p">)</span>
 <span class="n">CANCEL_RUN_ENDPOINT</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;api/2.0/jobs/runs/cancel&#39;</span><span class="p">)</span>
@@ -235,7 +243,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span> <span class="o">=</span> <span class="n">retry_limit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">retry_delay</span> <span class="o">=</span> <span class="n">retry_delay</span>
 
-    <span class="k">def</span> <span class="nf">_parse_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parse_host</span><span class="p">(</span><span class="n">host</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The purpose of this function is to be robust to improper connections</span>
 <span class="sd">        settings provided by users, specifically in the host field.</span>
@@ -320,6 +329,18 @@
             <span class="s1">&#39;Attempt </span><span class="si">%s</span><span class="s1"> API Request to Databricks failed with reason: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="n">attempt_num</span><span class="p">,</span> <span class="n">error</span>
         <span class="p">)</span>
+
+<div class="viewcode-block" id="DatabricksHook.run_now"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.databricks_hook.DatabricksHook.run_now">[docs]</a>    <span class="k">def</span> <span class="nf">run_now</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Utility function to call the ``api/2.0/jobs/run-now`` endpoint.</span>
+
+<span class="sd">        :param json: The data used in the body of the request to the ``run-now`` endpoint.</span>
+<span class="sd">        :type json: dict</span>
+<span class="sd">        :return: the run_id as a string</span>
+<span class="sd">        :rtype: string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_api_call</span><span class="p">(</span><span class="n">RUN_NOW_ENDPOINT</span><span class="p">,</span> <span class="n">json</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;run_id&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="DatabricksHook.submit_run"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.hooks.databricks_hook.DatabricksHook.submit_run">[docs]</a>    <span class="k">def</span> <span class="nf">submit_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -457,6 +478,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

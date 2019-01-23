@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -216,6 +223,8 @@
 <span class="sd">    :param hive_tblproperties: additional properties for tblproperties in</span>
 <span class="sd">        hive for the staging table</span>
 <span class="sd">    :type hive_tblproperties: dict</span>
+<span class="sd">    :param job_properties: additional properties for job</span>
+<span class="sd">    :type job_properties: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;intervals&#39;</span><span class="p">)</span>
@@ -238,6 +247,7 @@
             <span class="n">query_granularity</span><span class="o">=</span><span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
             <span class="n">segment_granularity</span><span class="o">=</span><span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
             <span class="n">hive_tblproperties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">job_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">HiveToDruidTransfer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sql</span> <span class="o">=</span> <span class="n">sql</span>
@@ -256,8 +266,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">druid_ingest_conn_id</span> <span class="o">=</span> <span class="n">druid_ingest_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span> <span class="o">=</span> <span class="n">metastore_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hive_tblproperties</span> <span class="o">=</span> <span class="n">hive_tblproperties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_properties</span> <span class="o">=</span> <span class="n">job_properties</span>
 
-<div class="viewcode-block" id="HiveToDruidTransfer.execute"><a class="viewcode-back" href="../../../code.html#airflow.operators.hive_to_druid.HiveToDruidTransfer.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hive</span> <span class="o">=</span> <span class="n">HiveCliHook</span><span class="p">(</span><span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_conn_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting data from Hive&quot;</span><span class="p">)</span>
         <span class="n">hive_table</span> <span class="o">=</span> <span class="s1">&#39;druid.&#39;</span> <span class="o">+</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;task_instance_key_str&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
@@ -311,7 +322,7 @@
                 <span class="n">hive_table</span>
             <span class="p">)</span>
             <span class="n">hql</span> <span class="o">=</span> <span class="s2">&quot;DROP TABLE IF EXISTS </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hive_table</span><span class="p">)</span>
-            <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span></div>
+            <span class="n">hive</span><span class="o">.</span><span class="n">run_cli</span><span class="p">(</span><span class="n">hql</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HiveToDruidTransfer.construct_ingest_query"><a class="viewcode-back" href="../../../code.html#airflow.operators.hive_to_druid.HiveToDruidTransfer.construct_ingest_query">[docs]</a>    <span class="k">def</span> <span class="nf">construct_ingest_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static_path</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -323,7 +334,7 @@
 <span class="sd">        :type columns: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1"># backward compatibilty for num_shards,</span>
+        <span class="c1"># backward compatibility for num_shards,</span>
         <span class="c1"># but target_partition_size is the default setting</span>
         <span class="c1"># and overwrites the num_shards</span>
         <span class="n">num_shards</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_shards</span>
@@ -392,6 +403,10 @@
             <span class="p">}</span>
         <span class="p">}</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_properties</span><span class="p">:</span>
+            <span class="n">ingest_query_dict</span><span class="p">[</span><span class="s1">&#39;spec&#39;</span><span class="p">][</span><span class="s1">&#39;tuningConfig&#39;</span><span class="p">][</span><span class="s1">&#39;jobProperties&#39;</span><span class="p">]</span> \
+                <span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_properties</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span><span class="p">:</span>
             <span class="n">ingest_query_dict</span><span class="p">[</span><span class="s1">&#39;hadoopDependencyCoordinates&#39;</span><span class="p">]</span> \
                 <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hadoop_dependency_coordinates</span>
@@ -433,6 +448,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -257,7 +264,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
 
-<div class="viewcode-block" id="PostgresToGoogleCloudStorageOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.postgres_to_gcs_operator.PostgresToGoogleCloudStorageOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_postgres</span><span class="p">()</span>
         <span class="n">files_to_upload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_local_data_files</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
 
@@ -273,7 +280,7 @@
 
         <span class="c1"># Close all temp file handles.</span>
         <span class="k">for</span> <span class="n">file_handle</span> <span class="ow">in</span> <span class="n">files_to_upload</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">file_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+            <span class="n">file_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_query_postgres</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -294,28 +301,38 @@
 <span class="sd">            contain the data for the GCS objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">schema</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">schema_tuple</span><span class="p">:</span> <span class="n">schema_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
-        <span class="n">file_no</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">tmp_file_handle</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">tmp_file_handles</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_no</span><span class="p">):</span> <span class="n">tmp_file_handle</span><span class="p">}</span>
+        <span class="n">tmp_file_handles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">row_no</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
-            <span class="c1"># Convert datetime objects to utc seconds, and decimals to floats</span>
-            <span class="n">row</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert_types</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
-            <span class="n">row_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+        <span class="k">def</span> <span class="nf">_create_new_file</span><span class="p">():</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp_file_handles</span><span class="p">))</span>
+            <span class="n">tmp_file_handles</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">handle</span>
+            <span class="k">return</span> <span class="n">handle</span>
 
-            <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">row_dict</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
-                <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-            <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="c1"># Don&#39;t create a file if there is nothing to write</span>
+        <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tmp_file_handle</span> <span class="o">=</span> <span class="n">_create_new_file</span><span class="p">()</span>
 
-            <span class="c1"># Append newline to make dumps BigQuery compatible.</span>
-            <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="c1"># Convert datetime objects to utc seconds, and decimals to floats</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert_types</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+                <span class="n">row_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
 
-            <span class="c1"># Stop if the file exceeds the file size limit.</span>
-            <span class="k">if</span> <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">approx_max_file_size_bytes</span><span class="p">:</span>
-                <span class="n">file_no</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">tmp_file_handle</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">tmp_file_handles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_no</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tmp_file_handle</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">row_dict</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+                <span class="c1"># Append newline to make dumps BigQuery compatible.</span>
+                <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="c1"># Stop if the file exceeds the file size limit.</span>
+                <span class="k">if</span> <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">approx_max_file_size_bytes</span><span class="p">:</span>
+                    <span class="n">tmp_file_handle</span> <span class="o">=</span> <span class="n">_create_new_file</span><span class="p">()</span>
+                <span class="n">row_no</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Received </span><span class="si">%s</span><span class="s1"> rows over </span><span class="si">%s</span><span class="s1"> files&#39;</span><span class="p">,</span> <span class="n">row_no</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp_file_handles</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">tmp_file_handles</span>
 
@@ -441,6 +458,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -178,12 +185,13 @@
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
 
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">NamedTemporaryFile</span>
+
 <span class="kn">from</span> <span class="nn">airflow.hooks.hive_hooks</span> <span class="k">import</span> <span class="n">HiveServer2Hook</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.mysql_hook</span> <span class="k">import</span> <span class="n">MySqlHook</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.decorators</span> <span class="k">import</span> <span class="n">apply_defaults</span>
-
-<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">NamedTemporaryFile</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.operator_helpers</span> <span class="k">import</span> <span class="n">context_to_airflow_vars</span>
 
 
 <div class="viewcode-block" id="HiveToMySqlTransfer"><a class="viewcode-back" href="../../../code.html#airflow.operators.hive_to_mysql.HiveToMySqlTransfer">[docs]</a><span class="k">class</span> <span class="nc">HiveToMySqlTransfer</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
@@ -242,14 +250,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hiveserver2_conn_id</span> <span class="o">=</span> <span class="n">hiveserver2_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bulk_load</span> <span class="o">=</span> <span class="n">bulk_load</span>
 
-<div class="viewcode-block" id="HiveToMySqlTransfer.execute"><a class="viewcode-back" href="../../../code.html#airflow.operators.hive_to_mysql.HiveToMySqlTransfer.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">hive</span> <span class="o">=</span> <span class="n">HiveServer2Hook</span><span class="p">(</span><span class="n">hiveserver2_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hiveserver2_conn_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting data from Hive: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulk_load</span><span class="p">:</span>
             <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">()</span>
             <span class="n">hive</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">,</span> <span class="n">tmpfile</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
-                        <span class="n">lineterminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">output_header</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">lineterminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">output_header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">hive_conf</span><span class="o">=</span><span class="n">context_to_airflow_vars</span><span class="p">(</span><span class="n">context</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">results</span> <span class="o">=</span> <span class="n">hive</span><span class="o">.</span><span class="n">get_records</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
 
@@ -270,7 +279,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running MySQL postoperator&quot;</span><span class="p">)</span>
             <span class="n">mysql</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_postoperator</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -307,6 +316,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

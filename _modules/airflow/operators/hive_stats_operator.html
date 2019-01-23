@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code.html">API Reference</a></li>
 </ul>
@@ -252,8 +259,7 @@
     <span class="k">def</span> <span class="nf">get_default_exprs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_type</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_blacklist</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{}</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">d</span><span class="p">[(</span><span class="n">col</span><span class="p">,</span> <span class="s1">&#39;non_null&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s2">&quot;COUNT(</span><span class="si">{col}</span><span class="s2">)&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{(</span><span class="n">col</span><span class="p">,</span> <span class="s1">&#39;non_null&#39;</span><span class="p">):</span> <span class="s2">&quot;COUNT(</span><span class="si">{col}</span><span class="s2">)&quot;</span><span class="p">}</span>
         <span class="k">if</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;double&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;bigint&#39;</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="s1">&#39;double&#39;</span><span class="p">]:</span>
             <span class="n">d</span><span class="p">[(</span><span class="n">col</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;SUM(</span><span class="si">{col}</span><span class="s1">)&#39;</span>
             <span class="n">d</span><span class="p">[(</span><span class="n">col</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;MIN(</span><span class="si">{col}</span><span class="s1">)&#39;</span>
@@ -268,7 +274,7 @@
 
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
-<div class="viewcode-block" id="HiveStatsCollectionOperator.execute"><a class="viewcode-back" href="../../../code.html#airflow.operators.hive_stats_operator.HiveStatsCollectionOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">metastore</span> <span class="o">=</span> <span class="n">HiveMetastoreHook</span><span class="p">(</span><span class="n">metastore_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metastore_conn_id</span><span class="p">)</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">metastore</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">table_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
         <span class="n">field_types</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">col</span><span class="o">.</span><span class="n">type</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">sd</span><span class="o">.</span><span class="n">cols</span><span class="p">}</span>
@@ -348,7 +354,7 @@
                 <span class="s1">&#39;metric&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;value&#39;</span><span class="p">,</span>
             <span class="p">]</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -385,6 +391,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   

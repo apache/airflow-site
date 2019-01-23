@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -204,11 +211,11 @@
 <span class="sd">    :param job_queue: the queue name on AWS Batch</span>
 <span class="sd">    :type job_queue: str</span>
 <span class="sd">    :param overrides: the same parameter that boto3 will receive on</span>
-<span class="sd">        containerOverrides (templated).</span>
+<span class="sd">        containerOverrides (templated):</span>
 <span class="sd">        http://boto3.readthedocs.io/en/latest/reference/services/batch.html#submit_job</span>
 <span class="sd">    :type overrides: dict</span>
-<span class="sd">    :param max_retries: exponential backoff retries while waiter is not merged,</span>
-<span class="sd">        4200 = 48 hours</span>
+<span class="sd">    :param max_retries: exponential backoff retries while waiter is not</span>
+<span class="sd">        merged, 4200 = 48 hours</span>
 <span class="sd">    :type max_retries: int</span>
 <span class="sd">    :param aws_conn_id: connection id of AWS credentials / region name. If None,</span>
 <span class="sd">        credential boto3 strategy will be used</span>
@@ -242,7 +249,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hook</span><span class="p">()</span>
 
-<div class="viewcode-block" id="AWSBatchOperator.execute"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.awsbatch_operator.AWSBatchOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;Running AWS Batch Job - Job definition: </span><span class="si">%s</span><span class="s1"> - on queue </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span>
@@ -273,7 +280,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AWS Batch Job has been successfully executed: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;AWS Batch Job has failed executed&#39;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_wait_for_task_ended</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -332,12 +339,12 @@
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="AWSBatchOperator.on_kill"><a class="viewcode-back" href="../../../../integration.html#airflow.contrib.operators.awsbatch_operator.AWSBatchOperator.on_kill">[docs]</a>    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">terminate_job</span><span class="p">(</span>
             <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">,</span>
             <span class="n">reason</span><span class="o">=</span><span class="s1">&#39;Task killed by the user&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -374,6 +381,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   

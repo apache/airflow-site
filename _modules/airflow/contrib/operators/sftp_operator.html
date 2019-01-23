@@ -55,6 +55,10 @@
           
             
             
+              <div class="version">
+                1.10.2
+              </div>
+            
           
 
           
@@ -93,7 +97,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../code.html">API Reference</a></li>
 </ul>
@@ -177,6 +184,8 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
 <span class="kn">from</span> <span class="nn">airflow.contrib.hooks.ssh_hook</span> <span class="k">import</span> <span class="n">SSHHook</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
@@ -191,25 +200,48 @@
 <div class="viewcode-block" id="SFTPOperator"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.sftp_operator.SFTPOperator">[docs]</a><span class="k">class</span> <span class="nc">SFTPOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    SFTPOperator for transferring files from remote host to local or vice a versa.</span>
-<span class="sd">    This operator uses ssh_hook to open sftp trasport channel that serve as basis</span>
+<span class="sd">    This operator uses ssh_hook to open sftp transport channel that serve as basis</span>
 <span class="sd">    for file transfer.</span>
 
-<span class="sd">    :param ssh_hook: predefined ssh_hook to use for remote execution</span>
+<span class="sd">    :param ssh_hook: predefined ssh_hook to use for remote execution.</span>
+<span class="sd">        Either `ssh_hook` or `ssh_conn_id` needs to be provided.</span>
 <span class="sd">    :type ssh_hook: :class:`SSHHook`</span>
-<span class="sd">    :param ssh_conn_id: connection id from airflow Connections</span>
+<span class="sd">    :param ssh_conn_id: connection id from airflow Connections.</span>
+<span class="sd">        `ssh_conn_id` will be ingored if `ssh_hook` is provided.</span>
 <span class="sd">    :type ssh_conn_id: str</span>
-<span class="sd">    :param remote_host: remote host to connect</span>
+<span class="sd">    :param remote_host: remote host to connect (templated)</span>
+<span class="sd">        Nullable. If provided, it will replace the `remote_host` which was</span>
+<span class="sd">        defined in `ssh_hook` or predefined in the connection of `ssh_conn_id`.</span>
 <span class="sd">    :type remote_host: str</span>
 <span class="sd">    :param local_filepath: local file path to get or put. (templated)</span>
 <span class="sd">    :type local_filepath: str</span>
 <span class="sd">    :param remote_filepath: remote file path to get or put. (templated)</span>
 <span class="sd">    :type remote_filepath: str</span>
 <span class="sd">    :param operation: specify operation &#39;get&#39; or &#39;put&#39;, defaults to put</span>
-<span class="sd">    :type get: bool</span>
+<span class="sd">    :type operation: str</span>
 <span class="sd">    :param confirm: specify if the SFTP operation should be confirmed, defaults to True</span>
 <span class="sd">    :type confirm: bool</span>
+<span class="sd">    :param create_intermediate_dirs: create missing intermediate directories when</span>
+<span class="sd">        copying from remote to local and vice-versa. Default is False.</span>
+
+<span class="sd">        Example: The following task would copy ``file.txt`` to the remote host</span>
+<span class="sd">        at ``/tmp/tmp1/tmp2/`` while creating ``tmp``,``tmp1`` and ``tmp2`` if they</span>
+<span class="sd">        don&#39;t exist. If the parameter is not passed it would error as the directory</span>
+<span class="sd">        does not exist. ::</span>
+
+<span class="sd">            put_file = SFTPOperator(</span>
+<span class="sd">                task_id=&quot;test_sftp&quot;,</span>
+<span class="sd">                ssh_conn_id=&quot;ssh_default&quot;,</span>
+<span class="sd">                local_filepath=&quot;/tmp/file.txt&quot;,</span>
+<span class="sd">                remote_filepath=&quot;/tmp/tmp1/tmp2/file.txt&quot;,</span>
+<span class="sd">                operation=&quot;put&quot;,</span>
+<span class="sd">                create_intermediate_dirs=True,</span>
+<span class="sd">                dag=dag</span>
+<span class="sd">            )</span>
+
+<span class="sd">    :type create_intermediate_dirs: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;local_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;remote_filepath&#39;</span><span class="p">)</span>
+    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;local_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;remote_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;remote_host&#39;</span><span class="p">)</span>
 
     <span class="nd">@apply_defaults</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -220,6 +252,7 @@
                  <span class="n">remote_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">operation</span><span class="o">=</span><span class="n">SFTPOperation</span><span class="o">.</span><span class="n">PUT</span><span class="p">,</span>
                  <span class="n">confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">create_intermediate_dirs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SFTPOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -230,31 +263,54 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span> <span class="o">=</span> <span class="n">remote_filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">=</span> <span class="n">operation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confirm</span> <span class="o">=</span> <span class="n">confirm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_intermediate_dirs</span> <span class="o">=</span> <span class="n">create_intermediate_dirs</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span> <span class="ow">or</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">PUT</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported operation value </span><span class="si">{0}</span><span class="s2">, expected </span><span class="si">{1}</span><span class="s2"> or </span><span class="si">{2}</span><span class="s2">&quot;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">,</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">PUT</span><span class="p">))</span>
 
-<div class="viewcode-block" id="SFTPOperator.execute"><a class="viewcode-back" href="../../../../code.html#airflow.contrib.operators.sftp_operator.SFTPOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
         <span class="n">file_msg</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span><span class="n">ssh_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">,</span> <span class="n">SSHHook</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ssh_conn_id is ignored when ssh_hook is provided.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ssh_hook is not provided or invalid. &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;Trying ssh_conn_id to create SSHHook.&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span><span class="n">ssh_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;can not operate without ssh_hook or ssh_conn_id&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Cannot operate without ssh_hook or ssh_conn_id.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;remote_host is provided explicitly. &quot;</span> <span class="o">+</span>
+                              <span class="s2">&quot;It will replace the remote_host which was defined &quot;</span> <span class="o">+</span>
+                              <span class="s2">&quot;in ssh_hook or predefined in connection of ssh_conn_id.&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span>
 
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh_client</span><span class="p">:</span>
                 <span class="n">sftp_client</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">SFTPOperation</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
+                    <span class="n">local_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_intermediate_dirs</span><span class="p">:</span>
+                        <span class="c1"># Create Intermediate Directories if it doesn&#39;t exist</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">local_folder</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">local_folder</span><span class="p">):</span>
+                                <span class="k">raise</span>
                     <span class="n">file_msg</span> <span class="o">=</span> <span class="s2">&quot;from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span>
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting to transfer </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_msg</span><span class="p">)</span>
                     <span class="n">sftp_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
+                    <span class="n">remote_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_intermediate_dirs</span><span class="p">:</span>
+                        <span class="n">_make_intermediate_dirs</span><span class="p">(</span>
+                            <span class="n">sftp_client</span><span class="o">=</span><span class="n">sftp_client</span><span class="p">,</span>
+                            <span class="n">remote_directory</span><span class="o">=</span><span class="n">remote_folder</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="n">file_msg</span> <span class="o">=</span> <span class="s2">&quot;from </span><span class="si">{0}</span><span class="s2"> to </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_filepath</span><span class="p">,</span>
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">remote_filepath</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting to transfer file </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_msg</span><span class="p">)</span>
@@ -266,7 +322,30 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Error while transferring </span><span class="si">{0}</span><span class="s2">, error: </span><span class="si">{1}</span><span class="s2">&quot;</span>
                                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="kc">None</span></div></div>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="k">def</span> <span class="nf">_make_intermediate_dirs</span><span class="p">(</span><span class="n">sftp_client</span><span class="p">,</span> <span class="n">remote_directory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create all the intermediate directories in a remote host</span>
+
+<span class="sd">    :param sftp_client: A Paramiko SFTP client.</span>
+<span class="sd">    :param remote_directory: Absolute Path of the directory containing the file</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">remote_directory</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+        <span class="n">sftp_client</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">remote_directory</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sftp_client</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">remote_directory</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">remote_directory</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+        <span class="n">_make_intermediate_dirs</span><span class="p">(</span><span class="n">sftp_client</span><span class="p">,</span> <span class="n">dirname</span><span class="p">)</span>
+        <span class="n">sftp_client</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+        <span class="n">sftp_client</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+        <span class="k">return</span>
 </pre></div>
 
            </div>
@@ -303,6 +382,7 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
     
 
   
