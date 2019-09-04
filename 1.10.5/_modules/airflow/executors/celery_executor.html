@@ -153,7 +153,7 @@ https://www.sphinx-doc.org/en/master/templating.html
             
             
               <div class="version">
-                1.10.4
+                1.10.5
               </div>
             
           
@@ -267,24 +267,24 @@ https://www.sphinx-doc.org/en/master/templating.html
            <div itemprop="articleBody">
             
   <h1>Source code for airflow.executors.celery_executor</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#</span>
-<span class="c"># Licensed to the Apache Software Foundation (ASF) under one</span>
-<span class="c"># or more contributor license agreements.  See the NOTICE file</span>
-<span class="c"># distributed with this work for additional information</span>
-<span class="c"># regarding copyright ownership.  The ASF licenses this file</span>
-<span class="c"># to you under the Apache License, Version 2.0 (the</span>
-<span class="c"># &quot;License&quot;); you may not use this file except in compliance</span>
-<span class="c"># with the License.  You may obtain a copy of the License at</span>
-<span class="c">#</span>
-<span class="c">#   http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="c">#</span>
-<span class="c"># Unless required by applicable law or agreed to in writing,</span>
-<span class="c"># software distributed under the License is distributed on an</span>
-<span class="c"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
-<span class="c"># KIND, either express or implied.  See the License for the</span>
-<span class="c"># specific language governing permissions and limitations</span>
-<span class="c"># under the License.</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -304,41 +304,41 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="kn">from</span> <span class="nn">airflow.utils.module_loading</span> <span class="k">import</span> <span class="n">import_string</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.timeout</span> <span class="k">import</span> <span class="n">timeout</span>
 
-<span class="c"># Make it constant for unit test.</span>
-<div class="viewcode-block" id="CELERY_FETCH_ERR_MSG_HEADER"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CELERY_FETCH_ERR_MSG_HEADER">[docs]</a><span class="n">CELERY_FETCH_ERR_MSG_HEADER</span> <span class="o">=</span> <span class="s">&#39;Error fetching Celery task state&#39;</span></div>
+<span class="c1"># Make it constant for unit test.</span>
+<div class="viewcode-block" id="CELERY_FETCH_ERR_MSG_HEADER"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CELERY_FETCH_ERR_MSG_HEADER">[docs]</a><span class="n">CELERY_FETCH_ERR_MSG_HEADER</span> <span class="o">=</span> <span class="s1">&#39;Error fetching Celery task state&#39;</span></div>
 
-<div class="viewcode-block" id="CELERY_SEND_ERR_MSG_HEADER"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CELERY_SEND_ERR_MSG_HEADER">[docs]</a><span class="n">CELERY_SEND_ERR_MSG_HEADER</span> <span class="o">=</span> <span class="s">&#39;Error sending Celery task&#39;</span></div>
+<div class="viewcode-block" id="CELERY_SEND_ERR_MSG_HEADER"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CELERY_SEND_ERR_MSG_HEADER">[docs]</a><span class="n">CELERY_SEND_ERR_MSG_HEADER</span> <span class="o">=</span> <span class="s1">&#39;Error sending Celery task&#39;</span></div>
 
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">To start the celery worker, run the command:</span>
 <span class="sd">airflow worker</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="s">&#39;celery&#39;</span><span class="p">,</span> <span class="s">&#39;celery_config_options&#39;</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;celery_config_options&#39;</span><span class="p">):</span>
 <div class="viewcode-block" id="celery_configuration"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.celery_configuration">[docs]</a>    <span class="n">celery_configuration</span> <span class="o">=</span> <span class="n">import_string</span><span class="p">(</span>
-        <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;celery&#39;</span><span class="p">,</span> <span class="s">&#39;celery_config_options&#39;</span><span class="p">)</span></div>
+        <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;celery_config_options&#39;</span><span class="p">)</span></div>
     <span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">celery_configuration</span> <span class="o">=</span> <span class="n">DEFAULT_CELERY_CONFIG</span>
 
 <div class="viewcode-block" id="app"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.app">[docs]</a><span class="n">app</span> <span class="o">=</span> <span class="n">Celery</span><span class="p">(</span>
-    <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;celery&#39;</span><span class="p">,</span> <span class="s">&#39;CELERY_APP_NAME&#39;</span><span class="p">),</span>
+    <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;CELERY_APP_NAME&#39;</span><span class="p">),</span>
     <span class="n">config_source</span><span class="o">=</span><span class="n">celery_configuration</span><span class="p">)</span></div>
 
 
 <span class="nd">@app</span><span class="o">.</span><span class="n">task</span>
 <div class="viewcode-block" id="execute_command"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.execute_command">[docs]</a><span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="n">command_to_exec</span><span class="p">):</span>
     <span class="n">log</span> <span class="o">=</span> <span class="n">LoggingMixin</span><span class="p">()</span><span class="o">.</span><span class="n">log</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Executing command in Celery: %s&quot;</span><span class="p">,</span> <span class="n">command_to_exec</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing command in Celery: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">command_to_exec</span><span class="p">)</span>
     <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">command_to_exec</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
-                              <span class="n">close_fds</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+                              <span class="n">close_fds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;execute_command encountered a CalledProcessError&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;execute_command encountered a CalledProcessError&#39;</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
 
-        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s">&#39;Celery command failed&#39;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Celery command failed&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ExceptionWithTraceback"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.ExceptionWithTraceback">[docs]</a><span class="k">class</span> <span class="nc">ExceptionWithTraceback</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -370,11 +370,11 @@ https://www.sphinx-doc.org/en/master/templating.html
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">timeout</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-            <span class="c"># Accessing state property of celery task will make actual network request</span>
-            <span class="c"># to get the current state of the task.</span>
+            <span class="c1"># Accessing state property of celery task will make actual network request</span>
+            <span class="c1"># to get the current state of the task.</span>
             <span class="n">res</span> <span class="o">=</span> <span class="p">(</span><span class="n">celery_task</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">celery_task</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">exception_traceback</span> <span class="o">=</span> <span class="s">&quot;Celery Task ID: {}</span><span class="se">\n</span><span class="s">{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">celery_task</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">exception_traceback</span> <span class="o">=</span> <span class="s2">&quot;Celery Task ID: </span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">celery_task</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                                                               <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">ExceptionWithTraceback</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">exception_traceback</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span></div>
@@ -386,7 +386,7 @@ https://www.sphinx-doc.org/en/master/templating.html
         <span class="k">with</span> <span class="n">timeout</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">command</span><span class="p">],</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">exception_traceback</span> <span class="o">=</span> <span class="s">&quot;Celery Task ID: {}</span><span class="se">\n</span><span class="s">{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span>
+        <span class="n">exception_traceback</span> <span class="o">=</span> <span class="s2">&quot;Celery Task ID: </span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span>
                                                               <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">ExceptionWithTraceback</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">exception_traceback</span><span class="p">)</span>
 
@@ -404,23 +404,23 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">CeleryExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CeleryExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-        <span class="c"># Celery doesn&#39;t support querying the state of multiple tasks in parallel</span>
-        <span class="c"># (which can become a bottleneck on bigger clusters) so we use</span>
-        <span class="c"># a multiprocessing pool to speed this up.</span>
-        <span class="c"># How many worker processes are created for checking celery task state.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s">&#39;celery&#39;</span><span class="p">,</span> <span class="s">&#39;SYNC_PARALLELISM&#39;</span><span class="p">)</span>
+        <span class="c1"># Celery doesn&#39;t support querying the state of multiple tasks in parallel</span>
+        <span class="c1"># (which can become a bottleneck on bigger clusters) so we use</span>
+        <span class="c1"># a multiprocessing pool to speed this up.</span>
+        <span class="c1"># How many worker processes are created for checking celery task state.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">,</span> <span class="s1">&#39;SYNC_PARALLELISM&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cpu_count</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sync_pool</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sync_pool</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="CeleryExecutor.start"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CeleryExecutor.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s">&#39;Starting Celery Executor using %s processes for syncing&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Starting Celery Executor using </span><span class="si">%s</span><span class="s1"> processes for syncing&#39;</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span></div>
         <span class="p">)</span>
 
@@ -454,7 +454,7 @@ https://www.sphinx-doc.org/en/master/templating.html
         <span class="n">sorted_queue</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
             <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">queued_tasks</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span>
             <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
-            <span class="n">reverse</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+            <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">task_tuples_to_send</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -463,17 +463,17 @@ https://www.sphinx-doc.org/en/master/templating.html
             <span class="n">task_tuples_to_send</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">simple_ti</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span>
                                         <span class="n">execute_command</span><span class="p">))</span>
 
-        <span class="n">cached_celery_backend</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="n">cached_celery_backend</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">task_tuples_to_send</span><span class="p">:</span>
             <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">task_tuples_to_send</span><span class="p">]</span>
 
-            <span class="c"># Celery state queries will stuck if we do not use one same backend</span>
-            <span class="c"># for all tasks.</span>
+            <span class="c1"># Celery state queries will stuck if we do not use one same backend</span>
+            <span class="c1"># for all tasks.</span>
             <span class="n">cached_celery_backend</span> <span class="o">=</span> <span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">backend</span>
 
         <span class="k">if</span> <span class="n">task_tuples_to_send</span><span class="p">:</span>
-            <span class="c"># Use chunking instead of a work queue to reduce context switching</span>
-            <span class="c"># since tasks are roughly uniform in size</span>
+            <span class="c1"># Use chunking instead of a work queue to reduce context switching</span>
+            <span class="c1"># since tasks are roughly uniform in size</span>
             <span class="n">chunksize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_tasks_per_send_process</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">task_tuples_to_send</span><span class="p">))</span>
             <span class="n">num_processes</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">task_tuples_to_send</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span><span class="p">)</span>
 
@@ -485,16 +485,16 @@ https://www.sphinx-doc.org/en/master/templating.html
 
             <span class="n">send_pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="n">send_pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sent all tasks.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Sent all tasks.&#39;</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">key_and_async_results</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">ExceptionWithTraceback</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                        <span class="n">CELERY_SEND_ERR_MSG_HEADER</span> <span class="o">+</span> <span class="s">&quot;:%s</span><span class="se">\n</span><span class="s">%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">exception</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">traceback</span>
+                        <span class="n">CELERY_SEND_ERR_MSG_HEADER</span> <span class="o">+</span> <span class="s2">&quot;:</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">exception</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">traceback</span>
                     <span class="p">)</span>
-                <span class="k">elif</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="k">None</span><span class="p">:</span>
-                    <span class="c"># Only pops when enqueued successfully, otherwise keep it</span>
-                    <span class="c"># and expect scheduler loop to deal with it.</span>
+                <span class="k">elif</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Only pops when enqueued successfully, otherwise keep it</span>
+                    <span class="c1"># and expect scheduler loop to deal with it.</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">queued_tasks</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
                     <span class="n">result</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">cached_celery_backend</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">command</span>
@@ -504,32 +504,32 @@ https://www.sphinx-doc.org/en/master/templating.html
 <div class="viewcode-block" id="CeleryExecutor.sync"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CeleryExecutor.sync">[docs]</a>    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">num_processes</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync_parallelism</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">num_processes</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No task to query celery, skipping sync&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No task to query celery, skipping sync&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Inquiring about %s celery task(s) using %s processes&quot;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Inquiring about </span><span class="si">%s</span><span class="s2"> celery task(s) using </span><span class="si">%s</span><span class="s2"> processes&quot;</span><span class="p">,</span>
                        <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">),</span> <span class="n">num_processes</span><span class="p">)</span>
 
-        <span class="c"># Recreate the process pool each sync in case processes in the pool die</span>
+        <span class="c1"># Recreate the process pool each sync in case processes in the pool die</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sync_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">num_processes</span><span class="p">)</span>
 
-        <span class="c"># Use chunking instead of a work queue to reduce context switching since tasks are</span>
-        <span class="c"># roughly uniform in size</span>
+        <span class="c1"># Use chunking instead of a work queue to reduce context switching since tasks are</span>
+        <span class="c1"># roughly uniform in size</span>
         <span class="n">chunksize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_tasks_per_fetch_process</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Waiting for inquiries to complete...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Waiting for inquiries to complete...&quot;</span><span class="p">)</span>
         <span class="n">task_keys_to_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sync_pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
             <span class="n">fetch_celery_task_state</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
             <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sync_pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sync_pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Inquiries completed.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Inquiries completed.&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">key_and_state</span> <span class="ow">in</span> <span class="n">task_keys_to_states</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_and_state</span><span class="p">,</span> <span class="n">ExceptionWithTraceback</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="n">CELERY_FETCH_ERR_MSG_HEADER</span> <span class="o">+</span> <span class="s">&quot;, ignoring it:%s</span><span class="se">\n</span><span class="s">%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+                    <span class="n">CELERY_FETCH_ERR_MSG_HEADER</span> <span class="o">+</span> <span class="s2">&quot;, ignoring it:</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
                     <span class="nb">repr</span><span class="p">(</span><span class="n">key_and_state</span><span class="o">.</span><span class="n">exception</span><span class="p">),</span> <span class="n">key_and_state</span><span class="o">.</span><span class="n">traceback</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
@@ -549,12 +549,12 @@ https://www.sphinx-doc.org/en/master/templating.html
                         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
                         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Unexpected state: %s&quot;</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unexpected state: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">last_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&quot;Error syncing the Celery executor, ignoring it.&quot;</span><span class="p">)</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error syncing the Celery executor, ignoring it.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CeleryExecutor.end"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CeleryExecutor.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synchronous</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+<div class="viewcode-block" id="CeleryExecutor.end"><a class="viewcode-back" href="../../../_api/airflow/executors/celery_executor/index.html#airflow.executors.celery_executor.CeleryExecutor.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synchronous</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">synchronous</span><span class="p">:</span>
             <span class="k">while</span> <span class="nb">any</span><span class="p">([</span>
                     <span class="n">task</span><span class="o">.</span><span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">celery_states</span><span class="o">.</span><span class="n">READY_STATES</span>

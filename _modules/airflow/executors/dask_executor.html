@@ -153,7 +153,7 @@ https://www.sphinx-doc.org/en/master/templating.html
             
             
               <div class="version">
-                1.10.4
+                1.10.5
               </div>
             
           
@@ -267,24 +267,24 @@ https://www.sphinx-doc.org/en/master/templating.html
            <div itemprop="articleBody">
             
   <h1>Source code for airflow.executors.dask_executor</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#</span>
-<span class="c"># Licensed to the Apache Software Foundation (ASF) under one</span>
-<span class="c"># or more contributor license agreements.  See the NOTICE file</span>
-<span class="c"># distributed with this work for additional information</span>
-<span class="c"># regarding copyright ownership.  The ASF licenses this file</span>
-<span class="c"># to you under the Apache License, Version 2.0 (the</span>
-<span class="c"># &quot;License&quot;); you may not use this file except in compliance</span>
-<span class="c"># with the License.  You may obtain a copy of the License at</span>
-<span class="c">#</span>
-<span class="c">#   http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="c">#</span>
-<span class="c"># Unless required by applicable law or agreed to in writing,</span>
-<span class="c"># software distributed under the License is distributed on an</span>
-<span class="c"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
-<span class="c"># KIND, either express or implied.  See the License for the</span>
-<span class="c"># specific language governing permissions and limitations</span>
-<span class="c"># under the License.</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
 
 <span class="kn">import</span> <span class="nn">distributed</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
@@ -298,18 +298,18 @@ https://www.sphinx-doc.org/en/master/templating.html
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DaskExecutor submits tasks to a Dask Distributed cluster.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_address</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">cluster_address</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
-            <span class="n">cluster_address</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dask&#39;</span><span class="p">,</span> <span class="s">&#39;cluster_address&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_address</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cluster_address</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cluster_address</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dask&#39;</span><span class="p">,</span> <span class="s1">&#39;cluster_address&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cluster_address</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s">&#39;Please provide a Dask cluster address in airflow.cfg&#39;</span><span class="p">)</span>
+                <span class="s1">&#39;Please provide a Dask cluster address in airflow.cfg&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cluster_address</span> <span class="o">=</span> <span class="n">cluster_address</span>
-        <span class="c"># ssl / tls parameters</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tls_ca</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dask&#39;</span><span class="p">,</span> <span class="s">&#39;tls_ca&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tls_key</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dask&#39;</span><span class="p">,</span> <span class="s">&#39;tls_key&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tls_cert</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dask&#39;</span><span class="p">,</span> <span class="s">&#39;tls_cert&#39;</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DaskExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parallelism</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># ssl / tls parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tls_ca</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dask&#39;</span><span class="p">,</span> <span class="s1">&#39;tls_ca&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tls_key</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dask&#39;</span><span class="p">,</span> <span class="s1">&#39;tls_key&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tls_cert</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dask&#39;</span><span class="p">,</span> <span class="s1">&#39;tls_cert&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DaskExecutor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parallelism</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DaskExecutor.start"><a class="viewcode-back" href="../../../_api/airflow/executors/dask_executor/index.html#airflow.executors.dask_executor.DaskExecutor.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tls_ca</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">tls_key</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">tls_cert</span><span class="p">:</span>
@@ -318,42 +318,42 @@ https://www.sphinx-doc.org/en/master/templating.html
                 <span class="n">tls_client_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tls_key</span><span class="p">,</span>
                 <span class="n">tls_client_cert</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tls_cert</span><span class="p">,</span>
                 <span class="n">tls_ca_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tls_ca</span><span class="p">,</span>
-                <span class="n">require_encryption</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                <span class="n">require_encryption</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">security</span> <span class="o">=</span> <span class="k">None</span>
+            <span class="n">security</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">distributed</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_address</span><span class="p">,</span> <span class="n">security</span><span class="o">=</span><span class="n">security</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">futures</span> <span class="o">=</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="DaskExecutor.execute_async"><a class="viewcode-back" href="../../../_api/airflow/executors/dask_executor/index.html#airflow.executors.dask_executor.DaskExecutor.execute_async">[docs]</a>    <span class="k">def</span> <span class="nf">execute_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">executor_config</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">queue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="k">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DaskExecutor.execute_async"><a class="viewcode-back" href="../../../_api/airflow/executors/dask_executor/index.html#airflow.executors.dask_executor.DaskExecutor.execute_async">[docs]</a>    <span class="k">def</span> <span class="nf">execute_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">executor_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">queue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s">&#39;DaskExecutor does not support queues. &#39;</span>
-                <span class="s">&#39;All tasks will be run in the same cluster&#39;</span>
+                <span class="s1">&#39;DaskExecutor does not support queues. &#39;</span>
+                <span class="s1">&#39;All tasks will be run in the same cluster&#39;</span>
             <span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">airflow_run</span><span class="p">():</span>
-            <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">close_fds</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">close_fds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">airflow_run</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">airflow_run</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">futures</span><span class="p">[</span><span class="n">future</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span></div>
 
 <div class="viewcode-block" id="DaskExecutor._process_future"><a class="viewcode-back" href="../../../_api/airflow/executors/dask_executor/index.html#airflow.executors.dask_executor.DaskExecutor._process_future">[docs]</a>    <span class="k">def</span> <span class="nf">_process_future</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">future</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
             <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">futures</span><span class="p">[</span><span class="n">future</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Failed to execute task: %s&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to execute task: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">()))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">future</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Failed to execute task&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to execute task&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">future</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DaskExecutor.sync"><a class="viewcode-back" href="../../../_api/airflow/executors/dask_executor/index.html#airflow.executors.dask_executor.DaskExecutor.sync">[docs]</a>    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># make a copy so futures can be popped during iteration</span>
+        <span class="c1"># make a copy so futures can be popped during iteration</span>
         <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_future</span><span class="p">(</span><span class="n">future</span><span class="p">)</span></div>
 
