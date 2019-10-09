@@ -16,7 +16,3 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-console.log("🦊 Hello! Edit me in src/index.js");
-export const foo = () => console.log("foo");
-foo()
