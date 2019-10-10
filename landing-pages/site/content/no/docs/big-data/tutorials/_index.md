@@ -12,5 +12,3 @@ Dette er landingssiden til en seksjon et sted nede i seksjonshierarkiet.
 * Oppsummer
 * Seksjonen din
 * Her
-
-

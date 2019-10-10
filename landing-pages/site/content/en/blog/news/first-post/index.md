@@ -42,5 +42,3 @@ Fetch and scale an image in the upcoming Hugo 0.43.
 ```
 
 The image will be rendered at the size and byline specified in the front matter.
-
-
