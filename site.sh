@@ -39,7 +39,7 @@ These are  ${0} commands used in various situations:
     install-node-deps  Download all the Node dependencies
     preview            Starts the web server
     build-site         Builds a website
-    lint-js            Lint all javascript files
+    lint-assets        Lint assets files e.g. CSS, JS.
     shell              Start shell.
     help               Display usage
 
@@ -95,7 +95,7 @@ if [[ "$#" -ge 1 ]] ; then
     elif [[ "$1" == "build-site" ]]; then
         ensure_node_module_exists
         start_container bash -c "cd landing-pages/site && npm run build"
-    elif [[ "$1" == "lint-js" ]]; then
+    elif [[ "$1" == "lint-assets" ]]; then
         ensure_node_module_exists
         start_container bash -c "cd landing-pages/site && npm run lint"
     elif [[ "$1" == "shell" ]]; then
