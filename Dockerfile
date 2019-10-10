@@ -56,7 +56,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 RUN HUGOHOME="$(mktemp -d)" \
     && export HUGOHOME \
     && curl -sL https://github.com/gohugoio/hugo/releases/download/v0.58.3/hugo_extended_0.58.3_Linux-64bit.tar.gz > "${HUGOHOME}/hugo.tar.gz" \
-    && tar -xzvf ${HUGOHOME}/hugo.tar.gz hugo \
+    && tar -xzvf "${HUGOHOME}/hugo.tar.gz" hugo \
     && mv hugo /usr/local/bin/hugo \
     && chmod +x /usr/local/bin/hugo \
     && rm -r "${HUGOHOME}"

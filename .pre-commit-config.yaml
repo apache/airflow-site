@@ -1,0 +1,53 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+---
+default_stages: [commit, push]
+default_language_version:
+  # force all unspecified python hooks to run python3
+  python: python3
+
+repos:
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: Check Shell scripts syntax correctness
+        language: docker_image
+        entry: koalaman/shellcheck:stable -x -a
+        types: [shell]
+        files: ^breeze$|^breeze-complete$|\.sh$|^hooks/build$|^hooks/push$
+        exclude: ^airflow/_vendor/.*$
+      - id: lint-dockerfile
+        name: Lint dockerfile
+        language: docker_image
+        types:
+          - dockerfile
+        entry: --entrypoint /bin/hadolint hadolint/hadolint:latest -
+      - id: lint-css
+        name: Lint CSS files
+        entry: ./site.sh lint-css
+        language: system
+        files: \.scss$
+        pass_filenames: false
+      - id: lint-js
+        name: Lint JS files
+        entry: ./site.sh lint-js
+        language: system
+        files: \.js$
+        pass_filenames: false
