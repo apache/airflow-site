@@ -39,8 +39,9 @@ These are  ${0} commands used in various situations:
     install-node-deps  Download all the Node dependencies
     preview            Starts the web server
     build-site         Builds a website
-    lint-assets        Lint assets files e.g. CSS, JS.
-    shell              Start shell.
+    lint-css           Lint CSS files
+    lint-js            Lint Javascript files
+    shell              Start shell
     help               Display usage
 
 Unrecognized commands are run as programs in the container.
@@ -63,7 +64,7 @@ function ensure_image_exists {
 function ensure_node_module_exists {
     if [[ ! -d landing-pages/node_modules/ ]] ; then
         echo "Missing node depedencies. Start installation."
-        start_container bash -c "cd landing-pages/ && yarn install"
+        start_container_non_interactive bash -c "cd landing-pages/ && yarn install"
         echo "Dependencies installed"
     fi
 }
@@ -74,14 +75,22 @@ function build_image {
     echo "End building image"
 }
 
+COMMON_DOCKER_ARGS=(
+    -v "$(pwd):/opt/site/"
+    -p 1313:1313
+    -p 3000:3000
+)
+
 function start_container {
     ensure_image_exists
 
-    docker run -ti \
-        -v "$(pwd):/opt/site/" \
-        -p 1313:1313 \
-        -p 3000:3000 \
-        airflow-site "$@"
+    docker run -ti "${COMMON_DOCKER_ARGS[@]}" airflow-site "$@"
+}
+
+function start_container_non_interactive {
+    ensure_image_exists
+
+    docker run "${COMMON_DOCKER_ARGS[@]}"  airflow-site "$@"
 }
 
 if [[ "$#" -ge 1 ]] ; then
@@ -95,9 +104,12 @@ if [[ "$#" -ge 1 ]] ; then
     elif [[ "$1" == "build-site" ]]; then
         ensure_node_module_exists
         start_container bash -c "cd landing-pages/site && npm run build"
-    elif [[ "$1" == "lint-assets" ]]; then
+    elif [[ "$1" == "lint-js" ]]; then
         ensure_node_module_exists
-        start_container bash -c "cd landing-pages/site && npm run lint"
+        start_container_non_interactive bash -c "cd landing-pages/site && npm run lint:js"
+    elif [[ "$1" == "lint-css" ]]; then
+        ensure_node_module_exists
+        start_container_non_interactive bash -c "cd landing-pages/site && npm run lint:css"
     elif [[ "$1" == "shell" ]]; then
         start_container "bash"
     elif [[ "$1" == "help" ]]; then
