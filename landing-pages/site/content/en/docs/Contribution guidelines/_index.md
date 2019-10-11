@@ -13,10 +13,10 @@ Don't forget to link to your own doc repo rather than our example site! Also mak
 {{% /pageinfo %}}
 
 We use [Hugo](https://gohugo.io/) to format and generate our website, the
-[Docsy](https://github.com/google/docsy) theme for styling and site structure, 
-and [Netlify](https://www.netlify.com/) to manage the deployment of the site. 
-Hugo is an open-source static site generator that provides us with templates, 
-content organisation in a standard directory structure, and a website generation 
+[Docsy](https://github.com/google/docsy) theme for styling and site structure,
+and [Netlify](https://www.netlify.com/) to manage the deployment of the site.
+Hugo is an open-source static site generator that provides us with templates,
+content organisation in a standard directory structure, and a website generation
 engine. You write the pages in Markdown (or HTML if you want), and Hugo wraps them up into a website.
 
 All submissions, including submissions by project members, require review. We
@@ -32,15 +32,15 @@ updates:
 
 1. Fork the [Goldydocs repo](https://github.com/google/docsy-example) on GitHub.
 1. Make your changes and send a pull request (PR).
-1. If you're not yet ready for a review, add "WIP" to the PR name to indicate 
-  it's a work in progress. (**Don't** add the Hugo property 
-  "draft = true" to the page front matter, because that prevents the 
+1. If you're not yet ready for a review, add "WIP" to the PR name to indicate
+  it's a work in progress. (**Don't** add the Hugo property
+  "draft = true" to the page front matter, because that prevents the
   auto-deployment of the content preview described in the next point.)
 1. Wait for the automated PR workflow to do some checks. When it's ready,
   you should see a comment like this: **deploy/netlify — Deploy preview ready!**
 1. Click **Details** to the right of "Deploy preview ready" to see a preview
   of your updates.
-1. Continue updating your doc and pushing your changes until you're happy with 
+1. Continue updating your doc and pushing your changes until you're happy with
   the content.
 1. When you're ready for a review, add a comment to the PR, and remove any
   "WIP" markers.
@@ -77,5 +77,3 @@ If you've found a problem in the docs, but you're not sure how to fix it yoursel
 * [Docsy user guide](wherever it goes): All about Docsy, including how it manages navigation, look and feel, and multi-language support.
 * [Hugo documentation](https://gohugo.io/documentation/): Comprehensive reference for Hugo.
 * [Github Hello World!](https://guides.github.com/activities/hello-world/): A basic introduction to GitHub concepts and workflow.
-
-
