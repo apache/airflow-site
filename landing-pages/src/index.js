@@ -16,3 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
+import {loadMore} from "./js/load-more";
+
+loadMore("events-container", "load-more-events", 5);
+loadMore("integrations-container", "load-more-integrations", 5);
+loadMore("commiters-container", "load-more-commiters", 5);
