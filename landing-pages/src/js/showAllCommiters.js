@@ -32,7 +32,7 @@ export const showAllCommiters = (initialChildrenCount) => {
     });
 
   button.addEventListener("click", () => {
-    hiddenChildren.forEach((child) => child.style.display = "flex");
+    hiddenChildren.forEach((child) => child.style.display = "block");
     button.style.display = "none";
   });
 };
