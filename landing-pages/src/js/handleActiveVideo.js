@@ -17,8 +17,22 @@
  * under the License.
  */
 
-import {showAllCommiters} from "./js/showAllCommiters";
-import {handleActiveVideo} from "./js/handleActiveVideo";
+const videosList = document.querySelectorAll(".video-list__item");
+const urlHash = window.location.hash;
 
-showAllCommiters(8);
-handleActiveVideo();
+const addActiveClass = (videoItem) => {
+  videosList.forEach((item) => item.classList.remove("active"));
+  videoItem.classList.add("active");
+};
+
+export const handleActiveVideo = () => {
+  if (!videosList) return;
+
+  urlHash ?
+    videosList.forEach((videoLink) => videoLink.hash === urlHash && videoLink.classList.add("active"))
+    : videosList[videosList.length - 1].classList.add("active");
+
+  videosList.forEach((item) =>
+    item.addEventListener("click", (event) => addActiveClass(event.currentTarget))
+  );
+};

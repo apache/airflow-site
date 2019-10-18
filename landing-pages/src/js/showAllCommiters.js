@@ -20,7 +20,7 @@
 export const showAllCommiters = (initialChildrenCount) => {
   const container = window.document.getElementById("commiters-container");
   const button = window.document.getElementById("show-all-commiters");
-
+  if (!container || !button) return;
   if (container.childElementCount <= initialChildrenCount) return;
 
   button.style.display = "block";
