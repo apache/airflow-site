@@ -18,5 +18,7 @@
  */
 
 import {showAllCommiters} from "./js/showAllCommiters";
+import {handleActiveVideo} from "./js/handleActiveVideo";
 
 showAllCommiters(8);
+handleActiveVideo();
