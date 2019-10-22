@@ -17,19 +17,22 @@
  * under the License.
  */
 
-@import url('https://fonts.googleapis.com/css?family=Rubik:500&display=swap');
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap');
-@import url('https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap');
+const videosList = document.querySelectorAll(".video-list__item");
+const urlHash = window.location.hash;
 
-@import "typography";
-@import "accordion";
-@import "buttons";
-@import "ol-ul";
-@import "list-boxes";
-@import "avatar";
-@import "quote";
-@import "pager";
-@import "case-study";
-@import "paragraph";
-@import "base-layout";
-@import "video";
+const addActiveClass = (videoItem) => {
+  videosList.forEach((item) => item.classList.remove("active"));
+  videoItem.classList.add("active");
+};
+
+export const handleActiveVideo = () => {
+  if (!videosList) return;
+
+  urlHash ?
+    videosList.forEach((videoLink) => videoLink.hash === urlHash && videoLink.classList.add("active"))
+    : videosList[videosList.length - 1].classList.add("active");
+
+  videosList.forEach((item) =>
+    item.addEventListener("click", (event) => addActiveClass(event.currentTarget))
+  );
+};
