@@ -17,9 +17,9 @@
  * under the License.
  */
 
-export const showAllCommiters = (initialChildrenCount) => {
-  const container = window.document.getElementById("commiters-container");
-  const button = window.document.getElementById("show-all-commiters");
+export const showAllCommiters = (initialChildrenCount, containerID, buttonID) => {
+  const container = window.document.getElementById(containerID);
+  const button = window.document.getElementById(buttonID);
   if (!container || !button) return;
   if (container.childElementCount <= initialChildrenCount) return;
 
