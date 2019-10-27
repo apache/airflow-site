@@ -29,7 +29,7 @@ module.exports = merge(common, {
 
   output: {
     filename: "[name].[hash:5].js",
-    chunkFilename: "[id].[hash:5].js"
+    chunkFilename: "chunk-[id].[hash:5].js",
   },
 
   optimization: {
