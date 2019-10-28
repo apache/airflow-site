@@ -27,6 +27,17 @@ const $target = document.querySelector(".list-items");
 
 const $itemTemplate = $target.firstElementChild.cloneNode(true);
 
+const buildMetadataSection = (tagList, date) => {
+  const dateOptions = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+  const formattedDate = new Date(date).toLocaleDateString("en-US", dateOptions);
+  let metadataHTML = "";
+  tagList.forEach((tag) => {
+    metadataHTML += `<a class='tag' href=/blog/tags/${tag}/>${tag}</a>`;
+  });
+  metadataHTML += `<span class="bodytext__medium--brownish-grey">${formattedDate}</span>`;
+  return metadataHTML;
+};
+
 Promise.all([
   fetch("/indexes/en/blog-index.json"),
   fetch("/indexes/en/blog-posts.json")
@@ -58,10 +69,10 @@ Promise.all([
     results.forEach((result) => {
       const $newResultItem = $itemTemplate.cloneNode(true);
       $newResultItem.querySelector(".box-event__blogpost--header").innerText = result.post.title;
-      $newResultItem.querySelector(".box-event__blogpost--author").innerText = "";
-      $newResultItem.querySelector(".box-event__blogpost--author").innerText = "";
-      $newResultItem.querySelector(".bodytext__medium--brownish-grey").innerText = "";
-      $newResultItem.querySelector(".box-event__blogpost--description").innerText = "";
+      $newResultItem.querySelector(".box-event__blogpost--author").innerText = result.post.author;
+      $newResultItem.querySelector(".box-event__blogpost--description").innerText = result.post.description;
+      $newResultItem.querySelector(".box-event__blogpost--metadata").innerHTML = buildMetadataSection(result.post.tags, result.post.date);
+      $newResultItem.querySelector(".box-event__blogpost > a").href = `/blog/${result.post.url}/`;
       $target.append($newResultItem);
     });
   } else {
