@@ -19,7 +19,7 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const {promisify} = require('util');
+const { promisify } = require('util');
 const frontMatterParser = require('parser-front-matter');
 const parse = promisify(frontMatterParser.parse.bind(frontMatterParser));
 const lunrjs = require('lunr');
@@ -50,6 +50,7 @@ async function loadPostsWithFrontMatter(postsDirectoryPath) {
             const {content, data} = await parse(fileContent);
             return {
                 content: content.slice(0, 3000),
+                url: path.parse(fileName).name,
                 ...data
             };
         })
@@ -65,6 +66,7 @@ function makeIndex(posts) {
         this.field("author");
         this.field('content');
         this.field('tags');
+        this.field('url');
         posts.forEach(p => {
             this.add(p);
         });
@@ -86,7 +88,7 @@ async function processLanguage(language) {
     const posts = await loadPostsWithFrontMatter(currentDirectory);
     const index = makeIndex(posts);
     const currentOutputDirectory = `${outputtDirectory}/${language}`;
-    if (!await isDirectoryExists(currentDirectory)) {
+    if (!await isDirectoryExists(currentOutputDirectory)) {
         await fs.mkdir(currentOutputDirectory)
     }
     await writeJson(`${currentOutputDirectory}/blog-index.json`, index);
