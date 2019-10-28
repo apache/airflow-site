@@ -30,10 +30,11 @@ const $itemTemplate = $target.firstElementChild.cloneNode(true);
 const buildMetadataSection = (tagList, date) => {
   const dateOptions = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
   const formattedDate = new Date(date).toLocaleDateString("en-US", dateOptions);
-  let metadataHTML = "";
+  let metadataHTML = "<div class=\"tags-container\">";
   tagList.forEach((tag) => {
     metadataHTML += `<a class='tag' href=/blog/tags/${tag}/>${tag}</a>`;
   });
+  metadataHTML += "</div>";
   metadataHTML += `<span class="bodytext__medium--brownish-grey">${formattedDate}</span>`;
   return metadataHTML;
 };
