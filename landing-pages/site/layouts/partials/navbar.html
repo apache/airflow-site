@@ -1,0 +1,54 @@
+{{/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+*/}}
+
+{{ $cover := .HasShortcode "blocks/cover" }}
+<nav class="js-navbar-scroll navbar">
+    <a href="{{ .Site.Home.RelPermalink }}">
+        {{ with resources.Get "icons/airflow-logo.svg" }}{{ .Content | safeHTML }}{{ end }}
+    </a>
+    <div class="navbar__links-container" id="main_navbar">
+        {{ $p := . }}
+        {{ $menusLen := len .Site.Menus.main }}
+        <div class="d-flex">
+            {{ range $index, $el := .Site.Menus.main }}
+                {{ if ne (add $index 1) $menusLen }}
+                    {{ $active := or ($p.IsMenuCurrent "main" $el) ($p.HasMenuCurrent "main" $el) }}
+                    {{ with $el.Page }}
+                        {{ $active = or $active ( $.IsDescendant .)  }}
+                    {{ end }}
+                    {{ $url := urls.Parse $el.URL }}
+                    {{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
+                    <a class="navbar__text-link {{if $active }}active{{end}}"
+                       href="{{ with $el.Page }}{{ .RelPermalink }}{{ else }}{{ $el.URL | relLangURL }}{{ end }}"
+                       {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }}>
+                        {{ $el.Name }}
+                    </a>
+                {{ end }}
+            {{ end }}
+        </div>
+        {{ with index .Site.Menus.main (sub $menusLen 1) }}
+            {{ $url := urls.Parse .URL }}
+            {{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
+            <a href="{{ with .Page }}{{ .RelPermalink }}{{ else }}{{ .URL | relLangURL }}{{ end }}"
+               {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }}>
+                {{ partial "buttons/button-filled" (dict "text" .Name) }}
+            </a>
+        {{ end }}
+    </div>
+</nav>
