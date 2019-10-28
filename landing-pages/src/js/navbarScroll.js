@@ -17,11 +17,8 @@
  * under the License.
  */
 
-import {showMore} from "./js/showAllCommiters";
-import {handleActiveVideo} from "./js/handleActiveVideo";
-import "./js/navbarScroll";
-
-showMore("#commiters-container", "#show-more-commiters");
-showMore("#pmc-container", "#show-more-pmcs");
-showMore("#case-studies-container", "#show-more-case-studies");
-handleActiveVideo();
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 0) {
+    window.document.querySelector(".js-navbar-scroll").classList.add("navbar--box-shadow");
+  }
+});
