@@ -27,16 +27,23 @@ const $target = document.querySelector(".list-items");
 
 const $itemTemplate = $target.firstElementChild.cloneNode(true);
 
-const buildMetadataSection = (tagList, date) => {
+
+const formatDate = (date) => {
   const dateOptions = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
-  const formattedDate = new Date(date).toLocaleDateString("en-US", dateOptions);
-  let metadataHTML = "<div class=\"tags-container\">";
-  tagList.forEach((tag) => {
-    metadataHTML += `<a class='tag' href=/blog/tags/${tag}/>${tag}</a>`;
+  return new Date(date).toLocaleDateString("en-US", dateOptions);
+};
+
+const setTags = (tagsContainer, tags) => {
+  while (tagsContainer.firstChild) {
+    tagsContainer.removeChild(tagsContainer.firstChild);
+  }
+  tags.forEach((tag) => {
+    const tagElement = document.createElement("a");
+    tagsContainer.appendChild(tagElement);
+    tagElement.setAttribute("class", "tag");
+    tagElement.setAttribute("href", `/blog/tags/${tag}/`);
+    tagElement.innerText = tag;
   });
-  metadataHTML += "</div>";
-  metadataHTML += `<span class="bodytext__medium--brownish-grey">${formattedDate}</span>`;
-  return metadataHTML;
 };
 
 Promise.all([
@@ -72,7 +79,8 @@ Promise.all([
       $newResultItem.querySelector(".box-event__blogpost--header").innerText = result.post.title;
       $newResultItem.querySelector(".box-event__blogpost--author").innerText = result.post.author;
       $newResultItem.querySelector(".box-event__blogpost--description").innerText = result.post.description;
-      $newResultItem.querySelector(".box-event__blogpost--metadata").innerHTML = buildMetadataSection(result.post.tags, result.post.date);
+      $newResultItem.querySelector(".box-event__blogpost--date").innerText = formatDate(result.post.date);
+      setTags($newResultItem.querySelector(".box-event__blogpost--metadata > .tags-container"), result.post.tags);
       $newResultItem.querySelector(".box-event__blogpost > a").href = `/blog/${result.post.url}/`;
       $target.append($newResultItem);
     });
