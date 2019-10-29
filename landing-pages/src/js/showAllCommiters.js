@@ -25,12 +25,15 @@ const showElementsOnPage = (elements, currentPage) => {
   });
 };
 
-export const showMoreCommiters = (containerID, buttonID) => {
+export const showMore = (containerID, buttonID) => {
   let currentPage = 1;
   const container = window.document.querySelector(containerID);
   const button = window.document.querySelector(buttonID);
   if (!container || !button) return;
-  if (container.childElementCount <= itemsOnPage * currentPage) return;
+  if (container.childElementCount <= itemsOnPage * currentPage) {
+    button.style.display = "none";
+    return;
+  }
 
   button.style.display = "block";
   const commiterElements = Array.from(container.children);

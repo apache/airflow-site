@@ -17,9 +17,10 @@
  * under the License.
  */
 
-import {showMoreCommiters} from "./js/showAllCommiters";
+import {showMore} from "./js/showAllCommiters";
 import {handleActiveVideo} from "./js/handleActiveVideo";
 
-showMoreCommiters("#commiters-container", "#show-all-commiters");
-showMoreCommiters("#pmc-container", "#show-all-pmcs");
+showMore("#commiters-container", "#show-more-commiters");
+showMore("#pmc-container", "#show-more-pmcs");
+showMore("#case-studies-container", "#show-more-case-studies");
 handleActiveVideo();
