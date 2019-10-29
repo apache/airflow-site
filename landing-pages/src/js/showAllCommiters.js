@@ -17,22 +17,34 @@
  * under the License.
  */
 
-export const showAllCommiters = (initialChildrenCount, containerID, buttonID) => {
-  const container = window.document.getElementById(containerID);
-  const button = window.document.getElementById(buttonID);
+const itemsOnPage = 8;
+
+const showElementsOnPage = (elements, currentPage) => {
+  elements.slice(currentPage * itemsOnPage, (currentPage + 1) * itemsOnPage).map((child) => {
+    child.style.display = "";
+  });
+};
+
+export const showMoreCommiters = (containerID, buttonID) => {
+  let currentPage = 1;
+  const container = window.document.querySelector(containerID);
+  const button = window.document.querySelector(buttonID);
   if (!container || !button) return;
-  if (container.childElementCount <= initialChildrenCount) return;
+  if (container.childElementCount <= itemsOnPage * currentPage) return;
 
   button.style.display = "block";
-  const hiddenChildren = Array.from(container.children)
-    .slice(initialChildrenCount, container.childElementCount)
+  const commiterElements = Array.from(container.children);
+  commiterElements
+    .slice(itemsOnPage, container.childElementCount)
     .map((child) => {
       child.style.display = "none";
-      return child;
     });
 
   button.addEventListener("click", () => {
-    hiddenChildren.forEach((child) => child.style.display = "block");
-    button.style.display = "none";
+    showElementsOnPage(commiterElements, currentPage);
+    currentPage += 1;
+    if (container.childElementCount <= itemsOnPage * currentPage) {
+      button.style.display = "none";
+    }
   });
 };
