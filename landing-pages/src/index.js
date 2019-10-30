@@ -21,6 +21,7 @@ import {showMore} from "./js/showAllCommiters";
 import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
+import "./js/sidebarCollapse";
 import "./js/rating";
 
 if (document.querySelector("#search")) {
