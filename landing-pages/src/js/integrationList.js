@@ -50,14 +50,6 @@ const sortByLogoAvailability = (a, b) => {
   return a_key - b_key;
 };
 
-const sortByName  = (a, b) => {
-  return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-};
-
-const sortByIndex = (a, b) => {
-  return a.index - b.index;
-};
-
 let fetchIntegrationRequest = null;
 
 function fetchIntegration() {
@@ -77,8 +69,8 @@ function fetchIntegration() {
     })
     .then((integrations) => {
       integrations = shuffle(integrations);
-      integrations.forEach((i, index) => i.inddex = index);
       integrations.sort(sortByLogoAvailability);
+      integrations.forEach((i, index) => i.inddex = index);
       return Promise.resolve(integrations);
     });
   fetchIntegrationRequest = request;
@@ -122,12 +114,6 @@ function showItems(keyword, page) {
   };
 
   const filterVisible = (integrations) => {
-    if (currentPage === 1) {
-      integrations.sort(sortByIndex);
-    } else {
-      integrations.sort(sortByName);
-    }
-    integrations.sort(sortByLogoAvailability);
     return Promise.resolve(integrations.slice(0, page * 8));
   };
 
