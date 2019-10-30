@@ -36,3 +36,4 @@ if (document.querySelector("#header")) {
       module.initHeaderAnimation();
     });
 }
+require("./js/integrationList.js");
