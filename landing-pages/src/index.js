@@ -22,7 +22,7 @@ import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
 
-if (document.querySelector('#search')){
+if (document.querySelector("#search")) {
     import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
 }
 
