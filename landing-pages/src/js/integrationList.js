@@ -21,119 +21,127 @@
 import debounce from "lodash/debounce";
 import shuffle from "lodash/shuffle";
 
-const root = document.querySelector("#integrations");
+function handleIntegration() {
+  const root = document.querySelector("#integrations");
 
-const templateText = root.querySelector("#integration-template").innerText;
-const templateElement = document.createElement("div");
-templateElement.innerHTML = templateText;
-
-const loadingIndicator = root.querySelector(".loading");
-const listItems = root.querySelector(".list-items");
-const searchBox = root.querySelector('[type="search"]');
-const moreButton = root.querySelector("#show-more-integration");
-
-let currentPage = 1;
-let currentQeury = "";
-function setIndicatorVisibility(visible) {
-  loadingIndicator.style.display = visible ? "" : "none";
-  listItems.style.display = visible ? "none" : "";
-}
-setIndicatorVisibility(false);
-function setMoreButtonVisibility(visible) {
-  moreButton.style.display = visible ? "" : "none";
-}
-setMoreButtonVisibility(true);
-
-const sortByLogoAvailability = (a, b) => {
-  const a_key = a.logo ? 1 : -1;
-  const b_key = b.logo ? 1 : -1;
-  return a_key - b_key;
-};
-
-let fetchIntegrationRequest = null;
-
-function fetchIntegration() {
-  if (fetchIntegrationRequest) {
-    return fetchIntegrationRequest;
+  if (!root) {
+    return;
   }
-  const request = Promise.all([
-    fetch("/integrations.json"),
-    () => {
-      setIndicatorVisibility(true);
-    }
-  ])
-    .then(([resp]) => resp.json())
-    .then((integrations) => {
-      setIndicatorVisibility(false);
-      return Promise.resolve(integrations);
-    })
-    .then((integrations) => {
-      integrations = shuffle(integrations);
-      integrations.sort(sortByLogoAvailability);
-      integrations.forEach((i, index) => i.inddex = index);
-      return Promise.resolve(integrations);
-    });
-  fetchIntegrationRequest = request;
-  return request;
-}
 
-function createElement(item) {
-  const element = templateElement.cloneNode(true);
-  element.querySelector('[data-name="name"]').innerText = item.name;
-  element.querySelector("a").href = item.url;
-  return element.firstElementChild;
-}
+  const templateText = root.querySelector("#integration-template").innerText;
+  const templateElement = document.createElement("div");
+  templateElement.innerHTML = templateText;
 
-function setItems(items) {
-  if (items.length === 0) {
-    listItems.innerText = "No items";
-  } else {
-    while (listItems.firstChild) {
-      listItems.removeChild(listItems.firstChild);
-    }
-    items.forEach((item) => {
-      const element = createElement(item);
-      listItems.append(element);
-    });
+  const loadingIndicator = root.querySelector(".loading");
+  const listItems = root.querySelector(".list-items");
+  const searchBox = root.querySelector('[type="search"]');
+  const moreButton = root.querySelector("#show-more-integration");
+
+  let currentPage = 1;
+  let currentQeury = "";
+  function setIndicatorVisibility(visible) {
+    loadingIndicator.style.display = visible ? "" : "none";
+    listItems.style.display = visible ? "none" : "";
   }
-}
+  setIndicatorVisibility(false);
+  function setMoreButtonVisibility(visible) {
+    moreButton.style.display = visible ? "" : "none";
+  }
+  setMoreButtonVisibility(true);
 
-function showItems(keyword, page) {
-  const showMoreButtonIfNeeded = (integrations) => {
-    setMoreButtonVisibility(integrations.length > (page * 8));
+  const sortByLogoAvailability = (a, b) => {
+    const a_key = a.logo ? 1 : -1;
+    const b_key = b.logo ? 1 : -1;
+    return a_key - b_key;
   };
 
-  const filterMatchingItems = (integrations) => {
-    if (!keyword) {
-      return Promise.resolve(integrations);
+  let fetchIntegrationRequest = null;
+
+  function fetchIntegration() {
+    if (fetchIntegrationRequest) {
+      return fetchIntegrationRequest;
     }
-    const selectedIntegration = integrations.filter(
-      (integration) => integration.name.indexOf(keyword) >= 0
-    );
-    return Promise.resolve(selectedIntegration);
-  };
+    const request = Promise.all([
+      fetch("/integrations.json"),
+      () => {
+        setIndicatorVisibility(true);
+      }
+    ])
+      .then(([resp]) => resp.json())
+      .then((integrations) => {
+        setIndicatorVisibility(false);
+        return Promise.resolve(integrations);
+      })
+      .then((integrations) => {
+        integrations = shuffle(integrations);
+        integrations.sort(sortByLogoAvailability);
+        integrations.forEach((i, index) => i.inddex = index);
+        return Promise.resolve(integrations);
+      });
+    fetchIntegrationRequest = request;
+    return request;
+  }
 
-  const filterVisible = (integrations) => {
-    return Promise.resolve(integrations.slice(0, page * 8));
-  };
+  function createElement(item) {
+    const element = templateElement.cloneNode(true);
+    element.querySelector('[data-name="name"]').innerText = item.name;
+    element.querySelector("a").href = item.url;
+    return element.firstElementChild;
+  }
 
-  const itemsPromise = fetchIntegration()
-    .then(filterMatchingItems);
-  itemsPromise.then(filterVisible).then(setItems);
-  itemsPromise.then(showMoreButtonIfNeeded);
+  function setItems(items) {
+    if (items.length === 0) {
+      listItems.innerText = "No items";
+    } else {
+      while (listItems.firstChild) {
+        listItems.removeChild(listItems.firstChild);
+      }
+      items.forEach((item) => {
+        const element = createElement(item);
+        listItems.append(element);
+      });
+    }
+  }
+
+  function showItems(keyword, page) {
+    const showMoreButtonIfNeeded = (integrations) => {
+      setMoreButtonVisibility(integrations.length > (page * 8));
+    };
+
+    const filterMatchingItems = (integrations) => {
+      if (!keyword) {
+        return Promise.resolve(integrations);
+      }
+      const selectedIntegration = integrations.filter(
+        (integration) => integration.name.indexOf(keyword) >= 0
+      );
+      return Promise.resolve(selectedIntegration);
+    };
+
+    const filterVisible = (integrations) => {
+      return Promise.resolve(integrations.slice(0, page * 8));
+    };
+
+    const itemsPromise = fetchIntegration()
+      .then(filterMatchingItems);
+    itemsPromise.then(filterVisible).then(setItems);
+    itemsPromise.then(showMoreButtonIfNeeded);
+  }
+
+  function setSearchQuery(keyword) {
+    currentQeury = keyword;
+    showItems(currentQeury, currentPage);
+  }
+
+  searchBox.addEventListener("keyup", debounce(function() {
+    currentPage = 1;
+    setSearchQuery(searchBox.value);
+  }, 0));
+
+  moreButton.addEventListener("click", function() {
+    currentPage = currentPage + 1;
+    setSearchQuery(searchBox.value);
+  });
 }
 
-function setSearchQuery(keyword) {
-  currentQeury = keyword;
-  showItems(currentQeury, currentPage);
-}
-
-searchBox.addEventListener("keyup", debounce(function() {
-  currentPage = 1;
-  setSearchQuery(searchBox.value);
-}, 0));
-
-moreButton.addEventListener("click", function() {
-  currentPage = currentPage + 1;
-  setSearchQuery(searchBox.value);
-});
+handleIntegration();
