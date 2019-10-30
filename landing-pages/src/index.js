@@ -22,6 +22,10 @@ import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
 
+if (document.querySelector("#search")) {
+    import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
+}
+
 showMore("#commiters-container", "#show-more-commiters");
 showMore("#pmc-container", "#show-more-pmcs");
 showMore("#case-studies-container", "#show-more-case-studies");
