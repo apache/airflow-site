@@ -26,7 +26,7 @@ const addActiveClass = (videoItem) => {
 };
 
 export const handleActiveVideo = () => {
-  if (!videosList) return;
+  if (videosList.length === 0) return;
 
   urlHash ?
     videosList.forEach((videoLink) => videoLink.hash === urlHash && videoLink.classList.add("active"))

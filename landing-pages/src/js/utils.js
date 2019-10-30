@@ -17,18 +17,10 @@
  * under the License.
  */
 
-import {showMore} from "./js/showAllCommiters";
-import {handleActiveVideo} from "./js/handleActiveVideo";
-import "./js/navbarScroll";
-import "./js/drawer";
-
-showMore("#commiters-container", "#show-more-commiters");
-showMore("#pmc-container", "#show-more-pmcs");
-showMore("#case-studies-container", "#show-more-case-studies");
-handleActiveVideo();
-
-if (document.querySelector("#header")) {
-    import(/* webpackChunkName: "header" */ "./js/headerAnimation").then((module) => {
-      module.initHeaderAnimation();
-    });
+export function documentReady(fn) {
+  if (document.readyState !== "loading") {
+    fn();
+  } else {
+    document.addEventListener("DOMContentLoaded", fn);
+  }
 }
