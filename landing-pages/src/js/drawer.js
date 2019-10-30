@@ -17,12 +17,20 @@
  * under the License.
  */
 
-import {showMore} from "./js/showAllCommiters";
-import {handleActiveVideo} from "./js/handleActiveVideo";
-import "./js/navbarScroll";
-import "./js/drawer";
+const toggleDrawer = () => {
+  const drawer = window.document.querySelector("#navbar-drawer");
+  const hamburgerIcon = window.document.querySelector("#hamburger-icon");
+  const closeIcon = window.document.querySelector("#close-icon");
 
-showMore("#commiters-container", "#show-more-commiters");
-showMore("#pmc-container", "#show-more-pmcs");
-showMore("#case-studies-container", "#show-more-case-studies");
-handleActiveVideo();
+  if (drawer.classList.contains("navbar__drawer--open")) {
+    drawer.classList.remove("navbar__drawer--open");
+    hamburgerIcon.classList.add("visible");
+    closeIcon.classList.remove("visible");
+  } else {
+    drawer.classList.add("navbar__drawer--open");
+    hamburgerIcon.classList.remove("visible");
+    closeIcon.classList.add("visible");
+  }
+};
+
+window.document.querySelector("#navbar-toggle-button").addEventListener("click", toggleDrawer);
