@@ -59,7 +59,7 @@ module.exports = {
 
   plugins: [
     new webpack.ProvidePlugin({
-      fetch: 'exports-loader?self.fetch!whatwg-fetch/dist/fetch.umd',
+      fetch: "exports-loader?self.fetch!whatwg-fetch/dist/fetch.umd",
     }),
 
     new AssetsPlugin({
