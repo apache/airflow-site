@@ -37,3 +37,4 @@ if (document.querySelector("#header")) {
     });
 }
 require("./js/integrationList.js");
+require("./js/meetupsList.js");
