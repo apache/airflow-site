@@ -33,7 +33,7 @@ const runMeetups = () => {
 
   let currentPage = 1;
   let currentQuery = "";
-  fetch("/data/meetups.json")
+  fetch("/meetups.json")
     .then((response) => response.json())
     .then((allMeetups) => {
 
