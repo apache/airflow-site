@@ -170,16 +170,14 @@ function relativepath {
 
 function run_lint {
     script_working_directory=$1
-    shift
-    command=$1
-    shift
+    command=$2
+    shift 2
 
     DOCKER_PATHS=()
     for E in "${@}"; do
         ABS_PATH=$(cd "${WORKING_DIR}" && realpath "${E}")
         DOCKER_PATHS+=("/opt/site/$(relativepath "$(pwd)" "${ABS_PATH}")")
     done
-    echo "${DOCKER_PATHS[@]}"
     run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
 }
 
