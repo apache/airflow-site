@@ -48,6 +48,9 @@ can execute the following command:
 
     $0 ls
 
+The following command can also be performed from the Docker environment:
+install-node-deps, preview, build-site, lint-css, lint-js.
+
 EOF
 }
 
@@ -84,7 +87,7 @@ function ensure_container_running {
 function ensure_node_module_exists {
     if [[ ! -d landing-pages/node_modules/ ]] ; then
         echo "Missing node dependencies. Start installation."
-        docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" yarn install
+        run_command "/opt/site/landing-pages/" yarn install
         echo "Dependencies installed."
     fi
 }
@@ -93,6 +96,34 @@ function build_image {
     echo "Start building image"
     docker build -t airflow-site .
     echo "End building image"
+}
+
+function run_command {
+    working_directory=$1
+    shift
+    if [[ -f /.dockerenv ]] ; then
+        echo "Native command"
+        pushd "${working_directory}"
+        exec "$@"
+    else
+        echo "Docker command"
+        docker exec -w "${working_directory}" "${CONTAINER_NAME}" "$@"
+    fi
+}
+
+function prepare_environment {
+    if [[ ! -f /.dockerenv ]] ; then
+        ensure_image_exists
+        ensure_container_exists
+        ensure_container_running
+    fi
+}
+
+function prevent_docker {
+    if [[ -f /.dockerenv ]] ; then
+        echo "This command is not supported in the Docker environment. Run this command from the host system."
+        exit 1
+    fi
 }
 
 if [[ "$#" -eq 0 ]]; then
@@ -108,9 +139,11 @@ shift
 
 # Check fundamentals commands
 if [[ "${CMD}" == "build-image" ]] ; then
+    prevent_docker
     build_image
     exit 0
 elif [[ "${CMD}" == "stop" ]] ; then
+    prevent_docker
     docker kill "${CONTAINER_NAME}"
     exit 0
 elif [[ "${CMD}" == "help" ]]; then
@@ -118,28 +151,28 @@ elif [[ "${CMD}" == "help" ]]; then
     exit 0
 fi
 
-ensure_image_exists
-ensure_container_exists
-ensure_container_running
+prepare_environment
 
 # Check container commands
 if [[ "${CMD}" == "install-node-deps" ]] ; then
-    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" yarn install
+    run_command "/opt/site/landing-pages/" yarn install
 elif [[ "${CMD}" == "preview" ]]; then
     ensure_node_module_exists
-    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run preview
+    run_command "/opt/site/landing-pages/" npm run preview
 elif [[ "${CMD}" == "build-site" ]]; then
     ensure_node_module_exists
-    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run build
+    run_command "/opt/site/landing-pages/" npm run build
 elif [[ "${CMD}" == "lint-js" ]]; then
     ensure_node_module_exists
-    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run lint:js
+    run_command "/opt/site/landing-pages/" npm run lint:js
 elif [[ "${CMD}" == "lint-css" ]]; then
     ensure_node_module_exists
-    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run lint:css
+    run_command "/opt/site/landing-pages/" npm run lint:css
 elif [[ "${CMD}" == "shell" ]]; then
+    prevent_docker
     docker exec -ti "${CONTAINER_NAME}" bash
 else
+    prevent_docker
     docker exec -ti "${CONTAINER_NAME}" "${CMD}" "$@"
 fi
 
