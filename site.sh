@@ -84,8 +84,8 @@ function ensure_container_running {
 function ensure_node_module_exists {
     if [[ ! -d landing-pages/node_modules/ ]] ; then
         echo "Missing node dependencies. Start installation."
-        start_container_non_interactive bash -c "cd landing-pages/ && yarn install"
-        echo "Dependencies installed"
+        docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" yarn install
+        echo "Dependencies installed."
     fi
 }
 
@@ -95,49 +95,52 @@ function build_image {
     echo "End building image"
 }
 
-
-function start_container {
-    ensure_image_exists
-    ensure_container_exists
-    ensure_container_running
-    docker exec -ti "${CONTAINER_NAME}" "$@"
-}
-
-function start_container_non_interactive {
-    ensure_image_exists
-    ensure_container_exists
-    ensure_container_running
-    docker exec "${CONTAINER_NAME}" "$@"
-}
-
-if [[ "$#" -ge 1 ]] ; then
-    if [[ "$1" == "build-image" ]] ; then
-        build_image
-    elif [[ "$1" == "stop" ]] ; then
-        docker kill "${CONTAINER_NAME}"
-    elif [[ "$1" == "install-node-deps" ]] ; then
-        start_container bash -c "cd landing-pages/ && yarn install"
-    elif [[ "$1" == "preview" ]]; then
-        ensure_node_module_exists
-        start_container bash -c "cd landing-pages/site && npm run preview"
-    elif [[ "$1" == "build-site" ]]; then
-        ensure_node_module_exists
-        start_container bash -c "cd landing-pages/site && npm run build"
-    elif [[ "$1" == "lint-js" ]]; then
-        ensure_node_module_exists
-        start_container_non_interactive bash -c "cd landing-pages/site && npm run lint:js"
-    elif [[ "$1" == "lint-css" ]]; then
-        ensure_node_module_exists
-        start_container_non_interactive bash -c "cd landing-pages/site && npm run lint:css"
-    elif [[ "$1" == "shell" ]]; then
-        start_container "bash"
-    elif [[ "$1" == "help" ]]; then
-        usage
-    else
-        start_container "$@"
-    fi
-else
+if [[ "$#" -eq 0 ]]; then
+    echo "You must provide at least one command."
+    echo
     usage
+    exit 1
+fi
+
+CMD=$1
+
+shift
+
+# Check fundamentals commands
+if [[ "${CMD}" == "build-image" ]] ; then
+    build_image
+    exit 0
+elif [[ "${CMD}" == "stop" ]] ; then
+    docker kill "${CONTAINER_NAME}"
+    exit 0
+elif [[ "${CMD}" == "help" ]]; then
+    usage
+    exit 0
+fi
+
+ensure_image_exists
+ensure_container_exists
+ensure_container_running
+
+# Check container commands
+if [[ "${CMD}" == "install-node-deps" ]] ; then
+    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" yarn install
+elif [[ "${CMD}" == "preview" ]]; then
+    ensure_node_module_exists
+    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run preview
+elif [[ "${CMD}" == "build-site" ]]; then
+    ensure_node_module_exists
+    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run build
+elif [[ "${CMD}" == "lint-js" ]]; then
+    ensure_node_module_exists
+    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run lint:js
+elif [[ "${CMD}" == "lint-css" ]]; then
+    ensure_node_module_exists
+    docker exec -w "/opt/site/landing-pages/" "${CONTAINER_NAME}" npm run lint:css
+elif [[ "${CMD}" == "shell" ]]; then
+    docker exec -ti "${CONTAINER_NAME}" bash
+else
+    docker exec -ti "${CONTAINER_NAME}" "${CMD}" "$@"
 fi
 
 popd &>/dev/null || exit 1
