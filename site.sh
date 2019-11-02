@@ -22,12 +22,8 @@ set -euox pipefail
 MY_DIR="$(cd "$(dirname "$0")" && pwd)"
 pushd "${MY_DIR}" &>/dev/null || exit 1
 
-function check_image_exists {
-    if docker images | tail -n +2 | cut -d " " -f 1 | sort | uniq | grep "$1" > /dev/null; then
-        return 0
-    fi
-    return 1
-}
+IMAGE_NAME=airflow-site
+CONTAINER_NAME=airflow-site-c
 
 function usage {
 cat << EOF
@@ -35,7 +31,8 @@ usage: ${0} <command> [<args>]
 
 These are  ${0} commands used in various situations:
 
-    build-image        Build a Docker image with a  environment
+    stop               Stop the environment
+    build-image        Build a Docker image with a environment
     install-node-deps  Download all the Node dependencies
     preview            Starts the web server
     build-site         Builds a website
@@ -55,15 +52,38 @@ EOF
 }
 
 function ensure_image_exists {
-    if ! check_image_exists "airflow-site"; then
+    if [[ ! $(docker images "${IMAGE_NAME}" -q) ]]; then
         echo "Image not exists."
         build_image
     fi
 }
 
+function ensure_container_exists {
+    if [[ ! $(docker container ls -a --filter="Name=${CONTAINER_NAME}" -q ) ]]; then
+        echo "Container not exists"
+        docker run \
+            --detach \
+            --name "${CONTAINER_NAME}" \
+            --volume "$(pwd):/opt/site/" \
+            --publish 1313:1313 \
+            --publish 3000:3000 \
+            "${IMAGE_NAME}" sh -c 'trap "exit 0" INT; while true; do sleep 30; done;'
+        return 0
+    fi
+}
+
+function ensure_container_running {
+    container_status="$(docker inspect "${CONTAINER_NAME}" --format '{{.State.Status}}')"
+    echo "Current container status: ${container_status}"
+    if [[ ! "${container_status}" == "running" ]]; then
+        echo "Container not running. Starting the container."
+        docker start "${CONTAINER_NAME}"
+    fi
+}
+
 function ensure_node_module_exists {
     if [[ ! -d landing-pages/node_modules/ ]] ; then
-        echo "Missing node depedencies. Start installation."
+        echo "Missing node dependencies. Start installation."
         start_container_non_interactive bash -c "cd landing-pages/ && yarn install"
         echo "Dependencies installed"
     fi
@@ -75,27 +95,26 @@ function build_image {
     echo "End building image"
 }
 
-COMMON_DOCKER_ARGS=(
-    -v "$(pwd):/opt/site/"
-    -p 1313:1313
-    -p 3000:3000
-)
 
 function start_container {
     ensure_image_exists
-
-    docker run -ti "${COMMON_DOCKER_ARGS[@]}" airflow-site "$@"
+    ensure_container_exists
+    ensure_container_running
+    docker exec -ti "${CONTAINER_NAME}" "$@"
 }
 
 function start_container_non_interactive {
     ensure_image_exists
-
-    docker run "${COMMON_DOCKER_ARGS[@]}"  airflow-site "$@"
+    ensure_container_exists
+    ensure_container_running
+    docker exec "${CONTAINER_NAME}" "$@"
 }
 
 if [[ "$#" -ge 1 ]] ; then
     if [[ "$1" == "build-image" ]] ; then
         build_image
+    elif [[ "$1" == "stop" ]] ; then
+        docker kill "${CONTAINER_NAME}"
     elif [[ "$1" == "install-node-deps" ]] ; then
         start_container bash -c "cd landing-pages/ && yarn install"
     elif [[ "$1" == "preview" ]]; then
