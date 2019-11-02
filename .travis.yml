@@ -26,13 +26,21 @@ stages:
 services:
   - docker
 install:
-  - ./site.sh build-image
+  - ./site.sh build-image dev
   - ./site.sh install-node-deps
   - pip install -r requirements.txt
+
 jobs:
   include:
-    - stage: lint
+    - name: "Static checks"
+      stage: lint
       script:
         - pre-commit run --all-files --show-diff-on-failure
+    - name: "Check license compliance for Apache"
+      stage: lint
+      install:
+        - ./site.sh build-image rat
+      script:
+        - ./site.sh rat
     - stage: build
       script: ./site.sh build-site

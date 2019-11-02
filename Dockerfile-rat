@@ -1,0 +1,56 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+FROM debian:stretch-slim AS build-env
+
+SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
+
+# Make sure noninteractie debian install is used and language variables set
+ENV DEBIAN_FRONTEND=noninteractive LANGUAGE=C.UTF-8 LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    LC_CTYPE=C.UTF-8 LC_MESSAGES=C.UTF-8
+
+# Note missing man directories on debian-stretch
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=863199
+RUN mkdir -pv /usr/share/man/man1 \
+    && mkdir -pv /usr/share/man/man7 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+    && apt-get autoremove -yqq --purge \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG RAT_VERSION="0.13"
+
+ENV JAR_FILE="/app/apache-rat.jar" \
+    JAR_URL="https://repo1.maven.org/maven2/org/apache/rat/apache-rat/${RAT_VERSION}/apache-rat-${RAT_VERSION}.jar"
+
+ENV JAR_MD5_FILE="${JAR_FILE}.md5" \
+    JAR_MD5_URL="${JAR_URL}.md5"
+
+RUN echo "Downloading RAT from ${JAR_URL} to ${JAR_FILE}" \
+    && mkdir -p "$(dirname ${JAR_FILE})" \
+    && curl -sL "${JAR_URL}" > "${JAR_FILE}" \
+    && curl -sL "${JAR_MD5_URL}" > "${JAR_MD5_FILE}" \
+    && md5sum -c <<<"$(cat "${JAR_MD5_FILE}") ${JAR_FILE}"
+
+FROM gcr.io/distroless/java:11
+COPY --from=build-env /app /app
+WORKDIR /app
+
+ENTRYPOINT ["/usr/bin/java", "-jar", "/app/apache-rat.jar"]

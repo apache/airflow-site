@@ -23,7 +23,7 @@ WORKING_DIR="$(pwd)"
 MY_DIR="$(cd "$(dirname "$0")" && pwd)"
 pushd "${MY_DIR}" &>/dev/null || exit 1
 
-IMAGE_NAME=airflow-site
+IMAGE_NAME_PREFIX=airflow-site
 CONTAINER_NAME=airflow-site-c
 
 function usage {
@@ -32,15 +32,16 @@ usage: ${0} <command> [<args>]
 
 These are  ${0} commands used in various situations:
 
-    stop               Stop the environment
-    build-image        Build a Docker image with a environment
-    install-node-deps  Download all the Node dependencies
-    preview            Starts the web server
-    build-site         Builds a website
-    lint-css           Lint CSS files
-    lint-js            Lint Javascript files
-    shell              Start shell
-    help               Display usage
+    stop                  Stop the environment
+    build-image [<type>]  Build a Docker image (type default to: all)
+    install-node-deps     Download all the Node dependencies
+    preview               Starts the web server
+    build-site            Builds a website
+    lint-css [<files>]    Lint CSS files
+    lint-js [<files>]     Lint Javascript files
+    rat                   Run the Apache Rat
+    shell                 Start shell
+    help                  Display usage
 
 Unrecognized commands are run as programs in the container.
 
@@ -55,13 +56,19 @@ install-node-deps, preview, build-site, lint-css, lint-js.
 The lint-css and lint-js accept paths in arguments. If no path is given, the script
 will be executed for all supported files
 
+The build-image command allows you to build two types of images:
+ * "dev" - contains all the necessary development tools;
+ * "rat" - contains the Apache RAT.
+You can also pass "all" to build all images.
+
 EOF
 }
 
 function ensure_image_exists {
-    if [[ ! $(docker images "${IMAGE_NAME}" -q) ]]; then
+    image_type=${1}
+    if [[ ! $(docker images "${IMAGE_NAME_PREFIX}-${image_type}" -q) ]]; then
         echo "Image not exists."
-        build_image
+        build_image "${image_type}"
     fi
 }
 
@@ -74,7 +81,7 @@ function ensure_container_exists {
             --volume "$(pwd):/opt/site/" \
             --publish 1313:1313 \
             --publish 3000:3000 \
-            "${IMAGE_NAME}" sh -c 'trap "exit 0" INT; while true; do sleep 30; done;'
+            "${IMAGE_NAME_PREFIX}-dev" sh -c 'trap "exit 0" INT; while true; do sleep 30; done;'
         return 0
     fi
 }
@@ -97,8 +104,20 @@ function ensure_node_module_exists {
 }
 
 function build_image {
-    echo "Start building image"
-    docker build -t airflow-site .
+    image_type="${1:-"all"}"
+
+    echo "Start building image. image_type=${image_type}"
+    if [[ "${image_type}" == "dev" ]]; then
+        docker build -t "${IMAGE_NAME_PREFIX}-dev" .
+    elif [[ "${image_type}" == "rat" ]]; then
+        docker build -t "${IMAGE_NAME_PREFIX}-rat" -f Dockerfile-rat .
+    elif [[ "${image_type}" == "all" ]]; then
+        build_image "dev"
+        build_image "rat"
+    else
+        echo "Unknown image type. Supported value: dev, rat"
+        exit 1
+    fi
     echo "End building image"
 }
 
@@ -117,7 +136,7 @@ function run_command {
 
 function prepare_environment {
     if [[ ! -f /.dockerenv ]] ; then
-        ensure_image_exists
+        ensure_image_exists "dev"
         ensure_container_exists
         ensure_container_running
     fi
@@ -195,11 +214,21 @@ shift
 # Check fundamentals commands
 if [[ "${CMD}" == "build-image" ]] ; then
     prevent_docker
-    build_image
+    build_image "$@"
     exit 0
 elif [[ "${CMD}" == "stop" ]] ; then
     prevent_docker
     docker kill "${CONTAINER_NAME}"
+    exit 0
+elif [[ "${CMD}" == "rat" ]] ; then
+    prevent_docker
+    ensure_image_exists "rat"
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --volume "$(pwd):/src/" \
+        airflow-site-rat /src -E /src/.rat-excludes
     exit 0
 elif [[ "${CMD}" == "help" ]]; then
     usage
@@ -208,7 +237,7 @@ fi
 
 prepare_environment
 
-# Check container commands
+# Check development commands
 if [[ "${CMD}" == "install-node-deps" ]] ; then
     run_command "/opt/site/landing-pages/" yarn install
 elif [[ "${CMD}" == "preview" ]]; then
