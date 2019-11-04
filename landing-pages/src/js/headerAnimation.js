@@ -28,7 +28,8 @@ const ANIM_AMPLITUDE = 40;
 const DRAW_SAFE_AREA = false;
 
 const randomBetween = (from, to) => from + Math.random() * (to - from);
-const randomInt = (from, to) => randomBetween(from, to) | 0;
+const randomInt = (from, to) => Math.round(randomBetween(from, to));
+const randomItem = (arr) => arr[randomInt(0, arr.length)];
 
 class Polygon {
   constructor(pos, vectors) {
@@ -147,10 +148,10 @@ function createBoxes(sketch, vw, vh, clearArea, colors) {
       const box = new Box(
         pos,
         randomBetween(MAX_BLOCK_SIZE / 2, MAX_BLOCK_SIZE),
-        colors[randomInt(0, colors.length)],
+        randomItem(colors),
         randomBetween(0.5, 1),
         randomBetween(0, 1) > 0.5 ? 1 : -1,
-        Math.random() * 2 * sketch.PI
+        randomBetween(0, 2 * sketch.PI)
       );
       boxes.push(box);
     }
@@ -167,7 +168,6 @@ function createLogoArea(sketch, canvas, title, subtitle, button) {
   const vectors = [
     sketch.createVector(titleRect.x, titleRect.y),
     sketch.createVector(titleRect.x + titleRect.width, titleRect.y),
-    // sketch.createVector(titleRect.x + titleRect.width, titleRect.y + titleRect.height),
     sketch.createVector(subtitleRect.x + subtitleRect.width, subtitleRect.y),
     sketch.createVector(subtitleRect.x + subtitleRect.width, subtitleRect.y + subtitleRect.height),
     sketch.createVector(buttonRect.x + buttonRect.width, buttonRect.y + buttonRect.height),
