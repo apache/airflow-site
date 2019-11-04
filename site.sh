@@ -19,6 +19,7 @@
 
 set -euox pipefail
 
+WORKING_DIR="$(pwd)"
 MY_DIR="$(cd "$(dirname "$0")" && pwd)"
 pushd "${MY_DIR}" &>/dev/null || exit 1
 
@@ -50,6 +51,9 @@ can execute the following command:
 
 The following command can also be performed from the Docker environment:
 install-node-deps, preview, build-site, lint-css, lint-js.
+
+The lint-css and lint-js accept paths in arguments. If no path is given, the script
+will be executed for all supported files
 
 EOF
 }
@@ -126,6 +130,57 @@ function prevent_docker {
     fi
 }
 
+function relativepath {
+    source=$1
+    target=$2
+
+    common_part=$source # for now
+    result="" # for now
+
+    while [[ "${target#$common_part}" == "${target}" ]]; do
+        # no match, means that candidate common part is not correct
+        # go up one level (reduce common part)
+        common_part="$(dirname "$common_part")"
+        # and record that we went back, with correct / handling
+        if [[ -z $result ]]; then
+            result=".."
+        else
+            result="../$result"
+        fi
+    done
+
+    if [[ $common_part == "/" ]]; then
+        # special case for root (no common path)
+        result="$result/"
+    fi
+
+    # since we now have identified the common part,
+    # compute the non-common part
+    forward_part="${target#$common_part}"
+
+    # and now stick all parts together
+    if [[ -n $result ]] && [[ -n $forward_part ]]; then
+        result="$result$forward_part"
+    elif [[ -n $forward_part ]]; then
+        # extra slash removal
+        result="${forward_part:1}"
+    fi
+    echo "$result"
+}
+
+function run_lint {
+    script_working_directory=$1
+    command=$2
+    shift 2
+
+    DOCKER_PATHS=()
+    for E in "${@}"; do
+        ABS_PATH=$(cd "${WORKING_DIR}" && realpath "${E}")
+        DOCKER_PATHS+=("/opt/site/$(relativepath "$(pwd)" "${ABS_PATH}")")
+    done
+    run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
+}
+
 if [[ "$#" -eq 0 ]]; then
     echo "You must provide at least one command."
     echo
@@ -164,10 +219,18 @@ elif [[ "${CMD}" == "build-site" ]]; then
     run_command "/opt/site/landing-pages/" npm run build
 elif [[ "${CMD}" == "lint-js" ]]; then
     ensure_node_module_exists
-    run_command "/opt/site/landing-pages/" npm run lint:js
+    if [[ "$#" -eq 0 ]]; then
+        run_command "/opt/site/landing-pages/" npm run lint:js
+    else
+        run_lint "/opt/site/landing-pages/" ./node_modules/.bin/eslint "$@"
+    fi
 elif [[ "${CMD}" == "lint-css" ]]; then
     ensure_node_module_exists
-    run_command "/opt/site/landing-pages/" npm run lint:css
+    if [[ "$#" -eq 0 ]]; then
+        run_command "/opt/site/landing-pages/" npm run lint:css
+    else
+        run_lint "/opt/site/landing-pages/" ./node_modules/.bin/stylelint "$@"
+    fi
 elif [[ "${CMD}" == "shell" ]]; then
     prevent_docker
     docker exec -ti "${CONTAINER_NAME}" bash
