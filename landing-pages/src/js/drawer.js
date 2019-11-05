@@ -22,15 +22,9 @@ const toggleDrawer = () => {
   const hamburgerIcon = window.document.querySelector("#hamburger-icon");
   const closeIcon = window.document.querySelector("#close-icon");
 
-  if (drawer.classList.contains("navbar__drawer--open")) {
-    drawer.classList.remove("navbar__drawer--open");
-    hamburgerIcon.classList.add("visible");
-    closeIcon.classList.remove("visible");
-  } else {
-    drawer.classList.add("navbar__drawer--open");
-    hamburgerIcon.classList.remove("visible");
-    closeIcon.classList.add("visible");
-  }
+  drawer.classList.toggle("navbar__drawer--open");
+  hamburgerIcon.classList.toggle("visible");
+  closeIcon.classList.toggle("visible");
 };
 
 window.document.querySelector("#navbar-toggle-button").addEventListener("click", toggleDrawer);
