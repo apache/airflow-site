@@ -29,7 +29,7 @@ const DRAW_SAFE_AREA = false;
 
 const randomBetween = (from, to) => from + Math.random() * (to - from);
 const randomInt = (from, to) => Math.round(randomBetween(from, to));
-const randomItem = (arr) => arr[randomInt(0, arr.length)];
+const randomItem = (arr) => arr[randomInt(0, arr.length - 1)];
 
 class Polygon {
   constructor(pos, vectors) {
