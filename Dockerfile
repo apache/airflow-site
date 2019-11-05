@@ -28,11 +28,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        curl \
-        gosu \
-        gnupg2 \
         ca-certificates \
+        curl \
         git \
+        gnupg2 \
+        gosu \
+        lynx \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
