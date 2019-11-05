@@ -37,6 +37,7 @@ These are  ${0} commands used in various situations:
     install-node-deps  Download all the Node dependencies
     preview            Starts the web server
     build-site         Builds a website
+    check-site-links   Checks if the links are correct in the website
     lint-css           Lint CSS files
     lint-js            Lint Javascript files
     shell              Start shell
@@ -93,6 +94,14 @@ function ensure_node_module_exists {
         echo "Missing node dependencies. Start installation."
         run_command "/opt/site/landing-pages/" yarn install
         echo "Dependencies installed."
+    fi
+}
+
+function ensure_that_website_is_build {
+    if [[ ! -f landing-pages/dist/index.html ]] ; then
+        echo "The website is not built. Start building."
+        run_command "/opt/site/landing-pages/" npm run build
+        echo "The website builded."
     fi
 }
 
@@ -217,6 +226,10 @@ elif [[ "${CMD}" == "preview" ]]; then
 elif [[ "${CMD}" == "build-site" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run build
+elif [[ "${CMD}" == "check-site-links" ]]; then
+    ensure_node_module_exists
+    ensure_that_website_is_build
+    run_command "/opt/site/landing-pages/" ./check-links.sh
 elif [[ "${CMD}" == "lint-js" ]]; then
     ensure_node_module_exists
     if [[ "$#" -eq 0 ]]; then
