@@ -1,6 +1,6 @@
 ---
-title: "It's a breeze to develop Apache Airflow"
-linkTitle: "It's a breeze to develop Apache Airflow"
+title: "Grumpy cat"
+linkTitle: "Grumpy cat"
 author: "Jarek Potiuk"
 description: "Working on an Open Source project such as Apache Airflow is very demanding but also equally rewarding when you realize how many businesses use it every day."
 tags: ["Community"]
@@ -30,9 +30,15 @@ How do you define productivity though? And how can you measure it? I have a poss
 
 I could think of a number of projects where I followed that philosophy of work and where it boosted the productivity of my team. Today, however, I’d like to focus on Apache Airflow.
 
+{{< youtube 8IHLQxOghUQ >}}
+
 ##### The Apache Airflow project’s setup
 Initially, we started contributing to this fantastic open-source project with a team of three which then grew to five. When we kicked it off a year ago, I realized pretty soon where the biggest bottlenecks and areas for improvement in terms of productivity were. Even with the help of our client, who provided us with a “homegrown” development environment it took us literally days to set it up and learn some basics.
+
+{{< gist spf13 7896402 >}}
 
 Apache Airflow is a thoroughly tested project—it has almost 4,000 tests with around 80% coverage and varying complexity (from simple unit tests to end-to-end system tests). Airflow follows a modern software project philosophy: every single Pull Request can only be merged if all the tests pass. But that creates another problem—having to run all the tests for all the backends (there are 3 of them) and different python versions. At the time of starting the project we still supported 2.7, 3.5 and 3.6—so you had to wait sometimes for several hours to have the results of the CI build, depending on the delays and queues. At times, you have no control over the CI system you use. For example, recently we experienced hours of delays before we could even see the build starting.
 
 This is hardly acceptable to any developer. Usually you can work on several issues in parallel. Such waiting is not the worst thing that can happen, but there are always costs of context-switching, distractions, getting out of the flow and the good old “I already forgot what I was doing” phase by the time the build is completed. It’s even worse when you want to make a small Pull Request. For example, when you find a bug and have just one line of fix for it. You submit the Pull Request and… half a day later you see that your single line of code change is badly formatted.
+
+{{< tweet 1189242550403653632 >}}
