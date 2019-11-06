@@ -17,25 +17,36 @@
  * under the License.
  */
 
-import {showMore} from "./js/showAllCommiters";
-import {handleActiveVideo} from "./js/handleActiveVideo";
-import "./js/navbarScroll";
-import "./js/drawer";
-import "./js/rating";
+/* global ga */
 
-if (document.querySelector("#search")) {
-    import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
-}
+const handleFeedback = () => {
+  const rating = window.document.querySelector(".rating");
 
-showMore("#commiters-container", "#show-more-commiters");
-showMore("#pmc-container", "#show-more-pmcs");
-showMore("#case-studies-container", "#show-more-case-studies");
-handleActiveVideo();
+  if (!rating) return;
 
-if (document.querySelector("#header")) {
-    import(/* webpackChunkName: "header" */ "./js/headerAnimation").then((module) => {
-      module.initHeaderAnimation();
+  const sendFeedback = (value) => {
+    if (typeof ga !== "function") return;
+    const args = {
+      command: "send",
+      hitType: "event",
+      category: "Helpful",
+      action: "click",
+      label: window.location.pathname,
+      value: value
+    };
+    ga(args.command, args.hitType, args.category, args.action, args.label, args.value);
+  };
+
+  const displayMessage = () => {
+    rating.innerHTML = "<p class='bodytext__medium--brownish-grey font-weight-500 mb-0'>Thank you!</p>";
+  };
+
+  for (let i = 1; i <= 5; i++) {
+    rating.querySelector(`#rate-star-${i}`).addEventListener("click", () => {
+      sendFeedback(i);
+      displayMessage();
     });
-}
-require("./js/integrationList.js");
-require("./js/meetupsList.js");
+  }
+};
+
+handleFeedback();
