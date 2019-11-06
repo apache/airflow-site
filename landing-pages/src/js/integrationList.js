@@ -113,7 +113,7 @@ function handleIntegration() {
         return Promise.resolve(integrations);
       }
       const selectedIntegration = integrations.filter(
-        (integration) => integration.name.indexOf(keyword) >= 0
+        (integration) => integration.name.toLowerCase().indexOf(keyword.toLowerCase()) >= 0
       );
       return Promise.resolve(selectedIntegration);
     };
@@ -142,6 +142,8 @@ function handleIntegration() {
     currentPage = currentPage + 1;
     setSearchQuery(searchBox.value);
   });
+
+  setSearchQuery("");
 }
 
 handleIntegration();
