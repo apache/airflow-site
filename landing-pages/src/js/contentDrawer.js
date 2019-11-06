@@ -17,27 +17,22 @@
  * under the License.
  */
 
-import {showMore} from "./js/showAllCommiters";
-import {handleActiveVideo} from "./js/handleActiveVideo";
-import "./js/navbarScroll";
-import "./js/drawer";
-import "./js/contentDrawer";
-import "./js/sidebarCollapse";
-import "./js/rating";
+const handleContentDrawer = () => {
+  const drawer = window.document.querySelector("#content-drawer");
+  const navbar = window.document.querySelector("#content-navbar");
+  const openButton = window.document.querySelector("#content-open-button");
+  const closeButton = window.document.querySelector("#content-close-button");
 
-if (document.querySelector("#search")) {
-    import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
-}
+  if (!(drawer && openButton && closeButton && navbar)) return;
 
-showMore("#commiters-container", "#show-more-commiters");
-showMore("#pmc-container", "#show-more-pmcs");
-showMore("#case-studies-container", "#show-more-case-studies");
-handleActiveVideo();
+  const toggleDrawer = () => {
+    drawer.classList.toggle("content-drawer-container--open");
+    navbar.classList.toggle("navbar--hidden");
+  };
 
-if (document.querySelector("#header")) {
-    import(/* webpackChunkName: "header" */ "./js/headerAnimation").then((module) => {
-      module.initHeaderAnimation();
-    });
-}
-require("./js/integrationList.js");
-require("./js/meetupsList.js");
+  openButton.addEventListener("click", toggleDrawer);
+  closeButton.addEventListener("click", toggleDrawer);
+
+};
+
+handleContentDrawer();
