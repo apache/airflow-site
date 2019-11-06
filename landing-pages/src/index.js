@@ -23,6 +23,7 @@ import "./js/navbarScroll";
 import "./js/drawer";
 import "./js/contentDrawer";
 import "./js/sidebarCollapse";
+import "./js/progressTracking";
 import "./js/rating";
 
 if (document.querySelector("#search")) {
