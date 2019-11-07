@@ -82,7 +82,8 @@ const runMeetups = () => {
           }
           return meetups.filter((meetup) =>
             meetup.city.toLowerCase().indexOf(keyword.toLowerCase()) >= 0 ||
-            meetup.country.toLowerCase().indexOf(keyword.toLowerCase()) >= 0
+            meetup.country.toLowerCase().indexOf(keyword.toLowerCase()) >= 0 ||
+            (meetup.continent && meetup.continent.toLowerCase().indexOf(keyword.toLowerCase()) >= 0)
           );
         };
 
