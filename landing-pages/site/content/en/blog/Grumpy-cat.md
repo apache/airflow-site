@@ -3,6 +3,7 @@ title: "Grumpy cat"
 linkTitle: "Grumpy cat"
 author: "Jarek Potiuk"
 twitter: "higrys"
+github: "potiuk"
 linkedin: "jarekpotiuk"
 description: "Working on an Open Source project such as Apache Airflow is very demanding but also equally rewarding when you realize how many businesses use it every day."
 tags: ["Community"]
