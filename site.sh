@@ -32,16 +32,17 @@ usage: ${0} <command> [<args>]
 
 These are  ${0} commands used in various situations:
 
-    stop               Stop the environment
-    build-image        Build a Docker image with a environment
-    install-node-deps  Download all the Node dependencies
-    preview            Starts the web server
-    build-site         Builds a website
-    check-site-links   Checks if the links are correct in the website
-    lint-css           Lint CSS files
-    lint-js            Lint Javascript files
-    shell              Start shell
-    help               Display usage
+    stop                Stop the environment
+    build-image         Build a Docker image with a environment
+    install-node-deps   Download all the Node dependencies
+    preview             Starts the web server
+    build-landing-pages Builds a landing pages
+    build-site          Builds a website with documentation
+    check-site-links    Checks if the links are correct in the website
+    lint-css            Lint CSS files
+    lint-js             Lint Javascript files
+    shell               Start shell
+    help                Display usage
 
 Unrecognized commands are run as programs in the container.
 
@@ -190,6 +191,27 @@ function run_lint {
     run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
 }
 
+function build_site {
+    mkdir -p dist
+    rm -rf dist/*
+    run_command "/opt/site/landing-pages/" npm run build
+    cp -R landing-pages/dist/ dist/
+    mkdir -p dist/docs/
+    rm -rf dist/docs/*
+    for doc_path in docs-archive/*/ ; do
+        version="$(basename -- "${doc_path}")"
+        cp -R "${doc_path}" "dist/docs/${version}/"
+    done
+    cp -R "docs-archive/$(cat docs-archive/stable.txt)" "dist/docs/stable/"
+    cat > dist/docs/index.html << EOF
+<!DOCTYPE html>
+<html>
+   <head><meta http-equiv="refresh" content="1; url=stable/" /></head>
+   <body></body>
+</html>
+EOF
+}
+
 if [[ "$#" -eq 0 ]]; then
     echo "You must provide at least one command."
     echo
@@ -223,9 +245,12 @@ if [[ "${CMD}" == "install-node-deps" ]] ; then
 elif [[ "${CMD}" == "preview" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run preview
-elif [[ "${CMD}" == "build-site" ]]; then
+elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run build
+elif [[ "${CMD}" == "build-site" ]]; then
+    ensure_node_module_exists
+    build_site
 elif [[ "${CMD}" == "check-site-links" ]]; then
     ensure_node_module_exists
     ensure_that_website_is_build
