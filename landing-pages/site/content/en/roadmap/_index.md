@@ -53,11 +53,11 @@ this purpose we have a more advanced feature called XCom.
 // Synchronize user data and set up
 var currentUser = new Talk.User({
     id: 79302,                      // user id
-    name: “George Looney”,          // full name
-    email: “george@looney.net”      // for offline email fallback
+    name: "George Looney",          // full name
+    email: "george@looney.net"      // for offline email fallback
 });
 var session = new Talk.Session({
-    appId: “9352938974”,            // your TalkJS account id
+    appId: "9352938974",            // your TalkJS account id
     me: currentUser                 // make George the active user
 });
 {{< /highlight >}}
