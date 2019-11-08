@@ -33,6 +33,7 @@ usage: ${0} <command> [<args>]
 These are  ${0} commands used in various situations:
 
     stop                Stop the environment
+    cleanup             Delete the virtual environment in Docker
     build-image         Build a Docker image with a environment
     install-node-deps   Download all the Node dependencies
     preview             Starts the web server
@@ -212,6 +213,25 @@ function build_site {
 EOF
 }
 
+function cleanup_environment {
+    container_status="$(docker inspect "${CONTAINER_NAME}" --format '{{.State.Status}}')"
+    echo "Current container status: ${container_status}"
+    if [[ "${container_status}" == "running" ]]; then
+        echo "Container running. Killing the container."
+        docker kill "${CONTAINER_NAME}"
+    fi
+
+    if [[ $(docker container ls -a --filter="Name=${CONTAINER_NAME}" -q ) ]]; then
+        echo "Container exists. Removing the container."
+        docker rm "${CONTAINER_NAME}"
+    fi
+
+    if [[ $(docker images "${IMAGE_NAME}" -q) ]]; then
+        echo "Images exists. Deleeting the image."
+        docker rmi "${IMAGE_NAME}"
+    fi
+}
+
 if [[ "$#" -eq 0 ]]; then
     echo "You must provide at least one command."
     echo
@@ -231,6 +251,10 @@ if [[ "${CMD}" == "build-image" ]] ; then
 elif [[ "${CMD}" == "stop" ]] ; then
     prevent_docker
     docker kill "${CONTAINER_NAME}"
+    exit 0
+elif [[ "${CMD}" == "cleanup" ]] ; then
+    prevent_docker
+    cleanup_environment
     exit 0
 elif [[ "${CMD}" == "help" ]]; then
     usage
