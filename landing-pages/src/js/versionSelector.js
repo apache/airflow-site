@@ -18,35 +18,38 @@
  */
 
 const runVersionSelector = () => {
-  const versionSelectorRoot = window.document.querySelector("#docs-version-selector");
+  const versionSelectors = window.document.querySelectorAll(".docs-version-selector");
 
-  if (!versionSelectorRoot) {
+  if (!versionSelectors || versionSelectors.length === 0) {
     return;
   }
 
-  const templateText = versionSelectorRoot.querySelector("#version-item-template").innerText;
-  let templateElement = document.createElement("div");
-  templateElement.innerHTML = templateText;
-  templateElement = templateElement.firstElementChild;
-
-  const dropdownMenu = document.querySelector(".dropdown-menu");
-
-  fetch("./_gen/docs-index.json")
+  fetch("/_gen/docs-index.json")
     .then((resp) => resp.json())
     .then(({stable, versions}) => {
-      const currentVersion = window.document.location.pathname.split("/")[2];
+      versionSelectors.forEach((versionSelector) => {
+        const templateText = versionSelector.querySelector("#version-item-template").innerText;
+        let templateElement = document.createElement("div");
+        templateElement.innerHTML = templateText;
+        templateElement = templateElement.firstElementChild;
 
-      const appendNewVersionLink = (location, label) => {
-        const newElement = templateElement.cloneNode(true);
-        const newDocsLink = document.location.toString().replace(
-          `/${currentVersion}/`, `/${location}/`
-        );
-        newElement.setAttribute("href", newDocsLink);
-        newElement.innerText = label;
-        dropdownMenu.appendChild(newElement);
-      };
-      appendNewVersionLink("stable", `Stable (${stable})`);
-      versions.forEach((version) => appendNewVersionLink(version, version));
+        const dropdownMenu = versionSelector.querySelector(".dropdown-menu");
+
+
+        const currentVersion = window.document.location.pathname.split("/")[2];
+
+        const appendNewVersionLink = (location, label) => {
+          const newElement = templateElement.cloneNode(true);
+          const newDocsLink = document.location.toString().replace(
+            `/${currentVersion}/`, `/${location}/`
+          );
+          newElement.setAttribute("href", newDocsLink);
+          newElement.innerText = label;
+          dropdownMenu.appendChild(newElement);
+        };
+        appendNewVersionLink("stable", `Stable (${stable})`);
+        versions.forEach((version) => appendNewVersionLink(version, version));
+      });
     });
 };
 

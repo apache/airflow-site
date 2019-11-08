@@ -24,3 +24,4 @@ import "./js/progressTracking";
 import "./js/rating";
 import "./js/makeTableResponsive";
 import "./js/tocTree";
+import "./js/versionSelector";

@@ -204,7 +204,7 @@ function run_lint {
 }
 
 function prepare_docs_index() {
-    run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-docs-index.json
+    run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-index.json
 }
 
 function build_site {

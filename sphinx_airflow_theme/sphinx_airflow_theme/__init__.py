@@ -31,4 +31,3 @@ def get_html_theme_path():
 def setup(app):
     app.add_html_theme('sphinx_airflow_theme', path.abspath(path.dirname(__file__)))
     app.add_stylesheet('_gen/css//main-custom.min.css')
-    app.add_js_file('_gen/js/docs.js')

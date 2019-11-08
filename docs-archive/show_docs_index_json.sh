@@ -17,13 +17,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -euox pipefail
+set -euo pipefail
 
-WORKING_DIR="$(pwd)"
 MY_DIR="$(cd "$(dirname "$0")" && pwd)"
 pushd "${MY_DIR}" &>/dev/null || exit 1
 
 jq -n '{stable: $stable, versions: $versions[0:-1] | split("\n") }' \
+    -M \
     --rawfile stable <(cat stable.txt | tr -d '[:space:]') \
     --rawfile versions <(ls -d ./*/ | cut -d "/" -f 2)
 
