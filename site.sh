@@ -203,9 +203,14 @@ function run_lint {
     run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
 }
 
+function prepare_docs_index() {
+    run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-index.json
+}
+
 function build_site {
     mkdir -p dist
     rm -rf dist/*
+    prepare_docs_index
     run_command "/opt/site/landing-pages/" npm run build
     cp -R landing-pages/dist/ dist/
     mkdir -p dist/docs/
@@ -291,6 +296,7 @@ if [[ "${CMD}" == "install-node-deps" ]] ; then
 elif [[ "${CMD}" == "preview" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run index
+    prepare_docs_index
     run_command "/opt/site/landing-pages/" npm run preview
 elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
