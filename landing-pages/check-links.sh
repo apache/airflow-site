@@ -63,7 +63,7 @@ echo "Found ${#pages[@]} HTML files."
 
 echo "Searching links."
 mapfile -t links < <(printf '%s\n' "${pages[@]}" | xargs -n 1 lynx -listonly -nonumbers -dump | grep -v " ")
-mapfile -t external_links < <(printf '%s\n' "${links[@]}" | grep "^https\?://" | grep -v "http://localhost" | sort | uniq)
+mapfile -t external_links < <(printf '%s\n' "${links[@]}" | grep "^https\?://" | grep -v "http://localhost" | grep -v "http://link/" | sort | uniq)
 echo "Found ${#links[@]} links including ${#external_links[@]} unique external links."
 
 echo "Checking links."
