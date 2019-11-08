@@ -116,12 +116,21 @@ function run_command {
     working_directory=$1
     shift
     if [[ -f /.dockerenv ]] ; then
-        echo "Native command"
         pushd "${working_directory}"
         exec "$@"
     else
-        echo "Docker command"
-        docker exec -w "${working_directory}" "${CONTAINER_NAME}" "$@"
+        if ! test -t 0; then
+            docker exec \
+                --interactive \
+                --workdir "${working_directory}" \
+                "${CONTAINER_NAME}" "$@"
+        else
+            docker exec \
+                --tty \
+                --interactive \
+                --workdir "${working_directory}" \
+                "${CONTAINER_NAME}" "$@"
+        fi
     fi
 }
 
