@@ -17,7 +17,6 @@ Submodules
 
    base/index.rst
    baseoperator/index.rst
-   chart/index.rst
    connection/index.rst
    crypto/index.rst
    dag/index.rst
@@ -25,16 +24,15 @@ Submodules
    dagpickle/index.rst
    dagrun/index.rst
    errors/index.rst
-   knownevent/index.rst
    kubernetes/index.rst
    log/index.rst
    pool/index.rst
+   serialized_dag/index.rst
    skipmixin/index.rst
    slamiss/index.rst
    taskfail/index.rst
    taskinstance/index.rst
    taskreschedule/index.rst
-   user/index.rst
    variable/index.rst
    xcom/index.rst
 
@@ -42,17 +40,17 @@ Submodules
 Package Contents
 ----------------
 
-.. data:: Base
-   :annotation: :Any
-
-   
-
 .. data:: ID_LEN
    :annotation: = 250
 
    
 
-.. py:class:: BaseOperator(task_id, owner=conf.get('operators', 'DEFAULT_OWNER'), email=None, email_on_retry=True, email_on_failure=True, retries=conf.getint('core', 'default_task_retries', fallback=0), retry_delay=timedelta(seconds=300), retry_exponential_backoff=False, max_retry_delay=None, start_date=None, end_date=None, schedule_interval=None, depends_on_past=False, wait_for_downstream=False, dag=None, params=None, default_args=None, priority_weight=1, weight_rule=WeightRule.DOWNSTREAM, queue=conf.get('celery', 'default_queue'), pool=Pool.DEFAULT_POOL_NAME, sla=None, execution_timeout=None, on_failure_callback=None, on_success_callback=None, on_retry_callback=None, trigger_rule=TriggerRule.ALL_SUCCESS, resources=None, run_as_user=None, task_concurrency=None, executor_config=None, do_xcom_push=True, inlets=None, outlets=None, *args, **kwargs)
+.. data:: Base
+   :annotation: :Any
+
+   
+
+.. py:class:: BaseOperator(task_id:str, owner:str=conf.get('operators', 'DEFAULT_OWNER'), email:Optional[Union[str, Iterable[str]]]=None, email_on_retry:bool=True, email_on_failure:bool=True, retries:Optional[int]=conf.getint('core', 'default_task_retries', fallback=0), retry_delay:timedelta=timedelta(seconds=300), retry_exponential_backoff:bool=False, max_retry_delay:Optional[datetime]=None, start_date:Optional[datetime]=None, end_date:Optional[datetime]=None, depends_on_past:bool=False, wait_for_downstream:bool=False, dag:Optional[DAG]=None, params:Optional[Dict]=None, default_args:Optional[Dict]=None, priority_weight:int=1, weight_rule:str=WeightRule.DOWNSTREAM, queue:str=conf.get('celery', 'default_queue'), pool:str=Pool.DEFAULT_POOL_NAME, sla:Optional[timedelta]=None, execution_timeout:Optional[timedelta]=None, on_failure_callback:Optional[Callable]=None, on_success_callback:Optional[Callable]=None, on_retry_callback:Optional[Callable]=None, trigger_rule:str=TriggerRule.ALL_SUCCESS, resources:Optional[Dict]=None, run_as_user:Optional[str]=None, task_concurrency:Optional[int]=None, executor_config:Optional[Dict]=None, do_xcom_push:bool=True, inlets:Optional[Dict]=None, outlets:Optional[Dict]=None, *args, **kwargs)
 
    Bases: :class:`airflow.utils.log.logging_mixin.LoggingMixin`
 
@@ -78,6 +76,16 @@ Package Contents
    :type task_id: str
    :param owner: the owner of the task, using the unix username is recommended
    :type owner: str
+   :param email: the 'to' email address(es) used in email alerts. This can be a
+       single email or multiple ones. Multiple addresses can be specified as a
+       comma or semi-colon separated string or by passing a list of strings.
+   :type email: str or list[str]
+   :param email_on_retry: Indicates whether email alerts should be sent when a
+       task is retried
+   :type email_on_retry: bool
+   :param email_on_failure: Indicates whether email alerts should be sent when
+       a task failed
+   :type email_on_failure: bool
    :param retries: the number of retries that should be performed before
        failing the task
    :type retries: int
@@ -141,7 +149,7 @@ Package Contents
        complete for all runs before each dag can continue processing
        downstream tasks. When set to ``upstream`` the effective weight is the
        aggregate sum of all upstream ancestors. This is the opposite where
-       downtream tasks have higher weight and will be scheduled more
+       downstream tasks have higher weight and will be scheduled more
        aggressively when using positive weight values. This is useful when you
        have multiple dag run instances and prefer to have each dag complete
        before starting upstream tasks of other dags.  When set to
@@ -153,6 +161,8 @@ Package Contents
        DAGS. Options can be set as string or using the constants defined in
        the static class ``airflow.utils.WeightRule``
    :type weight_rule: str
+   :param queue: specifies which task queue to use
+   :type queue: str
    :param pool: the slot pool this task should run in, slot pools are a
        way to limit concurrency for certain tasks
    :type pool: str
@@ -229,12 +239,17 @@ Package Contents
       
 
    .. attribute:: ui_color
-      :annotation: = #fff
+      :annotation: :str = #fff
 
       
 
    .. attribute:: ui_fgcolor
-      :annotation: = #000
+      :annotation: :str = #000
+
+      
+
+   .. attribute:: pool
+      :annotation: :str = 
 
       
 
@@ -250,6 +265,11 @@ Package Contents
 
    .. attribute:: operator_extra_links
       :annotation: :Iterable[BaseOperatorLink] = []
+
+      
+
+   .. attribute:: _serialized_fields
+      :annotation: :FrozenSet[str]
 
       
 
@@ -276,14 +296,6 @@ Package Contents
       Returns the list of dependencies for the operator. These differ from execution
       context dependencies in that they are specific to tasks and can be
       extended/overridden by subclasses.
-
-
-   .. attribute:: schedule_interval
-      
-
-      The schedule interval of the DAG always wins over individual tasks so
-      that tasks within a DAG always line up. The task still needs a
-      schedule_interval as it may not be attached to a DAG.
 
 
    .. attribute:: priority_weight_total
@@ -457,7 +469,7 @@ Package Contents
 
 
    
-   .. method:: render_template_fields(self, context, jinja_env=None)
+   .. method:: render_template_fields(self, context:Dict, jinja_env:Optional[jinja2.Environment]=None)
 
       Template all attributes listed in template_fields. Note this operation is irreversible.
 
@@ -469,12 +481,12 @@ Package Contents
 
 
    
-   .. method:: _do_render_template_fields(self, parent, template_fields, context, jinja_env, seen_oids)
+   .. method:: _do_render_template_fields(self, parent:Any, template_fields:Iterable[str], context:Dict, jinja_env:jinja2.Environment, seen_oids:Set)
 
 
 
    
-   .. method:: render_template(self, content, context, jinja_env=None, seen_oids=None)
+   .. method:: render_template(self, content:Any, context:Dict, jinja_env:Optional[jinja2.Environment]=None, seen_oids:Optional[Set]=None)
 
       Render a templated string. The content can be a collection holding multiple templated strings and will
       be templated recursively.
@@ -493,7 +505,7 @@ Package Contents
 
 
    
-   .. method:: _render_nested_template_fields(self, content, context, jinja_env, seen_oids)
+   .. method:: _render_nested_template_fields(self, content:Any, context:Dict, jinja_env:jinja2.Environment, seen_oids:Set)
 
 
 
@@ -516,6 +528,8 @@ Package Contents
 
    
    .. method:: resolve_template_files(self)
+
+      Getting the content of files for template_field / template_ext
 
 
 
@@ -640,11 +654,12 @@ Package Contents
 
       For an operator, gets the URL that the external links specified in
       `extra_links` should point to.
+
       :raise ValueError: The error message of a ValueError will be passed on through to
-      the fronted to show up as a tooltip on the disabled link
+          the fronted to show up as a tooltip on the disabled link
       :param dttm: The datetime parsed execution date for the URL being searched for
       :param link_name: The name of the link we're looking for the URL for. Should be
-      one of the options specified in `extra_links`
+          one of the options specified in `extra_links`
       :return: A URL
 
 
@@ -720,7 +735,7 @@ Package Contents
       
 
    .. attribute:: _types
-      :annotation: = [['docker', 'Docker Registry'], ['fs', 'File (path)'], ['ftp', 'FTP'], ['google_cloud_platform', 'Google Cloud Platform'], ['hdfs', 'HDFS'], ['http', 'HTTP'], ['pig_cli', 'Pig Client Wrapper'], ['hive_cli', 'Hive Client Wrapper'], ['hive_metastore', 'Hive Metastore Thrift'], ['hiveserver2', 'Hive Server 2 Thrift'], ['jdbc', 'Jdbc Connection'], ['jenkins', 'Jenkins'], ['mysql', 'MySQL'], ['postgres', 'Postgres'], ['oracle', 'Oracle'], ['vertica', 'Vertica'], ['presto', 'Presto'], ['s3', 'S3'], ['samba', 'Samba'], ['sqlite', 'Sqlite'], ['ssh', 'SSH'], ['cloudant', 'IBM Cloudant'], ['mssql', 'Microsoft SQL Server'], ['mesos_framework-id', 'Mesos Framework ID'], ['jira', 'JIRA'], ['redis', 'Redis'], ['wasb', 'Azure Blob Storage'], ['databricks', 'Databricks'], ['aws', 'Amazon Web Services'], ['emr', 'Elastic MapReduce'], ['snowflake', 'Snowflake'], ['segment', 'Segment'], ['azure_data_lake', 'Azure Data Lake'], ['azure_container_instances', 'Azure Container Instances'], ['azure_cosmos', 'Azure CosmosDB'], ['cassandra', 'Cassandra'], ['qubole', 'Qubole'], ['mongo', 'MongoDB'], ['gcpcloudsql', 'Google Cloud SQL'], ['grpc', 'GRPC Connection']]
+      :annotation: = [['docker', 'Docker Registry'], ['fs', 'File (path)'], ['ftp', 'FTP'], ['google_cloud_platform', 'Google Cloud Platform'], ['hdfs', 'HDFS'], ['http', 'HTTP'], ['pig_cli', 'Pig Client Wrapper'], ['hive_cli', 'Hive Client Wrapper'], ['hive_metastore', 'Hive Metastore Thrift'], ['hiveserver2', 'Hive Server 2 Thrift'], ['jdbc', 'Jdbc Connection'], ['jenkins', 'Jenkins'], ['mysql', 'MySQL'], ['postgres', 'Postgres'], ['oracle', 'Oracle'], ['vertica', 'Vertica'], ['presto', 'Presto'], ['s3', 'S3'], ['samba', 'Samba'], ['sqlite', 'Sqlite'], ['ssh', 'SSH'], ['cloudant', 'IBM Cloudant'], ['mssql', 'Microsoft SQL Server'], ['mesos_framework-id', 'Mesos Framework ID'], ['jira', 'JIRA'], ['redis', 'Redis'], ['wasb', 'Azure Blob Storage'], ['databricks', 'Databricks'], ['aws', 'Amazon Web Services'], ['emr', 'Elastic MapReduce'], ['snowflake', 'Snowflake'], ['segment', 'Segment'], ['sqoop', 'Sqoop'], ['azure_data_lake', 'Azure Data Lake'], ['azure_container_instances', 'Azure Container Instances'], ['azure_cosmos', 'Azure CosmosDB'], ['cassandra', 'Cassandra'], ['qubole', 'Qubole'], ['mongo', 'MongoDB'], ['gcpcloudsql', 'Google Cloud SQL'], ['grpc', 'GRPC Connection']]
 
       
 
@@ -786,7 +801,7 @@ Package Contents
 
 
 
-.. py:class:: DAG(dag_id, description='', schedule_interval=timedelta(days=1), start_date=None, end_date=None, full_filepath=None, template_searchpath=None, template_undefined=jinja2.Undefined, user_defined_macros=None, user_defined_filters=None, default_args=None, concurrency=conf.getint('core', 'dag_concurrency'), max_active_runs=conf.getint('core', 'max_active_runs_per_dag'), dagrun_timeout=None, sla_miss_callback=None, default_view=None, orientation=conf.get('webserver', 'dag_orientation'), catchup=conf.getboolean('scheduler', 'catchup_by_default'), on_success_callback=None, on_failure_callback=None, doc_md=None, params=None, access_control=None, is_paused_upon_creation=None, jinja_environment_kwargs=None)
+.. py:class:: DAG(dag_id:str, description:str='', schedule_interval:Optional[ScheduleInterval]=timedelta(days=1), start_date:Optional[datetime]=None, end_date:Optional[datetime]=None, full_filepath:Optional[str]=None, template_searchpath:Optional[Union[str, Iterable[str]]]=None, template_undefined:Type[jinja2.Undefined]=jinja2.Undefined, user_defined_macros:Optional[Dict]=None, user_defined_filters:Optional[Dict]=None, default_args:Optional[Dict]=None, concurrency:int=conf.getint('core', 'dag_concurrency'), max_active_runs:int=conf.getint('core', 'max_active_runs_per_dag'), dagrun_timeout:Optional[timedelta]=None, sla_miss_callback:Optional[Callable]=None, default_view:Optional[str]=None, orientation:str=conf.get('webserver', 'dag_orientation'), catchup:bool=conf.getboolean('scheduler', 'catchup_by_default'), on_success_callback:Optional[Callable]=None, on_failure_callback:Optional[Callable]=None, doc_md:Optional[str]=None, params:Optional[Dict]=None, access_control:Optional[Dict]=None, is_paused_upon_creation:Optional[bool]=None, jinja_environment_kwargs:Optional[Dict]=None)
 
    Bases: :class:`airflow.dag.base_dag.BaseDag`, :class:`airflow.utils.log.logging_mixin.LoggingMixin`
 
@@ -900,6 +915,11 @@ Package Contents
 
    .. attribute:: _comps
       
+
+      
+
+   .. attribute:: _serialized_fields
+      :annotation: :FrozenSet[str]
 
       
 
@@ -1208,7 +1228,7 @@ Package Contents
 
 
    
-   .. method:: topological_sort(self)
+   .. method:: topological_sort(self, include_subdag_tasks:bool=False)
 
       Sorts tasks in topographical order, such that a task comes after any of its
       upstream dependencies.
@@ -1216,6 +1236,7 @@ Package Contents
       Heavily inspired by:
       http://blog.jupo.org/2012/04/06/topological-sorting-acyclic-directed-graphs/
 
+      :param include_subdag_tasks: whether to include tasks in subdags, default to False
       :return: list of tasks in topological order
 
 
@@ -1258,7 +1279,7 @@ Package Contents
 
 
    
-   .. method:: get_task(self, task_id)
+   .. method:: get_task(self, task_id, include_subdags=False)
 
 
 
@@ -1453,6 +1474,11 @@ Package Contents
 
       
 
+   .. attribute:: root_dag_id
+      
+
+      
+
    .. attribute:: is_paused_at_creation
       
 
@@ -1523,6 +1549,11 @@ Package Contents
 
       
 
+   .. attribute:: __table_args__
+      
+
+      
+
    .. attribute:: timezone
       
 
@@ -1559,7 +1590,14 @@ Package Contents
 
 
    
-   .. method:: get_dag(self)
+   .. method:: get_dag(self, store_serialized_dags=False)
+
+      Creates a dagbag to load and return a DAG.
+
+      Calling it from UI should set store_serialized_dags = STORE_SERIALIZED_DAGS.
+      There may be a delay for scheduler to write serialized DAG into database,
+      loads from file in this case.
+      FIXME: remove it when webserver does not access to DAG folder in future.
 
 
 
@@ -1585,18 +1623,30 @@ Package Contents
 
 
    
-   .. method:: set_is_paused(self, is_paused, including_subdags=True, session=None)
+   .. method:: set_is_paused(self, is_paused:bool, including_subdags:bool=True, store_serialized_dags:bool=False, session=None)
 
       Pause/Un-pause a DAG.
 
       :param is_paused: Is the DAG paused
       :param including_subdags: whether to include the DAG's subdags
+      :param store_serialized_dags: whether to serialize DAGs & store it in DB
       :param session: session
 
 
 
+   
+   .. classmethod:: deactivate_deleted_dags(cls, alive_dag_filelocs:List[str], session=None)
 
-.. py:class:: DagBag(dag_folder=None, executor=None, include_examples=conf.getboolean('core', 'LOAD_EXAMPLES'), safe_mode=conf.getboolean('core', 'DAG_DISCOVERY_SAFE_MODE'))
+      Set ``is_active=False`` on the DAGs for which the DAG files have been removed.
+      Additionally change ``is_active=False`` to ``True`` if the DAG file exists.
+
+      :param alive_dag_filelocs: file paths of alive DAGs
+      :param session: ORM Session
+
+
+
+
+.. py:class:: DagBag(dag_folder=None, executor=None, include_examples=conf.getboolean('core', 'LOAD_EXAMPLES'), safe_mode=conf.getboolean('core', 'DAG_DISCOVERY_SAFE_MODE'), store_serialized_dags=False)
 
    Bases: :class:`airflow.dag.base_dag.BaseDagBag`, :class:`airflow.utils.log.logging_mixin.LoggingMixin`
 
@@ -1619,6 +1669,9 @@ Package Contents
        file has been skipped. This is to prevent overloading the user with logging
        messages about skipped files. Therefore only once per DagBag is a file logged
        being skipped.
+   :param store_serialized_dags: Read DAGs from DB if store_serialized_dags is ``True``.
+       If ``False`` DAGs are read from python files.
+   :type store_serialized_dags: bool
 
    .. attribute:: CYCLE_NEW
       :annotation: = 0
@@ -1663,9 +1716,14 @@ Package Contents
 
 
    
-   .. method:: get_dag(self, dag_id)
+   .. method:: get_dag(self, dag_id, from_file_only=False)
 
       Gets the DAG out of the dictionary, and refreshes it if expired
+
+      :param dag_id: DAG Id
+      :type dag_id: str
+      :param from_file_only: returns a DAG loaded from file.
+      :type from_file_only: bool
 
 
 
@@ -1711,6 +1769,13 @@ Package Contents
 
       **Note**: The patterns in .airflowignore are treated as
       un-anchored regexes, not shell-like glob patterns.
+
+
+
+   
+   .. method:: collect_dags_from_db(self)
+
+      Collects DAGs from database.
 
 
 
@@ -1761,7 +1826,7 @@ Package Contents
       
 
 
-.. py:class:: DagRun
+.. py:class:: DagRun(dag_id=None, run_id=None, execution_date=None, start_date=None, external_trigger=None, conf=None, state=None)
 
    Bases: :class:`airflow.models.base.Base`, :class:`airflow.utils.log.logging_mixin.LoggingMixin`
 
@@ -1872,6 +1937,7 @@ Package Contents
    .. method:: refresh_from_db(self, session=None)
 
       Reloads the current dagrun from the database
+
       :param session: database session
 
 
@@ -1925,7 +1991,7 @@ Package Contents
 
 
    
-   .. method:: get_previous_dagrun(self, state=None, session=None)
+   .. method:: get_previous_dagrun(self, state:Optional[str]=None, session:Session=None)
 
       The previous DagRun, if there is one
 
@@ -2012,36 +2078,6 @@ Package Contents
       
 
 
-.. py:class:: KubeWorkerIdentifier
-
-   Bases: :class:`airflow.models.base.Base`
-
-   .. attribute:: __tablename__
-      :annotation: = kube_worker_uuid
-
-      
-
-   .. attribute:: one_row_id
-      
-
-      
-
-   .. attribute:: worker_uuid
-      
-
-      
-
-   
-   .. staticmethod:: get_or_create_current_kube_worker_uuid(session=None)
-
-
-
-   
-   .. staticmethod:: checkpoint_kube_worker_uuid(worker_uuid, session=None)
-
-
-
-
 .. py:class:: KubeResourceVersion
 
    Bases: :class:`airflow.models.base.Base`
@@ -2073,6 +2109,36 @@ Package Contents
 
    
    .. staticmethod:: reset_resource_version(session=None)
+
+
+
+
+.. py:class:: KubeWorkerIdentifier
+
+   Bases: :class:`airflow.models.base.Base`
+
+   .. attribute:: __tablename__
+      :annotation: = kube_worker_uuid
+
+      
+
+   .. attribute:: one_row_id
+      
+
+      
+
+   .. attribute:: worker_uuid
+      
+
+      
+
+   
+   .. staticmethod:: get_or_create_current_kube_worker_uuid(session=None)
+
+
+
+   
+   .. staticmethod:: checkpoint_kube_worker_uuid(worker_uuid, session=None)
 
 
 
@@ -2217,24 +2283,29 @@ Package Contents
 
 
 
-.. py:class:: TaskFail(task, execution_date, start_date, end_date)
+.. py:class:: SerializedDagModel(dag:'DAG')
 
    Bases: :class:`airflow.models.base.Base`
 
-   TaskFail tracks the failed run durations of each task instance.
+   A table for serialized DAGs.
+
+   serialized_dag table is a snapshot of DAG files synchronized by scheduler.
+   This feature is controlled by:
+
+   * ``[core] store_serialized_dags = True``: enable this feature
+   * ``[core] min_serialized_dag_update_interval = 30`` (s):
+     serialized DAGs are updated in DB when a file gets processed by scheduler,
+     to reduce DB write rate, there is a minimal interval of updating serialized DAGs.
+   * ``[scheduler] dag_dir_list_interval = 300`` (s):
+     interval of deleting serialized DAGs in DB when the files are deleted, suggest
+     to use a smaller interval such as 60
+
+   It is used by webserver to load dagbags when ``store_serialized_dags=True``.
+   Because reading from database is lightweight compared to importing from files,
+   it solves the webserver scalability issue.
 
    .. attribute:: __tablename__
-      :annotation: = task_fail
-
-      
-
-   .. attribute:: id
-      
-
-      
-
-   .. attribute:: task_id
-      
+      :annotation: = serialized_dag
 
       
 
@@ -2243,22 +2314,22 @@ Package Contents
 
       
 
-   .. attribute:: execution_date
+   .. attribute:: fileloc
       
 
       
 
-   .. attribute:: start_date
+   .. attribute:: fileloc_hash
       
 
       
 
-   .. attribute:: end_date
+   .. attribute:: data
       
 
       
 
-   .. attribute:: duration
+   .. attribute:: last_updated
       
 
       
@@ -2267,6 +2338,85 @@ Package Contents
       
 
       
+
+   .. attribute:: dag
+      
+
+      The DAG deserialized from the ``data`` column
+
+
+   
+   .. staticmethod:: dag_fileloc_hash(full_filepath:str)
+
+      "Hashing file location for indexing.
+
+      :param full_filepath: full filepath of DAG file
+      :return: hashed full_filepath
+
+
+
+   
+   .. classmethod:: write_dag(cls, dag:'DAG', min_update_interval:Optional[int]=None, session=None)
+
+      Serializes a DAG and writes it into database.
+
+      :param dag: a DAG to be written into database
+      :param min_update_interval: minimal interval in seconds to update serialized DAG
+      :param session: ORM Session
+
+
+
+   
+   .. classmethod:: read_all_dags(cls, session=None)
+
+      Reads all DAGs in serialized_dag table.
+
+      :param session: ORM Session
+      :returns: a dict of DAGs read from database
+
+
+
+   
+   .. classmethod:: remove_dag(cls, dag_id:str, session=None)
+
+      Deletes a DAG with given dag_id.
+
+      :param dag_id: dag_id to be deleted
+      :param session: ORM Session
+
+
+
+   
+   .. classmethod:: remove_deleted_dags(cls, alive_dag_filelocs:List[str], session=None)
+
+      Deletes DAGs not included in alive_dag_filelocs.
+
+      :param alive_dag_filelocs: file paths of alive DAGs
+      :param session: ORM Session
+
+
+
+   
+   .. classmethod:: has_dag(cls, dag_id:str, session=None)
+
+      Checks a DAG exist in serialized_dag table.
+
+      :param dag_id: the DAG to check
+      :param session: ORM Session
+
+
+
+   
+   .. classmethod:: get(cls, dag_id:str, session=None)
+
+      Get the SerializedDAG for the given dag ID.
+      It will cope with being passed the ID of a subdag by looking up the
+      root dag_id from the DAG table.
+
+      :param dag_id: the DAG to fetch
+      :param session: ORM Session
+
+
 
 
 .. py:class:: SkipMixin
@@ -2286,7 +2436,7 @@ Package Contents
 
 
    
-   .. method:: skip_all_except(self, ti, branch_task_ids)
+   .. method:: skip_all_except(self, ti:TaskInstance, branch_task_ids:Union[str, Iterable[str]])
 
       This method implements the logic for a branching operator; given a single
       task ID or list of task IDs to follow, this skips all other tasks
@@ -2354,14 +2504,56 @@ Package Contents
 
 
 
-.. function:: clear_task_instances(tis, session, activate_dag_runs=True, dag=None)
-   Clears a set of task instances, but makes sure the running ones
-   get killed.
+.. py:class:: TaskFail(task, execution_date, start_date, end_date)
 
-   :param tis: a list of task instances
-   :param session: current session
-   :param activate_dag_runs: flag to check for active dag run
-   :param dag: DAG object
+   Bases: :class:`airflow.models.base.Base`
+
+   TaskFail tracks the failed run durations of each task instance.
+
+   .. attribute:: __tablename__
+      :annotation: = task_fail
+
+      
+
+   .. attribute:: id
+      
+
+      
+
+   .. attribute:: task_id
+      
+
+      
+
+   .. attribute:: dag_id
+      
+
+      
+
+   .. attribute:: execution_date
+      
+
+      
+
+   .. attribute:: start_date
+      
+
+      
+
+   .. attribute:: end_date
+      
+
+      
+
+   .. attribute:: duration
+      
+
+      
+
+   .. attribute:: __table_args__
+      
+
+      
 
 
 .. py:class:: TaskInstance(task, execution_date, state=None)
@@ -2611,7 +2803,7 @@ Package Contents
       :param pool: the Airflow pool that the task should run in
       :type pool: unicode
       :param cfg_path: the Path to the configuration file
-      :type cfg_path: basestring
+      :type cfg_path: str
       :return: shell command that can be used to run the task instance
 
 
@@ -2671,7 +2863,7 @@ Package Contents
 
 
    
-   .. method:: _get_previous_ti(self, state=None, session=None)
+   .. method:: _get_previous_ti(self, state:Optional[str]=None, session:Session=None)
 
 
 
@@ -2899,6 +3091,16 @@ Package Contents
 
 
 
+.. function:: clear_task_instances(tis, session, activate_dag_runs=True, dag=None)
+   Clears a set of task instances, but makes sure the running ones
+   get killed.
+
+   :param tis: a list of task instances
+   :param session: current session
+   :param activate_dag_runs: flag to check for active dag run
+   :param dag: DAG object
+
+
 .. py:class:: TaskReschedule(task, execution_date, try_number, start_date, end_date, reschedule_date)
 
    Bases: :class:`airflow.models.base.Base`
@@ -3044,12 +3246,12 @@ Package Contents
 
 
    
-   .. classmethod:: get(cls, key, default_var=__NO_DEFAULT_SENTINEL, deserialize_json=False, session=None)
+   .. classmethod:: get(cls, key:str, default_var:Any=__NO_DEFAULT_SENTINEL, deserialize_json:bool=False, session=None)
 
 
 
    
-   .. classmethod:: set(cls, key, value, serialize_json=False, session=None)
+   .. classmethod:: set(cls, key:str, value:Any, serialize_json:bool=False, session=None)
 
 
 
@@ -3063,6 +3265,11 @@ Package Contents
 
 
 
+
+.. data:: XCOM_RETURN_KEY
+   :annotation: = return_value
+
+   
 
 .. py:class:: XCom
 
@@ -3131,6 +3338,8 @@ Package Contents
    .. classmethod:: set(cls, key, value, execution_date, task_id, dag_id, session=None)
 
       Store an XCom value.
+      TODO: "pickling" has been deprecated and JSON is preferred.
+      "pickling" will be removed in Airflow 2.0.
 
       :return: None
 
@@ -3163,236 +3372,6 @@ Package Contents
 
    
    .. staticmethod:: serialize_value(value)
-
-
-
-
-.. data:: XCOM_RETURN_KEY
-   :annotation: = return_value
-
-   
-
-.. py:class:: KnownEvent
-
-   Bases: :class:`airflow.models.base.Base`
-
-   .. attribute:: __tablename__
-      :annotation: = known_event
-
-      
-
-   .. attribute:: id
-      
-
-      
-
-   .. attribute:: label
-      
-
-      
-
-   .. attribute:: start_date
-      
-
-      
-
-   .. attribute:: end_date
-      
-
-      
-
-   .. attribute:: user_id
-      
-
-      
-
-   .. attribute:: known_event_type_id
-      
-
-      
-
-   .. attribute:: reported_by
-      
-
-      
-
-   .. attribute:: event_type
-      
-
-      
-
-   .. attribute:: description
-      
-
-      
-
-   
-   .. method:: __repr__(self)
-
-
-
-
-.. py:class:: KnownEventType
-
-   Bases: :class:`airflow.models.base.Base`
-
-   .. attribute:: __tablename__
-      :annotation: = known_event_type
-
-      
-
-   .. attribute:: id
-      
-
-      
-
-   .. attribute:: know_event_type
-      
-
-      
-
-   
-   .. method:: __repr__(self)
-
-
-
-
-.. py:class:: User
-
-   Bases: :class:`airflow.models.base.Base`
-
-   .. attribute:: __tablename__
-      :annotation: = users
-
-      
-
-   .. attribute:: id
-      
-
-      
-
-   .. attribute:: username
-      
-
-      
-
-   .. attribute:: email
-      
-
-      
-
-   .. attribute:: superuser
-      
-
-      
-
-   
-   .. method:: __repr__(self)
-
-
-
-   
-   .. method:: get_id(self)
-
-
-
-   
-   .. method:: is_superuser(self)
-
-
-
-
-.. py:class:: Chart
-
-   Bases: :class:`airflow.models.base.Base`
-
-   .. attribute:: __tablename__
-      :annotation: = chart
-
-      
-
-   .. attribute:: id
-      
-
-      
-
-   .. attribute:: label
-      
-
-      
-
-   .. attribute:: conn_id
-      
-
-      
-
-   .. attribute:: user_id
-      
-
-      
-
-   .. attribute:: chart_type
-      
-
-      
-
-   .. attribute:: sql_layout
-      
-
-      
-
-   .. attribute:: sql
-      
-
-      
-
-   .. attribute:: y_log_scale
-      
-
-      
-
-   .. attribute:: show_datatable
-      
-
-      
-
-   .. attribute:: show_sql
-      
-
-      
-
-   .. attribute:: height
-      
-
-      
-
-   .. attribute:: default_params
-      
-
-      
-
-   .. attribute:: owner
-      
-
-      
-
-   .. attribute:: x_is_date
-      
-
-      
-
-   .. attribute:: iteration_no
-      
-
-      
-
-   .. attribute:: last_modified
-      
-
-      
-
-   
-   .. method:: __repr__(self)
 
 
 

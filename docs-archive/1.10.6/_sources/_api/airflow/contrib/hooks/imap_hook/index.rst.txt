@@ -3,6 +3,13 @@
 
 .. py:module:: airflow.contrib.hooks.imap_hook
 
+.. autoapi-nested-parse::
+
+   This module provides everything to be able to search in mails for a specific attachment
+   and also to download it.
+   It uses the imaplib library that is already integrated in python 2 and 3.
+
+
 
 Module Contents
 ---------------
@@ -12,6 +19,9 @@ Module Contents
    Bases: :class:`airflow.hooks.base_hook.BaseHook`
 
    This hook connects to a mail server by using the imap protocol.
+
+   .. note:: Please call this Hook as context manager via `with`
+       to automatically open and close the connection to the mail server.
 
    :param imap_conn_id: The connection id that contains the information used to authenticate the client.
    :type imap_conn_id: str
@@ -27,40 +37,58 @@ Module Contents
 
 
    
-   .. method:: has_mail_attachment(self, name, mail_folder='INBOX', check_regex=False)
+   .. method:: get_conn(self)
+
+      Login to the mail server.
+
+      .. note:: Please call this Hook as context manager via `with`
+          to automatically open and close the connection to the mail server.
+
+      :return: an authorized ImapHook object.
+      :rtype: ImapHook
+
+
+
+   
+   .. method:: has_mail_attachment(self, name, *, check_regex=False, mail_folder='INBOX', mail_filter='All')
 
       Checks the mail folder for mails containing attachments with the given name.
 
       :param name: The name of the attachment that will be searched for.
       :type name: str
-      :param mail_folder: The mail folder where to look at.
-      :type mail_folder: str
       :param check_regex: Checks the name for a regular expression.
       :type check_regex: bool
+      :param mail_folder: The mail folder where to look at.
+      :type mail_folder: str
+      :param mail_filter: If set other than 'All' only specific mails will be checked.
+          See :py:meth:`imaplib.IMAP4.search` for details.
+      :type mail_filter: str
       :returns: True if there is an attachment with the given name and False if not.
       :rtype: bool
 
 
 
    
-   .. method:: retrieve_mail_attachments(self, name, mail_folder='INBOX', check_regex=False, latest_only=False, not_found_mode='raise')
+   .. method:: retrieve_mail_attachments(self, name, *, check_regex=False, latest_only=False, mail_folder='INBOX', mail_filter='All', not_found_mode='raise')
 
       Retrieves mail's attachments in the mail folder by its name.
 
       :param name: The name of the attachment that will be downloaded.
       :type name: str
-      :param mail_folder: The mail folder where to look at.
-      :type mail_folder: str
       :param check_regex: Checks the name for a regular expression.
       :type check_regex: bool
-      :param latest_only: If set to True it will only retrieve
-                          the first matched attachment.
+      :param latest_only: If set to True it will only retrieve the first matched attachment.
       :type latest_only: bool
+      :param mail_folder: The mail folder where to look at.
+      :type mail_folder: str
+      :param mail_filter: If set other than 'All' only specific mails will be checked.
+          See :py:meth:`imaplib.IMAP4.search` for details.
+      :type mail_filter: str
       :param not_found_mode: Specify what should happen if no attachment has been found.
-                             Supported values are 'raise', 'warn' and 'ignore'.
-                             If it is set to 'raise' it will raise an exception,
-                             if set to 'warn' it will only print a warning and
-                             if set to 'ignore' it won't notify you at all.
+          Supported values are 'raise', 'warn' and 'ignore'.
+          If it is set to 'raise' it will raise an exception,
+          if set to 'warn' it will only print a warning and
+          if set to 'ignore' it won't notify you at all.
       :type not_found_mode: str
       :returns: a list of tuple each containing the attachment filename and its payload.
       :rtype: a list of tuple
@@ -68,27 +96,29 @@ Module Contents
 
 
    
-   .. method:: download_mail_attachments(self, name, local_output_directory, mail_folder='INBOX', check_regex=False, latest_only=False, not_found_mode='raise')
+   .. method:: download_mail_attachments(self, name, local_output_directory, *, check_regex=False, latest_only=False, mail_folder='INBOX', mail_filter='All', not_found_mode='raise')
 
       Downloads mail's attachments in the mail folder by its name to the local directory.
 
       :param name: The name of the attachment that will be downloaded.
       :type name: str
       :param local_output_directory: The output directory on the local machine
-                                     where the files will be downloaded to.
+          where the files will be downloaded to.
       :type local_output_directory: str
-      :param mail_folder: The mail folder where to look at.
-      :type mail_folder: str
       :param check_regex: Checks the name for a regular expression.
       :type check_regex: bool
-      :param latest_only: If set to True it will only download
-                          the first matched attachment.
+      :param latest_only: If set to True it will only download the first matched attachment.
       :type latest_only: bool
+      :param mail_folder: The mail folder where to look at.
+      :type mail_folder: str
+      :param mail_filter: If set other than 'All' only specific mails will be checked.
+          See :py:meth:`imaplib.IMAP4.search` for details.
+      :type mail_filter: str
       :param not_found_mode: Specify what should happen if no attachment has been found.
-                             Supported values are 'raise', 'warn' and 'ignore'.
-                             If it is set to 'raise' it will raise an exception,
-                             if set to 'warn' it will only print a warning and
-                             if set to 'ignore' it won't notify you at all.
+          Supported values are 'raise', 'warn' and 'ignore'.
+          If it is set to 'raise' it will raise an exception,
+          if set to 'warn' it will only print a warning and
+          if set to 'ignore' it won't notify you at all.
       :type not_found_mode: str
 
 
@@ -99,12 +129,12 @@ Module Contents
 
 
    
-   .. method:: _retrieve_mails_attachments_by_name(self, name, mail_folder, check_regex, latest_only)
+   .. method:: _retrieve_mails_attachments_by_name(self, name, check_regex, latest_only, mail_folder, mail_filter)
 
 
 
    
-   .. method:: _list_mail_ids_desc(self)
+   .. method:: _list_mail_ids_desc(self, mail_filter)
 
 
 
@@ -175,8 +205,13 @@ Module Contents
       :param find_first: If set to True it will only find the first match and then quit.
       :type find_first: bool
       :returns: a list of tuples each containing name and payload
-                where the attachments name matches the given name.
+          where the attachments name matches the given name.
       :rtype: list of tuple
+
+
+
+   
+   .. method:: _iterate_attachments(self)
 
 
 

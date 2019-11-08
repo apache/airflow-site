@@ -80,6 +80,8 @@ Sometimes this can be put to good use. For example, a common pattern with
 ``SubDagOperator`` is to define the subdag inside a function so that Airflow
 doesn't try to load it as a standalone DAG.
 
+.. _default-args:
+
 Default Arguments
 -----------------
 
@@ -122,7 +124,7 @@ actually gets done.
 An operator describes a single task in a workflow. Operators are usually (but
 not always) atomic, meaning they can stand on their own and don't need to share
 resources with any other operators. The DAG will make sure that operators run in
-the correct certain order; other than those dependencies, operators generally
+the correct order; other than those dependencies, operators generally
 run independently. In fact, they may run on two completely different machines.
 
 This is a subtle but very important point: in general, if two operators need to
@@ -376,7 +378,7 @@ DAGs/tasks:
 .. image:: img/task_manual_vs_scheduled.png
 
 The DAGs/tasks with a black border are scheduled runs, whereas the non-bordered
-DAGs/tasks are manually triggered, i.e. by ``airflow trigger_dag``.
+DAGs/tasks are manually triggered, i.e. by ``airflow dags trigger``.
 
 Workflows
 =========
@@ -454,6 +456,8 @@ UI. As slots free up, queued tasks start running based on the
 Note that if tasks are not given a pool, they are assigned to a default
 pool ``default_pool``.  ``default_pool`` is initialized with 128 slots and
 can changed through the UI or CLI (though it cannot be removed).
+
+To combine Pools with SubDAGs see the `SubDAGs`_ section.
 
 .. _concepts-connections:
 
@@ -547,9 +551,12 @@ passed, then a corresponding list of XCom values is returned.
     def push_function():
         return value
 
-    # inside another PythonOperator where provide_context=True
-    def pull_function(**context):
-        value = context['task_instance'].xcom_pull(task_ids='pushing_task')
+    # inside another PythonOperator
+    def pull_function(task_instance):
+        value = task_instance.xcom_pull(task_ids='pushing_task')
+
+When specifying arguments that are part of the context, they will be
+automatically passed to the function.
 
 It is also possible to pull XCom directly in a template, here's an example
 of what this may look like:
@@ -611,27 +618,19 @@ that happened in an upstream task. One way to do this is by using the
 ``BranchPythonOperator``.
 
 The ``BranchPythonOperator`` is much like the PythonOperator except that it
-expects a python_callable that returns a task_id (or list of task_ids). The
+expects a ``python_callable`` that returns a task_id (or list of task_ids). The
 task_id returned is followed, and all of the other paths are skipped.
-The task_id returned by the Python function has to be referencing a task
+The task_id returned by the Python function has to reference a task
 directly downstream from the BranchPythonOperator task.
 
-Note that using tasks with ``depends_on_past=True`` downstream from
-``BranchPythonOperator`` is logically unsound as ``skipped`` status
-will invariably lead to block tasks that depend on their past successes.
-``skipped`` states propagates where all directly upstream tasks are
-``skipped``.
+Note that when a path is a downstream task of the returned task (list), it will
+not be skipped:
 
-If you want to skip some tasks, keep in mind that you can't have an empty
-path, if so make a dummy task.
+.. image:: img/branch_note.png
 
-like this, the dummy task "branch_false" is skipped
-
-.. image:: img/branch_good.png
-
-Not like this, where the join task is skipped
-
-.. image:: img/branch_bad.png
+Paths of the branching task are ``branch_a``, ``join`` and ``branch_b``. Since
+``join`` is a downstream task of ``branch_a``, it will be excluded from the skipped
+tasks when ``branch_a`` is returned by the Python callable.
 
 The ``BranchPythonOperator`` can also be used with XComs allowing branching
 context to dynamically decide what branch to follow based on previous tasks.
@@ -639,8 +638,7 @@ For example:
 
 .. code:: python
 
-  def branch_func(**kwargs):
-      ti = kwargs['ti']
+  def branch_func(ti):
       xcom_value = int(ti.xcom_pull(task_ids='start_task'))
       if xcom_value >= 5:
           return 'continue_task'
@@ -655,7 +653,6 @@ For example:
 
   branch_op = BranchPythonOperator(
       task_id='branch_task',
-      provide_context=True,
       python_callable=branch_func,
       dag=dag)
 
@@ -784,6 +781,9 @@ Some other tips when using SubDAGs:
 
 See ``airflow/example_dags`` for a demonstration.
 
+Note that airflow pool is not honored by SubDagOperator. Hence resources could be
+consumed by SubdagOperators.
+
 SLAs
 ====
 
@@ -827,6 +827,8 @@ For example a ``html_content_template`` file could look like this:
   Host: {{ti.hostname}}<br>
   Log file: {{ti.log_filepath}}<br>
   Mark success: <a href="{{ti.mark_success_url}}">Link</a><br>
+
+.. _concepts/trigger_rule:
 
 Trigger Rules
 =============
@@ -1072,7 +1074,7 @@ Jinja Templating
 
 Airflow leverages the power of
 `Jinja Templating <http://jinja.pocoo.org/docs/dev/>`_ and this can be a
-powerful tool to use in combination with macros (see the :doc:`macros` section).
+powerful tool to use in combination with macros (see the :doc:`macros-ref` section).
 
 For example, say you want to pass the execution date as an environment variable
 to a Bash script using the ``BashOperator``.
@@ -1235,8 +1237,8 @@ For example, you can prepare a ``.airflowignore`` file with contents
     tenant_[\d]
 
 
-Then files like "project_a_dag_1.py", "TESTING_project_a.py", "tenant_1.py",
-"project_a/dag_1.py", and "tenant_1/dag_1.py" in your ``DAG_FOLDER`` would be ignored
+Then files like ``project_a_dag_1.py``, ``TESTING_project_a.py``, ``tenant_1.py``,
+``project_a/dag_1.py``, and ``tenant_1/dag_1.py`` in your ``DAG_FOLDER`` would be ignored
 (If a directory's name matches any of the patterns, this directory and all its subfolders
 would not be scanned by Airflow at all. This improves efficiency of DAG finding).
 

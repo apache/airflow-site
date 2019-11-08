@@ -7,20 +7,19 @@
 Module Contents
 ---------------
 
-.. py:class:: SubDagOperator(subdag, executor=SequentialExecutor(), *args, **kwargs)
+.. py:class:: SubDagOperator(subdag:DAG, session:Optional[Session]=None, *args, **kwargs)
 
-   Bases: :class:`airflow.models.BaseOperator`
+   Bases: :class:`airflow.sensors.base_sensor_operator.BaseSensorOperator`
 
    This runs a sub dag. By convention, a sub dag's dag_id
    should be prefixed by its parent and a dot. As in `parent.child`.
 
+   Although SubDagOperator can occupy a pool/concurrency slot,
+   user can specify the mode=reschedule so that the slot will be
+   released periodically to avoid potential deadlock.
+
    :param subdag: the DAG object to run as a subdag of the current DAG.
-   :type subdag: airflow.models.DAG
-   :param dag: the parent DAG for the subdag.
-   :type dag: airflow.models.DAG
-   :param executor: the executor for this subdag. Default to use SequentialExecutor.
-       Please find AIRFLOW-74 for more details.
-   :type executor: airflow.executors.base_executor.BaseExecutor
+   :param session: sqlalchemy session
 
    .. attribute:: ui_color
       :annotation: = #555
@@ -33,7 +32,34 @@ Module Contents
       
 
    
-   .. method:: execute(self, context)
+   .. method:: _get_dagrun(self, execution_date)
+
+
+
+   
+   .. method:: _reset_dag_run_and_task_instances(self, dag_run, execution_date)
+
+      Set the DagRun state to RUNNING and set the failed TaskInstances to None state
+      for scheduler to pick up.
+
+      :param dag_run: DAG run
+      :param execution_date: Execution date
+      :return: None
+
+
+
+   
+   .. method:: pre_execute(self, context)
+
+
+
+   
+   .. method:: poke(self, context)
+
+
+
+   
+   .. method:: post_execute(self, context, result=None)
 
 
 
