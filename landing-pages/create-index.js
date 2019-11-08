@@ -27,7 +27,7 @@ const parse = promisify(frontMatterParser.parse.bind(frontMatterParser));
 const lunrjs = require("lunr");
 
 const contentDirectory = `${__dirname}/site/content`;
-const outputtDirectory = `${__dirname}/site/static/indexes`;
+const outputtDirectory = `${__dirname}/site/static/_gen/indexes`;
 
 
 async function isDirectoryExists(dirPath) {

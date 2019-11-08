@@ -47,8 +47,8 @@ const setTags = (tagsContainer, tags) => {
 };
 
 Promise.all([
-  fetch("/indexes/en/blog-index.json"),
-  fetch("/indexes/en/blog-posts.json")
+  fetch("/_gen/indexes/en/blog-index.json"),
+  fetch("/_gen/indexes/en/blog-posts.json")
 ]).then(function([indexResp, postsResp]) {
   return Promise.all([
     indexResp.json(),

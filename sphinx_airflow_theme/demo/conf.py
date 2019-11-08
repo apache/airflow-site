@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -37,7 +38,7 @@
 project = 'Theme demo'
 copyright = '2019, Apache Software Foundation'
 author = 'Apache Software Foundation'
-
+version = os.environ.get('RELEASE_VERSION', 'latest')
 
 # -- General configuration ---------------------------------------------------
 
