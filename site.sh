@@ -244,6 +244,7 @@ if [[ "${CMD}" == "install-node-deps" ]] ; then
     run_command "/opt/site/landing-pages/" yarn install
 elif [[ "${CMD}" == "preview" ]]; then
     ensure_node_module_exists
+    run_command "/opt/site/landing-pages/" npm run index
     run_command "/opt/site/landing-pages/" npm run preview
 elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
