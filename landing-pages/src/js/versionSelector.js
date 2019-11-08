@@ -34,7 +34,7 @@ const runVersionSelector = () => {
   fetch("./_gen/docs-index.json")
     .then((resp) => resp.json())
     .then(({stable, versions}) => {
-      const currentVersion = window.document.location.pathname.split("/docs/")[1];
+      const currentVersion = window.document.location.pathname.split("/")[2];
 
       const appendNewVersionLink = (location, label) => {
         const newElement = templateElement.cloneNode(true);
