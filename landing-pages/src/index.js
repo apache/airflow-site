@@ -21,7 +21,10 @@ import {showMore} from "./js/showAllCommiters";
 import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
+import "./js/contentDrawer";
+import "./js/progressTracking";
 import "./js/rating";
+import "./js/makeTableResponsive";
 
 if (document.querySelector("#search")) {
     import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
