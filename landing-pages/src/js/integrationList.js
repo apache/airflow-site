@@ -39,11 +39,14 @@ function handleIntegration() {
 
   let currentPage = 1;
   let currentQeury = "";
+  const maxItemsOnPage = window.innerWidth < 1920 ? 8 : 10;
+
   function setIndicatorVisibility(visible) {
     loadingIndicator.style.display = visible ? "" : "none";
     listItems.style.display = visible ? "none" : "";
   }
   setIndicatorVisibility(false);
+
   function setMoreButtonVisibility(visible) {
     moreButton.style.display = visible ? "" : "none";
   }
@@ -105,7 +108,7 @@ function handleIntegration() {
 
   function showItems(keyword, page) {
     const showMoreButtonIfNeeded = (integrations) => {
-      setMoreButtonVisibility(integrations.length > (page * 8));
+      setMoreButtonVisibility(integrations.length > (page * maxItemsOnPage));
     };
 
     const filterMatchingItems = (integrations) => {
@@ -119,7 +122,7 @@ function handleIntegration() {
     };
 
     const filterVisible = (integrations) => {
-      return Promise.resolve(integrations.slice(0, page * 8));
+      return Promise.resolve(integrations.slice(0, page * maxItemsOnPage));
     };
 
     const itemsPromise = fetchIntegration()
