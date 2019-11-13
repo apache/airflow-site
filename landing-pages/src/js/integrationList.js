@@ -52,7 +52,7 @@ function handleIntegration() {
   const sortByLogoAvailability = (a, b) => {
     const a_key = a.logo ? 1 : -1;
     const b_key = b.logo ? 1 : -1;
-    return a_key - b_key;
+    return b_key - a_key;
   };
 
   let fetchIntegrationRequest = null;
@@ -84,6 +84,15 @@ function handleIntegration() {
 
   function createElement(item) {
     const element = templateElement.cloneNode(true);
+
+    const imgNode = element.querySelector('[data-name="logo"]');
+    if (item.logo) {
+      imgNode.src = item.logo;
+      imgNode.alt = `${item.name} logo`;
+    } else {
+      imgNode.parentNode.removeChild(imgNode);
+    }
+
     element.querySelector('[data-name="name"]').innerText = item.name;
     element.querySelector("a").href = item.url;
     return element.firstElementChild;
