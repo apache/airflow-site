@@ -34,15 +34,15 @@ export const showMore = (containerID, buttonID, maxItemsOnPage = 8) => {
   }
 
   button.style.display = "block";
-  const commiterElements = Array.from(container.children);
-  commiterElements
+  const elements = Array.from(container.children);
+  elements
     .slice(maxItemsOnPage, container.childElementCount)
     .map((child) => {
       child.style.display = "none";
     });
 
   button.addEventListener("click", () => {
-    showElementsOnPage(commiterElements, currentPage, maxItemsOnPage);
+    showElementsOnPage(elements, currentPage, maxItemsOnPage);
     currentPage += 1;
     if (container.childElementCount <= maxItemsOnPage * currentPage) {
       button.style.display = "none";
