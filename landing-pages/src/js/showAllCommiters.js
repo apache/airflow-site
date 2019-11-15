@@ -17,20 +17,18 @@
  * under the License.
  */
 
-const itemsOnPage = 8;
-
-const showElementsOnPage = (elements, currentPage) => {
-  elements.slice(currentPage * itemsOnPage, (currentPage + 1) * itemsOnPage).map((child) => {
+const showElementsOnPage = (elements, currentPage, maxItemsOnPage) => {
+  elements.slice(currentPage * maxItemsOnPage, (currentPage + 1) * maxItemsOnPage).map((child) => {
     child.style.display = "";
   });
 };
 
-export const showMore = (containerID, buttonID) => {
+export const showMore = (containerID, buttonID, maxItemsOnPage = 8) => {
   let currentPage = 1;
   const container = window.document.querySelector(containerID);
   const button = window.document.querySelector(buttonID);
   if (!container || !button) return;
-  if (container.childElementCount <= itemsOnPage * currentPage) {
+  if (container.childElementCount <= maxItemsOnPage * currentPage) {
     button.style.display = "none";
     return;
   }
@@ -38,15 +36,15 @@ export const showMore = (containerID, buttonID) => {
   button.style.display = "block";
   const commiterElements = Array.from(container.children);
   commiterElements
-    .slice(itemsOnPage, container.childElementCount)
+    .slice(maxItemsOnPage, container.childElementCount)
     .map((child) => {
       child.style.display = "none";
     });
 
   button.addEventListener("click", () => {
-    showElementsOnPage(commiterElements, currentPage);
+    showElementsOnPage(commiterElements, currentPage, maxItemsOnPage);
     currentPage += 1;
-    if (container.childElementCount <= itemsOnPage * currentPage) {
+    if (container.childElementCount <= maxItemsOnPage * currentPage) {
       button.style.display = "none";
     }
   });

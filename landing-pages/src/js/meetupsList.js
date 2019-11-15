@@ -33,6 +33,8 @@ const runMeetups = () => {
 
   let currentPage = 1;
   let currentQuery = "";
+  const maxItemsOnPage = window.innerWidth < 1920 ? 8 : 10;
+
   fetch("/meetups.json")
     .then((response) => response.json())
     .then((allMeetups) => {
@@ -79,7 +81,7 @@ const runMeetups = () => {
 
       const showItems = (keyword, page) => {
         const showMoreButtonIfNeeded = (meetups) => {
-          setMoreButtonVisibility(meetups.length > (page * 8));
+          setMoreButtonVisibility(meetups.length > (page * maxItemsOnPage));
         };
 
         const filterMatchingItems = (meetups) => {
@@ -95,7 +97,7 @@ const runMeetups = () => {
 
         const filterVisible = (meetups) => {
           meetups.sort(sortByIndex);
-          return meetups.slice(0, page * 8);
+          return meetups.slice(0, page * maxItemsOnPage);
         };
         const matchingItems = filterMatchingItems(allMeetups);
         const visibleItems = filterVisible(matchingItems);
