@@ -27,12 +27,10 @@ The repository of Apache Airflow can be found [here](https://github.com/apache/a
 
 # General directory structure
 
-- dist - auto-generated directory containing built HTML files for landing pages and documentation,
-Javascript files and static assets,
 - docs-archive - directory containing archived documentation versions and shell script generating docs index,
 - landing-pages - directory containing the source code of landing pages,
 - license-templates - directory containing license templates,
-- sphinx-airflow-theme - directory containing source code of sphinx theme for Apache Airflow documentation site.
+- sphinx_airflow_theme - directory containing source code of sphinx theme for Apache Airflow documentation site.
 
 For more detailed description of directory structure, please refer to [contributor's guide](CONTRIBUTE.md).
 
@@ -47,11 +45,11 @@ If you're a Macbook user, first install `coreutils`.
 The Docsy theme required for the site to work properly is included as a git submodule.
 Hence, to clone the repository correctly, run the following command:
 
-`git clone --recurse-submodules --depth 1 git@github.com:apache/airflow-site.git`
+`git clone --recurse-submodules git@github.com:apache/airflow-site.git`
 
 or
 
-`git clone --recurse-submodules --depth 1 https://github.com/apache/airflow-site.git`
+`git clone --recurse-submodules https://github.com/apache/airflow-site.git`
 
 ---
 
