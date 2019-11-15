@@ -28,18 +28,22 @@ import "./js/makeTableResponsive";
 import "./js/versionSelector";
 
 if (document.querySelector("#search")) {
-    import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
+  import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
 }
 
 showMore("#commiters-container", "#show-more-commiters");
 showMore("#pmc-container", "#show-more-pmcs");
-showMore("#case-studies-container", "#show-more-case-studies");
+showMore(
+  "#case-studies-container",
+  "#show-more-case-studies",
+  window.innerWidth < 1920 ? 8 : 15);
+
 handleActiveVideo();
 
 if (document.querySelector("#header")) {
-    import(/* webpackChunkName: "header" */ "./js/headerAnimation").then((module) => {
-      module.initHeaderAnimation();
-    });
+  import(/* webpackChunkName: "header" */ "./js/headerAnimation").then((module) => {
+    module.initHeaderAnimation();
+  });
 }
 require("./js/integrationList.js");
 require("./js/meetupsList.js");
