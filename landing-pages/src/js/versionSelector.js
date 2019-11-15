@@ -17,6 +17,8 @@
  * under the License.
  */
 
+import {compareVersion} from "./sortVersions";
+
 const runVersionSelector = () => {
   const versionSelectors = window.document.querySelectorAll(".docs-version-selector");
 
@@ -27,6 +29,7 @@ const runVersionSelector = () => {
   fetch("/_gen/docs-index.json")
     .then((resp) => resp.json())
     .then(({stable, versions}) => {
+      versions = versions.sort(compareVersion).reverse();
       versionSelectors.forEach((versionSelector) => {
         const templateText = versionSelector.querySelector("#version-item-template").innerText;
         let templateElement = document.createElement("div");
