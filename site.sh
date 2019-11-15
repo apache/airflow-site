@@ -32,19 +32,18 @@ usage: ${0} <command> [<args>]
 
 These are  ${0} commands used in various situations:
 
-    stop                Stop the environment
-    cleanup             Delete the virtual environment in Docker
+    build-site          Prepare dist directory with landing pages and documentation
+    preview-site        Starts the web server with preview of the website
+    build-landing-pages Builds a landing pages
+    prepare-theme       Prepares and copies files needed for the proper functioning of the sphinx theme.
+    shell               Start shell
     build-image         Build a Docker image with a environment
     install-node-deps   Download all the Node dependencies
-    preview-site        Starts the web server with preview of the website
-    preview-docs        Starts the web server with preview of the Sphinx theme
-    prepare-theme       Prepares and copies files needed for the proper functioning of the sphinx theme.
-    build-landing-pages Builds a landing pages
-    build-site          Prepare dist directory with landing pages and documentation
     check-site-links    Checks if the links are correct in the website
     lint-css            Lint CSS files
     lint-js             Lint Javascript files
-    shell               Start shell
+    cleanup             Delete the virtual environment in Docker
+    stop                Stop the environment
     help                Display usage
 
 Unrecognized commands are run as programs in the container.
