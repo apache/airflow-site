@@ -19,7 +19,6 @@
 
 const webpack = require("webpack");
 const path = require("path");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const AssetsPlugin = require("assets-webpack-plugin");
 
@@ -67,14 +66,6 @@ module.exports = {
       filename: "webpack.json",
       path: path.join(process.cwd(), "site/data"),
       prettyPrint: true
-    }),
-
-    new CopyWebpackPlugin([
-      {
-        from: "./src/fonts/",
-        to: "fonts/",
-        flatten: true
-      }
-    ])
+    })
   ]
 };
