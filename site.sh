@@ -40,7 +40,7 @@ These are  ${0} commands used in various situations:
     preview-docs        Starts the web server with preview of the Sphinx theme
     prepare-theme       Prepares and copies files needed for the proper functioning of the sphinx theme.
     build-landing-pages Builds a landing pages
-    build-site          Builds a website with documentation
+    build-site          Prepare dist directory with landing pages and documentation
     check-site-links    Checks if the links are correct in the website
     lint-css            Lint CSS files
     lint-js             Lint Javascript files
@@ -203,15 +203,22 @@ function run_lint {
     run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
 }
 
-function prepare_docs_index() {
+function prepare_docs_index {
     run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-index.json
 }
 
-function build_site {
-    mkdir -p dist
-    rm -rf dist/*
+function build_landing_pages {
+    run_command "/opt/site/landing-pages/" npm run index
     prepare_docs_index
     run_command "/opt/site/landing-pages/" npm run build
+}
+
+function build_site {
+    if [[ ! -f "landing-pages/dist/index.html" ]]; then
+        build_landing_pages
+    fi
+    mkdir -p dist
+    rm -rf dist/*
     cp -R landing-pages/dist/ dist/
     mkdir -p dist/docs/
     rm -rf dist/docs/*
@@ -300,7 +307,7 @@ elif [[ "${CMD}" == "preview" ]]; then
     run_command "/opt/site/landing-pages/" npm run preview
 elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
-    run_command "/opt/site/landing-pages/" npm run build
+    build_landing_pages
 elif [[ "${CMD}" == "build-site" ]]; then
     ensure_node_module_exists
     build_site
