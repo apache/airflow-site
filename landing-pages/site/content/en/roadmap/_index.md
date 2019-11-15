@@ -1,6 +1,7 @@
 ---
 title: "Overview"
 linkTitle: "Roadmap"
+showSideNav: false
 menu:
   main:
     weight: 15
