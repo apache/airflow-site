@@ -17,7 +17,8 @@
  * under the License.
  */
 
-import {showMore} from "./js/showAllCommiters";
+import {shuffleNodeChildren} from "./js/commitersList";
+import {showMore} from "./js/showMore";
 import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
@@ -31,8 +32,11 @@ if (document.querySelector("#search")) {
   import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
 }
 
-showMore("#commiters-container", "#show-more-commiters");
-showMore("#pmc-container", "#show-more-pmcs");
+shuffleNodeChildren("#commiters-container");
+shuffleNodeChildren("#pmc-container");
+
+showMore("#commiters-container", "#show-more-commiters", 4);
+showMore("#pmc-container", "#show-more-pmcs", 4);
 showMore(
   "#case-studies-container",
   "#show-more-case-studies",
