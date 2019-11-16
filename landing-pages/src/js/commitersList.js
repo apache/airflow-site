@@ -32,5 +32,3 @@ export const shuffleNodeChildren = (containerID) => {
 
   container.parentNode.replaceChild(tmp, container);
 };
-
-shuffleNodeChildren();
