@@ -77,7 +77,33 @@ script to work with the website in a Docker container.
 
 ### How to add a new blogpost
 
-In order to add a new blogpost, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/blog/<filename>.md`.
+To add a new blogpost with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
+
+    hugo new blog/my-new-blogpost.md
+
+That will create a markdown file `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/blog/my-new-blogpost.md`
+with following content:
+
+    ---
+    title: "My New Blogpost"
+    linkTitle: "My New Blogpost"
+    author: "Your Name"
+    twitter: "Your Twitter ID (optional, remove if not needed)"
+    github: "Your Github ID (optional, remove if not needed)"
+    linkedin: "Your LinkedIn ID (optional, remove if not needed)"
+    description: "Description"
+    tags: []
+    date: "2019-11-19"
+    draft: true
+    ---
+
+Below frontmatter, put your blogpost content.
+
+When you finish your writing blogpost, remember to **remove `draft: true`** from frontmatter.
+
+---
+
+To add a new blogpost manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/blog/<filename>.md`.
 The filename will also serve as URL for your blogpost.
 
 Then, **at the top of the file**, add frontmatter in following format:
@@ -96,10 +122,39 @@ Then, **at the top of the file**, add frontmatter in following format:
 
 Below frontmatter, put your blogpost content.
 
-
 ### How to add a new case study
 
-In order to add a new case study, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/<filename>.md`.
+To add a new case study with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
+
+    hugo new use-cases/my-use-case.md
+
+That will create a markdown file `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/my-use-case.md`
+with following content:
+
+    ---
+    title: "My Use Case"
+    linkTitle: "My Use Case"
+    quote:
+        text: "Quote text"
+        author: "Quote's author"
+    logo: "logo-name-in-static-icons-directory.svg"
+    draft: true
+    ---
+
+    ##### What was the problem?
+    text
+
+    ##### How did Apache Airflow help to solve this problem?
+    text
+
+    ##### What are the results?
+    text
+
+When you finish your writing blogpost, remember to **remove `draft: true`** from frontmatter.
+
+---
+
+To add a new case study manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/<filename>.md`.
 The filename will also serve as URL for the case study.
 
 Then, **at the top of the file**, add frontmatter in following format:
@@ -123,6 +178,8 @@ Below frontmatter, put your blogpost content in following format:
 
     #### What are the results?
     <text>
+
+---
 
 **Important** - put the logo file in `<ROOT DIRECTORY>/landing-pages/site/static/icons/` directory. Then, in the frontmatter,
 refer to it just by filename.
