@@ -11,4 +11,4 @@ Is it possible to create an organization that delivers tens of projects used by 
 
 After this year’s ApacheCon, Polidea’s engineers talked with Committers of Apache projects, such as—Aizhamal Nurmamat kyzy, Felix Uellendall, and Fokko Driesprong—about insights to what makes the ASF such an amazing organization.
 
-Read more [here](https://www.polidea.com/blog/apachecon-europe-2019-thoughts-and-insights-by-airflow-committers/?utm_source=ApacheAirflowBlog&utm_medium=Npaid&utm_campaign=Blog&utm_term=Article&utm_content=AAB_NOP_BLG_ART_APC_001).
+You can read the [insights on the Polidea blog](https://www.polidea.com/blog/apachecon-europe-2019-thoughts-and-insights-by-airflow-committers/?utm_source=ApacheAirflowBlog&utm_medium=Npaid&utm_campaign=Blog&utm_term=Article&utm_content=AAB_NOP_BLG_ART_APC_001).
