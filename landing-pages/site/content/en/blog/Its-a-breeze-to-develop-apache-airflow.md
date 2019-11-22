@@ -1,7 +1,10 @@
 ---
 title: "It's a \"Breeze\" to develop Apache Airflow"
 linkTitle: "It's a \"Breeze\" to develop Apache Airflow"
-author: "Polidea"
+author: "Jarek Potiuk"
+twitter: "higrys"
+github: "potiuk"
+linkedin: "jarekpotiuk"
 description: "A Principal Software Engineer's journey to developer productivity. Learn how Jarek and his team speeded up and simplified Airflow development for the community."
 tags: ["Development"]
 date: 2019-11-22
