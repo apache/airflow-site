@@ -2,10 +2,19 @@
 title: "Roadmap"
 linkTitle: "Roadmap"
 showSideNav: false
-menu:
-  main:
-    weight: 15
 ---
+
+TODO: Roadmap page is temporarily hidden. When the content is ready, re-add the page by putting the following code
+in the frontmatter:
+
+    ---
+    title: "Roadmap"
+    linkTitle: "Roadmap"
+    showSideNav: false
+    menu:
+      main:
+        weight: 15
+    ---
 
 ## Primary Heading A
 
