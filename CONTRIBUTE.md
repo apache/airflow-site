@@ -181,12 +181,12 @@ Below frontmatter, put your blogpost content in following format:
 
 ---
 
-**Important** - put the logo file in `<ROOT DIRECTORY>/landing-pages/site/static/icons/` directory. Then, in the frontmatter,
+**Important** - put the logo file in `<ROOT DIRECTORY>/landing-pages/site/usecase-logos/icons/` directory. Then, in the frontmatter,
 refer to it just by filename.
 
 Example:
 
-    Path to logo file: <ROOT DIRECTORY>/landing-pages/site/static/icons/my-case-study.svg
+    Path to logo file: <ROOT DIRECTORY>/landing-pages/site/static/usecase-logos/my-case-study.svg
 
     Case study in <ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/my-case-study.md
 
@@ -216,7 +216,7 @@ following the format:
 {
   "name": "<integration name>",
   "url": "<url to docs with integration description>",
-  "logo": "</integration-logos/<filename with extension>"
+  "logo": "/integration-logos/<filename with extension>"
 }
 ```
 
