@@ -7,8 +7,7 @@ tags: ["Community"]
 date: "2019-12-11"
 ---
 
-The brand new Airflow website has arrived! Those who have been following the process know that the journey 
-to update the old Airflow website started at the beginning of the year. 
+The brand [new Airflow website](https://airflow.apache.org/) has arrived! Those who have been following the process know that the journey to update [the old Airflow website](https://airflow.readthedocs.io/en/1.10.6/) started at the beginning of the year. 
 Thanks to sponsorship from the Cloud Composer team at Google that allowed to 
 collaborate with Polidea and deliver an awesome website.
 
