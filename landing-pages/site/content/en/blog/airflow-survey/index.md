@@ -5,17 +5,16 @@ author: "Tomek Urbaszek"
 twitter: "Nuclearriot"
 github: "nuclearpinguin"
 linkedin: "tomaszurbaszek"
-description: "Receiving and adjusting to our users’ feedback is a must. Let’s see who Airflow users are, how they play with it and what they miss."
+description: "Receiving and adjusting to our users’ feedback is a must. Let’s see who Airflow users are, how they play with it, and what they miss."
 tags: ["community", "survey", "users"]
 date: "2019-12-11"
 ---
 # Apache Airflow Survey 2019
 
 Apache Airflow is [growing faster than ever](https://www.astronomer.io/blog/why-airflow/).
-Thus, receiving and adjusting to our users’ feedback is a must. Let’s see who Airflow
-users are, how they play with it and what they miss. In this survey we got **308** responses.
-The original form can be found here:
-https://forms.gle/XAzR1pQBZiftvPQM7
+Thus, receiving and adjusting to our users’ feedback is a must. We created
+[survey](https://forms.gle/XAzR1pQBZiftvPQM7) and we got **308** responses.
+Let’s see who Airflow users are, how they play with it, and what they miss.
 
 # Overview of the user
 
@@ -48,11 +47,11 @@ https://forms.gle/XAzR1pQBZiftvPQM7
 |Artificial Intelligence and Machine Learning Pipelines| 90|29.22%|
 |Automating DevOps operations                          | 64|20.78%|
 
-According to the survey most of Airflow users are the “data” people. Moreover,
+According to the survey, most of the Airflow users are the “data” people. Moreover,
 28.57% uses Airflow to both ETL and ML pipelines meaning that those two fields
-are somehow connected. Only 5 people use Airflow for DevOps operations only,
-this suggests that if Airflow is used by someone then he or she will also try it
-for DevOps tasks.
+are somehow connected. Only five respondents use Airflow for DevOps operations only,
+That means that other 59 people who use Airflow for DevOps stuff use it also for
+ETL / ML  purposes.
 
 **How many active DAGs do you have in your largest Airflow instance?**
 
@@ -68,8 +67,8 @@ for DevOps tasks.
 |1000+  | 13|4.22% |
 
 
-Majority of users do not exceed 100 active DAGs per Airflow instance. However,
-as we can see there are users who exceed thousands of DAGs with maximum number 5000.
+The majority of users do not exceed 100 active DAGs per Airflow instance. However,
+as we can see there are users who exceed thousands of DAGs with a maximum number 5000.
 
 **What is the maximum number of tasks that you have used in one DAG?**
 
@@ -86,8 +85,8 @@ as we can see there are users who exceed thousands of DAGs with maximum number 5
 |501+   | 24|11.54%|
 
 
-The given maximum number of tasks in a single DAG was 10 000 (!). Number of tasks
-depends on the purposes of a DAG so it’s rather hard to say if users have “simple”
+The given maximum number of tasks in a single DAG was 10 000 (!). The number of tasks
+depends on the purposes of a DAG, so it’s rather hard to say if users have “simple”
 or “complicated” workflows.
 
 **When onboarding new members to Airflow, what is the biggest problem?**
@@ -101,8 +100,8 @@ or “complicated” workflows.
 |Other                                                          | 43|13.96%|
 
 This is an important result. Using Airflow is all about writing and scheduling DAGs.
-No guide or any other complete resource on best practises for developing Dags is a big
-problem. Diving deep in the “other” answers we can find that:
+No guide or any other complete resource on best practices for developing Dags is a big
+problem. Diving deep in the “other” answers, we can find that:
 
 - Airflow’s “magic” (scheduler, executors, schedule times) is hard to understand
 - DAG testing is not easy to do and to explain
@@ -118,10 +117,10 @@ problem. Diving deep in the “other” answers we can find that:
 |Unlikely     |  8|2.60% |
 |Very unlikely|  3|0.97% |
 
-This means that more than 85% of people who use Airflow like it. Seems Airflow does
+This means that more than 85% of people who use Airflow like it. It seems Airflow does
 its job nicely. However, we have to remember that this survey is likely biased - it’s
 more likely that you respond to the survey if you like the tool you use. Should we
-focus then on those 8 people who did not like Airflow? It’s a good question.
+focus then on those 11 people who did not like Airflow? It’s a good question.
 
 ## Airflow usage
 
@@ -152,12 +151,12 @@ use Airflow webserver.
 
 ![](plot3.png)
 
-Here we see that majority uses Web UI mostly for monitoring purposes:
+Here we see that the majority uses Web UI mostly for monitoring purposes:
 
 - Monitoring DAGs
 - Accessing logs
 
-An interesting result is that many people seem to not use backfilling as
+An interesting result is that many people seem not to use backfilling as
 there’s no other way than to do it by CLI.
 
 **What executor type do you use?**
@@ -170,9 +169,9 @@ there’s no other way than to do it by CLI.
 |Sequential| 22|7.14% |
 |Other     | 11|3.57  |
 
-The other option mostly consisted of information that someone uses few types or is
+The other option mostly consisted of information that someone uses a few types or is
 migrating from one executor to another. What can be observed is an increase in usage
-of Local and Kubernetes executors when compared to results from earlier [survey done
+of Local and Kubernetes executors when compared to results from an earlier [survey done
 by Ash](https://ash.berlintaylor.com/writings/2019/02/airflow-user-survey-2019/).
 
 **Do you use Kubernetes-based deployments for Airflow?**
@@ -186,10 +185,10 @@ by Ash](https://ash.berlintaylor.com/writings/2019/02/airflow-user-survey-2019/)
 |Not yet - but we plan to deploy Kubernetes in our organization soon  | 42|13.64%|
 |Other                                                                |  7|2.27% |
 
-The most interesting thing is that there’s nearly 30% of users who do not use Kubernetes
+The most interesting thing is that there’s nearly 30% of users who do not use Kubernetes,
 and they are not going to move. This means we should keep other deployment options in
-mind when working on Airflow 2.0. On the other hand, almost 70% of the users either
-already use Kubernetes or it’s a viable option for them.
+mind when working on Airflow 2.0. On the other hand, almost 70% of the users already
+use Kubernetes, or it’s a viable option for them.
 
 **Do you combine multiple DAGs?**
 
@@ -200,9 +199,8 @@ already use Kubernetes or it’s a viable option for them.
 |Yes, by triggering another DAG   | 72|23.38%|
 |Other                            | 36|11.69%|
 
-In the other category, there were 9 people who explicitly mentioned using
-`ExternalTaskSensor` and I think it could be treated as running subDAGs by
-triggering other DAGs.
+In the other category, 9 people explicitly mentioned using `ExternalTaskSensor`,
+and I think it could be treated as running subDAGs by triggering other DAGs.
 
 **Do you use Airflow Plugins? If yes, what do you use it for?**
 
@@ -215,13 +213,13 @@ triggering other DAGs.
 |Adding OperatorExtraLinks             |  7|2.27% |
 
 The high percentage - 60%  for “Adding new operators/sensors and hooks” is quite a
-surprising result for some of us - especially that you do not actually need to use
-plugin mechanism to add any of those. Those are standard python objects and you can
+surprising result for some of us - especially that you do not actually need to use the
+plugin mechanism to add any of those. Those are standard python objects, and you can
 simply drop your hooks/operators/sensors code to PYTHONPATH and they will work.
-It seems that his may be a result of lack of best practises guide.
+It seems that this may be a result of a lack of best practices guide.
 
-Plugins are definitely more useful for adding views and menu items - yet only 10%.
-OperatorExtraLinks are even more useful (though relatively new) feature so it’s not
+Plugins are more useful for adding views and menu items - yet only 10%.
+OperatorExtraLinks are even more useful (though relatively new) feature, so it’s not
 entirely surprising they are hardly used.
 
 It was also kind of surprising that someone at all uses plugins to use their own
@@ -230,7 +228,7 @@ our approach.
 
 **What metrics do you use to monitor Airflow?**
 
-There was a lot of different responses. Some uses Prometheus and other services,
+There were a lot of different responses. Some use Prometheus and other services,
 others do not use any monitoring. One of the interesting responses linked to this
 solution: https://github.com/mastak/airflow_operators_metrics
 
@@ -248,9 +246,9 @@ solution: https://github.com/mastak/airflow_operators_metrics
 |I do not use external services in my Airflow DAGs| 18|5.84% |
 
 
-It’s not surprising that AWS are leading the way as they are considered the most mature
-cloud provider. Internal system and other Apache product on the next two positions are
-quite understandable if take into account that majority uses Airflow for ETL processes.
+It’s not surprising that AWS is leading the way as they are considered the most mature
+cloud provider. Internal system and other Apache products on the next two positions are
+quite understandable if we take into account that the majority uses Airflow for ETL processes.
 
 **What external services do you use in your Airflow DAGs? (Mixed providers)**
 
@@ -294,9 +292,9 @@ services are equally popular.
 |CLI                                               | 41|13.31%|
 |I don’t know                                      |  5|1.62% |
 
-The result are rather quite self-explaining. Improved performance of Airflow, better
-UI and more telemetry are something that is desirable. But this should go in pair
-with improved documentation and resources about using Airflow, especially when we
+The results are rather quite self-explaining. Improved performance of Airflow, better
+UI, and more telemetry are desirable. But this should go in pair with improved
+documentation and resources about using the Airflow, especially when we
 take into account the problem of onboarding new users (see earlier).
 
 Another interesting point from that question is that only 16% think that operators
@@ -315,10 +313,10 @@ Airflow core instead of adding more and more integrations.
 |Knative Executor                                           | 48|15.58%|
 |I already have all I need                                  | 13|4.22% |
 
-Production Docker image wins and it’s not an surprise. We all know that deploying
-Airflow is not an plug and play process and that’s why official image is being
-worked on. An unexpected result is that half of the users would like to have a
-declarative way of creating DAGs. That seems to be something that is “against Airflow”
+Production Docker image wins, and it’s not a surprise. We all know that deploying
+Airflow is not a plug and play process, and that’s why the official image is being
+worked on by Jarek Potiuk. An unexpected result is that half of the users would like to
+have a declarative way of creating DAGs. That seems to be something that is “against Airflow”
 as we always emphasize the possibility of writing workflows in pure python. Stories
 about DAG generators are not new and confirm that there’s a need for a way to
 declare DAGs.
@@ -328,9 +326,9 @@ declare DAGs.
 If you think I missed something and you want to look for insights on your own the data is available
 for you here:
 
- - Orginal data: https://storage.googleapis.com/airflow-survey/survey.csv
+ - Original data: https://storage.googleapis.com/airflow-survey/survey.csv
  - Processed: https://storage.googleapis.com/airflow-survey/airflow_survey_processed.csv
 
-The processed data includes multi-choice options one-hot encoded. If you will find any interesting
-insight please update the article ([make PR](https://github.com/apache/airflow-site/blob/aip-11/CONTRIBUTE.md)
+The processed data includes multi-choice options one-hot encoded. If you find any interesting
+insight, please update the article ([make PR](https://github.com/apache/airflow-site/blob/aip-11/CONTRIBUTE.md)
 to Airflow site).
