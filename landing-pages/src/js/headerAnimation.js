@@ -18,6 +18,7 @@
  */
 
 import * as p5 from "p5";
+import debounce from "lodash/debounce";
 import {documentReady} from "./utils.js";
 
 const BLOCK_COUNT_X = 7;
@@ -246,14 +247,14 @@ export function initHeaderAnimation() {
         });
       };
 
-      sketch.windowResized = () => {
+      sketch.windowResized = debounce(() => {
         const positionInfo = canvas.getBoundingClientRect();
         const vw = positionInfo.width; // viewport width
         const vh = positionInfo.height; // viewport height
         logoArea = createLogoArea(sketch, canvas, title, subtitle, button);
         boxes = createBoxes(sketch, vw, vh, logoArea, colors);
         sketch.resizeCanvas(vw, vh);
-      };
+      }, 500);
     }, document.querySelector("#header-canvas"));
   });
 
