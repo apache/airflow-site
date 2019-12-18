@@ -32,19 +32,19 @@ usage: ${0} <command> [<args>]
 
 These are  ${0} commands used in various situations:
 
-    build-site          Prepare dist directory with landing pages and documentation
-    preview-site        Starts the web server with preview of the website
-    build-landing-pages Builds a landing pages
-    prepare-theme       Prepares and copies files needed for the proper functioning of the sphinx theme.
-    shell               Start shell
-    build-image         Build a Docker image with a environment
-    install-node-deps   Download all the Node dependencies
-    check-site-links    Checks if the links are correct in the website
-    lint-css            Lint CSS files
-    lint-js             Lint Javascript files
-    cleanup             Delete the virtual environment in Docker
-    stop                Stop the environment
-    help                Display usage
+    build-site            Prepare dist directory with landing pages and documentation
+    preview-landing-pages Starts the web server with preview of the website
+    build-landing-pages   Builds a landing pages
+    prepare-theme         Prepares and copies files needed for the proper functioning of the sphinx theme.
+    shell                 Start shell
+    build-image           Build a Docker image with a environment
+    install-node-deps     Download all the Node dependencies
+    check-site-links      Checks if the links are correct in the website
+    lint-css              Lint CSS files
+    lint-js               Lint Javascript files
+    cleanup               Delete the virtual environment in Docker
+    stop                  Stop the environment
+    help                  Display usage
 
 Unrecognized commands are run as programs in the container.
 
@@ -299,7 +299,7 @@ prepare_environment
 # Check container commands
 if [[ "${CMD}" == "install-node-deps" ]] ; then
     run_command "/opt/site/landing-pages/" yarn install
-elif [[ "${CMD}" == "preview" ]]; then
+elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run index
     prepare_docs_index
