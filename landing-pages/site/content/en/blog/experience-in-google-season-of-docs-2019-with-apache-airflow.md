@@ -6,7 +6,7 @@ twitter: "khare_khote"
 github: "KKcorps"
 linkedin: "kharekartik"
 description: ""
-tags: ["Documentation", "Open Source"]
+tags: ["Documentation"]
 date: 2019-12-20
 ---
 
@@ -38,18 +38,18 @@ Getting selected is just a beginning.  I got the invite to the Airflow slack cha
 My mentor was [Ash-Berlin Taylor][4] from Apache Airflow. I started talking to my mentor to get a general sense of what deliverables were expected. The deliverables were documented in [confluence][5].
 
 - A page for how to create a DAG that also includes:
-	- Revamping the page related to scheduling a DAG
-	- Adding tips for specific DAG conditions, such as rerunning a failed task
+    - Revamping the page related to scheduling a DAG
+    - Adding tips for specific DAG conditions, such as rerunning a failed task
 - A page for developing custom operators that includes:
-	- Describing mechanisms that are important when creating an operator, such as template fields, UI color, hooks, connection, etc.
-	- Describing the responsibility between the operator and the hook
-	- Considerations for dealing with shared resources (such as connections and hooks)
+    - Describing mechanisms that are important when creating an operator, such as template fields, UI color, hooks, connection, etc.
+    - Describing the responsibility between the operator and the hook
+    - Considerations for dealing with shared resources (such as connections and hooks)
 - A page that describes how to define the relationships between tasks. The page should include information about:
-	-  ** \>\> \<\< **
-	- set upstream / set downstream
-	- helpers method ex. chain
+    -  ** \>\> \<\< **
+    - set upstream / set downstream
+    - helpers method ex. chain
 - A page that describes the communication between tasks that also includes:
-	- Revamping the page related to macros and XCOM
+    - Revamping the page related to macros and XCOM
 
 My mentor set the expectation early on that the deliverables were sort of like guidelines and not strict rules.
 If I wanted to, I could choose to work on something else related to the project also, which was not under deliverables.
@@ -109,18 +109,18 @@ I also started getting invited in the PR reviews of other developers. I am looki
 
 
 
-[1]:	https://developers.google.com/season-of-docs
-[2]:	https://airflow.apache.org/
-[3]:	http://cassandra.apache.org/
-[4]:	https://github.com/ashb
-[5]:	https://cwiki.apache.org/confluence/display/AIRFLOW/Season+of+Docs+2019
-[6]:	https://github.com/mik-laj
-[7]:	https://github.com/apache/airflow/pull/6295
-[8]:	https://developers.google.com/style/
-[9]:	https://github.com/apache/airflow/pull/6348
-[10]:	https://drive.google.com/file/d/1E4zle8-fv5S1rrlcNUzjiEV19OMYvwoY/view?usp=sharing
-[11]:	https://github.com/apache/airflow/pull/6515
-[12]:	https://airflow.readthedocs.io/en/latest/dag-run.html
-[13]:	https://airflow.readthedocs.io/en/latest/scheduler.html
-[14]:	https://airflow.readthedocs.io/en/latest/howto/custom-operator.html
-[15]:	https://airflow.readthedocs.io/en/latest/best-practices.html
+[1]:    https://developers.google.com/season-of-docs
+[2]:    https://airflow.apache.org/
+[3]:    http://cassandra.apache.org/
+[4]:    https://github.com/ashb
+[5]:    https://cwiki.apache.org/confluence/display/AIRFLOW/Season+of+Docs+2019
+[6]:    https://github.com/mik-laj
+[7]:    https://github.com/apache/airflow/pull/6295
+[8]:    https://developers.google.com/style/
+[9]:    https://github.com/apache/airflow/pull/6348
+[10]:   https://drive.google.com/file/d/1E4zle8-fv5S1rrlcNUzjiEV19OMYvwoY/view?usp=sharing
+[11]:   https://github.com/apache/airflow/pull/6515
+[12]:   https://airflow.readthedocs.io/en/latest/dag-run.html
+[13]:   https://airflow.readthedocs.io/en/latest/scheduler.html
+[14]:   https://airflow.readthedocs.io/en/latest/howto/custom-operator.html
+[15]:   https://airflow.readthedocs.io/en/latest/best-practices.html
