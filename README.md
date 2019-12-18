@@ -55,7 +55,7 @@ or
 
 In order to build site, run script `<ROOT DIRECTORY>/site.sh build-site`.
 
-In order to preview landing pages, run script `<ROOT DIRECTORY>/site.sh preview`.
+In order to preview landing pages, run script `<ROOT DIRECTORY>/site.sh preview-landing-pages`.
 
 In order to work with documentation theme, please refer to
 [Sphinx Airflow theme's readme file](sphinx_airflow_theme/README.md).
