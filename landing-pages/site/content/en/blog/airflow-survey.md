@@ -105,7 +105,7 @@ No guide or any other complete resource on best practises for developing Dags is
 problem. Diving deep in the “other” answers we can find that:
 
 - Airflow’s “magic” (scheduler, executors, schedule times) is hard to understand
-DAG testing is not easy to do and to explain
+- DAG testing is not easy to do and to explain
 - Airflow UI needs some love.
 
 **How likely are you to recommend Apache Airflow?**
@@ -157,7 +157,7 @@ Here we see that majority uses Web UI mostly for monitoring purposes:
 - Monitoring DAGs
 - Accessing logs
 
-An interesting result is that many people seem to do not use backfilling as
+An interesting result is that many people seem to not use backfilling as
 there’s no other way than to do it by CLI.
 
 **What executor type do you use?**
@@ -187,9 +187,9 @@ by Ash](https://ash.berlintaylor.com/writings/2019/02/airflow-user-survey-2019/)
 |Other                                                                |  7|2.27% |
 
 The most interesting thing is that there’s nearly 30% of users who do not use Kubernetes
-and they are not going to move. This means we should keep Kubernetes in mind when working
-on Airflow 2.0. On the other hand, almost 70% of the users either already use Kubernetes
-or it’s a viable option for them.
+and they are not going to move. This means we should keep other deployment options in
+mind when working on Airflow 2.0. On the other hand, almost 70% of the users either
+already use Kubernetes or it’s a viable option for them.
 
 **Do you combine multiple DAGs?**
 
@@ -218,6 +218,8 @@ The high percentage - 60%  for “Adding new operators/sensors and hooks” is q
 surprising result for some of us - especially that you do not actually need to use
 plugin mechanism to add any of those. Those are standard python objects and you can
 simply drop your hooks/operators/sensors code to PYTHONPATH and they will work.
+It seems that his may be a result of lack of best practises guide.
+
 Plugins are definitely more useful for adding views and menu items - yet only 10%.
 OperatorExtraLinks are even more useful (though relatively new) feature so it’s not
 entirely surprising they are hardly used.
@@ -226,7 +228,8 @@ It was also kind of surprising that someone at all uses plugins to use their own
 executors. We considered removing that option recently - but now we have to rethink
 our approach.
 
-What metrics do you use to monitor Airflow?
+**What metrics do you use to monitor Airflow?**
+
 There was a lot of different responses. Some uses Prometheus and other services,
 others do not use any monitoring. One of the interesting responses linked to this
 solution: https://github.com/mastak/airflow_operators_metrics
@@ -292,9 +295,9 @@ services are equally popular.
 |I don’t know                                      |  5|1.62% |
 
 The result are rather quite self-explaining. Improved performance of Airflow, better
- UI and more telemetry are something that is desirable. But this should go in pair
- with improved documentation and resources about using Airflow, especially when we
- take into account the problem of onboarding new users (see earlier).
+UI and more telemetry are something that is desirable. But this should go in pair
+with improved documentation and resources about using Airflow, especially when we
+take into account the problem of onboarding new users (see earlier).
 
 Another interesting point from that question is that only 16% think that operators
 should be extended and improved. This suggests that we should focus on improving
