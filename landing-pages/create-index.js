@@ -46,10 +46,10 @@ async function loadPostsWithFrontMatter(postsDirectoryPath) {
   const posts = await Promise.all(
     fileNames.map(async(fileName) => {
       let filePath;
-      if ((await fs.stat(`${postsDirectoryPath}/${fileName}`)).isFile()){
-        filePath = `${postsDirectoryPath}/${fileName}`
-      }else{
-        filePath = `${postsDirectoryPath}/${fileName}/index.md`
+      if ((await fs.stat(`${postsDirectoryPath}/${fileName}`)).isFile()) {
+        filePath = `${postsDirectoryPath}/${fileName}`;
+      } else {
+        filePath = `${postsDirectoryPath}/${fileName}/index.md`;
       }
       const fileContent = await fs.readFile(
         filePath,

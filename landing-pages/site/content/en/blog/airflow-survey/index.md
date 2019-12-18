@@ -215,8 +215,8 @@ and I think it could be treated as running subDAGs by triggering other DAGs.
 The high percentage - 60%  for “Adding new operators/sensors and hooks” is quite a
 surprising result for some of us - especially that you do not actually need to use the
 plugin mechanism to add any of those. Those are standard python objects, and you can
-simply drop your hooks/operators/sensors code to PYTHONPATH and they will work.
-It seems that this may be a result of a lack of best practices guide.
+simply drop your hooks/operators/sensors code to `PYTHONPATH` environment variable and
+they will work. It seems that this may be a result of a lack of best practices guide.
 
 Plugins are more useful for adding views and menu items - yet only 10%.
 OperatorExtraLinks are even more useful (though relatively new) feature, so it’s not
@@ -230,7 +230,7 @@ our approach.
 
 There were a lot of different responses. Some use Prometheus and other services,
 others do not use any monitoring. One of the interesting responses linked to this
-solution: https://github.com/mastak/airflow_operators_metrics
+solution for [airflow_operators_metrics](https://github.com/mastak/airflow_operators_metrics).
 
 ## External services
 
@@ -246,7 +246,7 @@ solution: https://github.com/mastak/airflow_operators_metrics
 |I do not use external services in my Airflow DAGs| 18|5.84% |
 
 
-It’s not surprising that AWS is leading the way as they are considered the most mature
+It’s not surprising that Amazon Web Services is leading the way as they are considered the most mature
 cloud provider. Internal system and other Apache products on the next two positions are
 quite understandable if we take into account that the majority uses Airflow for ETL processes.
 
@@ -295,7 +295,7 @@ services are equally popular.
 The results are rather quite self-explaining. Improved performance of Airflow, better
 UI, and more telemetry are desirable. But this should go in pair with improved
 documentation and resources about using the Airflow, especially when we
-take into account the problem of onboarding new users (see earlier).
+take into account the problem of onboarding new users.
 
 Another interesting point from that question is that only 16% think that operators
 should be extended and improved. This suggests that we should focus on improving
