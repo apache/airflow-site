@@ -43,14 +43,12 @@ If you're a Macbook user, first install `coreutils`.
 ---
 
 The Docsy theme required for the site to work properly is included as a git submodule.
-Hence, to clone the repository correctly, run the following command:
 
-`git clone --recurse-submodules git@github.com:apache/airflow-site.git`
+This means that after you already cloned the repository, you need to update submodules
 
-or
-
-`git clone --recurse-submodules https://github.com/apache/airflow-site.git`
-
+```bash
+git submodule update --init --recursive
+```
 ---
 
 In order to build site, run script `<ROOT DIRECTORY>/site.sh build-site`.
