@@ -5,7 +5,7 @@ author: "Chandu Kavar and Sarang Shinde"
 twitter: "chandukavar"
 github: "chandulal"
 linkedin: "chandu-kavar-627a209b"
-description: "To know how to test the xComs and the DAG end-to-end"
+description: "To know how to test the xComs and DAGs end-to-end"
 tags: ["Testing"]
 date: "2020-01-03"
 ---
