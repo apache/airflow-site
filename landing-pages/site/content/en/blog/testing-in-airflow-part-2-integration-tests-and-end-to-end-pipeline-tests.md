@@ -9,8 +9,8 @@ description: "To know how to test the xComs and DAGs end-to-end"
 tags: ["Testing"]
 date: "2020-01-03"
 ---
-In [part 1](https://blog.usejournal.com/testing-in-airflow-part-1-dag-validation-tests-dag-definition-tests-and-unit-tests-2aa94970570c) of this blog, I explained DAG validation tests, DAG definition tests, and Unit tests. These tests help to verify the syntax and cyclicity in the DAG, upstream and downstream of each task, the logic of the custom operator and sensor, etc. I would recommend reading the first part of this post.
+In [part 1](https://blog.usejournal.com/testing-in-airflow-part-1-dag-validation-tests-dag-definition-tests-and-unit-tests-2aa94970570c?source=friends_link&sk=3e1ec0b1e5fcc1e9c258e08d260c7152) of this blog, I explained DAG validation tests, DAG definition tests, and Unit tests. These tests help to verify the syntax and cyclicity in the DAG, upstream and downstream of each task, the logic of the custom operator and sensor, etc. I would recommend reading the first part of this post.
 
 In this part, I covered the integration and end-to-end pipeline tests.
 
-You can find this blog on the medium [Testing in Airflow Part 2](https://medium.com/@chandukavar/testing-in-airflow-part-2-integration-tests-and-end-to-end-pipeline-tests-af0555cd1a82).
+You can find this blog on the medium [Testing in Airflow Part 2](https://medium.com/@chandukavar/testing-in-airflow-part-2-integration-tests-and-end-to-end-pipeline-tests-af0555cd1a82?source=friends_link&sk=0841c4c3bf786a48e748f0e6c1fd189f).
