@@ -59,7 +59,7 @@ Contrubitor Guide
 
 # Working with the project
 
-Work with the site and documentation requires that your computer be properly prepared. Most tasks can 
+Work with the site and documentation requires that your computer be properly prepared. Most tasks can
 be done by the site.sh script
 
 ### Prerequisite Tasks
@@ -74,7 +74,7 @@ It is also worth adding SSH keys for the `github.com` server to trusted ones. It
 ssh-keyscan -t rsa -H github.com >> ~/.ssh/known_hosts
 ```
 
-** Debian instalation **
+**Debian instalation**
 
 To install git on Debian, run the following command:
 ```bash
@@ -292,7 +292,7 @@ If your meetup group isn't on the list, add it following the format of existing 
 
 # How to release new documentation
 
-Building documentation for the Apache Airlfow project also requires Python3.6 with pip and graphviz. You also need to have additional `apache/airflow` repository available. 
+Building documentation for the Apache Airlfow project also requires Python3.6 with pip and graphviz. You also need to have additional `apache/airflow` repository available.
 
 ### Prerequisite Tasks
 
@@ -304,7 +304,7 @@ The following additional application must be installed to use the project:
 * pip
 * graphviz
 
-** Debian instatation: **
+**Debian instatation:**
 
 To install graphviz, pip for Debian, run following commands:
 ```bash
@@ -351,14 +351,14 @@ To release a new documentation, follow these steps:
     ```
 
 3.  Copy generated files from `${AIRFLOW_REPO}/docs/_build/html` to `${AIRFLOW_SITE_REPO}/docs-archive/<version>/`
-        
+
     ```bash
     mkdir -p "${AIRFLOW_SITE_REPO}/docs-archive/${AIRFLOW_VERSION}"
     cp -r "${AIRFLOW_REPO}/docs/_build/html/." "${AIRFLOW_SITE_REPO}/docs-archive/${AIRFLOW_VERSION}"
     ```
 
     You can also mark the release as the latest stable version:
-    
+
     ```bash
     echo "${AIRFLOW_VERSION}" > "${AIRFLOW_SITE_REPO}/docs-archive/stable.txt"
     ```
@@ -371,7 +371,7 @@ To release a new documentation, follow these steps:
     cd "${AIRFLOW_SITE_REPO}" && git commit -m "Docs for ${AIRFLOW_VERSION}"
     ```
 5. To send changes to the remote server:
-       
+
     ```bash 
     cd "${AIRFLOW_SITE_REPO}" && git push origin "docs-for-${AIRFLOW_VERSION}"
     ```
