@@ -20,8 +20,6 @@
 Contrubitor Guide
 =================
 
-# General directory structure
-
 ```
 .
 ├── dist
