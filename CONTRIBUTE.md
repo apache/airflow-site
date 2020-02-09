@@ -370,7 +370,7 @@ To release a new documentation, follow these steps:
     ```
 5. To send changes to the remote server:
 
-    ```bash 
+    ```bash
     cd "${AIRFLOW_SITE_REPO}" && git push origin "docs-for-${AIRFLOW_VERSION}"
     ```
 
