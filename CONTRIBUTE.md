@@ -109,7 +109,7 @@ To run all checks on your staged files, enter:
 pre-commit run
 ```
 
-To run all checks on all files by using, enter:
+To run all checks on all files, enter:
 ```bash
 pre-commit run --all-files
 ```
