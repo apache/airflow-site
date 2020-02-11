@@ -1,6 +1,6 @@
 ---
-title: "ApacheCon Europe 2019 — Thoughts and Insights by Airflow Commiters"
-linkTitle: "ApacheCon Europe 2019 — Thoughts and Insights by Airflow Commiters"
+title: "ApacheCon Europe 2019 — Thoughts and Insights by Airflow Committers"
+linkTitle: "ApacheCon Europe 2019 — Thoughts and Insights by Airflow Committers"
 author: "Polidea"
 description: "Here come some thoughts by Airflow committers and contributors from the ApacheCon Europe 2019. Get to know the ASF community!"
 tags: ["Community"]
