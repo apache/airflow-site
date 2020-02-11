@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import {shuffleNodeChildren} from "./js/commitersList";
+import {shuffleNodeChildren} from "./js/committersList";
 import {showMore} from "./js/showMore";
 import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
@@ -32,10 +32,10 @@ if (document.querySelector("#search")) {
   import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
 }
 
-shuffleNodeChildren("#commiters-container");
+shuffleNodeChildren("#committers-container");
 shuffleNodeChildren("#pmc-container");
 
-showMore("#commiters-container", "#show-more-commiters", 4);
+showMore("#committers-container", "#show-more-committers", 4);
 showMore("#pmc-container", "#show-more-pmcs", 4);
 showMore(
   "#case-studies-container",
