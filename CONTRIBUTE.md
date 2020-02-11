@@ -17,7 +17,7 @@
  under the License.
 -->
 
-Contrubitor Guide
+Contributor Guide
 =================
 
 ```
