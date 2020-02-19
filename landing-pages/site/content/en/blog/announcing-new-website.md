@@ -22,10 +22,10 @@ to be translated into many languages. This is our effort to foster a more inclus
 Apache Airflow, and we look forward to seeing contributions in Spanish, Chinese, Russian, and other languages as well!
 
 We built our website on Docsy, a platform that is easy to use and contribute to. Follow
-[these steps](https://github.com/apache/airflow-site/blob/aip-11/README.md) to set up your environment and
+[these steps](https://github.com/apache/airflow-site/blob/master/README.md) to set up your environment and
 to create your first pull request. You may also use
 the new website for your own open source project as a template.
-All of our [code is open and hosted on Github](https://github.com/apache/airflow-site/tree/aip-11).
+All of our [code is open and hosted on Github](https://github.com/apache/airflow-site/tree/master).
 
 Share your questions, comments, and suggestions with us, to help us improve the website.
 We hope that this new design makes finding documentation about Airflow easier,
