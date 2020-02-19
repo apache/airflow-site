@@ -218,7 +218,7 @@ function build_site {
     fi
     mkdir -p dist
     rm -rf dist/*
-    cp -R landing-pages/dist/ dist/
+    cp -R landing-pages/dist/. dist/
     mkdir -p dist/docs/
     rm -rf dist/docs/*
     for doc_path in docs-archive/*/ ; do
