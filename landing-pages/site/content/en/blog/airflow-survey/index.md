@@ -330,5 +330,5 @@ for you here:
  - Processed: https://storage.googleapis.com/airflow-survey/airflow_survey_processed.csv
 
 The processed data includes multi-choice options one-hot encoded. If you find any interesting
-insight, please update the article ([make PR](https://github.com/apache/airflow-site/blob/aip-11/CONTRIBUTE.md)
+insight, please update the article ([make PR](https://github.com/apache/airflow-site/blob/master/CONTRIBUTE.md)
 to Airflow site).
