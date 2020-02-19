@@ -417,7 +417,9 @@ To clone repository run following commands:
 ```bash
 git clone git@github.com:apache/airflow-site.git "${AIRFLOW_SITE_REPO}"
 git clone git@github.com:apache/airflow-site.git "${AIRFLOW_SITE_ASF_SITE_REPO}"
+
 cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git checkout asf-site
+cd "${AIRFLOW_SITE_REPO}" && git submodule update --init --recursive
 ```
 
 *Known issues:*
