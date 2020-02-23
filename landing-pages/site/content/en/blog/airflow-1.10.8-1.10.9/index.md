@@ -24,10 +24,10 @@ We released 1.10.9 on the same day as one of the Flask dependencies (Werkzeug) r
 
 Some of the noteworthy new features (user-facing) are:
 
-- [Add tags to DAGs and use it for filtering in the UI](https://github.com/apache/airflow/pull/6489)
+- [Add tags to DAGs and use it for filtering in the UI (RBAC only)](https://github.com/apache/airflow/pull/6489)
 - [New Executor: DebugExecutor for Local debugging from your IDE](http://airflow.apache.org/docs/1.10.9/executor/debug.html)
-- [Allow passing conf in "Add DAG Run" view](https://github.com/apache/airflow/pull/7281)
-- [Allow dags to run for future execution dates](https://github.com/apache/airflow/pull/7038)
+- [Allow passing conf in "Add DAG Run" (Triggered Dags) view](https://github.com/apache/airflow/pull/7281)
+- [Allow dags to run for future execution dates for manually triggered DAGs (only if `schedule_interval=None`)](https://github.com/apache/airflow/pull/7038)
 - [Dedicated page in documentation for all configs in airflow.cfg](https://airflow.apache.org/docs/1.10.9/configurations-ref.html)
 
 ### Add tags to DAGs and use it for filtering in the UI
@@ -47,7 +47,7 @@ dag = DAG(
 ```
 
 **Screenshot**:
-![Add filter by DAG tags](https://user-images.githubusercontent.com/5796188/68543702-6a96df80-03c3-11ea-8fd3-45b6d77f8ece.png)
+![Add filter by DAG tags](airflow-dag-tags.png)
 
 **Note**: This feature is only available for the RBAC UI (enabled using `rbac=True` in `[webserver]` section in your `airflow.cfg`).
 
