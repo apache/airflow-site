@@ -10,13 +10,12 @@ tags: ["release"]
 date: 2020-02-23
 ---
 
-We are happy to present the new 1.10.8 and 1.10.9 releases of Apache Airflow.
-
 Airflow 1.10.8 contains 160 commits since 1.10.7 and includes 4 new features, 42 improvements, 36 bug fixes, and several doc changes.
 
 We released 1.10.9 on the same day as one of the Flask dependencies (Werkzeug) released 1.0 which broke Airflow 1.10.8.
 
 **Details**:
+
 * **PyPI**: [https://pypi.org/project/apache-airflow/1.10.9/](https://pypi.org/project/apache-airflow/1.10.9/)
 * **Docs**: [https://airflow.apache.org/docs/1.10.9/](https://airflow.apache.org/docs/1.10.9/)
 * **Changelog (1.10.8)**: [http://airflow.apache.org/docs/1.10.8/changelog.html#airflow-1-10-8-2020-01-07](http://airflow.apache.org/docs/1.10.8/changelog.html#airflow-1-10-8-2020-01-07)
