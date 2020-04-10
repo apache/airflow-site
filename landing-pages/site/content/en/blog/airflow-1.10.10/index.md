@@ -18,14 +18,14 @@ Airflow 1.10.10 contains 199 commits since 1.10.9 and includes 11 new features, 
 * **Docs**: [https://airflow.apache.org/docs/1.10.10/](https://airflow.apache.org/docs/1.10.10/)
 * **Changelog**: [http://airflow.apache.org/docs/1.10.10/changelog.html](http://airflow.apache.org/docs/1.10.10/changelog.html)
 
-Some of the noteworthy new features & improvements are:
+Some of the noteworthy new features (user-facing) are:
 
 - [Allow user to chose timezone to use in the RBAC UI](https://github.com/apache/airflow/pull/8046)
 - [Add Production Docker image support](https://github.com/apache/airflow/pull/7832)
 - [Allow Retrieving Airflow Connections & Variables from various Secrets backend](http://airflow.apache.org/docs/1.10.10/howto/use-alternative-secrets-backend.html)
 - [Stateless Webserver using DAG Serialization](http://airflow.apache.org/docs/1.10.10/dag-serialization.html)
-- [Dummy Operators are no longer sent to executor](https://github.com/apache/airflow/pull/7880)
-- [Allow passing DagRun conf when triggering dags via UI](https://github.com/apache/airflow/pull/6256)
+- [Tasks with Dummy Operators are no longer sent to executor](https://github.com/apache/airflow/pull/7880)
+- [Allow passing DagRun conf when triggering dags via UI](https://github.com/apache/airflow/pull/7312)
 
 ### Allow user to chose timezone to use in the RBAC UI
 
@@ -103,7 +103,7 @@ clicked on in the home page)
 
 Details: http://airflow.apache.org/docs/1.10.10/dag-serialization.html
 
-### Dummy Operators are no longer sent to executor
+### Tasks using Dummy Operators are no longer sent to executor
 
 The Dummy operators does not actually do any work and are mostly used for organizing/grouping tasks along
 with BranchPythonOperator.
@@ -121,6 +121,8 @@ blob would be show.
 
 **Screenshot**:
 ![Allow passing DagRun conf when triggering dags via UI](trigger-dag-conf.png)
+
+Details: https://github.com/apache/airflow/pull/7312
 
 ## Updating Guide
 
