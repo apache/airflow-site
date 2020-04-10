@@ -18,13 +18,14 @@ Airflow 1.10.10 contains 199 commits since 1.10.9 and includes 11 new features, 
 * **Docs**: [https://airflow.apache.org/docs/1.10.10/](https://airflow.apache.org/docs/1.10.10/)
 * **Changelog**: [http://airflow.apache.org/docs/1.10.10/changelog.html](http://airflow.apache.org/docs/1.10.10/changelog.html)
 
-Some of the noteworthy new features (user-facing) are:
+Some of the noteworthy new features & improvements are:
 
 - [Allow user to chose timezone to use in the RBAC UI](https://github.com/apache/airflow/pull/8046)
 - [Add Production Docker image support](https://github.com/apache/airflow/pull/7832)
 - [Allow Retrieving Airflow Connections & Variables from various Secrets backend](http://airflow.apache.org/docs/1.10.10/howto/use-alternative-secrets-backend.html)
 - [Stateless Webserver using DAG Serialization](http://airflow.apache.org/docs/1.10.10/dag-serialization.html)
-
+- [Dummy Operators are no longer sent to executor](https://github.com/apache/airflow/pull/7880)
+- [Allow passing DagRun conf when triggering dags via UI](https://github.com/apache/airflow/pull/6256)
 
 ### Allow user to chose timezone to use in the RBAC UI
 
@@ -85,6 +86,41 @@ backend = airflow.contrib.secrets.hashicorp_vault.VaultBackend
 backend_kwargs = {"url": "http://127.0.0.1:8200", "connections_path": "connections", "variables_path": "variables", "mount_point": "airflow"}
 ```
 
+### Stateless Webserver using DAG Serialization
+
+The Webserver can now run without access to DAG Files when DAG Serialization is turned on.
+The 2 limitations we had in 1.10.7-1.10.9 (
+https://airflow.apache.org/docs/1.10.7/dag-serialization.html#limitations)
+have been resolved.
+
+The main advantage of this would be reduction in Webserver startup time for large number of DAGs.
+Without DAG Serialization all the DAGs are loaded in the DagBag during the
+Webserver startup.
+
+With DAG Serialization, an empty DagBag is created and
+Dags are loaded from DB only when needed (i.e. when a particular DAG is
+clicked on in the home page)
+
+Details: http://airflow.apache.org/docs/1.10.10/dag-serialization.html
+
+### Dummy Operators are no longer sent to executor
+
+The Dummy operators does not actually do any work and are mostly used for organizing/grouping tasks along
+with BranchPythonOperator.
+
+Previously, when using Kubernetes Executor, the executor would spin up a whole worker pod to execute a dummy task.
+With Airflow 1.10.10 tasks using Dummy Operators would be scheduled & evaluated by the Scheduler but not sent to the
+Executor. This should significantly improve execution time and resource usage.
+
+### Allow passing DagRun conf when triggering dags via UI
+
+When triggering a DAG from the CLI or the REST API, it s possible to pass configuration for the DAG run as a JSON blob.
+
+From Airflow 1.10.10, when a user clicks on Trigger Dag button, a new screen confirming the trigger request, and allowing the user to pass a JSON configuration
+blob would be show.
+
+**Screenshot**:
+![Allow passing DagRun conf when triggering dags via UI](trigger-dag-conf.png)
 
 ## Updating Guide
 
@@ -122,7 +158,7 @@ We strongly recommend users to use Python >= 3.6
 ### Use Airflow RBAC UI
 Airflow 1.10.10 ships with 2 UIs, the default is non-RBAC Flask-admin based UI and Flask-appbuilder based UI.
 
-The Flask-AppBuilder (FAB) based UI is allows Role-based Access Control and has more advanced features compared to
+The Flask-AppBuilder (FAB) based UI allows Role-based Access Control and has more advanced features compared to
 the legacy Flask-admin based UI. This UI can be enabled by setting `rbac=True` in `[webserver]` section in your `airflow.cfg`.
 
 Flask-admin based UI is deprecated and new features won't be ported to it. This UI will still be the default
