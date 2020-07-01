@@ -633,40 +633,40 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">&quot;&quot;&quot;Kubernetes executor&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">from</span> <span class="nn">queue</span> <span class="k">import</span> <span class="n">Empty</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Empty</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="kn">from</span> <span class="nn">uuid</span> <span class="k">import</span> <span class="n">uuid4</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">dateutil</span> <span class="k">import</span> <span class="n">parser</span>
+<span class="kn">from</span> <span class="nn">dateutil</span> <span class="kn">import</span> <span class="n">parser</span>
 
 <span class="kn">import</span> <span class="nn">kubernetes</span>
-<span class="kn">from</span> <span class="nn">kubernetes</span> <span class="k">import</span> <span class="n">watch</span><span class="p">,</span> <span class="n">client</span>
-<span class="kn">from</span> <span class="nn">kubernetes.client.rest</span> <span class="k">import</span> <span class="n">ApiException</span>
-<span class="kn">from</span> <span class="nn">urllib3.exceptions</span> <span class="k">import</span> <span class="n">HTTPError</span><span class="p">,</span> <span class="n">ReadTimeoutError</span>
+<span class="kn">from</span> <span class="nn">kubernetes</span> <span class="kn">import</span> <span class="n">watch</span><span class="p">,</span> <span class="n">client</span>
+<span class="kn">from</span> <span class="nn">kubernetes.client.rest</span> <span class="kn">import</span> <span class="n">ApiException</span>
+<span class="kn">from</span> <span class="nn">urllib3.exceptions</span> <span class="kn">import</span> <span class="n">HTTPError</span><span class="p">,</span> <span class="n">ReadTimeoutError</span>
 
-<span class="kn">from</span> <span class="nn">airflow.configuration</span> <span class="k">import</span> <span class="n">conf</span>
-<span class="kn">from</span> <span class="nn">airflow.contrib.kubernetes.pod_launcher</span> <span class="k">import</span> <span class="n">PodLauncher</span>
-<span class="kn">from</span> <span class="nn">airflow.contrib.kubernetes.kube_client</span> <span class="k">import</span> <span class="n">get_kube_client</span>
-<span class="kn">from</span> <span class="nn">airflow.contrib.kubernetes.worker_configuration</span> <span class="k">import</span> <span class="n">WorkerConfiguration</span>
-<span class="kn">from</span> <span class="nn">airflow.executors.base_executor</span> <span class="k">import</span> <span class="n">BaseExecutor</span>
-<span class="kn">from</span> <span class="nn">airflow.executors</span> <span class="k">import</span> <span class="n">Executors</span>
-<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">KubeResourceVersion</span><span class="p">,</span> <span class="n">KubeWorkerIdentifier</span><span class="p">,</span> <span class="n">TaskInstance</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="k">import</span> <span class="n">State</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.db</span> <span class="k">import</span> <span class="n">provide_session</span><span class="p">,</span> <span class="n">create_session</span>
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="n">AirflowConfigException</span><span class="p">,</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
+<span class="kn">from</span> <span class="nn">airflow.configuration</span> <span class="kn">import</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.kubernetes.pod_launcher</span> <span class="kn">import</span> <span class="n">PodLauncher</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.kubernetes.kube_client</span> <span class="kn">import</span> <span class="n">get_kube_client</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.kubernetes.worker_configuration</span> <span class="kn">import</span> <span class="n">WorkerConfiguration</span>
+<span class="kn">from</span> <span class="nn">airflow.executors.base_executor</span> <span class="kn">import</span> <span class="n">BaseExecutor</span>
+<span class="kn">from</span> <span class="nn">airflow.executors</span> <span class="kn">import</span> <span class="n">Executors</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">KubeResourceVersion</span><span class="p">,</span> <span class="n">KubeWorkerIdentifier</span><span class="p">,</span> <span class="n">TaskInstance</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="kn">import</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.db</span> <span class="kn">import</span> <span class="n">provide_session</span><span class="p">,</span> <span class="n">create_session</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowConfigException</span><span class="p">,</span> <span class="n">AirflowException</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="kn">import</span> <span class="n">LoggingMixin</span>
 
 <div class="viewcode-block" id="MAX_POD_ID_LEN"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.MAX_POD_ID_LEN">[docs]</a><span class="n">MAX_POD_ID_LEN</span> <span class="o">=</span> <span class="mi">253</span></div>
 <div class="viewcode-block" id="MAX_LABEL_LEN"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.MAX_LABEL_LEN">[docs]</a><span class="n">MAX_LABEL_LEN</span> <span class="o">=</span> <span class="mi">63</span></div>
 
 
 <div class="viewcode-block" id="KubernetesExecutorConfig"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubernetesExecutorConfig">[docs]</a><span class="k">class</span> <span class="nc">KubernetesExecutorConfig</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_pull_policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request_memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_pull_policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request_memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">request_cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit_memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit_cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit_gpu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">gcp_service_account_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_selectors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">affinity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">annotations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volumes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume_mounts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -686,7 +686,7 @@ https://www.sphinx-doc.org/en/master/templating.html
         <span class="bp">self</span><span class="o">.</span><span class="n">tolerations</span> <span class="o">=</span> <span class="n">tolerations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span> <span class="ow">or</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="KubernetesExecutorConfig.__repr__"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubernetesExecutorConfig.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KubernetesExecutorConfig.__repr__"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubernetesExecutorConfig.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(image=</span><span class="si">{}</span><span class="s2">, image_pull_policy=</span><span class="si">{}</span><span class="s2">, request_memory=</span><span class="si">{}</span><span class="s2">, request_cpu=</span><span class="si">{}</span><span class="s2">, &quot;</span> \
                <span class="s2">&quot;limit_memory=</span><span class="si">{}</span><span class="s2">, limit_cpu=</span><span class="si">{}</span><span class="s2">, limit_gpu=</span><span class="si">{}</span><span class="s2">, gcp_service_account_key=</span><span class="si">{}</span><span class="s2">, &quot;</span> \
                <span class="s2">&quot;node_selectors=</span><span class="si">{}</span><span class="s2">, affinity=</span><span class="si">{}</span><span class="s2">, annotations=</span><span class="si">{}</span><span class="s2">, volumes=</span><span class="si">{}</span><span class="s2">, &quot;</span> \
@@ -751,7 +751,7 @@ https://www.sphinx-doc.org/en/master/templating.html
 <div class="viewcode-block" id="KubeConfig.core_section"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubeConfig.core_section">[docs]</a>    <span class="n">core_section</span> <span class="o">=</span> <span class="s1">&#39;core&#39;</span></div>
 <div class="viewcode-block" id="KubeConfig.kubernetes_section"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubeConfig.kubernetes_section">[docs]</a>    <span class="n">kubernetes_section</span> <span class="o">=</span> <span class="s1">&#39;kubernetes&#39;</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">configuration_dict</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(</span><span class="n">display_sensitive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">core_configuration</span> <span class="o">=</span> <span class="n">configuration_dict</span><span class="p">[</span><span class="s1">&#39;core&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kube_secrets</span> <span class="o">=</span> <span class="n">configuration_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kubernetes_secrets&#39;</span><span class="p">,</span> <span class="p">{})</span>
@@ -940,7 +940,7 @@ https://www.sphinx-doc.org/en/master/templating.html
 
 <div class="viewcode-block" id="KubernetesJobWatcher"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubernetesJobWatcher">[docs]</a><span class="k">class</span> <span class="nc">KubernetesJobWatcher</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Watches for Kubernetes jobs&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="p">,</span> <span class="n">watcher_queue</span><span class="p">,</span> <span class="n">resource_version</span><span class="p">,</span> <span class="n">worker_uuid</span><span class="p">,</span> <span class="n">kube_config</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="p">,</span> <span class="n">watcher_queue</span><span class="p">,</span> <span class="n">resource_version</span><span class="p">,</span> <span class="n">worker_uuid</span><span class="p">,</span> <span class="n">kube_config</span><span class="p">):</span>
         <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span> <span class="o">=</span> <span class="n">namespace</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">worker_uuid</span> <span class="o">=</span> <span class="n">worker_uuid</span>
@@ -1046,7 +1046,7 @@ https://www.sphinx-doc.org/en/master/templating.html
 
 <div class="viewcode-block" id="AirflowKubernetesScheduler"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.AirflowKubernetesScheduler">[docs]</a><span class="k">class</span> <span class="nc">AirflowKubernetesScheduler</span><span class="p">(</span><span class="n">LoggingMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Airflow Scheduler for Kubernetes&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kube_config</span><span class="p">,</span> <span class="n">task_queue</span><span class="p">,</span> <span class="n">result_queue</span><span class="p">,</span> <span class="n">kube_client</span><span class="p">,</span> <span class="n">worker_uuid</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kube_config</span><span class="p">,</span> <span class="n">task_queue</span><span class="p">,</span> <span class="n">result_queue</span><span class="p">,</span> <span class="n">kube_client</span><span class="p">,</span> <span class="n">worker_uuid</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating Kubernetes executor&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kube_config</span> <span class="o">=</span> <span class="n">kube_config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span> <span class="o">=</span> <span class="n">task_queue</span>
@@ -1327,7 +1327,7 @@ https://www.sphinx-doc.org/en/master/templating.html
 
 <div class="viewcode-block" id="KubernetesExecutor"><a class="viewcode-back" href="../../../../_api/airflow/contrib/executors/kubernetes_executor/index.html#airflow.contrib.executors.kubernetes_executor.KubernetesExecutor">[docs]</a><span class="k">class</span> <span class="nc">KubernetesExecutor</span><span class="p">(</span><span class="n">BaseExecutor</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Executor for Kubernetes&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kube_config</span> <span class="o">=</span> <span class="n">KubeConfig</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span> <span class="o">=</span> <span class="kc">None</span>
