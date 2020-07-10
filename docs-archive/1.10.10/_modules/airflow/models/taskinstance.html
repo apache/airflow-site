@@ -644,45 +644,45 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">timedelta</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">quote</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
 
 <span class="kn">import</span> <span class="nn">dill</span>
 <span class="kn">import</span> <span class="nn">lazy_object_proxy</span>
 <span class="kn">import</span> <span class="nn">pendulum</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">six.moves.urllib.parse</span> <span class="k">import</span> <span class="n">quote_plus</span>
-<span class="kn">from</span> <span class="nn">jinja2</span> <span class="k">import</span> <span class="n">TemplateAssertionError</span><span class="p">,</span> <span class="n">UndefinedError</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="k">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">PickleType</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">func</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="k">import</span> <span class="n">reconstructor</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm.session</span> <span class="k">import</span> <span class="n">Session</span>
+<span class="kn">from</span> <span class="nn">six.moves.urllib.parse</span> <span class="kn">import</span> <span class="n">quote_plus</span>
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">TemplateAssertionError</span><span class="p">,</span> <span class="n">UndefinedError</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">PickleType</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">func</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">reconstructor</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm.session</span> <span class="kn">import</span> <span class="n">Session</span>
 
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">airflow.configuration</span> <span class="k">import</span> <span class="n">conf</span>
-<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="k">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">airflow.configuration</span> <span class="kn">import</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowTaskTimeout</span><span class="p">,</span> <span class="n">AirflowSkipException</span><span class="p">,</span> <span class="n">AirflowRescheduleException</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">airflow.models.base</span> <span class="k">import</span> <span class="n">Base</span><span class="p">,</span> <span class="n">ID_LEN</span>
-<span class="kn">from</span> <span class="nn">airflow.models.log</span> <span class="k">import</span> <span class="n">Log</span>
-<span class="kn">from</span> <span class="nn">airflow.models.pool</span> <span class="k">import</span> <span class="n">Pool</span>
-<span class="kn">from</span> <span class="nn">airflow.models.taskfail</span> <span class="k">import</span> <span class="n">TaskFail</span>
-<span class="kn">from</span> <span class="nn">airflow.models.taskreschedule</span> <span class="k">import</span> <span class="n">TaskReschedule</span>
-<span class="kn">from</span> <span class="nn">airflow.models.variable</span> <span class="k">import</span> <span class="n">Variable</span>
-<span class="kn">from</span> <span class="nn">airflow.models.xcom</span> <span class="k">import</span> <span class="n">XCom</span><span class="p">,</span> <span class="n">XCOM_RETURN_KEY</span>
-<span class="kn">from</span> <span class="nn">airflow.sentry</span> <span class="k">import</span> <span class="n">Sentry</span>
-<span class="kn">from</span> <span class="nn">airflow.settings</span> <span class="k">import</span> <span class="n">Stats</span>
-<span class="kn">from</span> <span class="nn">airflow.ti_deps.dep_context</span> <span class="k">import</span> <span class="n">DepContext</span><span class="p">,</span> <span class="n">REQUEUEABLE_DEPS</span><span class="p">,</span> <span class="n">RUNNING_DEPS</span>
-<span class="kn">from</span> <span class="nn">airflow.settings</span> <span class="k">import</span> <span class="n">STORE_SERIALIZED_DAGS</span>
-<span class="kn">from</span> <span class="nn">airflow.utils</span> <span class="k">import</span> <span class="n">timezone</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.db</span> <span class="k">import</span> <span class="n">provide_session</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.email</span> <span class="k">import</span> <span class="n">send_email</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.helpers</span> <span class="k">import</span> <span class="n">is_container</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="k">import</span> <span class="n">LoggingMixin</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.net</span> <span class="k">import</span> <span class="n">get_hostname</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.sqlalchemy</span> <span class="k">import</span> <span class="n">UtcDateTime</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="k">import</span> <span class="n">State</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.timeout</span> <span class="k">import</span> <span class="n">timeout</span>
+<span class="kn">from</span> <span class="nn">airflow.models.base</span> <span class="kn">import</span> <span class="n">Base</span><span class="p">,</span> <span class="n">ID_LEN</span>
+<span class="kn">from</span> <span class="nn">airflow.models.log</span> <span class="kn">import</span> <span class="n">Log</span>
+<span class="kn">from</span> <span class="nn">airflow.models.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">airflow.models.taskfail</span> <span class="kn">import</span> <span class="n">TaskFail</span>
+<span class="kn">from</span> <span class="nn">airflow.models.taskreschedule</span> <span class="kn">import</span> <span class="n">TaskReschedule</span>
+<span class="kn">from</span> <span class="nn">airflow.models.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">airflow.models.xcom</span> <span class="kn">import</span> <span class="n">XCom</span><span class="p">,</span> <span class="n">XCOM_RETURN_KEY</span>
+<span class="kn">from</span> <span class="nn">airflow.sentry</span> <span class="kn">import</span> <span class="n">Sentry</span>
+<span class="kn">from</span> <span class="nn">airflow.settings</span> <span class="kn">import</span> <span class="n">Stats</span>
+<span class="kn">from</span> <span class="nn">airflow.ti_deps.dep_context</span> <span class="kn">import</span> <span class="n">DepContext</span><span class="p">,</span> <span class="n">REQUEUEABLE_DEPS</span><span class="p">,</span> <span class="n">RUNNING_DEPS</span>
+<span class="kn">from</span> <span class="nn">airflow.settings</span> <span class="kn">import</span> <span class="n">STORE_SERIALIZED_DAGS</span>
+<span class="kn">from</span> <span class="nn">airflow.utils</span> <span class="kn">import</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.db</span> <span class="kn">import</span> <span class="n">provide_session</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.email</span> <span class="kn">import</span> <span class="n">send_email</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.helpers</span> <span class="kn">import</span> <span class="n">is_container</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="kn">import</span> <span class="n">LoggingMixin</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.net</span> <span class="kn">import</span> <span class="n">get_hostname</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.sqlalchemy</span> <span class="kn">import</span> <span class="n">UtcDateTime</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="kn">import</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.timeout</span> <span class="kn">import</span> <span class="n">timeout</span>
 
 
 <div class="viewcode-block" id="clear_task_instances"><a class="viewcode-back" href="../../../_api/airflow/models/taskinstance/index.html#airflow.models.clear_task_instances">[docs]</a><span class="k">def</span> <span class="nf">clear_task_instances</span><span class="p">(</span><span class="n">tis</span><span class="p">,</span>
@@ -730,12 +730,12 @@ https://www.sphinx-doc.org/en/master/templating.html
         <span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">job_ids</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">airflow.jobs</span> <span class="k">import</span> <span class="n">BaseJob</span> <span class="k">as</span> <span class="n">BJ</span>
+        <span class="kn">from</span> <span class="nn">airflow.jobs</span> <span class="kn">import</span> <span class="n">BaseJob</span> <span class="k">as</span> <span class="n">BJ</span>
         <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BJ</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">BJ</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">job_ids</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
             <span class="n">job</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">SHUTDOWN</span>
 
     <span class="k">if</span> <span class="n">activate_dag_runs</span> <span class="ow">and</span> <span class="n">tis</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">airflow.models.dagrun</span> <span class="k">import</span> <span class="n">DagRun</span>  <span class="c1"># Avoid circular import</span>
+        <span class="kn">from</span> <span class="nn">airflow.models.dagrun</span> <span class="kn">import</span> <span class="n">DagRun</span>  <span class="c1"># Avoid circular import</span>
         <span class="n">drs</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">DagRun</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
             <span class="n">DagRun</span><span class="o">.</span><span class="n">dag_id</span><span class="o">.</span><span class="n">in_</span><span class="p">({</span><span class="n">ti</span><span class="o">.</span><span class="n">dag_id</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">tis</span><span class="p">}),</span>
             <span class="n">DagRun</span><span class="o">.</span><span class="n">execution_date</span><span class="o">.</span><span class="n">in_</span><span class="p">({</span><span class="n">ti</span><span class="o">.</span><span class="n">execution_date</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">tis</span><span class="p">}),</span>
@@ -793,7 +793,7 @@ https://www.sphinx-doc.org/en/master/templating.html
         <span class="n">Index</span><span class="p">(</span><span class="s1">&#39;ti_job_id&#39;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">),</span></div>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">execution_date</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">dag_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">task_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
@@ -1307,7 +1307,7 @@ https://www.sphinx-doc.org/en/master/templating.html
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">dep_status</span><span class="o">.</span><span class="n">passed</span><span class="p">:</span>
                     <span class="k">yield</span> <span class="n">dep_status</span></div>
 
-<div class="viewcode-block" id="TaskInstance.__repr__"><a class="viewcode-back" href="../../../_api/airflow/models/taskinstance/index.html#airflow.models.TaskInstance.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TaskInstance.__repr__"><a class="viewcode-back" href="../../../_api/airflow/models/taskinstance/index.html#airflow.models.TaskInstance.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="s2">&quot;&lt;TaskInstance: </span><span class="si">{ti.dag_id}</span><span class="s2">.</span><span class="si">{ti.task_id}</span><span class="s2"> &quot;</span>
             <span class="s2">&quot;</span><span class="si">{ti.execution_date}</span><span class="s2"> [</span><span class="si">{ti.state}</span><span class="s2">]&gt;&quot;</span>
@@ -1383,7 +1383,7 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">        :param session:</span>
 <span class="sd">        :return: DagRun</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">airflow.models.dagrun</span> <span class="k">import</span> <span class="n">DagRun</span>  <span class="c1"># Avoid circular import</span>
+        <span class="kn">from</span> <span class="nn">airflow.models.dagrun</span> <span class="kn">import</span> <span class="n">DagRun</span>  <span class="c1"># Avoid circular import</span>
         <span class="n">dr</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">DagRun</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
             <span class="n">DagRun</span><span class="o">.</span><span class="n">dag_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span>
             <span class="n">DagRun</span><span class="o">.</span><span class="n">execution_date</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">execution_date</span>
@@ -1540,8 +1540,8 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">        :param pool: specifies the pool to use to run the task instance</span>
 <span class="sd">        :type pool: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">airflow.sensors.base_sensor_operator</span> <span class="k">import</span> <span class="n">BaseSensorOperator</span>
-        <span class="kn">from</span> <span class="nn">airflow.models.renderedtifields</span> <span class="k">import</span> <span class="n">RenderedTaskInstanceFields</span> <span class="k">as</span> <span class="n">RTIF</span>
+        <span class="kn">from</span> <span class="nn">airflow.sensors.base_sensor_operator</span> <span class="kn">import</span> <span class="n">BaseSensorOperator</span>
+        <span class="kn">from</span> <span class="nn">airflow.models.renderedtifields</span> <span class="kn">import</span> <span class="n">RenderedTaskInstanceFields</span> <span class="k">as</span> <span class="n">RTIF</span>
 
         <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">test_mode</span> <span class="o">=</span> <span class="n">test_mode</span>
@@ -1845,7 +1845,7 @@ https://www.sphinx-doc.org/en/master/templating.html
     <span class="nd">@provide_session</span>
 <div class="viewcode-block" id="TaskInstance.get_template_context"><a class="viewcode-back" href="../../../_api/airflow/models/taskinstance/index.html#airflow.models.TaskInstance.get_template_context">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span>
-        <span class="kn">from</span> <span class="nn">airflow</span> <span class="k">import</span> <span class="n">macros</span>
+        <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">macros</span>
         <span class="n">tables</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="s1">&#39;tables&#39;</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
             <span class="n">tables</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tables&#39;</span><span class="p">]</span>
@@ -1856,7 +1856,7 @@ https://www.sphinx-doc.org/en/master/templating.html
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="s1">&#39;dag&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
                 <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">airflow.models.dagrun</span> <span class="k">import</span> <span class="n">DagRun</span>  <span class="c1"># Avoid circular import</span>
+            <span class="kn">from</span> <span class="nn">airflow.models.dagrun</span> <span class="kn">import</span> <span class="n">DagRun</span>  <span class="c1"># Avoid circular import</span>
             <span class="n">dag_run</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">DagRun</span><span class="p">)</span>
                 <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
@@ -1919,17 +1919,17 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">            templates by using ``{{ var.value.variable_name }}`` or</span>
 <span class="sd">            ``{{ var.value.get(&#39;variable_name&#39;, &#39;fallback&#39;) }}``.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span>
+            <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span>
                 <span class="n">item</span><span class="p">,</span>
             <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span>
 
-            <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>
 
             <span class="nd">@staticmethod</span>
@@ -1945,17 +1945,17 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">            templates by using ``{{ var.json.variable_name }}`` or</span>
 <span class="sd">            ``{{ var.json.get(&#39;variable_name&#39;, {&#39;fall&#39;: &#39;back&#39;}) }}``.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span>
+            <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span>
                 <span class="n">item</span><span class="p">,</span>
             <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span>
 
-            <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>
 
             <span class="nd">@staticmethod</span>
@@ -2013,7 +2013,7 @@ https://www.sphinx-doc.org/en/master/templating.html
 <span class="sd">        Fetch rendered template fields from DB if Serialization is enabled.</span>
 <span class="sd">        Else just render the templates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">airflow.models.renderedtifields</span> <span class="k">import</span> <span class="n">RenderedTaskInstanceFields</span>
+        <span class="kn">from</span> <span class="nn">airflow.models.renderedtifields</span> <span class="kn">import</span> <span class="n">RenderedTaskInstanceFields</span>
         <span class="k">if</span> <span class="n">STORE_SERIALIZED_DAGS</span><span class="p">:</span>
             <span class="n">rtif</span> <span class="o">=</span> <span class="n">RenderedTaskInstanceFields</span><span class="o">.</span><span class="n">get_templated_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">rtif</span><span class="p">:</span>
