@@ -99,7 +99,3 @@ completed about [30 PRs](https://github.com/apache/airflow/pulls/ephraimbuddy). 
 It has been an amazing experience! Thanks to my mentors [Jarek](https://github.com/potiuk) and
 [Kaxil](https://github.com/kaxil), and the community members especially [Kamil](https://github.com/mik-laj)
 and [Tomek](https://github.com/turbaszek) for all their supports. I'm grateful!
-
-
-
-
