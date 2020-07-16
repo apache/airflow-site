@@ -1,6 +1,6 @@
 ---
-title: "Apache Airflow For NewComers"
-linkTitle: "Apache Airflow For NewComers"
+title: "Apache Airflow For Newcomers"
+linkTitle: "Apache Airflow For Newcomers"
 author: "Ephraim Anierobi"
 twitter: "ephraimbuddy"
 github: "ephraimbuddy"
