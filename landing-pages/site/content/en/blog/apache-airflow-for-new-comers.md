@@ -2,12 +2,12 @@
 title: "Apache Airflow For NewComers"
 linkTitle: "Apache Airflow For NewComers"
 author: "Ephraim Anierobi"
-twitter: "@ephraimbuddy"
-github: "@ephraimbuddy"
-description: "Description"
+twitter: "ephraimbuddy"
+github: "ephraimbuddy"
+description: ""
 tags: []
-date: "2020-07-12"
-draft: true
+date: "2020-07-16"
+draft: false
 ---
 
 Apache Airflow is a platform to programmatically author, schedule, and monitor workflows.
@@ -41,7 +41,7 @@ are ready. It accomplishes these by reading the metadata database to check the s
 decides what needs to be done. The metadata database is where the status of all tasks are recorded.
 The status can be one of running, success, failed, etc.
 
-In the breeze environment, the scheduler is started by running the command airflow scheduler.
+In the breeze environment, the scheduler is started by running the command `airflow scheduler`.
 
 ### Executor
 Executors are responsible for running tasks. They work with the scheduler to get information about
@@ -61,7 +61,7 @@ There are many actions you can perform on the UI. You can trigger a task, monito
 including the duration of the task. The UI makes it possible to view the task's dependencies in a
 tree view and graph view. You can view task logs in the UI.
 
-The web UI is started with the command "airflow webserver" in the breeze environment.
+The web UI is started with the command `airflow webserver` in the breeze environment.
 
 ### Backend
 By default, Airflow uses the SQLite backend for storing the configuration information, DAG states,
@@ -70,7 +70,7 @@ loss.
 
 You can use PostgreSQL or MySQL as a backend for airflow. It is easy to change to PostgreSQL or MySQL.
 
-This command "./breeze --backend mysql" selects MySQL as the backend in the breeze environment.
+This command `./breeze --backend mysql` selects MySQL as the backend when starting the breeze environment.
 
 ### Operators
 Operators determine what gets done by a task. Airflow has a lot of builtin Operators. Each operator
@@ -81,25 +81,24 @@ calls a python function, AwsBatchOperator which executes a job on AWS Batch and 
 Sensors can be described as special operators that are used to monitor a long-running task.
 Just like Operators, there are many predefined sensors in Airflow.
 
+### Breeze Environment
+The breeze environment is the development environment for Airflow where you can run tests, build images,
+build documentations and so many other things. There are excellent
+[documentation and video](https://github.com/apache/airflow/blob/master/BREEZE.rst) on Breeze environment.
+Please check them out.
 
+### Contributing to Airflow
+Airflow is an open source project, everyone is welcome to contribute. It is easy to get started thanks
+to the excellent [documentation on how to get started](https://github.com/apache/airflow/blob/master/CONTRIBUTING.rst).
 
+I joined the community about 8 weeks ago through the [Outreachy Program](https://www.outreachy.org/) and have
+completed about [30 PRs](https://github.com/apache/airflow/pulls/ephraimbuddy). How fast time flies! You can read
+[about me](https://ephraimbuddy.wordpress.com/2020/05/24/introduction/)
+ and [how I got into](https://ephraimbuddy.wordpress.com/2020/05/06/experiences-applying-to-outreachy/) the Outreachy Program.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+It has been an amazing experience! Thanks to my mentors [Jarek](https://github.com/potiuk) and
+[Kaxil](https://github.com/kaxil), and the community members especially [Kamil](https://github.com/mik-laj)
+and [Tomek](https://github.com/turbaszek) for all their supports. I'm grateful!
 
 
 
