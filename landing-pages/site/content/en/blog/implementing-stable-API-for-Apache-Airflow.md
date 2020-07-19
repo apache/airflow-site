@@ -9,7 +9,7 @@ tags: ["REST API"]
 date: "2020-07-19"
 ---
 
-My [Outreachy internship](outreachy.org) is coming to its ends which is also the best time to look back and
+My [Outreachy internship](https://outreachy.org) is coming to its ends which is also the best time to look back and
 reflect on the progress so far.
 
 The goal of my project is to Extend and Improve the Apache Airflow REST API. In this post,
@@ -66,8 +66,7 @@ Here are some PRs I contributed that are related to the REST API:
  6. [Add migration guide from the experimental REST API to the stable REST API](https://github.com/apache/airflow/pull/9771)
 ### Follow-Ups
 There are still lots of works to be done on the REST API including writing helpful documentation.
-I still follow up on these and hopefully, we will do a little more before the internship ends.
-Sadly, we may not be able to complete the endpoint before my internship ends.
+I still follow up on these and hopefully, we will complete the REST API before the internship ends.
 
 I am very grateful to my mentors, [Jarek](https://github.com/potiuk) and [Kaxil](https://github.com/kaxil) for their
 patience with me and for surviving my never-ending questions.
