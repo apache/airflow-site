@@ -24,29 +24,30 @@ implemented and the challenges I encountered, including how I overcame them.
 The [read-only connection endpoints](https://github.com/apache/airflow/pull/9095) were the first endpoint I implemented. Looking back,
 I can see how much I have improved.
 
-I started by implementing the database schema for the Connection table using Marshmallow 2.
+I started by implementing the database schema for the Connection table using [Marshmallow 2](https://marshmallow.readthedocs.io/en/2.x-line/).
 We had to use Marshmallow 2 because Flask-AppBuilder was still using it and Flask-AppBuilder
-is deeply integrated to Apache Airflow. This means I had to unlearn Marshmallow 3 that I have
- been studying before this realization and thankfully, I started using Marshmallow 2 in no time.
+is deeply integrated to Apache Airflow. This meant I had to unlearn Marshmallow 3 that I had
+ been studying before this realization, but thankfully, [Marshmallow 3](https://marshmallow.readthedocs.io/en/stable/index.html) isn't too
+ different, so I was able to start using Marshmallow 2 in no time.
 
 This first PR would have been more difficult than it was had it been there was no reference
-endpoint to look at. [Kamil](https://github.com/mik-laj) implemented a draft PR in which I took inspiration from.
+endpoint to look at. [Kamil](https://github.com/mik-laj) implemented a [draft PR](https://github.com/apache/airflow/pull/9045) in which I took inspiration from.
 Thanks to this, It was easy for me to write the unit tests. It was also in this endpoint that
- I learned using parameterized in unit tests :D.
+ I learned using [parameterized](https://github.com/wolever/parameterized) in unit tests :D.
 
 ### Implementing The Read-Only DagRuns Endpoints
 
-This [endpoint](https://github.com/apache/airflow/pull/9153) came with its many challenges, most especially on filtering with `datetimes`.
-This was because the connexion library we were using to build the REST API was not validating
+This [endpoint](https://github.com/apache/airflow/pull/9153) came with its many challenges, especially on filtering with `datetimes`.
+This was because the ``connexion`` library we were using to build the REST API was not validating
 date-time format in OpenAPI 3.0 specification. This I would later find out, was intentional.
-Connexion dropped `strict-rfc3339` because of the later licence which is not compatible with
-Apache 2.0 licence.
+Connexion dropped `strict-rfc3339` because of the later license which is not compatible with
+Apache 2.0 license.
 
 I implemented a workaround on this, by defining a function called `conn_parse_datetime` in the
 API utils module. This was later refactored and thankfully, [Kamil](https://github.com/mik-laj)
  implemented a decorator that allowed us to have cleaner code on the views while using this function.
 
-We later tried using `rfc3339-validator` whose licence is compatible with Apache 2.0 licence but
+We later tried using `rfc3339-validator` whose license is compatible with Apache 2.0 licence but
  later discarded this because with our custom date parser we were able to use duration and
  not just date times.
 
@@ -65,7 +66,7 @@ Here are some PRs I contributed that are related to the REST API:
  5. [Update FlaskAppBuilder to v3](https://github.com/apache/airflow/pull/9648)
  6. [Add migration guide from the experimental REST API to the stable REST API](https://github.com/apache/airflow/pull/9771)
 ### Follow-Ups
-There are still lots of works to be done on the REST API including writing helpful documentation.
+There is still lots of works to be done on the REST API including writing helpful documentation.
 I still follow up on these and hopefully, we will complete the REST API before the internship ends.
 
 I am very grateful to my mentors, [Jarek](https://github.com/potiuk) and [Kaxil](https://github.com/kaxil) for their
