@@ -5,7 +5,7 @@ author: "Ephraim Anierobi"
 twitter: "ephraimbuddy"
 github: "ephraimbuddy"
 description: ""
-tags: []
+tags: [Community]
 date: "2020-07-16"
 draft: false
 ---
@@ -29,10 +29,12 @@ Also equivalent to
 ```python
 task_A.set_downstream(task_B)
 ```
+![Simple Dag](Simple_dag.png)
 
 That helps Airflow to know that it needs to execute task A before task B. Tasks can have far more complex
 relationships to each other than expressed above and Airflow figures out how and when to execute the tasks following
 their relationships and dependencies.
+![Complex Dag](semicomplex.png)
 
 Before we discuss the architecture of Airflow that makes scheduling, executing, and monitoring of
 workflow an easy thing, let us discuss the [Breeze environment](https://github.com/apache/airflow/blob/master/BREEZE.rst).
@@ -41,7 +43,8 @@ workflow an easy thing, let us discuss the [Breeze environment](https://github.c
 The breeze environment is the development environment for Airflow where you can run tests, build images,
 build documentations and so many other things. There are excellent
 [documentation and video](https://github.com/apache/airflow/blob/master/BREEZE.rst) on Breeze environment.
-Please check them out. You enter the Breeze environment by running the ``./breeze`` script.
+Please check them out. You enter the Breeze environment by running the ``./breeze`` script. You can run all
+the commands mentioned here in the Breeze environment.
 
 ### Scheduler
 The scheduler is the component that monitors DAGs and triggers those tasks whose dependencies have
@@ -93,6 +96,8 @@ You can find more information about the CeleryExecutor and how to configure it a
 The webserver is the web interface (UI) for Airflow. The UI is feature-rich. It makes it easy to
 monitor and troubleshoot DAGs and Tasks.
 
+![airflow UI](airflow-ui.png)
+
 There are many actions you can perform on the UI. You can trigger a task, monitor the execution
 including the duration of the task. The UI makes it possible to view the task's dependencies in a
 tree view and graph view. You can view task logs in the UI.
@@ -141,3 +146,5 @@ completed about [30 PRs](https://github.com/apache/airflow/pulls/ephraimbuddy). 
 It has been an amazing experience! Thanks to my mentors [Jarek](https://github.com/potiuk) and
 [Kaxil](https://github.com/kaxil), and the community members especially [Kamil](https://github.com/mik-laj)
 and [Tomek](https://github.com/turbaszek) for all their support. I'm grateful!
+
+Thank you so much, [Leah E. Cole](https://github.com/leahecole), for your wonderful reviews.
