@@ -60,16 +60,31 @@ we quickly updated Flask-AppBuilder in Apache Airflow and started using Marshmal
 Here are some PRs I contributed that are related to the REST API:
 
  1. [Add event log endpoints](https://github.com/apache/airflow/pull/9227)
+    The event log would help users get information on operations performed at the UI
+
  2. [Add CRUD endpoints for connection](https://github.com/apache/airflow/pull/9266)
+    This PR performs DELETE, PATCH and POST operations on ``Connection``
+
  3. [Add log endpoint](https://github.com/apache/airflow/pull/9331)
+    This PR enable users to get Task Instances log entries
+
  4. [Move limit & offset to kwargs in views plus work on a configurable maximum limit](https://github.com/apache/airflow/pull/9431)
+    This helped us in having a neat code on the views and added configurable maximum limit on query results.
+
  5. [Update FlaskAppBuilder to v3](https://github.com/apache/airflow/pull/9648)
+    This enabled Airflow to start using v3 of Flask App Builder and also enabled the API to use
+     a modern database serializer/deserializer
+
  6. [Add migration guide from the experimental REST API to the stable REST API](https://github.com/apache/airflow/pull/9771)
+    This would enable users to start using the stable REST API in less time.
+
 ### Follow-Ups
 There is still lots of works to be done on the REST API including writing helpful documentation.
 I still follow up on these and hopefully, we will complete the REST API before the internship ends.
 
 I am very grateful to my mentors, [Jarek](https://github.com/potiuk) and [Kaxil](https://github.com/kaxil) for their
 patience with me and for surviving my never-ending questions.
+
+Thank you so much, [Leah E. Cole](https://github.com/leahecole), for your wonderful reviews.
 
 Thanks for reading...
