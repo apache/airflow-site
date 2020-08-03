@@ -83,7 +83,8 @@ There is still lots of works to be done on the REST API including writing helpfu
 I still follow up on these and hopefully, we will complete the REST API before the internship ends.
 
 I am very grateful to my mentors, [Jarek](https://github.com/potiuk) and [Kaxil](https://github.com/kaxil) for their
-patience with me and for surviving my never-ending questions.
+patience with me and for surviving my never-ending questions. [Kamil](https://github.com/mik-laj) and [Tomek](https://github.com/turbaszek)
+have been very supportive and I appreciate them for their support and amazing code reviews.
 
 Thanks to [Leah E. Cole](https://github.com/leahecole) and [Karolina Rosół](https://github.com/mschickensoup), for their
 wonderful reviews. I'm grateful.
