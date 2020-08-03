@@ -39,7 +39,7 @@ Thanks to this, It was easy for me to write the unit tests. It was also in this 
 
 This [endpoint](https://github.com/apache/airflow/pull/9153) came with its many challenges, especially on filtering with `datetimes`.
 This was because the ``connexion`` library we were using to build the REST API was not validating
-date-time format in OpenAPI 3.0 specification. This I would later find out, was intentional.
+date-time format in OpenAPI 3.0 specification, what I eventually found out, was intentional.
 Connexion dropped `strict-rfc3339` because of the later license which is not compatible with
 Apache 2.0 license.
 
@@ -47,7 +47,7 @@ I implemented a workaround on this, by defining a function called `conn_parse_da
 API utils module. This was later refactored and thankfully, [Kamil](https://github.com/mik-laj)
  implemented a decorator that allowed us to have cleaner code on the views while using this function.
 
-We later tried using `rfc3339-validator` whose license is compatible with Apache 2.0 licence but
+Then we tried using `rfc3339-validator` whose license is compatible with Apache 2.0 licence but
  later discarded this because with our custom date parser we were able to use duration and
  not just date times.
 
@@ -66,13 +66,13 @@ Here are some PRs I contributed that are related to the REST API:
     This PR performs DELETE, PATCH and POST operations on ``Connection``
 
  3. [Add log endpoint](https://github.com/apache/airflow/pull/9331)
-    This PR enable users to get Task Instances log entries
+    This PR enables users to get Task Instances log entries
 
  4. [Move limit & offset to kwargs in views plus work on a configurable maximum limit](https://github.com/apache/airflow/pull/9431)
     This helped us in having a neat code on the views and added configurable maximum limit on query results.
 
  5. [Update FlaskAppBuilder to v3](https://github.com/apache/airflow/pull/9648)
-    This enabled Airflow to start using v3 of Flask App Builder and also enabled the API to use
+    This enabled Airflow to start using v3 of Flask App Builder and also made it possible for the API to use
      a modern database serializer/deserializer
 
  6. [Add migration guide from the experimental REST API to the stable REST API](https://github.com/apache/airflow/pull/9771)
@@ -87,4 +87,4 @@ patience with me and for surviving my never-ending questions.
 
 Thank you so much, [Leah E. Cole](https://github.com/leahecole), for your wonderful reviews.
 
-Thanks for reading...
+Thanks for reading!
