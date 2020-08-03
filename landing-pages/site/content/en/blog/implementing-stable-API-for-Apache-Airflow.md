@@ -30,7 +30,7 @@ is deeply integrated to Apache Airflow. This meant I had to unlearn Marshmallow 
  been studying before this realization, but thankfully, [Marshmallow 3](https://marshmallow.readthedocs.io/en/stable/index.html) isn't too
  different, so I was able to start using Marshmallow 2 in no time.
 
-This first PR would have been more difficult than it was had it been there was no reference
+This first PR would have been more difficult than it was unless there had been any reference
 endpoint to look at. [Kamil](https://github.com/mik-laj) implemented a [draft PR](https://github.com/apache/airflow/pull/9045) in which I took inspiration from.
 Thanks to this, It was easy for me to write the unit tests. It was also in this endpoint that
  I learned using [parameterized](https://github.com/wolever/parameterized) in unit tests :D.
@@ -85,6 +85,7 @@ I still follow up on these and hopefully, we will complete the REST API before t
 I am very grateful to my mentors, [Jarek](https://github.com/potiuk) and [Kaxil](https://github.com/kaxil) for their
 patience with me and for surviving my never-ending questions.
 
-Thank you so much, [Leah E. Cole](https://github.com/leahecole), for your wonderful reviews.
+Thanks to [Leah E. Cole](https://github.com/leahecole) and [Karolina Rosół](https://github.com/mschickensoup), for their
+wonderful reviews. I'm grateful.
 
 Thanks for reading!
