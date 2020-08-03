@@ -38,7 +38,7 @@ Thanks to this, It was easy for me to write the unit tests. It was also in this 
 ### Implementing The Read-Only DagRuns Endpoints
 
 This [endpoint](https://github.com/apache/airflow/pull/9153) came with its many challenges, especially on filtering with `datetimes`.
-This was because the ``connexion`` library we were using to build the REST API was not validating
+This was because the `connexion` library we were using to build the REST API was not validating
 date-time format in OpenAPI 3.0 specification, what I eventually found out, was intentional.
 Connexion dropped `strict-rfc3339` because of the later license which is not compatible with
 Apache 2.0 license.
