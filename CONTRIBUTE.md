@@ -298,7 +298,7 @@ following the format:
 }
 ```
 
-Integrations are displayed in random order, which might be different on each site reld. To search
+Integrations are displayed in random order, which might be different on each site reload. To search
 for your integration, use the search functionality.
 
 Providing an integration logo is **optional**. However, please take note that integrations with logo are be promoted
@@ -414,6 +414,7 @@ To release a new documentation, follow these steps:
 
     ```bash
     cd "${AIRFLOW_SITE_REPO}" && git push origin "docs-for-${AIRFLOW_VERSION}"
+    ```
 
 # Publish site on Apache server (CI/CD)
 
@@ -423,7 +424,6 @@ Github Action has been configured to automatically publish artifacts for pull re
 
 It is recommended to use Github Action to publish changes to the website, but in case of problems it is also possible to publish changes to the website manually.
 
-In order to push changes to the WWW server you need to have the two copy of `apache/airflow-site` repository. The first contains `master` branch checkoued, the second - `asf-site`.
 
 ## Prerequisite tasks
 
@@ -435,7 +435,7 @@ AIRFLOW_SITE_REPO=$HOME/airflow-site
 AIRFLOW_SITE_ASF_SITE_REPO=$HOME/airflow-site-asf-site
 ```
 
-To clone repository run following commands:
+You need to have the two copy of `apache/airflow-site` repository. The first contains `master` branch checkoued, the second - `asf-site`. To clone repository run following commands:
 ```bash
 git clone git@github.com:apache/airflow-site.git "${AIRFLOW_SITE_REPO}"
 git clone git@github.com:apache/airflow-site.git "${AIRFLOW_SITE_ASF_SITE_REPO}"
