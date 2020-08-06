@@ -298,7 +298,7 @@ following the format:
 }
 ```
 
-Integrations are displayed in random order, which might be different on each site reload. To search
+Integrations are displayed in random order, which might be different on each site reld. To search
 for your integration, use the search functionality.
 
 Providing an integration logo is **optional**. However, please take note that integrations with logo are be promoted
@@ -312,6 +312,23 @@ and put the meetup's date in following format:
 `MON, JAN 01, 6:00 PM`
 
 If your meetup group isn't on the list, add it following the format of existing entries.
+
+### Preview changes on pull requests (CI/CD)
+
+1. Github Action has been configured to automatically publish artifacts for pull requests, so we can preview changes from Github Ui.
+  ![](https://docs.github.com/assets/images/help/repository/passing-data-between-jobs-in-a-workflow.png)
+
+2. After downloading the artifacts, unpack the archive and start the local HTTP server, run the following command.
+
+  Python 3
+  ```bash
+  python -m http.server --cgi 8000
+  ```
+  Python 2.7
+  ```bash
+  python -m SimpleHTTPServer 8000
+  ```
+
 
 # How to release new documentation
 
@@ -397,9 +414,14 @@ To release a new documentation, follow these steps:
 
     ```bash
     cd "${AIRFLOW_SITE_REPO}" && git push origin "docs-for-${AIRFLOW_VERSION}"
-    ```
 
-# Publish site on Apache server
+# Publish site on Apache server (CI/CD)
+
+Github Action has been configured to automatically publish artifacts for pull requests, so you can preview changes.
+
+# Publish site on Apache server (manual)
+
+It is recommended to use Github Action to publish changes to the website, but in case of problems it is also possible to publish changes to the website manually.
 
 In order to push changes to the WWW server you need to have the two copy of `apache/airflow-site` repository. The first contains `master` branch checkoued, the second - `asf-site`.
 
@@ -516,30 +538,7 @@ cd "${AIRFLOW_SITE_REPO}" && git commit -m 'Docs for ${AIRFLOW_VERSION}'
 cd "${AIRFLOW_SITE_REPO}" && git push origin origin
 ```
 
-When it is accepted and merged, then run following commandss:
-
-```bash
-# Fetch changes
-cd "${AIRFLOW_SITE_REPO}" && git fetch
-cd "${AIRFLOW_SITE_REPO}" && git checkout master && git reset --hard origin/master
-
-# Build fresh landing pages and site
-cd "${AIRFLOW_SITE_REPO}" && bash site.sh build-landing-pages
-cd "${AIRFLOW_SITE_REPO}" && bash site.sh build-site
-
-# Remove all files from `asf-site` branch
-cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git ls-files | xargs -P 16 rm -rf
-
-# Copy files to asf-site branch
-cp -vr "${AIRFLOW_SITE_REPO}/dist/." "${AIRFLOW_SITE_ASF_SITE_REPO}/"
-
-# Create commit
-cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git add .
-cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git commit -m "Update - $(date)"
-
-# Push new website
-cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git push origin asf-site
-```
+Once It is accepted and merged, wait for Github Action build to publish the changes.
 
 # Additional tips:
 
