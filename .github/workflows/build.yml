@@ -1,0 +1,33 @@
+name: Java CI
+
+on: 
+  push:
+    branches: ['master']
+  pull_request:
+    branches: ['master']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+      - name: Build Docker image
+        run: ./site.sh build-image
+      - name: Instlal node deps
+        run: ./site.sh install-node-deps
+      - name: Install requirements.txt
+        run: pip install -r requirements.txt
+      - name: Lint
+        run: pre-commit run --all-files --show-diff-on-failure
+      - name: Build site
+        run: ./site.sh build-site
+      - uses: actions/upload-artifact@v2
+        name: Upload documentation
+        if: always()
+        with:
+          name: airflow-documentation
+          path: './dist'
