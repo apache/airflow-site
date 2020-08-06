@@ -420,7 +420,7 @@ To release a new documentation, follow these steps:
 
 Github Action has been configured to automatically publish artifacts for pull requests, so you can preview changes.
 
-# Publish site on Apache server (manual)
+# Publish site on Apache server (manual waay)
 
 It is recommended to use Github Action to publish changes to the website, but in case of problems it is also possible to publish changes to the website manually.
 
@@ -538,7 +538,7 @@ cd "${AIRFLOW_SITE_REPO}" && git commit -m 'Docs for ${AIRFLOW_VERSION}'
 cd "${AIRFLOW_SITE_REPO}" && git push origin origin
 ```
 
-Once It is accepted and merged, wait for Github Action build to publish the changes.
+Once it is accepted and merged, wait for Github Action build to publish the changes.
 
 # Additional tips:
 
