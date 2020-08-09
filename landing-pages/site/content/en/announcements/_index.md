@@ -8,6 +8,9 @@ menu:
 
 ---
 
+&nbsp;
+&nbsp;
+
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
@@ -63,117 +66,61 @@ The Backport provider packages make it possible to easily use Airflow 2.0 Operat
 
 >
 > 1. [Amazon](https://pypi.org/project/apache-airflow-backport-providers-amazon/2020.6.24/)
->
 > 2. [Apache HDFS](https://pypi.org/project/apache-airflow-backport-providers-apache-hdfs/2020.6.24/)
->
 > 3. [Apache Hive](https://pypi.org/project/apache-airflow-backport-providers-apache-hive/2020.6.24/)
->
 > 4. [Apache Livy](https://pypi.org/project/apache-airflow-backport-providers-apache-livy/2020.6.24/)
->
 > 5. [Apache Pig](https://pypi.org/project/apache-airflow-backport-providers-apache-pig/2020.6.24/)
->
 > 6. [Apache Pinot](https://pypi.org/project/apache-airflow-backport-providers-apache-pinot/2020.6.24/)
->
 > 7. [Apache Spark](https://pypi.org/project/apache-airflow-backport-providers-apache-spark/2020.6.24/)
->
 > 8. [Apache Sqoop](https://pypi.org/project/apache-airflow-backport-providers-apache-sqoop/2020.6.24/)
->
 > 9. [Azure](https://pypi.org/project/apache-airflow-backport-providers-microsoft-azure/2020.6.24/)
->
 > 10. [Cassandra](https://pypi.org/project/apache-airflow-backport-providers-apache-cassandra/2020.6.24/)
->
 > 11. [Celery](https://pypi.org/project/apache-airflow-backport-providers-celery/2020.6.24/)
->
 > 12. [Cloudant](https://pypi.org/project/apache-airflow-backport-providers-cloudant/2020.6.24/)
->
 > 13. [Databricks](https://pypi.org/project/apache-airflow-backport-providers-databricks/2020.6.24/)
->
 > 14. [Datadog](https://pypi.org/project/apache-airflow-backport-providers-datadog/2020.6.24/)
->
 > 15. [Dingding](https://pypi.org/project/apache-airflow-backport-providers-dingding/2020.6.24/)
->
 > 16. [Discord](https://pypi.org/project/apache-airflow-backport-providers-discord/2020.6.24/)
->
 > 17. [Docker](https://p0ypi.org/project/apache-airflow-backport-providers-docker/2020.6.24/)
->
 > 18. [Druid](https://pypi.org/project/apache-airflow-backport-providers-apache-druid/2020.6.24/)
->
 > 19. [Elasticsearch](https://pypi.org/project/apache-airflow-backport-providers-elasticsearch/2020.6.24/)
->
 > 20. [Email](https://pypi.org/project/apache-airflow-backport-providers-email/2020.6.24/)
->
 > 21. [Exasol](https://pypi.org/project/apache-airflow-backport-providers-exasol/2020.6.24/)
->
 > 22. [Facebook](https://pypi.org/project/apache-airflow-backport-providers-facebook/2020.6.24/)
->
 > 23. [FTP](https://pypi.org/project/apache-airflow-backport-providers-ftp/2020.6.24/)
->
 > 24. [Google](https://pypi.org/project/apache-airflow-backport-providers-google/2020.6.24/)
->
 > 25. [GRPC](https://pypi.org/project/apache-airflow-backport-providers-grpc/2020.6.24/)
->
 > 26. [Hashicorp](https://pypi.org/project/apache-airflow-backport-providers-hashicorp/2020.6.24/)
->
 > 27. [HTTP](https://pypi.org/project/apache-airflow-backport-providers-http/2020.6.24/)
->
 > 28. [IMAP](https://pypi.org/project/apache-airflow-backport-providers-imap/2020.6.24/)
->
 > 29. [JDBC](https://pypi.org/project/apache-airflow-backport-providers-jdbc/2020.6.24/)
->
 > 30. [Jenkins](https://pypi.org/project/apache-airflow-backport-providers-jenkins/2020.6.24/)
->
 > 31. [JIRA](https://pypi.org/project/apache-airflow-backport-providers-jira/2020.6.24/)
->
 > 32. [Mongo](https://pypi.org/project/apache-airflow-backport-providers-mongo/2020.6.24/)
->
 > 33. [MsSQL](https://pypi.org/project/apache-airflow-backport-providers-microsoft-mssql/2020.6.24/)
->
 > 34. [MySQL](https://pypi.org/project/apache-airflow-backport-providers-mysql/2020.6.24/)
->
 > 35. [ODBC](https://pypi.org/project/apache-airflow-backport-providers-odbc/2020.6.24/)
->
 > 36. [OpenFAAS](https://pypi.org/project/apache-airflow-backport-providers-openfaas/2020.6.24/)
->
 > 37. [OpsGenie](https://pypi.org/project/apache-airflow-backport-providers-opsgenie/2020.6.24/)
->
 > 38. [Oracle](https://pypi.org/project/apache-airflow-backport-providers-oracle/2020.6.24/)
->
 > 39. [PagerDuty](https://pypi.org/project/apache-airflow-backport-providers-pagerduty/2020.6.24/)
->
 > 40. [Postgres](https://pypi.org/project/apache-airflow-backport-providers-postgres/2020.6.24/)
->
 > 41. [Presto](https://pypi.org/project/apache-airflow-backport-providers-presto/2020.6.24/)
->
 > 42. [Qubole](https://pypi.org/project/apache-airflow-backport-providers-qubole/2020.6.24/)
->
 > 43. [Redis](https://pypi.org/project/apache-airflow-backport-providers-redis/2020.6.24/)
->
 > 44. [Salesforce](https://pypi.org/project/apache-airflow-backport-providers-salesforce/2020.6.24/)
->
 > 45. [Samba](https://pypi.org/project/apache-airflow-backport-providers-samba/2020.6.24/)
->
 > 46. [Segment](https://pypi.org/project/apache-airflow-backport-providers-segment/2020.6.24/)
->
 > 47. [SFTP](https://pypi.org/project/apache-airflow-backport-providers-sftp/2020.6.24/)
->
 > 48. [Singularity](https://pypi.org/project/apache-airflow-backport-providers-singularity/2020.6.24/)
->
 > 49. [Slack](https://pypi.org/project/apache-airflow-backport-providers-slack/2020.6.24/)
->
 > 50. [Snowflake](https://pypi.org/project/apache-airflow-backport-providers-snowflake/2020.6.24/)
->
 > 51. [Sqlite](https://pypi.org/project/apache-airflow-backport-providers-sqlite/2020.6.24/)
->
 > 52. [SSH](https://pypi.org/project/apache-airflow-backport-providers-ssh/2020.6.24/)
->
 > 53. [Vertica](https://pypi.org/project/apache-airflow-backport-providers-vertica/2020.6.24/)
->
 > 54. [Winrm](https://pypi.org/project/apache-airflow-backport-providers-microsoft-winrm/2020.6.24/)
->
 > 55. [Yandex](https://pypi.org/project/apache-airflow-backport-providers-yandex/2020.6.24/)
->
 > 56. [Zendesk](https://pypi.org/project/apache-airflow-backport-providers-zendesk/2020.6.24/)
->
 
 
 # Apr 9, 2020
@@ -253,16 +200,9 @@ New website for Apache Airflow is live  : https://airflow.apache.org
 Same URL with more & better webpages
 
 
-# Nov 22, 2019
-
-Airflow PMC has voted in & promoted **Jarek Potiuk** ([@higrys](https://github.com/higrys)) to be a PMC Member.
-
-Jarek has been one of the most active community members and has spread the word about Airflow. Well deserved Jarek, congratulations.
-
-
 # Nov 21, 2019
 
-Airflow PMC has voted in & promoted **Aizhamal Nurmamat kyzy** ([@Aizhamal](https://github.com/Aizhamal)) and Kevin Yang ([@Kevin Yang]()) to be a part of Airflow PMC.
+Airflow PMC has voted in & promoted **Aizhamal Nurmamat kyzy** ([@Aizhamal](https://github.com/Aizhamal)) and Kevin Yang ([@KevinYang21](https://github.com/KevinYang21)) to be a part of Airflow PMC.
 
 
 # Oct 28, 2019
@@ -278,9 +218,7 @@ Docs - https://airflow.apache.org/1.10.6/
 
 # Oct 18, 2019
 
-TODO: Same update in Nov 22, 2019
-
-Airflow PMC has voted in & promoted Jarek Potiuk (@higrys) to be a PMC Member.
+Airflow PMC has voted in & promoted Jarek Potiuk ([@higrys](https://github.com/higrys)) to be a PMC Member.
 
 Jarek has been one of the most active community members and has spread the word about Airflow Well deserved Jarek, congratulations
 
@@ -344,9 +282,9 @@ The Apache Airflow PMC welcomes a slew of new committers to it ranks! The follow
 
 - Daniel Imberman ([@dimberman](https://github.com/dimberman))
 - Jarek Potiuk ([@higrys](https://github.com/higrys))
-- Bas Harenslak
-- Joshua Carp
-- Kevin Yang
+- Bas Harenslak ([@BasPH](https://github.com/BasPH))
+- Joshua Carp ([@jmcarp](https://github.com/jmcarp))
+- Kevin Yang ([@KevinYang21](https://github.com/KevinYang21))
 - Kamil Bregula ([@mik-laj](https://github.com/mik-laj))
 
 Congratulations folks - Very well deserved.
@@ -530,7 +468,7 @@ Special Thanks to Chris Riccomini ([@criccomini](https://github.com/criccomini))
 
 # Nov 30, 2017
 
-The Apache Airflow PPMC welcomes new committer and PPMC member, Joy Gao ([@joygao](https://github.com/joygao))
+The Apache Airflow PPMC welcomes new committer and PPMC member, **Joy Gao** ([@joygao](https://github.com/joygao))
 
 
 # Nov 27, 2017
@@ -554,7 +492,7 @@ Slides are available [here](https://drive.google.com/drive/folders/154jnUADKfrHX
 
 # Oct 1, 2017
 
-The Apache Airflow PPMC welcomes new committer and PPMC member, Fokko Driespong ([@fokko](https://github.com/fokko))
+The Apache Airflow PPMC welcomes new committer and PPMC member, **Fokko Driespong** ([@fokko](https://github.com/fokko))
 
 
 # Sept 6, 2017
@@ -614,7 +552,7 @@ Thanks to everyone in the community that helped bring this about. A special than
 
 # Mar 14, 2017
 
-The Apache Airflow PPMC welcomes new committer and PPMC member, Alex Guziel ([@saguziel](https://github.com/saguziel))
+The Apache Airflow PPMC welcomes new committer and PPMC member, **Alex Guziel** ([@saguziel](https://github.com/saguziel))
 
 
 # Feb 3, 2017
@@ -640,7 +578,7 @@ Next New York Apache Airflow Meet-up (at Blue Apron) on Feb 1
 
 # Nov 28, 2016
 
-The Apache Airflow PPMC welcomes new committer and PPMC member, Alex Van Boxel ([@alexvanboxel](https://github.com/alexvanboxel))
+The Apache Airflow PPMC welcomes new committer and PPMC member, **Alex Van Boxel** ([@alexvanboxel](https://github.com/alexvanboxel))
 
 Video from the [Nov 16 meet-up](http://bit.ly/2dwKNls) (at WePay) is now available at : https://wepayinc.app.box.com/s/1183ra3z8gxf8fridysu4wbjckg1s05v
 
@@ -662,12 +600,12 @@ New Warsaw (Poland) Hadoop User Group Meet-up on Sept 14 : http://www.meetup.com
 
 # August 19, 2016
 
-The Apache Airflow PPMC welcomes new committer and PPMC member, Li Xuanji  ([@zodiac](https://github.com/zodiac)))
+The Apache Airflow PPMC welcomes new committer and PPMC member, **Li Xuanji** ([@zodiac](https://github.com/zodiac)))
 
 
 # August 16, 2016
 
-The Apache Airflow PPMC welcomes new committer and PPMC member, Sumit Maheshwari ([@msumit](https://github.com/msumit))
+The Apache Airflow PPMC welcomes new committer and PPMC member, **Sumit Maheshwari** ([@msumit](https://github.com/msumit))
 
 
 # June 15, 2016
@@ -708,7 +646,7 @@ Special thanks to Dan Davydov ([@aoen](https://github.com/aoen))  for tirelessly
 
 # May 20, 2016
 
-Steven Yvinec-Kruyk ([@syvineckruyk](https://github.com/syvineckruyk)) joins the [Apache Airflow Committer and PPMC group](https://cwiki.apache.org/confluence/display/AIRFLOW/Committers) today. Please give him a hearty welcome and of course.. ask him to review your PRs and answer any questions you may have :)
+**Steven Yvinec-Kruyk** ([@syvineckruyk](https://github.com/syvineckruyk)) joins the [Apache Airflow Committer and PPMC group](https://cwiki.apache.org/confluence/display/AIRFLOW/Committers) today. Please give him a hearty welcome and of course.. ask him to review your PRs and answer any questions you may have :)
 
 
 # April 29, 2016
@@ -720,7 +658,7 @@ Want to keep abreast of new Apache Airflow updates (e.g. releases, meet-ups, new
 
 We are starting the migration to Apache Infrastructure (e.g. Github Issues --> Jira, Airbnb/Airflow Github to Apache/Airflow Github, Airbnb/Airflow Github Wiki to Apache Airflow Confluence Wiki)
 
-- The progress and migration status will be tracked on [Migrating to Apache](https://cwiki.apache.org/confluence/display/AIRFLOW/Announcements#)
+- The progress and migration status will be tracked on [Migrating to Apache](https://airflow.apache.org/announcements/)
 - We expect this to take roughly 1 week. On and after May 4, we expect to be using Apache infrastructure exclusively. To prepare for that day, start using the new Apache infrastructure and follow instructions on this JIRA ticket [AIRFLOW-11](https://issues.apache.org/jira/browse/AIRFLOW-11) to set up your accounts.
 
 
