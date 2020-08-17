@@ -58,7 +58,7 @@ A task is said to be ready when its dependencies have been met. The dependencies
 necessary for the task to be executed. It should be noted that the scheduler won't trigger your tasks until
 the period it covers has ended. If a task's ``schedule_interval`` is ``@daily``, the scheduler triggers the task
 at the end of the day and not at the beginning. This is to ensure that the necessary data needed for the tasks
-are ready. It is also possible trigger tasks manually on the UI.
+are ready. It is also possible to trigger tasks manually on the UI.
 
 In the [Breeze environment](https://github.com/apache/airflow/blob/master/BREEZE.rst), the scheduler is started by running the command ``airflow scheduler``. It uses
 the configured production environment. The configuration can be specified in ``airflow.cfg``
@@ -127,12 +127,6 @@ Just like Operators, there are many predefined sensors in Airflow. These include
   - GoogleCloudStorageObjectSensor:  Checks for the existence of a file in Google Cloud Storage
 
 A list of most of the available sensors can be found in this [module](https://airflow.apache.org/docs/stable/_api/airflow/contrib/sensors/index.html?highlight=sensors#module-airflow.contrib.sensors)
-
-### Breeze Environment
-The breeze environment is the development environment for Airflow where you can run tests, build images,
-build documentations and so many other things. There are excellent
-[documentation and video](https://github.com/apache/airflow/blob/master/BREEZE.rst) on Breeze environment.
-Please check them out.
 
 ### Contributing to Airflow
 Airflow is an open source project, everyone is welcome to contribute. It is easy to get started thanks
