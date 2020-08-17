@@ -194,6 +194,16 @@ date: <date in YYYY-MM-DD format>
 ```
 Below frontmatter, put your blogpost content.
 
+### How to add a blog post with images
+
+In order to add a new blog post with images, you need to add it in sub-folder of the "blog" folder and
+name your markdown file "index.md". Images placed  in this folder can be referred to directly from
+the markdown file using this directive:
+
+```markdown
+![Alt text](image.png)
+```
+
 ### How to add a new case study
 
 To add a new case study with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
