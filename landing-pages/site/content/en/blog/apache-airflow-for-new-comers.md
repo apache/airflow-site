@@ -6,7 +6,7 @@ twitter: "ephraimbuddy"
 github: "ephraimbuddy"
 description: ""
 tags: [Community]
-date: "2020-07-16"
+date: "2020-08-17"
 draft: false
 ---
 
@@ -138,10 +138,8 @@ Please check them out.
 Airflow is an open source project, everyone is welcome to contribute. It is easy to get started thanks
 to the excellent [documentation on how to get started](https://github.com/apache/airflow/blob/master/CONTRIBUTING.rst).
 
-I joined the community about 8 weeks ago through the [Outreachy Program](https://www.outreachy.org/) and have
-completed about [30 PRs](https://github.com/apache/airflow/pulls/ephraimbuddy). How fast time flies! You can read
-[about me](https://ephraimbuddy.wordpress.com/2020/05/24/introduction/)
- and [how I got into](https://ephraimbuddy.wordpress.com/2020/05/06/experiences-applying-to-outreachy/) the Outreachy Program.
+I joined the community about 12 weeks ago through the [Outreachy Program](https://www.outreachy.org/) and have
+completed about [40 PRs](https://github.com/apache/airflow/pulls/ephraimbuddy).
 
 It has been an amazing experience! Thanks to my mentors [Jarek](https://github.com/potiuk) and
 [Kaxil](https://github.com/kaxil), and the community members especially [Kamil](https://github.com/mik-laj)
