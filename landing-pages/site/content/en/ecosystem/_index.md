@@ -37,7 +37,7 @@ Feel free to contribute any resources or tools that you find useful when learnin
 
 &nbsp;
 
-### Tools integrating with Airflow
+## Tools integrating with Airflow
 
 [Oozie to Airflow](https://github.com/GoogleCloudPlatform/oozie-to-airflow) - A tool to easily convert between Apache Oozie workflows and Apache Airflow workflows
 
