@@ -75,4 +75,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [gusty](https://github.com/chriscardillo/gusty) - Package that allows for the creation of DAGs using YAML files for each job in a DAG. Includes support for dependencies and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
 
-[airflow-diagrams](https://github.com/feluelle/airflow-diagrams) - Auto-generated Diagrams from Airflow DAGs.
+[airflow-diagrams](https://github.com/feluelle/airflow-diagrams) - Auto-generated Diagrams from Airflow DAGs
+
+[Qubole](https://qubole.com) - Managed Apache Airflow Service on all major public clouds
