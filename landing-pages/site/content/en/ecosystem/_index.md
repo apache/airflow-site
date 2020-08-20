@@ -41,15 +41,15 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 ## Tools integrating with Airflow
 
-[Oozie to Airflow](https://github.com/GoogleCloudPlatform/oozie-to-airflow) - A tool to easily convert between Apache Oozie workflows and Apache Airflow workflows
+[Oozie to Airflow](https://github.com/GoogleCloudPlatform/oozie-to-airflow) - A tool to easily convert between [Apache Oozie](http://oozie.apache.org/) workflows and Apache Airflow workflows.
 
-[CWL-Airflow](https://github.com/Barski-lab/cwl-airflow) - Python package to extend Apache-Airflow 1.10.11 functionality with CWL v1.2 support
+[CWL-Airflow](https://github.com/Barski-lab/cwl-airflow) - Python package to extend Apache-Airflow 1.10.11 functionality with CWL v1.2 support.
 
-[Databand](https://databand.ai/) - Observability platform built on top of Airflow
+[Databand](https://databand.ai/) - Observability platform built on top of Airflow.
 
-[Chartis](https://github.com/trejas/chartis) - Python package to convert Common Workflow Language (CWL) into Airflow DAG
+[Chartis](https://github.com/trejas/chartis) - Python package to convert Common Workflow Language (CWL) into Airflow DAG.
 
-[dbt (data build tool)](https://docs.getdbt.com/) - Data transformation tool, [dbt jobs can be scheduled using Airflow](https://docs.getdbt.com/docs/running-a-dbt-project/running-dbt-in-production/#using-airflow)
+[dbt (data build tool)](https://docs.getdbt.com/) - Data transformation tool, [dbt jobs can be scheduled using Airflow](https://docs.getdbt.com/docs/running-a-dbt-project/running-dbt-in-production/#using-airflow).
 
 [Airflow plugins](https://github.com/airflow-plugins/) - Central collection of repositories of various plugins for Airflow, including mailchimp, trello, sftp, GitHub, etc.
 
@@ -73,4 +73,4 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Ditto](https://github.com/angadsingh/airflow-ditto) - An extensible framework to do transformations to an Airflow DAG and convert it into another DAG which is flow-isomorphic with the original DAG, to be able to run it on different environments (e.g. on different clouds, or even different container frameworks - Apache Spark on YARN vs Kubernetes). Comes with out-of-the-box support for EMR-to-HDInsight-DAG transforms.
 
-[gusty](https://github.com/chriscardillo/gusty) - Package that allows for the creation of DAGs using YAML files for each job in a DAG. Includes support for dependencies and more. A fully containerized demo is available here.
+[gusty](https://github.com/chriscardillo/gusty) - Package that allows for the creation of DAGs using YAML files for each job in a DAG. Includes support for dependencies and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
