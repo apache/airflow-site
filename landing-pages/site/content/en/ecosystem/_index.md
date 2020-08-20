@@ -74,3 +74,5 @@ If you would you like to be included on this page, please reach out to the [Apac
 [Airflow Ditto](https://github.com/angadsingh/airflow-ditto) - An extensible framework to do transformations to an Airflow DAG and convert it into another DAG which is flow-isomorphic with the original DAG, to be able to run it on different environments (e.g. on different clouds, or even different container frameworks - Apache Spark on YARN vs Kubernetes). Comes with out-of-the-box support for EMR-to-HDInsight-DAG transforms.
 
 [gusty](https://github.com/chriscardillo/gusty) - Package that allows for the creation of DAGs using YAML files for each job in a DAG. Includes support for dependencies and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
+
+[airflow-diagrams](https://github.com/feluelle/airflow-diagrams) - Auto-generated Diagrams from Airflow DAGs.
