@@ -498,7 +498,7 @@ Git worktree does not work properly with repositories that have submodules. Ther
 
 You must have the software discussed in "Working with the project/Prerequisite tasks" and  "How to release new documentation" section installed.
 
-### Instrucction
+### Instruction
 
 It is necessary to configure 3 variables that point to directories with repositories and one that describe current Airflow version. The next steps will assume that these variables are available.
 ```bash
