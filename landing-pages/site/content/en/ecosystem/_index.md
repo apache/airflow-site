@@ -33,7 +33,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 ## Airflow-As-A-Service
 
-[Astronomer](https://www.astronomer.io/) - Managed Apache Airflow service on Astronomer Cloud
+[Astronomer](https://www.astronomer.io/) - Managed Apache Airflow in Astronomer Cloud, or self-hosted within your environment
 
 [Google Cloud Composer](https://cloud.google.com/composer) - Managed Apache Airflow service on Google Cloud Platform
 
