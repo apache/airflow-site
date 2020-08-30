@@ -7,7 +7,6 @@ linkedin: "omairkhan64"
 description: ""
 tags: [Community]
 date: "2020-08-15"
-draft: true
 ---
 
 [Outreachy](https://www.outreachy.org/) is a program which organises three months paid internships with FOSS
