@@ -54,7 +54,7 @@ that in mind.
 
 ### Wrapping Up
 So with my project of extending Airflow’s REST API as well as the Outreachy internship coming to an end I would like
-to thank my mentors [Jarek Poutik](https://github.com/potiuk), [Kaxil Naik](https://github.com/kaxil) and
+to thank my mentors [Jarek Potiuk](https://github.com/potiuk), [Kaxil Naik](https://github.com/kaxil) and
 [Kamil Breguła](https://github.com/mik-laj) for the patience and the time they invested in mentoring me and
 the Airflow community for making me feel so welcomed. I plan to stick around and contribute to give back to the
 community that has been made my summer, one to remember.
