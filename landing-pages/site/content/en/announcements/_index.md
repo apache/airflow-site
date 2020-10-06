@@ -13,6 +13,24 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# October 6, 2020
+
+We've just released Airflow Backport Provider Packages 2020.10.5.
+
+57 packages have been released.
+
+# August 25, 2020
+
+We've just released Airflow v1.10.12
+
+PyPI - https://pypi.org/project/apache-airflow/1.10.12/
+
+Docs - https://airflow.apache.org/docs/1.10.12/
+
+ChangeLog - https://airflow.apache.org/docs/1.10.12/changelog.html
+
+113 commits since 1.10.10 (5 New Features, 23 Improvements, 23 Bug Fixes, and 14 doc changes)
+
 
 # July 20, 2020
 
