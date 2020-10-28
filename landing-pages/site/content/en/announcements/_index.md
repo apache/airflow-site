@@ -13,6 +13,10 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# October 28, 2020
+
+Airflow PMC welcomes **Ryan Hamilton** ([@ryanahamilton](https://github.com/ryanahamilton)) as the new Airflow Committer.
+
 # October 6, 2020
 
 We've just released Airflow Backport Provider Packages 2020.10.5.
