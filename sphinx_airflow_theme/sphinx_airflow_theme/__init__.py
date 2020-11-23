@@ -30,7 +30,9 @@ def get_html_theme_path():
 
 def setup_my_func(app, pagename, templatename, context, doctree):
     context["navbar_links"] = app.config.sphinx_airflow_theme_navbar_links
-    context["hide_install_button"] = app.config.sphinx_airflow_theme_hide_install_button
+    context["hide_website_buttons"] = (
+        app.config.sphinx_airflow_theme_hide_website_buttons
+    )
 
 
 # See http://www.sphinx-doc.org/en/stable/theming.html#distribute-your-theme-as-a-python-package
@@ -43,7 +45,7 @@ def setup(app: Sphinx):
         rebuild='html'
     )
     app.add_config_value(
-        'sphinx_airflow_theme_hide_install_button',
+        'sphinx_airflow_theme_hide_website_buttons',
         default=False,
         rebuild='html',
         types=[bool]
