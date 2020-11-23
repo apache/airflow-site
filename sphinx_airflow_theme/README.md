@@ -20,25 +20,40 @@
 Sphinx theme for Airflow
 ========================
 
-Sphinx theme for Apache Airflow website.
+Sphinx theme for Apache Airflow documentation.
 
-# Getting started
+# Install from sources
 
 In order to start working with the theme, please follow the instructions below.
-1.  Make sure that your `python` shell command executes Python3 interpreter. If necessary, use a virtual environment:
 
-    `mkvirtualenv -p python3 <name_of_environment>`
+1.  Make sure your `python` shell command executes Python3 interpreter. If necessary, use a virtual environment:
+    ```
+    mkvirtualenv -p python3 <name_of_environment>
+    ```
 
 2.  To make Javascript and CSS code available for the theme, run the following command in the root directory:
-
-    `./site.sh build-site && ./site.sh prepare-theme`
+    ```
+    ./site.sh build-site && ./site.sh prepare-theme
+    ```
 
 3.  To install the required Python packages, in `<ROOT DIRECTORY>/sphinx_airflow_theme` run:
-
-    `pip install -e .`
+    ```
+    pip install -e .
+    ```
 
 4.  To launch the demo documentation page, in `<ROOT DIRECTORY>/sphinx_airflow_theme/demo` run:
-    `./docs.sh build && ./docs.sh preview`
+    ```
+    ./docs.sh build && ./docs.sh preview
+    ```
+
+# Install developer version
+
+To install the latest development version of a theme, run:
+```
+pip install 'https://github.com/apache/airflow-site/releases/download/v0.0.1/sphinx_airflow_theme-0.0.1-py3-none-any.whl'
+```
+Python packages for your PRs is available as downloadable artifact in GitHub Actions after
+the CI builds your PR.
 
 # Theme's source files
 
