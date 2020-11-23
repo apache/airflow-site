@@ -28,7 +28,7 @@ In order to start working with the theme, please follow the instructions below.
 
 1.  Make sure your `python` shell command executes Python3 interpreter. If necessary, use a virtual environment:
     ```
-    mkvirtualenv -p python3 <name_of_environment>`
+    mkvirtualenv -p python3 <name_of_environment>
     ```
 
 2.  To make Javascript and CSS code available for the theme, run the following command in the root directory:
@@ -43,7 +43,7 @@ In order to start working with the theme, please follow the instructions below.
 
 4.  To launch the demo documentation page, in `<ROOT DIRECTORY>/sphinx_airflow_theme/demo` run:
     ```
-    ./docs.sh build && ./docs.sh preview`
+    ./docs.sh build && ./docs.sh preview
     ```
 
 # Install developer version
