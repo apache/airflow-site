@@ -50,7 +50,7 @@ In order to start working with the theme, please follow the instructions below.
 
 To install the latest development version of a theme, run:
 ```
-pip install 'https://github.com/PolideaInternal/airflow-site/releases/download/v0.0.1/sphinx_airflow_theme-0.0.1-py3-none-any.whl'
+pip install 'https://github.com/apache/airflow-site/releases/download/v0.0.1/sphinx_airflow_theme-0.0.1-py3-none-any.whl'
 ```
 Python packages for your PRs is available as downloadable artifact in GitHub Actions after
 the CI builds your PR.
