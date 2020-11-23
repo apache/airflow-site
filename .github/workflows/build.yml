@@ -53,12 +53,12 @@ jobs:
           echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
           find ./dist/
       - uses: actions/upload-artifact@v2
-        name: Upload documentation as artifact
+        name: Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
         with:
           name: airflow-website
           path: './dist'
-      - name: Deploy documentation on asf-site branch
+      - name: Deploy website on asf-site branch
         uses: s0/git-publish-subdir-action@develop
         if: ${{ github.event_name == 'push' }}
         env:
@@ -66,3 +66,45 @@ jobs:
           BRANCH: asf-site
           FOLDER: dist
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Copy files from site to theme
+        run: ./site.sh prepare-theme
+      - name: Prepare sphinx_airflow_theme package
+        working-directory: sphinx_airflow_theme
+        run: |
+          python3 -m pip install --user --upgrade setuptools wheel
+          python3 setup.py sdist bdist_wheel
+      - uses: actions/upload-artifact@v2
+        name: Upload sphinx_airflow_theme package as artifact
+        with:
+          name: airflow-sphinx-theme
+          path: './sphinx_airflow_theme/dist'
+      - name: Build theme demo
+        working-directory: sphinx_airflow_theme
+        run: |
+          pip install ./dist/sphinx_airflow_theme-*.whl
+          cd demo
+          ./docs.sh build
+      - uses: actions/upload-artifact@v2
+        name: Upload sphinx_airflow_theme demo as artifact
+        with:
+          name: airflow-sphinx-theme-demo
+          path: './sphinx_airflow_theme/demo/_build/html'
+      - name: Create releases on GitHub
+        working-directory: sphinx_airflow_theme
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_COMMIT: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+        if: >
+          github.ref == 'refs/heads/master' && github.repository == 'apache/airflow-site' &&
+          github.event_name == 'push'
+        run: |
+          gh auth status
+          gh release delete v0.0.1 -y || true
+          NOTES="Commit: ${GITHUB_COMMIT}
+          Source: ${GITHUB_REF}"
+
+          gh release create v0.0.1 \
+            --title "Latest version" \
+            --notes "${NOTES}" \
+            ./dist/*
