@@ -41,7 +41,12 @@ EOF
 function ensure_that_documentation_is_built {
     if [[ ! -f _build/html/index.html ]] ; then
         echo "Documentation is not built. Start build."
-        sphinx-build -M html "${SOURCE_DIR}" "${BUILD_DIR}" -E
+        # -E  don't use a saved environment, always read all files
+        # -T  show full traceback on exception
+        sphinx-build \
+            -E \
+            -T \
+            "${SOURCE_DIR}" "${BUILD_DIR}"
     fi
 }
 
