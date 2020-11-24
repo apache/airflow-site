@@ -61,7 +61,7 @@ A theme that supports the following configuration options:
 
 ## `sphinx_airflow_theme_navbar_links`
 
-The list of links that should be available in the navigation bar at the top of the pages.
+The list of links that should be available in the navigation bar at the top of the pages. The order of items will not be changed.
 
 **Example values:**
 ```
