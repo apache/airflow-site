@@ -52,5 +52,5 @@ def setup(app: Sphinx):
     )
 
     app.add_html_theme('sphinx_airflow_theme', path.abspath(path.dirname(__file__)))
-    app.add_stylesheet('_gen/css//main-custom.min.css')
+    app.add_stylesheet('_gen/css/main-custom.min.css')
     app.connect("html-page-context", setup_my_func)
