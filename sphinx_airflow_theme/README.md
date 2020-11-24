@@ -55,6 +55,29 @@ pip install 'https://github.com/apache/airflow-site/releases/download/v0.0.1/sph
 Python packages for your PRs is available as downloadable artifact in GitHub Actions after
 the CI builds your PR.
 
+# Configuration
+
+A theme that supports the following configuration options:
+
+## `sphinx_airflow_theme_navbar_links`
+
+The list of links that should be available in the navigation bar at the top of the pages. The order of items will not be changed.
+
+**Example values:**
+```
+[
+    {'href': '/docs/', 'text': 'Documentation'}
+]
+```
+
+## `sphinx_airflow_theme_hide_website_buttons`
+If ``True``, all links on the same domain but not pointing to this theme's page (e.g. `/community/`) will be hidden.
+
+**Example values:**
+```
+False
+```
+
 # Theme's source files
 
  - `<ROOT DIRECTORY>/sphinx_airflow_theme/sphinx_airflow_theme` - HTML files
