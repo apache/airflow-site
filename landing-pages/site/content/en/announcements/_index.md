@@ -13,6 +13,16 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# November 25, 2020
+
+We've just released Apache Airflow 1.10.13
+
+PyPI: https://pypi.org/project/apache-airflow/1.10.13
+Docs: https://airflow.readthedocs.io/en/1.10.13/
+Changelog: https://airflow.readthedocs.io/en/1.10.13/changelog.html
+
+405 commits since 1.10.12 (6 New Features, 31 Improvements, 30 Bug Fixes, and tons of doc changes and internal changes)
+
 # November 2, 2020
 
 We've just released Airflow Backport Provider Packages 2020.10.5.
