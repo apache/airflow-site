@@ -262,7 +262,7 @@ function build_site {
         version="$(basename -- "${doc_path}")"
         verbose_copy "${doc_path}" "dist/docs/${version}/"
     done
-    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)" "dist/docs/stable/"
+    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/" "dist/docs/stable/"
     create_index dist/docs
 }
 
