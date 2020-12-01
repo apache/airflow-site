@@ -21,7 +21,7 @@ from setuptools import setup
 REQUIRED_ADDITIONAL_FILES=[
     "sphinx_airflow_theme/static/_gen/css/main.min.css",
     "sphinx_airflow_theme/static/_gen/css/main-custom.min.css",
-    "sphinx_airflow_theme/static/_gen/js/docs.js"""
+    "sphinx_airflow_theme/static/_gen/js/docs.js"
 ]
 missing_files = [
     f
