@@ -101,7 +101,7 @@ function ensure_container_running {
 }
 
 function ensure_node_module_exists {
-    log "Check if node module exists"
+    log "Checking if node module exists"
     if [[ ! -d landing-pages/node_modules/ ]] ; then
         log "Missing node dependencies. Start installation."
         run_command "/opt/site/landing-pages/" yarn install
