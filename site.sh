@@ -16,7 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-set -euo pipefail
+set -euox pipefail
 
 WORKING_DIR="$(pwd)"
 MY_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -24,12 +24,6 @@ pushd "${MY_DIR}" &>/dev/null || exit 1
 
 IMAGE_NAME=airflow-site
 CONTAINER_NAME=airflow-site-c
-
-function log {
-    GRAY='\033[1;30m'
-    NC='\033[0m' # No Color
-    echo -e "${GRAY}$(date +'%Y-%m-%d %H:%M:%S'):INFO: ${*} ${NC}" >&2;
-}
 
 function usage {
 cat << EOF
@@ -68,17 +62,15 @@ EOF
 }
 
 function ensure_image_exists {
-    log "Checking if image exists: ${IMAGE_NAME}"
     if [[ ! $(docker images "${IMAGE_NAME}" -q) ]]; then
-        log "Image not exists."
+        echo "Image not exists."
         build_image
     fi
 }
 
 function ensure_container_exists {
-    log "Checking if container exists: ${CONTAINER_NAME}"
     if [[ ! $(docker container ls -a --filter="Name=${CONTAINER_NAME}" -q ) ]]; then
-        log "Container not exists"
+        echo "Container not exists"
         docker run \
             --detach \
             --name "${CONTAINER_NAME}" \
@@ -91,41 +83,37 @@ function ensure_container_exists {
 }
 
 function ensure_container_running {
-    log "Checking if container running: ${CONTAINER_NAME}"
     container_status="$(docker inspect "${CONTAINER_NAME}" --format '{{.State.Status}}')"
-    log "Current container status: ${container_status}"
+    echo "Current container status: ${container_status}"
     if [[ ! "${container_status}" == "running" ]]; then
-        log "Container not running. Starting the container."
+        echo "Container not running. Starting the container."
         docker start "${CONTAINER_NAME}"
     fi
 }
 
 function ensure_node_module_exists {
-    log "Checking if node module exists"
     if [[ ! -d landing-pages/node_modules/ ]] ; then
-        log "Missing node dependencies. Start installation."
+        echo "Missing node dependencies. Start installation."
         run_command "/opt/site/landing-pages/" yarn install
-        log "Dependencies installed."
+        echo "Dependencies installed."
     fi
 }
 
 function ensure_that_website_is_build {
-    log "Check if landing-pages/dist/index.html file exists"
     if [[ ! -f landing-pages/dist/index.html ]] ; then
-        log "The website is not built. Start building."
+        echo "The website is not built. Start building."
         run_command "/opt/site/landing-pages/" npm run build
-        log "The website builded."
+        echo "The website builded."
     fi
 }
 
 function build_image {
-    log "Start building image"
+    echo "Start building image"
     docker build -t airflow-site .
-    log "End building image"
+    echo "End building image"
 }
 
 function run_command {
-    log "Running command: $*"
     working_directory=$1
     shift
     if [[ -f /.dockerenv ]] ; then
@@ -148,7 +136,6 @@ function run_command {
 }
 
 function prepare_environment {
-    log "Preparing environment"
     if [[ ! -f /.dockerenv ]] ; then
         ensure_image_exists
         ensure_container_exists
@@ -215,22 +202,30 @@ function run_lint {
 }
 
 function prepare_docs_index {
-    log "Preparing docs index"
     run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-index.json
 }
 
 function build_landing_pages {
-    log "Building landing pages"
     run_command "/opt/site/landing-pages/" npm run index
     prepare_docs_index
     run_command "/opt/site/landing-pages/" npm run build
 }
 
-function create_index {
-    output_path="$1/index.html"
-    log "Creating index: ${output_path}"
-
-    cat > "${output_path}" << EOF
+function build_site {
+    if [[ ! -f "landing-pages/dist/index.html" ]]; then
+        build_landing_pages
+    fi
+    mkdir -p dist
+    rm -rf dist/*
+    cp -R landing-pages/dist/. dist/
+    mkdir -p dist/docs/
+    rm -rf dist/docs/*
+    for doc_path in docs-archive/*/ ; do
+        version="$(basename -- "${doc_path}")"
+        cp -R "${doc_path}" "dist/docs/${version}/"
+    done
+    cp -R "docs-archive/$(cat docs-archive/stable.txt)" "dist/docs/stable/"
+    cat > dist/docs/index.html << EOF
 <!DOCTYPE html>
 <html>
    <head><meta http-equiv="refresh" content="1; url=stable/" /></head>
@@ -239,55 +234,27 @@ function create_index {
 EOF
 }
 
-function verbose_copy {
-    source="$1"
-    target="$2"
-    log "Copying '$source' to '$target'"
-    mkdir -p "${target}"
-    cp -R "$source" "$target"
-}
-
-function build_site {
-    log "Building full site"
-
-    if [[ ! -f "landing-pages/dist/index.html" ]]; then
-        build_landing_pages
-    fi
-    mkdir -p dist
-    rm -rf dist/*
-    verbose_copy landing-pages/dist/. dist/
-    mkdir -p dist/docs/
-    rm -rf dist/docs/*
-    for doc_path in docs-archive/*/ ; do
-        version="$(basename -- "${doc_path}")"
-        verbose_copy "${doc_path}" "dist/docs/${version}/"
-    done
-    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/" "dist/docs/stable/"
-    create_index dist/docs
-}
-
 
 function cleanup_environment {
     container_status="$(docker inspect "${CONTAINER_NAME}" --format '{{.State.Status}}')"
-    log "Current container status: ${container_status}"
+    echo "Current container status: ${container_status}"
     if [[ "${container_status}" == "running" ]]; then
-        log "Container running. Killing the container."
+        echo "Container running. Killing the container."
         docker kill "${CONTAINER_NAME}"
     fi
 
     if [[ $(docker container ls -a --filter="Name=${CONTAINER_NAME}" -q ) ]]; then
-        log "Container exists. Removing the container."
+        echo "Container exists. Removing the container."
         docker rm "${CONTAINER_NAME}"
     fi
 
     if [[ $(docker images "${IMAGE_NAME}" -q) ]]; then
-        log "Images exists. Deleting the image."
+        echo "Images exists. Deleeting the image."
         docker rmi "${IMAGE_NAME}"
     fi
 }
 
 function prepare_theme {
-    log "Preparing theme files"
     SITE_DIST="landing-pages/dist"
     THEME_GEN="sphinx_airflow_theme/sphinx_airflow_theme/static/_gen"
     mkdir -p "${THEME_GEN}/css" "${THEME_GEN}/js"
