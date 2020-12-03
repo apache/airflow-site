@@ -26,9 +26,7 @@ IMAGE_NAME=airflow-site
 CONTAINER_NAME=airflow-site-c
 
 function log {
-    GRAY='\033[1;30m'
-    NC='\033[0m' # No Color
-    echo -e "${GRAY}$(date +'%Y-%m-%d %H:%M:%S'):INFO: ${*} ${NC}" >&2;
+    echo -e "$(date +'%Y-%m-%d %H:%M:%S'):INFO: ${*} " >&2;
 }
 
 function usage {
@@ -247,6 +245,14 @@ function verbose_copy {
     cp -R "$source" "$target"
 }
 
+function assert_file_exists {
+    file_path="$1"
+    if [[ ! -f "${file_path}" ]]; then
+        echo "Missing file: ${file_path}":
+        exit 1
+    fi
+}
+
 function build_site {
     log "Building full site"
 
@@ -260,10 +266,15 @@ function build_site {
     rm -rf dist/docs/*
     for doc_path in docs-archive/*/ ; do
         version="$(basename -- "${doc_path}")"
-        verbose_copy "${doc_path}" "dist/docs/${version}/"
+        verbose_copy "docs-archive/${version}/." "dist/docs/${version}"
     done
-    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/" "dist/docs/stable/"
+    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/." "dist/docs/stable"
     create_index dist/docs
+
+    # Sanity checks
+    assert_file_exists dist/docs/1.10.7/tutorial.html
+    assert_file_exists dist/docs/stable/tutorial.html
+    assert_file_exists dist/docs/index.html
 }
 
 
