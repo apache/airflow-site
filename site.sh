@@ -212,26 +212,27 @@ function run_lint {
     run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
 }
 
-function prepare_docs_index {
-    log "Preparing docs index"
-    run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-index.json
+function prepare_packages_metadata {
+    log "Preparing packages-metadata.json"
+    python dump-docs-packages-metadata.py > "landing-pages/site/static/_gen/packages-metadata.json"
 }
 
 function build_landing_pages {
     log "Building landing pages"
     run_command "/opt/site/landing-pages/" npm run index
-    prepare_docs_index
+    prepare_packages_metadata
     run_command "/opt/site/landing-pages/" npm run build
 }
 
-function create_index {
-    output_path="$1/index.html"
-    log "Creating index: ${output_path}"
+function create_redirect {
+    output_file="$1"
+    target_location="$2"
+    log "Creating redirect: ${output_file} => ${target_location}"
 
-    cat > "${output_path}" << EOF
+    cat > "${output_file}" <<EOF
 <!DOCTYPE html>
 <html>
-   <head><meta http-equiv="refresh" content="1; url=stable/" /></head>
+   <head><meta http-equiv="refresh" content="1; url=${target_location}" /></head>
    <body></body>
 </html>
 EOF
@@ -262,21 +263,30 @@ function build_site {
     mkdir -p dist
     rm -rf dist/*
     verbose_copy landing-pages/dist/. dist/
-    mkdir -p dist/docs/
-    rm -rf dist/docs/*
+    rm -rf dist/docs/* || true
+    mkdir -p dist/docs/apache-airflow/
     for doc_path in docs-archive/*/ ; do
         version="$(basename -- "${doc_path}")"
-        verbose_copy "docs-archive/${version}/." "dist/docs/${version}"
+        verbose_copy "docs-archive/${version}/." "dist/docs/apache-airflow/${version}"
     done
-    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/." "dist/docs/stable"
-    create_index dist/docs
+    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/." "dist/docs/apache-airflow/stable"
+    # TODO(mik-laj): For Airflow 1.10, we have one package so we don't need a separate index.
+    #     For Airflow 2.0, we need a separate index, because we also have a provider packages.
+    create_redirect "dist/docs/index.html" "/docs/apache-airflow/stable/index.html"
+    create_redirect "dist/docs/apache-airflow/index.html" "/docs/apache-airflow/stable/index.html"
+
+    # This file may already have been created when building landing pages,
+    # but when building a full site, it's worth regenerate
+    log "Preparing packages-metadata.json"
+    python dump-docs-packages-metadata.py > "dist/_gen/packages-metadata.json"
 
     # Sanity checks
-    assert_file_exists dist/docs/1.10.7/tutorial.html
-    assert_file_exists dist/docs/stable/tutorial.html
     assert_file_exists dist/docs/index.html
+    assert_file_exists dist/docs/apache-airflow/index.html
+    assert_file_exists dist/docs/apache-airflow/1.10.7/tutorial.html
+    assert_file_exists dist/docs/apache-airflow/stable/tutorial.html
+    assert_file_exists dist/_gen/packages-metadata.json
 }
-
 
 function cleanup_environment {
     container_status="$(docker inspect "${CONTAINER_NAME}" --format '{{.State.Status}}')"
@@ -345,7 +355,7 @@ if [[ "${CMD}" == "install-node-deps" ]] ; then
 elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run index
-    prepare_docs_index
+    prepare_packages_metadata
     run_command "/opt/site/landing-pages/" npm run preview
 elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
