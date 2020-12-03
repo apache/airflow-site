@@ -38,7 +38,7 @@ const updateVersionSelector = (versionSelector, packageAllVersions, stableVersio
 
   const appendNewVersionLink = (targetVersion, label) => {
     const newElement = templateElement.cloneNode(true);
-    const newDocsLink = `/docs/${targetVersion}/${currentPackageName}/${pagePath}`;
+    const newDocsLink = `/docs/${currentPackageName}/${targetVersion}/${pagePath}`;
     newElement.setAttribute("href", newDocsLink);
     newElement.innerText = label;
     dropdownMenu.appendChild(newElement);
