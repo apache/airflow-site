@@ -265,15 +265,19 @@ function build_site {
     verbose_copy landing-pages/dist/. dist/
     rm -rf dist/docs/* || true
     mkdir -p dist/docs/apache-airflow/
-    for doc_path in docs-archive/*/ ; do
-        version="$(basename -- "${doc_path}")"
-        verbose_copy "docs-archive/${version}/." "dist/docs/apache-airflow/${version}"
+    for pkg_path in docs-archive/*/ ; do
+        package_name="$(basename -- "${pkg_path}")"
+        for ver_path in "docs-archive/${package_name}"/*/ ; do
+            version="$(basename -- "${ver_path}")"
+            verbose_copy "docs-archive/${package_name}/${version}/." "dist/docs/${package_name}/${version}"
+        done
+        stable_version="$(cat "docs-archive/${package_name}/stable.txt")"
+        verbose_copy "docs-archive/${package_name}/${stable_version}/." "dist/docs/${package_name}/stable"
+        create_redirect "dist/docs/${package_name}/index.html" "/docs/${package_name}/stable/index.html"
     done
-    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/." "dist/docs/apache-airflow/stable"
     # TODO(mik-laj): For Airflow 1.10, we have one package so we don't need a separate index.
     #     For Airflow 2.0, we need a separate index, because we also have a provider packages.
     create_redirect "dist/docs/index.html" "/docs/apache-airflow/stable/index.html"
-    create_redirect "dist/docs/apache-airflow/index.html" "/docs/apache-airflow/stable/index.html"
 
     # This file may already have been created when building landing pages,
     # but when building a full site, it's worth regenerate
