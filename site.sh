@@ -212,15 +212,15 @@ function run_lint {
     run_command "${script_working_directory}" "${command}" "${DOCKER_PATHS[@]}"
 }
 
-function prepare_docs_index {
-    log "Preparing docs index"
-    run_command "/opt/site/docs-archive/" ./show_docs_index_json.sh > landing-pages/site/static/_gen/docs-index.json
+function prepare_packages_metadata {
+    log "Preparing dist/_gen/packages-metadata.json"
+    python dump-docs-packages-metadata.py > "dist/_gen/packages-metadata.json"
 }
 
 function build_landing_pages {
     log "Building landing pages"
     run_command "/opt/site/landing-pages/" npm run index
-    prepare_docs_index
+    prepare_packages_metadata
     run_command "/opt/site/landing-pages/" npm run build
 }
 
@@ -275,14 +275,14 @@ function build_site {
     create_redirect "dist/docs/index.html" "/docs/apache-airflow/stable/index.html"
     create_redirect "dist/docs/apache-airflow/index.html" "/docs/apache-airflow/stable/index.html"
 
-    log "Preparing dist/_gen/packages-metadata.json"
-    python dump-docs-packages-metadata.py > "dist/_gen/packages-metadata.json"
+    prepare_packages_metadata
 
     # Sanity checks
     assert_file_exists dist/docs/index.html
     assert_file_exists dist/docs/apache-airflow/index.html
     assert_file_exists dist/docs/apache-airflow/1.10.7/tutorial.html
     assert_file_exists dist/docs/apache-airflow/stable/tutorial.html
+    assert_file_exists dist/_gen/packages-metadata.json
 }
 
 function cleanup_environment {
@@ -352,7 +352,7 @@ if [[ "${CMD}" == "install-node-deps" ]] ; then
 elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
     run_command "/opt/site/landing-pages/" npm run index
-    prepare_docs_index
+    prepare_packages_metadata
     run_command "/opt/site/landing-pages/" npm run preview
 elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
