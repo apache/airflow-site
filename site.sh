@@ -269,14 +269,14 @@ function build_site {
         version="$(basename -- "${doc_path}")"
         verbose_copy "docs-archive/${version}/." "dist/docs/apache-airflow/${version}"
     done
-    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/." "dist/docs/stable"
+    verbose_copy "docs-archive/$(cat docs-archive/stable.txt)/." "dist/docs/apache-airflow/stable"
     # TODO(mik-laj): For Airflow 1.10, we have one package so we don't need a separate index.
     #     For Airflow 2.0, we need a separate index, because we also have a provider packages.
     create_redirect "dist/docs/index.html" "/docs/apache-airflow/stable/index.html"
     create_redirect "dist/docs/apache-airflow/index.html" "/docs/apache-airflow/stable/index.html"
 
     log "Preparing dist/_gen/packages-metadata.json"
-    python dump-docs-package-metadata.py > "dist/_gen/packages-metadata.json"
+    python dump-docs-packages-metadata.py > "dist/_gen/packages-metadata.json"
 
     # Sanity checks
     assert_file_exists dist/docs/index.html
