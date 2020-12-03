@@ -213,8 +213,8 @@ function run_lint {
 }
 
 function prepare_packages_metadata {
-    log "Preparing dist/_gen/packages-metadata.json"
-    python dump-docs-packages-metadata.py > "dist/_gen/packages-metadata.json"
+    log "Preparing packages-metadata.json"
+    python dump-docs-packages-metadata.py > "landing-pages/site/static/_gen/packages-metadata.json"
 }
 
 function build_landing_pages {
@@ -275,7 +275,10 @@ function build_site {
     create_redirect "dist/docs/index.html" "/docs/apache-airflow/stable/index.html"
     create_redirect "dist/docs/apache-airflow/index.html" "/docs/apache-airflow/stable/index.html"
 
-    prepare_packages_metadata
+    # This file may already have been created when building landing pages,
+    # but when building a full site, it's worth regenerate
+    log "Preparing packages-metadata.json"
+    python dump-docs-packages-metadata.py > "dist/_gen/packages-metadata.json"
 
     # Sanity checks
     assert_file_exists dist/docs/index.html
