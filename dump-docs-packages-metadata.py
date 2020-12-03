@@ -25,10 +25,12 @@ def get_stable_version(directory: str):
 def dump_docs_package_metadata():
     all_packages_infos = [
         {
-            "package-name": "apache-airflow",
-            "stable-version": get_stable_version(APACHE_AIRFLOW_ARCHIVE),
-            "all-versions": get_all_versions(APACHE_AIRFLOW_ARCHIVE),
+            "package-name": package_name,
+            "stable-version": get_stable_version(os.path.join(APACHE_AIRFLOW_ARCHIVE, package_name)),
+            "all-versions": get_all_versions(os.path.join(APACHE_AIRFLOW_ARCHIVE, package_name)),
         }
+        for package_name in os.listdir(APACHE_AIRFLOW_ARCHIVE)
+        if not package_name.startswith(".")  # Exclude .DS_Store/
     ]
 
     json.dump(all_packages_infos, sys.stdout, indent=2)
