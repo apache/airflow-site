@@ -23,7 +23,8 @@ MY_DIR="$(cd "$(dirname "$0")" && pwd)"
 pushd "${MY_DIR}" &>/dev/null || exit 1
 
 SOURCE_DIR="."
-BUILD_DIR="_build"
+BUILD_DIR="${MY_DIR}/_build"
+RELEASE_VERSION="2.0.0"
 
 function usage {
 cat << EOF
@@ -38,23 +39,28 @@ These are  ${0} commands used in various situations:
 EOF
 }
 
+function build_sphinx_demo {
+    echo "Starting build documentation"
+    # -E  don't use a saved environment, always read all files
+    # -T  show full traceback on exception
+    # -d  path for the cached environment and doctree files
+    sphinx-build \
+        -E \
+        -T \
+        -d "_doctrees" \
+        "${SOURCE_DIR}" "${BUILD_DIR}/docs/apache-airflow/${RELEASE_VERSION}"
+}
+
 function ensure_that_documentation_is_built {
-    if [[ ! -f _build/html/index.html ]] ; then
-        echo "Documentation is not built. Start build."
-        # -E  don't use a saved environment, always read all files
-        # -T  show full traceback on exception
-        sphinx-build \
-            -E \
-            -T \
-            "${SOURCE_DIR}" "${BUILD_DIR}"
+    if [[ ! -f "_build/docs/apache-airflow/${RELEASE_VERSION}/index.html" ]] ; then
+        echo "Documentation is not built."
+        build_sphinx_demo
     fi
 }
 
 function start_preview {
     ensure_that_documentation_is_built
-    pushd "${BUILD_DIR}/html"
-    python -m http.server --cgi 3001
-    popd
+    (cd "${BUILD_DIR}/"; python -m http.server --cgi 3001)
 }
 
 if [[ "$#" -eq 0 ]]; then
@@ -71,7 +77,10 @@ shift
 
 # Check fundamentals commands
 if [[ "${CMD}" == "build" ]] ; then
-    sphinx-build -M html "." "_build" -E
+    rm -rf _build
+    build_sphinx_demo
+    mkdir -p _build/_gen/
+    (cd ../../; python dump-docs-packages-metadata.py > "${BUILD_DIR}/_gen/packages-metadata.json")
     exit 0
 elif [[ "${CMD}" == "preview" ]] ; then
     start_preview
