@@ -57,25 +57,31 @@ the CI builds your PR.
 
 # Configuration
 
-A theme that supports the following configuration options:
+A theme that supports the following configuration options under the `html_theme_options` dict in your projects `conf.py`:
 
-## `sphinx_airflow_theme_navbar_links`
+## `navbar_links`
 
 The list of links that should be available in the navigation bar at the top of the pages. The order of items will not be changed.
 
 **Example values:**
-```
-[
-    {'href': '/docs/', 'text': 'Documentation'}
-]
+```python
+html_theme_options = {
+    'navbar_links': [
+        {'href': '/docs/', 'text': 'Documentation'}
+    ]
 ```
 
-## `sphinx_airflow_theme_hide_website_buttons`
+(This is the default)
+
+## `hide_website_buttons`
+
 If ``True``, all links on the same domain but not pointing to this theme's page (e.g. `/community/`) will be hidden.
 
 **Example values:**
-```
-False
+```python
+html_theme_options = {
+  'hide_website_buttons': False,
+}
 ```
 
 # Theme's source files

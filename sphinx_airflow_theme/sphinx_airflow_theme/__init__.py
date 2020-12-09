@@ -28,29 +28,13 @@ def get_html_theme_path():
     return cur_dir
 
 
-def setup_my_func(app, pagename, templatename, context, doctree):
-    context["navbar_links"] = app.config.sphinx_airflow_theme_navbar_links
-    context["hide_website_buttons"] = (
-        app.config.sphinx_airflow_theme_hide_website_buttons
-    )
+def setup_my_func(app, config):
+    # We can't set this in the theme.conf, cos we want it to be a non-string type
+    config.html_theme_options.setdefault('navbar_links', [{'href': '/index.html', 'text': 'Documentation'}])
 
 
 # See http://www.sphinx-doc.org/en/stable/theming.html#distribute-your-theme-as-a-python-package
 def setup(app: Sphinx):
-    app.add_config_value(
-        'sphinx_airflow_theme_navbar_links',
-        default=[
-            {'href': '/docs/', 'text': 'Documentation'}
-        ],
-        rebuild='html'
-    )
-    app.add_config_value(
-        'sphinx_airflow_theme_hide_website_buttons',
-        default=False,
-        rebuild='html',
-        types=[bool]
-    )
-
     app.add_html_theme('sphinx_airflow_theme', path.abspath(path.dirname(__file__)))
     app.add_stylesheet('_gen/css/main-custom.min.css')
-    app.connect("html-page-context", setup_my_func)
+    app.connect("config-inited", setup_my_func)
