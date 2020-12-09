@@ -84,6 +84,11 @@ html_theme_options = {
 }
 ```
 
+## `sidebar_collapse`
+## `sidebar_includehidden`
+
+Controls the ToC display in the sidebar. See https://www.sphinx-doc.org/en/master/templating.html#toctree for more info
+
 # Theme's source files
 
  - `<ROOT DIRECTORY>/sphinx_airflow_theme/sphinx_airflow_theme` - HTML files
