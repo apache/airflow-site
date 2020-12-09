@@ -39,6 +39,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Qubole](https://qubole.com) - Managed Apache Airflow Service on all major public clouds
 
+[Amazon Managed Workflows for Apache Airflow](https://aws.amazon.com/managed-workflows-for-apache-airflow) - Managed Apache Airflow on Amazon Web Services (AWS)
+
 &nbsp;
 
 ## Tools integrating with Airflow
