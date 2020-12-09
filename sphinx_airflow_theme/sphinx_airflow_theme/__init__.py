@@ -18,7 +18,7 @@
 from os import path
 from sphinx.application import Sphinx
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __version_full__ = __version__
 
 
