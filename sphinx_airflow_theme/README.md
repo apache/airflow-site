@@ -32,25 +32,26 @@ In order to start working with the theme, please follow the instructions below.
     ```
 
 2.  To make Javascript and CSS code available for the theme, run the following command in the root directory:
-    ```
+    ```shell script
     ./site.sh build-site && ./site.sh prepare-theme
     ```
 
 3.  To install the required Python packages, in `<ROOT DIRECTORY>/sphinx_airflow_theme` run:
-    ```
+    ```shell script
     pip install -e .
     ```
 
 4.  To launch the demo documentation page, in `<ROOT DIRECTORY>/sphinx_airflow_theme/demo` run:
-    ```
+    ```shell script
     ./docs.sh build && ./docs.sh preview
     ```
 
 # Install developer version
 
 To install the latest development version of a theme, run:
-```
-pip install 'https://github.com/apache/airflow-site/releases/download/v0.0.3/sphinx_airflow_theme-0.0.3-py3-none-any.whl'
+```shell script
+THEME_VERSION="$(curl -s https://api.github.com/repos/apache/airflow-site/releases/latest | grep '"tag_name":' | cut -d '"' -f 4)"
+pip install "https://github.com/apache/airflow-site/releases/download/${THEME_VERSION}/sphinx_airflow_theme-${THEME_VERSION}-py3-none-any.whl"
 ```
 Python packages for your PRs is available as downloadable artifact in GitHub Actions after
 the CI builds your PR.
@@ -69,6 +70,7 @@ html_theme_options = {
     'navbar_links': [
         {'href': '/docs/', 'text': 'Documentation'}
     ]
+}
 ```
 
 (This is the default)
