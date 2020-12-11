@@ -108,11 +108,13 @@ jobs:
           github.event_name == 'push'
         run: |
           gh auth status
-          gh release delete v0.0.3 -y || true
+          VERSION="$(cat setup.py | grep 'version=' | cut -d "'" -f 2)"
+          TITLE=$(date "+%Y-%m-%d %H:%M:%S")
           NOTES="Commit: ${GITHUB_COMMIT}
           Source: ${GITHUB_REF}"
 
-          gh release create v0.0.3 \
-            --title "Latest version" \
+          gh release delete "${VERSION}" -y || true
+          gh release create "${VERSION}" \
+            --title "${TITLE}" \
             --notes "${NOTES}" \
             ./dist/*
