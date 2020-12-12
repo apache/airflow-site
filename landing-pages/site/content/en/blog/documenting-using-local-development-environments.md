@@ -14,7 +14,7 @@ date: 2019-11-22
 From Sept to November, 2019 I have been participating in a wonderful initiative, [Google Season of Docs](https://developers.google.com/season-of-docs).
 
 I had a pleasure to contribute to the Apache Airflow open source project as a technical writer.
-My initial assignment was an extension to the github-based Contribution guide.
+My initial assignment was an extension to the GitHub-based Contribution guide.
 
 From the very first days I have been pretty closely involved into inter-project communications
 via emails/slack and had regular 1:1s with my mentor, Jarek Potiuk.

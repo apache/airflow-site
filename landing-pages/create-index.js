@@ -27,7 +27,7 @@ const parse = promisify(frontMatterParser.parse.bind(frontMatterParser));
 const lunrjs = require("lunr");
 
 const contentDirectory = `${__dirname}/site/content`;
-const outputtDirectory = `${__dirname}/site/static/_gen/indexes`;
+const outputDirectory = `${__dirname}/site/static/_gen/indexes`;
 
 
 async function isDirectoryExists(dirPath) {
@@ -87,7 +87,7 @@ async function writeJson(filePath, index) {
 }
 
 async function processLanguage(language) {
-  console.log(`Proccessing "${language}" language.`);
+  console.log(`Processing "${language}" language.`);
   const currentDirectory = `${contentDirectory}/${language}/blog`;
   if (!await isDirectoryExists(currentDirectory)) {
     console.log("No blog posts. Skipping.");
@@ -95,7 +95,7 @@ async function processLanguage(language) {
   }
   const posts = await loadPostsWithFrontMatter(currentDirectory);
   const index = makeIndex(posts);
-  const currentOutputDirectory = `${outputtDirectory}/${language}`;
+  const currentOutputDirectory = `${outputDirectory}/${language}`;
   if (!await isDirectoryExists(currentOutputDirectory)) {
     await fs.mkdir(currentOutputDirectory);
   }
