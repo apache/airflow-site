@@ -38,7 +38,7 @@ function handleIntegration() {
   const moreButton = root.querySelector("#show-more-integration");
 
   let currentPage = 1;
-  let currentQeury = "";
+  let currentQuery = "";
   const maxItemsOnPage = window.innerWidth < 1920 ? 8 : 10;
 
   function setIndicatorVisibility(visible) {
@@ -141,8 +141,8 @@ function handleIntegration() {
   }
 
   function setSearchQuery(keyword) {
-    currentQeury = keyword;
-    showItems(currentQeury, currentPage);
+    currentQuery = keyword;
+    showItems(currentQuery, currentPage);
   }
 
   searchBox.addEventListener("keyup", debounce(function() {
