@@ -176,12 +176,12 @@ and get the following error in the Scheduler logs:
 
 This error occurs because of added security to restrict multiprocessing & multithreading in Mac OS High Sierra and above.
 
-### We have moved to Github Issues
+### We have moved to GitHub Issues
 
 The Airflow Project has moved from [JIRA](https://issues.apache.org/jira/projects/AIRFLOW/issues) to
-[Github](https://github.com/apache/airflow/issues) for tracking issues.
+[GitHub](https://github.com/apache/airflow/issues) for tracking issues.
 
-So if you find any bugs in Airflow 1.10.10 please create a Github Issue for it.
+So if you find any bugs in Airflow 1.10.10 please create a GitHub Issue for it.
 
 ## List of Contributors
 
