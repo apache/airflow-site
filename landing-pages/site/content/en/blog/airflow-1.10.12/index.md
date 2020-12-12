@@ -144,12 +144,12 @@ your `airflow.cfg`.
 Flask-admin based UI is deprecated and new features won't be ported to it. This UI will still be the default
 for 1.10.* series but would no longer be available from Airflow 2.0
 
-### We have moved to Github Issues
+### We have moved to GitHub Issues
 
 The Airflow Project has moved from [JIRA](https://issues.apache.org/jira/projects/AIRFLOW/issues) to
-[Github](https://github.com/apache/airflow/issues) for tracking issues.
+[GitHub](https://github.com/apache/airflow/issues) for tracking issues.
 
-So if you find any bugs in Airflow 1.10.12 please create a Github Issue for it.
+So if you find any bugs in Airflow 1.10.12 please create a GitHub Issue for it.
 
 ## List of Contributors
 

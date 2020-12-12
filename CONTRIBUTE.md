@@ -72,7 +72,7 @@ It is also worth adding SSH keys for the `github.com` server to trusted ones. It
 ssh-keyscan -t rsa -H github.com >> ~/.ssh/known_hosts
 ```
 
-**Debian instalation**
+**Debian installation**
 
 To install git on Debian, run the following command:
 ```bash
@@ -354,14 +354,14 @@ The following additional application must be installed to use the project:
 * pip
 * graphviz
 
-**Debian instatation:**
+**Debian installation:**
 
 To install graphviz, pip for Debian, run following commands:
 ```bash
 sudo apt install graphviz python3-pip -y
 ```
 
-You should also add `$HOME/.local/bin` to `$PATH`, run followin command:
+You should also add `$HOME/.local/bin` to `$PATH`, run following command:
 ```bash
 export PATH=$HOME/.local/bin:$PATH;
 ```
@@ -387,7 +387,7 @@ cd "${AIRFLOW_SITE_REPO}" && git submodule update --init --recursive
 
 To release a new documentation, follow these steps:
 
-1.  To prepare and insstall Sphinx theme, run following commands:
+1.  To prepare and install Sphinx theme, run following commands:
     ```bash
     cd "${AIRFLOW_SITE_REPO}" && bash site.sh build-site
     cd "${AIRFLOW_SITE_REPO}" && bash site.sh prepare-theme
@@ -430,7 +430,7 @@ To release a new documentation, follow these steps:
 
 Github Action has been configured to automatically publish artifacts for pull requests, so you can preview changes.
 
-# Publish site on Apache server (manual waay)
+# Publish site on Apache server (manual way)
 
 It is recommended to use Github Action to publish changes to the website, but in case of problems it is also possible to publish changes to the website manually.
 
@@ -445,7 +445,7 @@ AIRFLOW_SITE_REPO=$HOME/airflow-site
 AIRFLOW_SITE_ASF_SITE_REPO=$HOME/airflow-site-asf-site
 ```
 
-You need to have the two copy of `apache/airflow-site` repository. The first contains `master` branch checkoued, the second - `asf-site`. To clone repository run following commands:
+You need to have the two copy of `apache/airflow-site` repository. The first contains `master` branch checked, the second - `asf-site`. To clone repository run following commands:
 ```bash
 git clone git@github.com:apache/airflow-site.git "${AIRFLOW_SITE_REPO}"
 git clone git@github.com:apache/airflow-site.git "${AIRFLOW_SITE_ASF_SITE_REPO}"
@@ -460,7 +460,7 @@ Git worktree does not work properly with repositories that have submodules. Ther
 
 ## Instruction
 
-1. To run build site, run following commnad
+1. To run build site, run following command
 
     ```bash
     cd "${AIRFLOW_SITE_REPO}" && bash site.sh build-landing-pages
@@ -486,7 +486,7 @@ Git worktree does not work properly with repositories that have submodules. Ther
     cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git commit -m "Update - $(date)"
     ```
 
-5. Push changess
+5. Push changes
 
     ```bash
     cd "${AIRFLOW_SITE_ASF_SITE_REPO}" && git push origin asf-site
@@ -570,7 +570,7 @@ gcloud compute instances create "${GCP_INSTANCE_NAME}" \
     --image-project="debian-cloud"
 ```
 
-To connect via SSH and forward local SSH key to VM, forwardd ports from VM run following command:
+To connect via SSH and forward local SSH key to VM, forward ports from VM run following command:
 ```bash
 gcloud beta compute \
        ssh \

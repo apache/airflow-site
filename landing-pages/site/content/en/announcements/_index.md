@@ -696,7 +696,7 @@ Want to keep abreast of new Apache Airflow updates (e.g. releases, meet-ups, new
 
 # April 27, 2016
 
-We are starting the migration to Apache Infrastructure (e.g. Github Issues --> Jira, Airbnb/Airflow Github to Apache/Airflow Github, Airbnb/Airflow Github Wiki to Apache Airflow Confluence Wiki)
+We are starting the migration to Apache Infrastructure (e.g. GitHub Issues --> Jira, Airbnb/Airflow GitHub to Apache/Airflow GitHub, Airbnb/Airflow GitHub Wiki to Apache Airflow Confluence Wiki)
 
 - The progress and migration status will be tracked on [Migrating to Apache](https://airflow.apache.org/announcements/)
 - We expect this to take roughly 1 week. On and after May 4, we expect to be using Apache infrastructure exclusively. To prepare for that day, start using the new Apache infrastructure and follow instructions on this JIRA ticket [AIRFLOW-11](https://issues.apache.org/jira/browse/AIRFLOW-11) to set up your accounts.
