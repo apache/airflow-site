@@ -13,6 +13,16 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+
+
+# December 10, 2020
+
+We've just released Apache Airflow 1.10.14. This is a "bridge" release for Airflow 2.0.
+
+PyPI: https://pypi.org/project/apache-airflow/1.10.14
+Docs: https://airflow.readthedocs.io/en/1.10.14/
+Changelog: https://airflow.readthedocs.io/en/1.10.14/changelog.html
+
 # November 25, 2020
 
 We've just released Apache Airflow 1.10.13
