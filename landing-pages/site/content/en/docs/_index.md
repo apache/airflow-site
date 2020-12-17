@@ -97,7 +97,7 @@ Providers packages include integrations with third party integrations. They are 
 
   <li><a href="/docs/apache-airflow-providers-opsgenie/stable/index.html"><code>Opsgenie</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-oracle/stable/index.html"><code>Orcle</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-oracle/stable/index.html"><code>Oracle</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-pagerduty/stable/index.html"><code>Pagerduty</code></a></li>
 
