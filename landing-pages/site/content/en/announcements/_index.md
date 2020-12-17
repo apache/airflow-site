@@ -14,6 +14,13 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# December 17, 2020
+
+We've just released Apache Airflow 2.0.0. You can read more about what 2.0 brings in the [announcement post]({{< ref "blog/airflow-two-point-oh-is-here/index.md" >}}).
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.0.0 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.0.0/
+
 
 # December 10, 2020
 

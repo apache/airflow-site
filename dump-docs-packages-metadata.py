@@ -30,7 +30,10 @@ def dump_docs_package_metadata():
             "all-versions": get_all_versions(os.path.join(APACHE_AIRFLOW_ARCHIVE, package_name)),
         }
         for package_name in os.listdir(APACHE_AIRFLOW_ARCHIVE)
-        if not package_name.startswith(".")  # Exclude .DS_Store/
+        if (
+            not package_name.startswith(".") and  # Exclude .DS_Store/
+            os.path.isfile(os.path.join(os.path.join(APACHE_AIRFLOW_ARCHIVE, package_name, 'stable.txt')))
+        )
     ]
 
     json.dump(all_packages_infos, sys.stdout, indent=2)
