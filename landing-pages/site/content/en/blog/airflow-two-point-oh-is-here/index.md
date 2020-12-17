@@ -83,7 +83,7 @@ For more information, read the [Scheduler HA documentation](http://airflow.apach
 
 ## Task Groups (AIP-34)
 
-SubDAGs were commonly used for grouping tasks in the UI, but they had many drawbacks in their execution behaviour (primarirly that they only executed a single task in parallel!) To improve this experience, we’ve introduced "Task Groups": a method for organizing tasks which provides the same grouping behaviour as a subdag without any of the execution-time drawbacks.
+SubDAGs were commonly used for grouping tasks in the UI, but they had many drawbacks in their execution behaviour (primarily that they only executed a single task in parallel!) To improve this experience, we’ve introduced "Task Groups": a method for organizing tasks which provides the same grouping behaviour as a subdag without any of the execution-time drawbacks.
 
 SubDAGs will still work for now, but we think that any previous use of SubDAGs can now be replaced with task groups. If you find an example where this isn't the case, please let us know by opening an issue on GitHub
 
