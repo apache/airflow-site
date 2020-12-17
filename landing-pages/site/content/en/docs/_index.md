@@ -19,125 +19,127 @@ Providers packages include integrations with third party integrations. They are 
 
 <ul class="list-providers">
 
-    <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html">Amazon</a></li>
+  <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-cassandra/stable/index.html">Apache Cassandra</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-cassandra/stable/index.html"><code>Apache Cassandra</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-druid/stable/index.html">Apache Druid</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-druid/stable/index.html"><code>Apache Druid</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-hdfs/stable/index.html">Apache HDFS</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-hdfs/stable/index.html"><code>Apache HDFS</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html">Apache Hive</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html">Apache Hive</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Hive</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-livy/stable/index.html">Apache Livy</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-livy/stable/index.html"><code>Apache Livy</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-pig/stable/index.html">Apache Pig</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-pig/stable/index.html"><code>Apache Pig</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-pinot/stable/index.html">Apache Pinot</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-pinot/stable/index.html"><code>Apache Pinot</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-spark/stable/index.html">Apache Spark</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-spark/stable/index.html"><code>Apache Spark</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-apache-sqoop/stable/index.html">Apache Sqoop</a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-sqoop/stable/index.html"><code>Apache Sqoop</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-celery/stable/index.html">Celery</a></li>
+  <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html">IBM Cloudant</a></li>
+  <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>IBM Cloudant</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html">Kubernetes</a></li>
+  <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-databricks/stable/index.html">Databricks</a></li>
+  <li><a href="/docs/apache-airflow-providers-databricks/stable/index.html"><code>Databricks</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-datadog/stable/index.html">Datadog</a></li>
+  <li><a href="/docs/apache-airflow-providers-datadog/stable/index.html"><code>Datadog</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-dingding/stable/index.html">Dingding</a></li>
+  <li><a href="/docs/apache-airflow-providers-dingding/stable/index.html"><code>Dingding</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-discord/stable/index.html">Discord</a></li>
+  <li><a href="/docs/apache-airflow-providers-discord/stable/index.html"><code>Discord</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-docker/stable/index.html">Docker</a></li>
+  <li><a href="/docs/apache-airflow-providers-docker/stable/index.html"><code>Docker</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-elasticsearch/stable/index.html">Elasticsearch</a></li>
+  <li><a href="/docs/apache-airflow-providers-elasticsearch/stable/index.html"><code>Elasticsearch</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-exasol/stable/index.html">Exasol</a></li>
+  <li><a href="/docs/apache-airflow-providers-exasol/stable/index.html"><code>Exasol</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-facebook/stable/index.html">Facebook</a></li>
+  <li><a href="/docs/apache-airflow-providers-facebook/stable/index.html"><code>Facebook</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html">File Transfer Protocol (FTP)</a></li>
+  <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html"><code>File Transfer Protocol (FTP)</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-google/stable/index.html">Google</a></li>
+  <li><a href="/docs/apache-airflow-providers-google/stable/index.html"><code>Google</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-grpc/stable/index.html">gRPC</a></li>
+  <li><a href="/docs/apache-airflow-providers-grpc/stable/index.html"><code>gRPC</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-hashicorp/stable/index.html">Hashicorp</a></li>
+  <li><a href="/docs/apache-airflow-providers-hashicorp/stable/index.html"><code>Hashicorp</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-http/stable/index.html">Hypertext Transfer Protocol (HTTP)</a></li>
+  <li><a href="/docs/apache-airflow-providers-http/stable/index.html"><code>Hypertext Transfer Protocol (HTTP)</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-imap/stable/index.html">Internet Message Access Protocol (IMAP)</a></li>
+  <li><a href="/docs/apache-airflow-providers-imap/stable/index.html"><code>Internet Message Access Protocol (IMAP)</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-jdbc/stable/index.html">Java Database Connectivity (JDBC)</a></li>
+  <li><a href="/docs/apache-airflow-providers-jdbc/stable/index.html"><code>Java Database Connectivity (JDBC)</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html">Jenkins</a></li>
+  <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html"><code>Jenkins</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-jira/stable/index.html">Jira</a></li>
+  <li><a href="/docs/apache-airflow-providers-jira/stable/index.html"><code>Jira</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html">Microsoft Azure</a></li>
+  <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-microsoft-mssql/stable/index.html">Microsoft SQL Server (MSSQL)</a></li>
+  <li><a href="/docs/apache-airflow-providers-microsoft-mssql/stable/index.html"><code>Microsoft SQL Server (MSSQL)</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-microsoft-winrm/stable/index.html">Windows Remote Management (WinRM)</a></li>
+  <li><a href="/docs/apache-airflow-providers-microsoft-winrm/stable/index.html"><code>Windows Remote Management (WinRM)</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-mongo/stable/index.html">MongoDB</a></li>
+  <li><a href="/docs/apache-airflow-providers-mongo/stable/index.html"><code>MongoDB</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-mysql/stable/index.html">MySQL</a></li>
+  <li><a href="/docs/apache-airflow-providers-mysql/stable/index.html"><code>MySQL</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-odbc/stable/index.html">ODBC</a></li>
+  <li><a href="/docs/apache-airflow-providers-odbc/stable/index.html"><code>ODBC</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-openfaas/stable/index.html">OpenFaaS</a></li>
+  <li><a href="/docs/apache-airflow-providers-openfaas/stable/index.html"><code>OpenFaaS</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-opsgenie/stable/index.html">Opsgenie</a></li>
+  <li><a href="/docs/apache-airflow-providers-opsgenie/stable/index.html"><code>Opsgenie</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-oracle/stable/index.html">Orcle</a></li>
+  <li><a href="/docs/apache-airflow-providers-oracle/stable/index.html"><code>Orcle</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-pagerduty/stable/index.html">Pagerduty</a></li>
+  <li><a href="/docs/apache-airflow-providers-pagerduty/stable/index.html"><code>Pagerduty</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-papermill/stable/index.html">Papermill</a></li>
+  <li><a href="/docs/apache-airflow-providers-papermill/stable/index.html"><code>Papermill</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-plexus/stable/index.html">Plexus</a></li>
+  <li><a href="/docs/apache-airflow-providers-plexus/stable/index.html"><code>Plexus</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-postgres/stable/index.html">PostgreSQL</a></li>
+  <li><a href="/docs/apache-airflow-providers-postgres/stable/index.html"><code>PostgreSQL</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-presto/stable/index.html">Presto</a></li>
+  <li><a href="/docs/apache-airflow-providers-presto/stable/index.html"><code>Presto</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-qubole/stable/index.html">Qubole</a></li>
+  <li><a href="/docs/apache-airflow-providers-qubole/stable/index.html"><code>Qubole</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-redis/stable/index.html">Redis</a></li>
+  <li><a href="/docs/apache-airflow-providers-redis/stable/index.html"><code>Redis</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-salesforce/stable/index.html">Salesforce</a></li>
+  <li><a href="/docs/apache-airflow-providers-salesforce/stable/index.html"><code>Salesforce</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-samba/stable/index.html">Samba</a></li>
+  <li><a href="/docs/apache-airflow-providers-samba/stable/index.html"><code>Samba</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-segment/stable/index.html">Segment</a></li>
+  <li><a href="/docs/apache-airflow-providers-segment/stable/index.html"><code>Segment</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-sendgrid/stable/index.html">Sendgrid</a></li>
+  <li><a href="/docs/apache-airflow-providers-sendgrid/stable/index.html"><code>Sendgrid</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-sftp/stable/index.html">SFTP</a></li>
+  <li><a href="/docs/apache-airflow-providers-sftp/stable/index.html"><code>SFTP</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-singularity/stable/index.html">Singularity</a></li>
+  <li><a href="/docs/apache-airflow-providers-singularity/stable/index.html"><code>Singularity</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-slack/stable/index.html">Slack</a></li>
+  <li><a href="/docs/apache-airflow-providers-slack/stable/index.html"><code>Slack</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-snowflake/stable/index.html">Snowflake</a></li>
+  <li><a href="/docs/apache-airflow-providers-snowflake/stable/index.html"><code>Snowflake</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-sqlite/stable/index.html">SQLite</a></li>
+  <li><a href="/docs/apache-airflow-providers-sqlite/stable/index.html"><code>SQLite</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-ssh/stable/index.html">SSH</a></li>
+  <li><a href="/docs/apache-airflow-providers-ssh/stable/index.html"><code>SSH</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html">Vertica</a></li>
+  <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-yandex/stable/index.html">Yandex</a></li>
+  <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
 
-    <li><a href="/docs/apache-airflow-providers-zendesk/stable/index.html">Zendesk</a></li>
+  <li><a href="/docs/apache-airflow-providers-yandex/stable/index.html"><code>Yandex</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-zendesk/stable/index.html"><code>Zendesk</code></a></li>
 
 </ul>
 
