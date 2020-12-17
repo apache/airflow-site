@@ -1,6 +1,6 @@
 ---
 title: "Apache Airflow 2.0 is here!"
-linkTitle: "Apahce Airflow 2.0 is here!"
+linkTitle: "Apache Airflow 2.0 is here!"
 author: "Ash Berlin-Taylor"
 github: "ashb"
 linkedin: "ashberlin"
