@@ -103,7 +103,7 @@ Check out [the screenshots in the docs](http://airflow.apache.org/docs/apache-ai
 
 If you make heavy use of sensors in your Airflow cluster, you might find that sensor execution takes up a significant proportion of your cluster even with "reschedule" mode. To improve this, we've added a new mode called "Smart Sensors".
 
-This feature is in "early-access": it's been well-tested by AirBnB and is "stable"/usable, but we reserve the right to make backwards incompatible changes to it in a future release (if we have to. We'll try very hard not to!)
+This feature is in "early-access": it's been well-tested by Airbnb and is "stable"/usable, but we reserve the right to make backwards incompatible changes to it in a future release (if we have to. We'll try very hard not to!)
 
 Read more about it in the [Smart Sensors documentation](https://airflow.apache.org/docs/apache-airflow/stable/smart-sensor.html).
 
