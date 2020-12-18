@@ -29,7 +29,7 @@ Providers packages include integrations with third party integrations. They are 
 
   <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Hive</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Kylin</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-livy/stable/index.html"><code>Apache Livy</code></a></li>
 
