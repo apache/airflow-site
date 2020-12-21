@@ -141,6 +141,6 @@ Configuration in the form of the airflow.cfg file has been rationalized further 
 
 ## Thanks to all of you
 
-We've tried to make as few breaking changes as possible and to provide deprecation path in the code, especially in the case of anything called in the DAG. That said, please read throughUPDATING.md to check what might affect you. For example: r We re-organized the layout of operators (they now all live under airflow.providers.*) but the old names should continue to work - you'll just notice a lot of DeprecationWarnings that need to be fixed up.
+We've tried to make as few breaking changes as possible and to provide deprecation path in the code, especially in the case of anything called in the DAG. That said, please read through UPDATING.md to check what might affect you. For example: We have re-organized the layout of operators (they now all live under airflow.providers.*) but the old names should continue to work - you'll just notice a lot of DeprecationWarnings that need to be fixed up.
 
 Thank you so much to all the contributors who got us to this point, in no particular order: Kaxil Naik, Daniel Imberman, Jarek Potiuk, Tomek Urbaszek, Kamil Breguła, Gerard Casas Saez, Xiaodong DENG, Kevin Yang, James Timmins, Yingbo Wang, Qian Yu, Ryan Hamilton and the 100s of others who keep making Airflow better for everyone.
