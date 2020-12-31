@@ -35,19 +35,19 @@ usage: ${0} <command> [<args>]
 
 These are  ${0} commands used in various situations:
 
-    build-site            Prepare dist directory with landing pages and documentation
-    preview-landing-pages Starts the web server with preview of the website
-    build-landing-pages   Builds a landing pages
+    build-site            Prepare dist directory with landing pages and documentation.
+    preview-landing-pages Starts the web server with preview of the website.
+    build-landing-pages   Builds a landing pages.
     prepare-theme         Prepares and copies files needed for the proper functioning of the sphinx theme.
-    shell                 Start shell
-    build-image           Build a Docker image with a environment
-    install-node-deps     Download all the Node dependencies
-    check-site-links      Checks if the links are correct in the website
-    lint-css              Lint CSS files
-    lint-js               Lint Javascript files
-    cleanup               Delete the virtual environment in Docker
-    stop                  Stop the environment
-    help                  Display usage
+    shell                 Start shell.
+    build-image           Build a Docker image with a environment.
+    install-node-deps     Download all the Node dependencies.
+    check-site-links      Checks if the links are correct in the website.
+    lint-css              Lint CSS files.
+    lint-js               Lint Javascript files.
+    cleanup               Delete the virtual environment in Docker.
+    stop                  Stop the environment.
+    help                  Display usage.
 
 Unrecognized commands are run as programs in the container.
 
@@ -60,7 +60,7 @@ The following command can also be performed from the Docker environment:
 install-node-deps, preview, build-site, lint-css, lint-js.
 
 The lint-css and lint-js accept paths in arguments. If no path is given, the script
-will be executed for all supported files
+will be executed for all supported files.
 
 EOF
 }
