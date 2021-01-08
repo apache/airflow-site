@@ -14,6 +14,10 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# January 5, 2021
+
+Airflow PMC welcomes **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka)) as the newest Airflow Committer.
+
 # December 25, 2020
 
 Airflow PMC welcomes **Xiaodong Deng** ([@XD-DENG](https://github.com/XD-DENG)) as the newest addition to Airflow PMC.
