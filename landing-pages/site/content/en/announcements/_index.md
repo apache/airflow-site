@@ -426,7 +426,6 @@ Apache Airflow graduates from the Incubator and is now a TLP!
     - You can find more announcements on our twitter account as well : [@ApacheAirflow](https://twitter.com/ApacheAirflow)
 
 - Community Blogs
-    - [Blog on Polidea](https://www.polidea.com/blog/apache-airflow-announced-as-a-top-level-project/)
     - [Apache Airflow announced as a Top-Level Project — How does ING WB Advanced Analytics use Airflow?](https://medium.com/wbaa/apache-airflow-announced-as-a-top-level-project-how-does-ing-wb-advanced-analytics-use-airflow-ed7990ffba9c)
     - [Apache Airflow Grows Up!](https://medium.com/@r39132/apache-airflow-grows-up-c820ee8a8324)
 
