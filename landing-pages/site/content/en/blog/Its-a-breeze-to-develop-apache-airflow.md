@@ -15,4 +15,4 @@ Initially, we started contributing to this fantastic open-source project [Apache
 
 That is how the journey to increased productivity in Apache Airflow began. The result? The Airflow Breeze open-source tool. Jarek Potiuk, an Airflow Committer, will tell you all about it.
 
-You can learn [how and why it’s a "Breeze" to Develop Apache Airflow on Polidea blog](https://www.polidea.com/blog/its-a-breeze-to-develop-apache-airflow/?utm_source=ApacheAirflowBlog&utm_medium=Npaid&utm_campaign=Blog&utm_term=Article&utm_content=AAB_NOP_BLG_ART_AB_001).
+You can learn [how and why it’s a "Breeze" to Develop Apache Airflow](https://higrys.medium.com/its-a-breeze-to-develop-apache-airflow-bf306d3e3505).
