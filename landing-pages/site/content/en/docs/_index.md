@@ -21,6 +21,8 @@ Providers packages include integrations with third party integrations. They are 
 
   <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-beam/stable/index.html"><code>Apache Beam</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-cassandra/stable/index.html"><code>Apache Cassandra</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-druid/stable/index.html"><code>Apache Druid</code></a></li>
@@ -90,6 +92,8 @@ Providers packages include integrations with third party integrations. They are 
   <li><a href="/docs/apache-airflow-providers-mongo/stable/index.html"><code>MongoDB</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-mysql/stable/index.html"><code>MySQL</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-neo4j/stable/index.html"><code>Neo4J</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-odbc/stable/index.html"><code>ODBC</code></a></li>
 
