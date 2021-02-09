@@ -14,6 +14,16 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# February 8, 2021
+
+We've just released Apache Airflow 2.0.1.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.0.1 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.0.1/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.0.1/changelog.html
+
+We also released 61 updated and 2 new providers.
+
 # January 5, 2021
 
 Airflow PMC welcomes **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka)) as the newest Airflow Committer.
