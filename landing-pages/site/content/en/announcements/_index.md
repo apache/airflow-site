@@ -14,6 +14,14 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# February 8, 2021
+
+We've just released Apache Airflow 2.0.1.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.0.1 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.0.1/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.0.1/changelog.html
+
 # January 5, 2021
 
 Airflow PMC welcomes **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka)) as the newest Airflow Committer.
@@ -40,16 +48,16 @@ We've just released Apache Airflow 2.0.0. You can read more about what 2.0 bring
 
 We've just released Apache Airflow 1.10.14. This is a "bridge" release for Airflow 2.0.
 
-PyPI: https://pypi.org/project/apache-airflow/1.10.14
-Docs: https://airflow.readthedocs.io/en/1.10.14/
+PyPI: https://pypi.org/project/apache-airflow/1.10.14 \
+Docs: https://airflow.readthedocs.io/en/1.10.14/ \
 Changelog: https://airflow.readthedocs.io/en/1.10.14/changelog.html
 
 # November 25, 2020
 
 We've just released Apache Airflow 1.10.13
 
-PyPI: https://pypi.org/project/apache-airflow/1.10.13
-Docs: https://airflow.readthedocs.io/en/1.10.13/
+PyPI: https://pypi.org/project/apache-airflow/1.10.13 \
+Docs: https://airflow.readthedocs.io/en/1.10.13/ \
 Changelog: https://airflow.readthedocs.io/en/1.10.13/changelog.html
 
 405 commits since 1.10.12 (6 New Features, 31 Improvements, 30 Bug Fixes, and tons of doc changes and internal changes)
