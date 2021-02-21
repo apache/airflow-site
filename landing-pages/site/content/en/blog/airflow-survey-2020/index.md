@@ -34,7 +34,7 @@ is true, we will learn next year!
 | Support Engineer    |     3 |  1.48 |
 
 Those results are not a surprise as Airflow is a tool dedicated to data-related tasks. The majority of
-our users are data engineers, scientists or analysts. The 2020 results are similar to those from 2019 with
+our users are data engineers, scientists or analysts. The 2020 results are similar to [those from 2019](https://airflow.apache.org/blog/airflow-survey/) with
 visible slight increase in ML use cases.
 
 Additionally, 79% of users uses Airflow on daily basis and 16% interacts with it at least once a week.
@@ -68,14 +68,14 @@ fine for teams of different sizes. However, in some cases users may use multiple
 | No, we are happy with Airflow |   174 | 85.71 |
 | Yes                           |    29 | 14.29 |
 
-Nearly 1 out of 7 users is considering migrating to other workflow engine. Their decision is usually
+Nearly 1 out of 7 users is considering migrating to other workflow engines. Their decision is usually
 justified by need of **easier workflow writing experience** (12.32%), **better UI/UX** and **faster scheduler**
 (8.37% both).
 
 While the first point may be addressed by (TaskFlow API)[link] in Airflow 2.0 the other two are definitely addressed
 in the new major version. And the early feedback from 2.0 users seems to be confirming it.
 
-The alternative engines considered by users are mainly Prefect and Argo. Some participants mentioned also
+The alternative engines considered by users are mainly Prefect and Argo. Some participants also mentioned
 Luigi, Kubeflow or custom solutions.
 
 
@@ -90,7 +90,7 @@ Luigi, Kubeflow or custom solutions.
 This is really heart-warming result. It means that 1 out of 5 users contributes actively to our project!
 But it would be good to learn if there's something else than time that is stopping people who wish to contribute
 from doing it. If there are some other obstacles we definitely would like to learn about them so we can improve.
-That said - if you know something we can improve please reach out to use either via slack, dev list or Github
+That said - if you know something we can improve please reach out via Slack, dev list or Github
 discussions.
 
 **How likely are you to recommend Apache Airflow?**
@@ -103,7 +103,7 @@ discussions.
 | Unlikely      |     3 |  1.48  | 2.60%  |
 | Very unlikely |     2 |  0.99  | 0.97%  |
 
-Here is a good news! It seems that people are more willing to recommend Apache Airflow than year before.
+Here is good news! It seems that people are more willing to recommend Apache Airflow than year before.
 
 **What is your source of information about Airflow?**
 
@@ -210,7 +210,7 @@ than 60% of users are getting information from Github and Slack channels.
 | Yes, I use custom implementation                           |     5 |  2.46 |
 | Yes, I use Airflow's experimental data lineage feature     |     1 |  0.49 |
 
-When asked what lineage product user use the answers were varying from custom tools
+When asked what lineage product users use, the answers were varying from custom tools
 to known product like Amundsen, Atlas or dbt.
 
 ## Deployment
@@ -259,7 +259,7 @@ to known product like Amundsen, Atlas or dbt.
 | 1.10.8          |     3 |  1.48 |
 
 This was probably one of the most important questions in the survey. While it's good to see
-that more than 60% of users use one of three latest Airflow version it's worrying that the rest
+that more than 60% of users use one of three latest Airflow versions, it's worrying that the rest
 are using versions that are old or have known security vulnerabilities.
 
 Additionally, more than 20% of users are already using 2.0.0+ versions which is reasonably good information.
@@ -297,7 +297,7 @@ It's good to know that users rather avoid using SQLite in production deployments
 
 In comparison to previous year it seems that more users use currently Celery and
 Kubernetes executors and LocalExecutor usage dropped by nearly 8 points. This may
-suggest that users' deployment are growing, and they need more scalable solutions.
+suggest that users' deployments are growing, and they need more scalable solutions.
 
 Among CeleryExecutor users 78% use Redis as a broker, 19% use RabbitMQ and the rest
 is using other brokers or is not sure what is used in their deployments.
@@ -328,8 +328,8 @@ including DataDog and Prometheus exporter.
 | On Kubernetes (using Apache Airflow's helm chart)                    |    17 |  8.37 |
 | Other                                                                |    12 |  5.91 |
 
-Nearly 33% of users deploys Airflow using some kind of Kubernetes deployment. This about
-10 percent point more than in 2019. There's slightly increase in usage of Airflow via
+Nearly 33% of users deploys Airflow using some kind of Kubernetes deployment. This is about
+10 percent more than in 2019. There's slightly increase in usage of Airflow via
 managed services (14.61% in 2019).
 
 **Do you use containerisation for deployment?**
