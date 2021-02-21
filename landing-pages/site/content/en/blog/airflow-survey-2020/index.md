@@ -14,7 +14,7 @@ date: "2020-02-15"
 World of data processing tools is growing steadily.
 
 It's important to note that the 2020 survey was still mostly about 1.10.X version of Apache Airflow and
-possibly many of drawbacks was addressed in 2.0 version that was released in December 2020. But if this
+possibly many drawbacks were addressed in the 2.0 version that was released in December 2020. But if this
 is true, we will learn next year!
 
 
@@ -215,7 +215,7 @@ to known product like Amundsen, Atlas or dbt.
 
 ## Deployment
 
-**How many active DAGs do you have in your largest Airflow instance? **
+**How many active DAGs do you have in your largest Airflow instance?**
 
 | Number of DAGs    |   No. |   % |
 |-------------------|-------|-----|
@@ -226,9 +226,9 @@ to known product like Amundsen, Atlas or dbt.
 | 101-200           |    31 |  15 |
 | 201-300           |     8 |   4 |
 | 301-999           |    12 |   6 |
-| 1000+             |    10 |   5
+| 1000+             |    10 |   5 |
 
-**What is the maximum number of tasks that you have used in one DAG? **
+**What is the maximum number of tasks that you have used in one DAG?**
 
 | Number of DAGs   |   No. |   % |
 |------------------|-------|-----|
@@ -260,9 +260,9 @@ to known product like Amundsen, Atlas or dbt.
 
 This was probably one of the most important questions in the survey. While it's good to see
 that more than 60% of users use one of three latest Airflow version it's worrying that the rest
-is using versions that are old or have known security vulnerabilities.
+are using versions that are old or have known security vulnerabilities.
 
-Additionally, more than 20% users is already using 2.0.0+ versions which is reasonably good information.
+Additionally, more than 20% of users are already using 2.0.0+ versions which is reasonably good information.
 
 **What meta-database do you use?**
 
@@ -303,7 +303,7 @@ Among CeleryExecutor users 78% use Redis as a broker, 19% use RabbitMQ and the r
 is using other brokers or is not sure what is used in their deployments.
 
 
-**What metrics do you use to monitor Airflow? **
+**What metrics do you use to monitor Airflow?**
 
 |                               |   No. |     % |
 |-------------------------------|-------|-------|
