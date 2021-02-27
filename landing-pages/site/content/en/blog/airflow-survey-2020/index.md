@@ -72,7 +72,7 @@ Nearly 1 out of 7 users is considering migrating to other workflow engines. Thei
 justified by need of **easier workflow writing experience** (12.32%), **better UI/UX** and **faster scheduler**
 (8.37% both).
 
-While the first point may be addressed by (TaskFlow API)[http://airflow.apache.org/docs/apache-airflow/stable/concepts.html#taskflow-api] in Airflow 2.0 the other two are definitely addressed
+While the first point may be addressed by [TaskFlow API](http://airflow.apache.org/docs/apache-airflow/stable/concepts.html#taskflow-api) in Airflow 2.0 the other two are definitely addressed
 in the new major version. And the early feedback from 2.0 users seems to be confirming it.
 
 The alternative engines considered by users are mainly Prefect and Argo. Some participants also mentioned
