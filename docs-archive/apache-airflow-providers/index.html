@@ -568,7 +568,7 @@
 <h2><a class="toc-backref" href="#id2">Community maintained providers</a><a class="headerlink" href="#community-maintained-providers" title="Permalink to this headline">¶</a></h2>
 <p>Unlike Apache Airflow 1.10, the Airflow 2.0 is delivered in multiple, separate but connected packages.
 The core of Airflow scheduling system is delivered as <code class="docutils literal notranslate"><span class="pre">apache-airflow</span></code> package and there are around
-60 providers packages which can be installed separately as so called &quot;Airflow Provider packages&quot;.
+60 providers packages which can be installed separately as so called “Airflow Provider packages”.
 Those provider packages are separated per-provider (for example <code class="docutils literal notranslate"><span class="pre">amazon</span></code>, <code class="docutils literal notranslate"><span class="pre">google</span></code>, <code class="docutils literal notranslate"><span class="pre">salesforce</span></code>
 etc.). Those packages are available as <code class="docutils literal notranslate"><span class="pre">apache-airflow-providers</span></code> packages - separately per each provider
 (for example there is an <code class="docutils literal notranslate"><span class="pre">apache-airflow-providers-amazon</span></code> or <code class="docutils literal notranslate"><span class="pre">apache-airflow-providers-google</span></code> package).</p>
@@ -650,9 +650,10 @@ your own purpose) but the important fields from the extensibility point of view 
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> - Human-friendly name of the provider.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">description</span></code> - Additional description of the provider.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> - List of versions of the package (in reverse-chronological order). The first version in the
-list is the current package version.</p></li>
+list is the current package version. It is taken from the version of package installed, not from the
+provider_info information.</p></li>
 </ul>
-<p>Exposing customized functionality to the Airflow's core:</p>
+<p>Exposing customized functionality to the Airflow’s core:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">extra-links</span></code> - this field should contain the list of all operator class names that are adding extra links
 capability. See <a class="reference external" href="/docs/apache-airflow/stable/howto/define_extra_link.html" title="(in apache-airflow v2.1.0.dev0)"><span>Define an operator extra link</span></a> for description of how to add extra link
@@ -684,7 +685,7 @@ incrementally, step-by-step replacing provider by provider in your environment.<
 <div class="section" id="using-backport-providers-in-airflow-1-10">
 <h3><a class="toc-backref" href="#id9">Using Backport Providers in Airflow 1.10</a><a class="headerlink" href="#using-backport-providers-in-airflow-1-10" title="Permalink to this headline">¶</a></h3>
 <p><strong>I have an Airflow version (1.10.12) running and it is stable. However, because of a Cloud provider change,
-I would like to upgrade the provider package. If I don't need to upgrade the Airflow version anymore,
+I would like to upgrade the provider package. If I don’t need to upgrade the Airflow version anymore,
 how do I know that this provider version is compatible with my Airflow version?</strong></p>
 <p>Backport Provider Packages (those are needed in 1.10.* Airflow series) are going to be released for
 3 months after the release. We will stop releasing new updates to the backport providers afterwards.
@@ -726,10 +727,51 @@ the required provider metadata</p></li>
 <li><p>Create the function that you refer to in the first step as part of your package: this functions returns a
 dictionary that contains all meta-data about your provider package</p></li>
 <li><p>note that the dictionary should be compliant with <code class="docutils literal notranslate"><span class="pre">airflow/provider_info.schema.json</span></code> JSON-schema
-specification and the community-managed providers have more fields there that are used to build
-documentation, but the requirement for runtime information only contains several fields from the
-runtime schema. See below for examples.</p></li>
+specification. The community-managed providers have more fields there that are used to build
+documentation, but the requirement for runtime information only contains several fields which are defined
+in the schema:</p></li>
 </ul>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">airflow/provider_info.schema.json</span></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-07/schema#&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;package-name&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Package name available under which the package is available in the PyPI repository.&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Provider name&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Information about the package in RST format&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;hook-class-names&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Hook class names that provide connection types to core&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;extra-links&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Operator class names that provide extra link functionality&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
 <p>Example <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>:</p>
 <div class="highlight-cfg notranslate"><div class="highlight"><pre><span></span><span class="k">[options.entry_points]</span>
 <span class="c1"># the function get_provider_info is defined in myproviderpackage.somemodule</span>
@@ -746,7 +788,6 @@ runtime schema. See below for examples.</p></li>
         <span class="s2">&quot;hook-class-names&quot;</span><span class="p">:</span> <span class="p">[</span>
             <span class="s2">&quot;myproviderpackage.hooks.source.SourceHook&quot;</span><span class="p">,</span>
         <span class="p">],</span>
-        <span class="s1">&#39;versions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">],</span>
     <span class="p">}</span>
 </pre></div>
 </div>
@@ -764,7 +805,7 @@ can be a local Python package (that you install via <code class="docutils litera
 If you have done that, airflow does the following at runtime:</p>
 <ul class="simple">
 <li><p>Loop through ALL packages installed in your environment / <code class="docutils literal notranslate"><span class="pre">venv</span></code></p></li>
-<li><p>For each package, if the package's <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> has a section <code class="docutils literal notranslate"><span class="pre">[options.entry_points]</span></code>, and if that section has a value
+<li><p>For each package, if the package’s <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> has a section <code class="docutils literal notranslate"><span class="pre">[options.entry_points]</span></code>, and if that section has a value
 for <code class="docutils literal notranslate"><span class="pre">apache_airflow_provider</span></code>, then get the value for <code class="docutils literal notranslate"><span class="pre">provider_info</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">myproviderpackage.somemodule:get_provider_info</span></code></p></li>
 <li><p>That value works like an import statement: <code class="docutils literal notranslate"><span class="pre">myproviderpackage.somemodule:get_provider_info</span></code> translates to something like
 <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">myproviderpackage.somemodule</span> <span class="pre">import</span> <span class="pre">get_provider_info</span></code>, and the <code class="docutils literal notranslate"><span class="pre">get_provider_info</span></code> that is being imported should be a
@@ -782,7 +823,7 @@ together with Apache Airflow. All those providers have well-defined structured a
 naming conventions we defined and they are all in <code class="docutils literal notranslate"><span class="pre">airflow.providers</span></code> package. If your intention is
 to contribute your provider, then you should follow those conventions and make a PR to Apache Airflow
 to contribute to it. But you are free to use any package name as long as there are no conflicts with other
-names, so preferably choose package that is in your &quot;domain&quot;.</p>
+names, so preferably choose package that is in your “domain”.</p>
 <p><strong>Is there a convention for a connection id and type?</strong></p>
 <p>Very good question. Glad that you asked. We usually follow the convention <code class="docutils literal notranslate"><span class="pre">&lt;NAME&gt;_default</span></code> for connection
 id and just <code class="docutils literal notranslate"><span class="pre">&lt;NAME&gt;</span></code> for connection type. Few examples:</p>
@@ -794,7 +835,7 @@ id and just <code class="docutils literal notranslate"><span class="pre">&lt;NAM
 so it should be unique for your provider. If two providers try to add connection with the same type
 only one of them will succeed.</p>
 <p><strong>Can I contribute my own provider to Apache Airflow?</strong></p>
-<p>Of course, but it's better to check at developer's mailing list whether such contribution will be accepted by
+<p>Of course, but it’s better to check at developer’s mailing list whether such contribution will be accepted by
 the Community, before investing time to make the provider compliant with community requirements.
 The Community only accepts providers that are generic enough, are well documented, fully covered by tests
 and with capabilities of being tested by people in the community. So we might not always be in the

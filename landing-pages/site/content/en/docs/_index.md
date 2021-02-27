@@ -137,6 +137,8 @@ Providers packages include integrations with third party integrations. They are 
 
   <li><a href="/docs/apache-airflow-providers-ssh/stable/index.html"><code>SSH</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-tableau/stable/index.html"><code>Tableau</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
