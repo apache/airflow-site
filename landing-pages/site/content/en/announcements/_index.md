@@ -14,6 +14,10 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# February 23, 2021
+
+Airflow PMC welcomes **Ephraim Anierobi** ([@ephraimbuddy](https://github.com/ephraimbuddy)) as the newest Airflow committer.
+
 # February 8, 2021
 
 We've just released Apache Airflow 2.0.1.
