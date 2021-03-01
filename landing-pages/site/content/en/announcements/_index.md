@@ -14,6 +14,14 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# March 1, 2021
+
+Airflow PMC welcomes 3 new committers: 
+	
+- **James Timmins** ([@James Timmins](https://github.com/jhtimmins)) 
+- **Elad Kalif** ([@eladkal](https://github.com/eladkal)) 
+- **Daniel Standish** ([@dstandish](https://github.com/dstandish))
+
 # February 23, 2021
 
 Airflow PMC welcomes **Ephraim Anierobi** ([@ephraimbuddy](https://github.com/ephraimbuddy)) as the newest Airflow committer.
