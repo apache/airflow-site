@@ -16,10 +16,10 @@ menu:
 
 # March 1, 2021
 
-Airflow PMC welcomes 3 new committers: 
-	
-- **James Timmins** ([@James Timmins](https://github.com/jhtimmins)) 
-- **Elad Kalif** ([@eladkal](https://github.com/eladkal)) 
+Airflow PMC welcomes 3 new committers:
+
+- **James Timmins** ([@James Timmins](https://github.com/jhtimmins))
+- **Elad Kalif** ([@eladkal](https://github.com/eladkal))
 - **Daniel Standish** ([@dstandish](https://github.com/dstandish))
 
 # February 23, 2021
