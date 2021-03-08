@@ -426,11 +426,10 @@ The most popular way of distributing DAGs seems to be using a synchronizing proc
 
 ## Summary
 
-From open source point of view is good to see that many people would love to contribute to Apache Airflow.
-This means that there are resources that if unleashed may make our community even stronger. From product
-perspective it's important to know that users are usually using the latest versions of our software and
+From an open-source point of view, it is good to see that many people would love to contribute to Apache Airflow.
+This means that there are resources that if unleashed may make our community even stronger. From a product perspective, it is important to know that users are usually using the latest versions of our software and
 are willing to upgrade to new ones.
 
-Finally, there are still some things to improve - documentation, on boarding guides and plug-and-play airflow
+Finally, there are still some things to improve - documentation, onboarding guides and plug-and-play airflow
 deployments. However, we hope that with the increase of adoption there will be an increase in people willing
 to share their experience and tools.
