@@ -21,6 +21,8 @@ is true, we will learn next year!
 
 ## Overview of the user
 
+![](What_best_describes_your_current_occupation.png)
+
 **What best describes your current occupation? (single choice)**
 
 |                     |   No. |     % |
