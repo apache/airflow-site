@@ -5,22 +5,23 @@ author: "Tomek Urbaszek"
 twitter: "turbaszek"
 github: "turbaszek"
 linkedin: "tomaszurbaszek"
-description: "AAAAAAAA"
+description: "We observe steady growth in number of users as well as in an amount of active contributors. So listening and understanding our community is of high importance."
 tags: ["community", "survey", "users"]
-date: "2020-02-15"
+date: "2021-03-09"
 ---
 # Apache Airflow Survey 2020
 
-World of data processing tools is growing steadily.
+World of data processing tools is growing steadily. Apache Airflow seems to be already considered as
+crucial component of this complex ecosystem. We observe steady growth in number of users as well as in
+an amount of active contributors. So listening and understanding our community is of high importance.
 
-It's important to note that the 2020 survey was still mostly about 1.10.X version of Apache Airflow and
+It's worth to note that the 2020 survey was still mostly about 1.10.X version of Apache Airflow and
 possibly many drawbacks were addressed in the 2.0 version that was released in December 2020. But if this
 is true, we will learn next year!
 
-
 ## Overview of the user
 
-**What best describes your current occupation?**
+**What best describes your current occupation? (single choice)**
 
 |                     |   No. |     % |
 |---------------------|-------|-------|
@@ -39,7 +40,7 @@ visible slight increase in ML use cases.
 
 Additionally, 79% of users uses Airflow on daily basis and 16% interacts with it at least once a week.
 
-**How many people work in your company?**
+**How many people work in your company? (single choice)**
 
 |        |   No. |     % |
 |--------|-------|-------|
@@ -48,7 +49,7 @@ Additionally, 79% of users uses Airflow on daily basis and 16% interacts with it
 | 11-50  |    37 | 18.23 |
 | 1-10   |    15 |  7.39 |
 
-**How many people in your company use Airflow?**
+**How many people in your company use Airflow? (single choice)**
 
 |       |   No. |     % |
 |-------|-------|-------|
@@ -61,7 +62,7 @@ Airflow is a software that is used and trusted by big companies. We can also see
 fine for teams of different sizes. However, in some cases users may use multiple Airflow instances.
 
 
-**Are you considering moving to other workflow engines?**
+**Are you considering moving to other workflow engines? (single choice)**
 
 |                               |   No. |     % |
 |-------------------------------|-------|-------|
@@ -79,7 +80,7 @@ The alternative engines considered by users are mainly Prefect and Argo. Some pa
 Luigi, Kubeflow or custom solutions.
 
 
-**Are you or your team actively participating in Airflow development - contributing?**
+**Are you or your team actively participating in Airflow development - contributing? (single choice)**
 
 |                 |   No. |     % |
 |-----------------|-------|-------|
@@ -93,7 +94,7 @@ from doing it. If there are some other obstacles we definitely would like to lea
 That said - if you know something we can improve please reach out via Slack, dev list or Github
 discussions.
 
-**How likely are you to recommend Apache Airflow?**
+**How likely are you to recommend Apache Airflow? (single choice)**
 
 |               |   No. | 2020 % | 2019 % |
 |---------------|-------|--------|--------|
@@ -105,7 +106,7 @@ discussions.
 
 Here is good news! It seems that people are more willing to recommend Apache Airflow than year before.
 
-**What is your source of information about Airflow?**
+**What is your source of information about Airflow? (multiple choice)**
 
 |                                   |   No. |     % |
 |-----------------------------------|-------|-------|
@@ -126,7 +127,7 @@ than 60% of users are getting information from Github and Slack channels.
 
 ## Airflow uses cases
 
-**Do you have any customisation of Airflow?**
+**Do you have any customisation of Airflow? (single choice)**
 
 |                                      |   No. |     % |
 |--------------------------------------|-------|-------|
@@ -134,7 +135,7 @@ than 60% of users are getting information from Github and Slack channels.
 | Yes, we have small patches (no fork) |    34 | 16.75 |
 | Yes, we have separate fork           |    15 |  7.39 |
 
-**When onboarding new members to airflow, what is the biggest problem?**
+**When onboarding new members to airflow, what is the biggest problem? (multiple choice)**
 
 |                                                                 |   No. |     % |
 |-----------------------------------------------------------------|-------|-------|
@@ -146,7 +147,7 @@ than 60% of users are getting information from Github and Slack channels.
 | No problems                                                     |    34 | 16.75 |
 | Small number of blogs regarding Airflow                         |    30 | 14.78 |
 
-**Which interface(s) of Airflow do you use as part of your current role?**
+**Which interface(s) of Airflow do you use as part of your current role? (multiple choice)**
 
 |                                                       |   No. |     % |
 |-------------------------------------------------------|-------|-------|
@@ -156,7 +157,7 @@ than 60% of users are getting information from Github and Slack channels.
 | Custom (own created) Airflow Graphical User Interface |    12 |  5.91 |
 | Other                                                 |     3 |  1.48 |
 
-**Do you combine multiple DAGs?**
+**Do you combine multiple DAGs? (multiple choice)**
 
 |                                    |   No. |     % |
 |------------------------------------|-------|-------|
@@ -166,7 +167,7 @@ than 60% of users are getting information from Github and Slack channels.
 | Other                              |    18 |  8.87 |
 
 
-**How do you integrate with external services?**
+**How do you integrate with external services? (multiple choice)**
 
 |                                             |   No. |     % |
 |---------------------------------------------|-------|-------|
@@ -175,7 +176,7 @@ than 60% of users are getting information from Github and Slack channels.
 | Using own custom operators / hooks          |   138 | 67.98 |
 | Other                                       |    12 |  5.91 |
 
-**What external services do you use in your Airflow DAGs?**
+**What external services do you use in your Airflow DAGs? (multiple choice)**
 
 |                                                   |   No. |     % |
 |---------------------------------------------------|-------|-------|
@@ -189,7 +190,7 @@ than 60% of users are getting information from Github and Slack channels.
 
 ![](What_external_services_do_you_use_in_your_Airflow_DAGs.png)
 
-**Do you use Airflow Plugins? If yes, what do you use them for?**
+**Do you use Airflow Plugins? If yes, what do you use them for? (multiple choice)**
 
 |                                        |   No. |     % |
 |----------------------------------------|-------|-------|
@@ -200,7 +201,7 @@ than 60% of users are getting information from Github and Slack channels.
 | Adding OperatorExtraLinks              |    13 |  6.4  |
 | Other
 
-**Do you use Airflow's data lineage feature?**
+**Do you use Airflow's data lineage feature? (single choice)**
 
 |                                                            |   No. |     % |
 |------------------------------------------------------------|-------|-------|
@@ -215,7 +216,7 @@ to known product like Amundsen, Atlas or dbt.
 
 ## Deployment
 
-**How many active DAGs do you have in your largest Airflow instance?**
+**How many active DAGs do you have in your largest Airflow instance? (open question)**
 
 | Number of DAGs    |   No. |   % |
 |-------------------|-------|-----|
@@ -228,7 +229,7 @@ to known product like Amundsen, Atlas or dbt.
 | 301-999           |    12 |   6 |
 | 1000+             |    10 |   5 |
 
-**What is the maximum number of tasks that you have used in one DAG?**
+**What is the maximum number of tasks that you have used in one DAG? (open question)**
 
 | Number of DAGs   |   No. |   % |
 |------------------|-------|-----|
@@ -242,7 +243,7 @@ to known product like Amundsen, Atlas or dbt.
 | 201-500          |    16 |   8 |
 | 501+             |    11 |   5 |
 
-**Which version of Airflow do you use currently?**
+**Which version of Airflow do you use currently? (single choice)**
 
 |                 |   No. |     % |
 |-----------------|-------|-------|
@@ -264,7 +265,7 @@ are using versions that are old or have known security vulnerabilities.
 
 Additionally, more than 20% of users are already using 2.0.0+ versions which is reasonably good information.
 
-**What meta-database do you use?**
+**What meta-database do you use? (single choice)**
 
 |              |   No. |     % |
 |--------------|-------|-------|
@@ -283,17 +284,17 @@ like MariaDB or cloud hosted database like Cloud SQL (used by Google Composer) o
 
 It's good to know that users rather avoid using SQLite in production deployments!
 
-**What executor type do you use?**
+**What executor type do you use? (single choice)**
 
 ![](What_executor_type_do_you_use.png)
 
-|            |   No. | 2020% | 2019% |
-|------------|-------|-------|-------|
-| Celery     |   100 | 49.26 | 44.81%|
-| Kubernetes |    48 | 23.65 | 16.88%|
-| Local      |    40 | 19.7  | 27.60%|
-| Sequential |    10 |  4.93 | 7.14% |
-| Other      |     5 |  2.46 | 3.57  |
+|            |   No. | 2020   | 2019   |
+|------------|-------|--------|--------|
+| Celery     |   100 | 49.26% | 44.81% |
+| Kubernetes |    48 | 23.65% | 16.88% |
+| Local      |    40 | 19.7%  | 27.60% |
+| Sequential |    10 |  4.93% | 7.14%  |
+| Other      |     5 |  2.46% | 3.57   |
 
 In comparison to previous year it seems that more users use currently Celery and
 Kubernetes executors and LocalExecutor usage dropped by nearly 8 points. This may
@@ -303,7 +304,7 @@ Among CeleryExecutor users 78% use Redis as a broker, 19% use RabbitMQ and the r
 is using other brokers or is not sure what is used in their deployments.
 
 
-**What metrics do you use to monitor Airflow?**
+**What metrics do you use to monitor Airflow? (multiple choice)**
 
 |                               |   No. |     % |
 |-------------------------------|-------|-------|
@@ -316,7 +317,7 @@ is using other brokers or is not sure what is used in their deployments.
 The other responses included mostly information about tools used by users
 including DataDog and Prometheus exporter.
 
-**How do you deploy Airflow?**
+**How do you deploy Airflow? (single choice)**
 
 |                                                                      |   No. |     % |
 |----------------------------------------------------------------------|-------|-------|
@@ -332,7 +333,7 @@ Nearly 33% of users deploys Airflow using some kind of Kubernetes deployment. Th
 10 percent more than in 2019. There's slightly increase in usage of Airflow via
 managed services (14.61% in 2019).
 
-**Do you use containerisation for deployment?**
+**Do you use containerisation for deployment? (single choice)**
 
 |                                    |   No. |     % |
 |------------------------------------|-------|-------|
@@ -344,7 +345,7 @@ managed services (14.61% in 2019).
 Among users who do not use Kubernetes based deployments 58% of them use containerisation. About
 42% of those users use docker-compose for deployments.
 
-**How do you distribute your DAGs?**
+**How do you distribute your DAGs? (single choice)**
 
 |                                                         |   No. |     % |
 |---------------------------------------------------------|-------|-------|
@@ -359,7 +360,7 @@ The most popular way of distributing DAGs seems to be using a synchronizing proc
 
 ## Future of Airflow
 
-**In your opinion, what could be improved in Airflow?**
+**In your opinion, what could be improved in Airflow? (multiple choice)**
 
 |                                                           |   No. |     % |
 |-----------------------------------------------------------|-------|-------|
@@ -379,7 +380,7 @@ The most popular way of distributing DAGs seems to be using a synchronizing proc
 | Everything work fine for me                               |    14 |  6.9  |
 | I don’t know                                              |     4 |  1.97 |
 
-**Which features would most interest you?**
+**Which features would most interest you? (multiple choice)**
 
 |                                                             |   No. |     % |
 |-------------------------------------------------------------|-------|-------|
@@ -396,7 +397,7 @@ The most popular way of distributing DAGs seems to be using a synchronizing proc
 | I have everything I need                                    |    11 |  5.42 |
 | Nothing                                                     |    11 |  5.42 |
 
-**Will you consider migrating to Airflow 2.0?**
+**Will you consider migrating to Airflow 2.0? (single choice)**
 
 |                                               |   No. |     % |
 |-----------------------------------------------|-------|-------|
@@ -406,7 +407,7 @@ The most popular way of distributing DAGs seems to be using a synchronizing proc
 | I don't know yet                              |     8 |  3.94 |
 | No, I do not plan to migrate                  |     3 |  1.48 |
 
-**What are the features of Airflow 2.0 you are most excited about?**
+**What are the features of Airflow 2.0 you are most excited about? (multiple choice)**
 
 |                                  |   No. |     % |
 |----------------------------------|-------|-------|
@@ -423,4 +424,11 @@ The most popular way of distributing DAGs seems to be using a synchronizing proc
 
 ## Summary
 
-TBD
+From open source point of view is good to see that many people would love to contribute to Apache Airflow.
+This means that there are resources that if unleashed may make our community even stronger. From product
+perspective it's important to know that users are usually using the latest versions of our software and
+are willing to upgrade to new ones.
+
+Finally, there are still some things to improve - documentation, on boarding guides and plug-and-play airflow
+deployments. However, we hope that with the increase of adoption there will be an increase in people willing
+to share their experience and tools.
