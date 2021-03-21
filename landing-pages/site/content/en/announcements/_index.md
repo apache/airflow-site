@@ -13,6 +13,10 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# March 21, 2021
+
+Airflow Summit will be held online July 8-16, 2021. To register or propose a talk go to
+[official Airflow Summit website](https://airflowsummit.org).
 
 # March 1, 2021
 
