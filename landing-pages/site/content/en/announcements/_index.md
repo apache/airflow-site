@@ -18,6 +18,37 @@ menu:
 Airflow Summit will be held online July 8-16, 2021. To register or propose a talk go to
 [official Airflow Summit website](https://airflowsummit.org).
 
+# March 18, 2021
+
+We've just released **Airflow Backport Provider Packages 2020.10.5**.
+
+https://dist.apache.org/repos/dist/release/airflow/backport-providers/
+
+# March 17, 2021
+
+We've just released Apache **Airflow 1.10.15**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/1.10.15 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/1.10.15/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/1.10.15/changelog.html
+
+19 bug fixes, 3 Improvements & a couple of doc updates since 1.10.14
+
+**Apache Airflow Elasticsearch Provider 1.0.3** released
+
+📦 PyPI: https://pypi.org/project/apache-airflow-providers-elasticsearch/1.0.3/
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow-providers-elasticsearch/1.0.3/index.html#changelog 
+
+# March 14, 2021
+
+We’ve just released **Apache Airflow Upgrade Check 1.3.0**:
+
+📦 PyPI: https://pypi.org/project/apache-airflow-upgrade-check/1.3.0/
+🛠️ Changelog: https://github.com/apache/airflow/tree/upgrade-check/1.3.0/airflow/upgrade#changelog
+
+This powers the `airflow upgrade_check` command to make upgrading to Apache Airflow 2.0 easier.
+
+
 # March 1, 2021
 
 Airflow PMC welcomes 3 new committers:
