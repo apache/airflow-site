@@ -37,7 +37,7 @@ We've just released Apache **Airflow 1.10.15**.
 **Apache Airflow Elasticsearch Provider 1.0.3** released
 
 📦 PyPI: https://pypi.org/project/apache-airflow-providers-elasticsearch/1.0.3/
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow-providers-elasticsearch/1.0.3/index.html#changelog 
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow-providers-elasticsearch/1.0.3/index.html#changelog
 
 # March 14, 2021
 
