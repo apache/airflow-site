@@ -85,6 +85,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
+[Viewflow](https://github.com/datacamp/viewflow) - Viewflow is a framework built on the top of Airflow that enables data scientists to create materialized views. It allows data scientists to focus on the logic of the view creation in their preferred tool (e.g., SQL, Python). [More info](https://medium.com/datacamp-engineering/viewflow-fe07353fa068)
+
 [whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
 
 [simple-dag-editor](https://github.com/ohadmata/simple-dag-editor) - Zero configuration Airflow plugin that let you manage your DAG files.
