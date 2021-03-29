@@ -63,6 +63,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Plugins](https://github.com/airflow-plugins/) - Central collection of repositories of various plugins for Airflow, including mailchimp, trello, sftp, GitHub, etc.
 
+[Apache-Liminal-Incubating](https://github.com/apache/incubator-liminal) -  Liminal provides a domain-specific-language (DSL) to build ML/AI workflows on top of Apache Airflow. Its goal is to operationalise the machine learning process, allowing data scientists to quickly transition from a successful experiment to an automated pipeline of model training, validation, deployment and inference in production.
+
 [Chartis](https://github.com/trejas/chartis) - Python package to convert Common Workflow Language (CWL) into Airflow DAG.
 
 [CWL-Airflow](https://github.com/Barski-lab/cwl-airflow) - Python package to extend Apache-Airflow 1.10.11 functionality with CWL v1.2 support.
