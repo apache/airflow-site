@@ -88,3 +88,5 @@ If you would you like to be included on this page, please reach out to the [Apac
 [whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
 
 [simple-dag-editor](https://github.com/ohadmata/simple-dag-editor) - Zero configuration Airflow plugin that let you manage your DAG files.
+
+[Apache-Liminal-Incubating](https://github.com/apache/incubator-liminal) -  Liminal provides a domain-specific-language (DSL) to build ML/AI workflows on top of Apache Airflow. It's goal is to operationalise the machine learning process, allowing data scientists to quickly transition from a successful experiment to an automated pipeline of model training, validation, deployment and inference in production.
