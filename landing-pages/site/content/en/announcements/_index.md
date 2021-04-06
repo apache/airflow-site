@@ -13,6 +13,13 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# April 6, 2021
+
+Airflow PMC welcomes 2 new committers:
+
+- **Qian Yu** ([@yuqian90](https://github.com/yuqian90))
+- **Xinbin Huang** ([@xinbinhuang](https://github.com/xinbinhuang))
+
 # March 21, 2021
 
 Airflow Summit will be held online July 8-16, 2021. To register or propose a talk go to
@@ -36,14 +43,14 @@ We've just released Apache **Airflow 1.10.15**.
 
 **Apache Airflow Elasticsearch Provider 1.0.3** released
 
-📦 PyPI: https://pypi.org/project/apache-airflow-providers-elasticsearch/1.0.3/
+📦 PyPI: https://pypi.org/project/apache-airflow-providers-elasticsearch/1.0.3/ \
 🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow-providers-elasticsearch/1.0.3/index.html#changelog
 
 # March 14, 2021
 
 We’ve just released **Apache Airflow Upgrade Check 1.3.0**:
 
-📦 PyPI: https://pypi.org/project/apache-airflow-upgrade-check/1.3.0/
+📦 PyPI: https://pypi.org/project/apache-airflow-upgrade-check/1.3.0/ \
 🛠️ Changelog: https://github.com/apache/airflow/tree/upgrade-check/1.3.0/airflow/upgrade#changelog
 
 This powers the `airflow upgrade_check` command to make upgrading to Apache Airflow 2.0 easier.
