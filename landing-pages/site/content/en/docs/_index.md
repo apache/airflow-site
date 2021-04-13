@@ -19,6 +19,8 @@ Providers packages include integrations with third party integrations. They are 
 
 <ul class="list-providers">
 
+  <li><a href="/docs/apache-airflow-providers-airbyte/stable/index.html"><code>Airbyte</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-beam/stable/index.html"><code>Apache Beam</code></a></li>
@@ -140,6 +142,8 @@ Providers packages include integrations with third party integrations. They are 
   <li><a href="/docs/apache-airflow-providers-tableau/stable/index.html"><code>Tableau</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-trino/stable/index.html"><code>Trino</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
 
