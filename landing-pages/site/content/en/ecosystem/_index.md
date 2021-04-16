@@ -31,7 +31,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
-## Airflow-As-A-Service
+## Airflow as a Service
 
 [Astronomer](https://www.astronomer.io/) - Managed Apache Airflow in Astronomer Cloud, or self-hosted within your environment
 
@@ -65,6 +65,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache-Liminal-Incubating](https://github.com/apache/incubator-liminal) -  Liminal provides a domain-specific-language (DSL) to build ML/AI workflows on top of Apache Airflow. Its goal is to operationalise the machine learning process, allowing data scientists to quickly transition from a successful experiment to an automated pipeline of model training, validation, deployment and inference in production.
 
+[Astronomer Registry](https://registry.astronomer.io/) - The discovery and distribution hub for Apache Airflow integrations created to aggregate and curate the best bits of the ecosystem.
+
 [Chartis](https://github.com/trejas/chartis) - Python package to convert Common Workflow Language (CWL) into Airflow DAG.
 
 [CWL-Airflow](https://github.com/Barski-lab/cwl-airflow) - Python package to extend Apache-Airflow 1.10.11 functionality with CWL v1.2 support.
@@ -87,8 +89,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
-[whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
-
 [simple-dag-editor](https://github.com/ohadmata/simple-dag-editor) - Zero configuration Airflow plugin that let you manage your DAG files.
 
 [Viewflow](https://github.com/datacamp/viewflow) - An Airflow-based framework that allows data scientists to create data models without writing Airflow code.
+
+[whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
