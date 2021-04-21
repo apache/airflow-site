@@ -34,6 +34,7 @@ RUN apt-get update \
         gnupg2 \
         gosu \
         lynx \
+        openssh-server \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
