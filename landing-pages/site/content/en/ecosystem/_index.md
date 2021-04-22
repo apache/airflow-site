@@ -43,7 +43,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
-## Third Party Airflow Plugins
+## Third Party Airflow Plugins and Providers
 
 [Astronomer Registry](https://registry.astronomer.io/) - The discovery and distribution hub for Apache Airflow integrations created to aggregate and curate the best bits of the ecosystem.
 
