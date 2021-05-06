@@ -661,36 +661,35 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hive_conf</span><span class="p">:</span>
             <span class="n">hive_conf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_conf</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulk_load</span><span class="p">:</span>
-            <span class="n">tmp_file</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">()</span>
-            <span class="n">hive</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">,</span>
-                <span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">lineterminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">output_header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">hive_conf</span><span class="o">=</span><span class="n">hive_conf</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp_file</span><span class="p">:</span>
+                <span class="n">hive</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">,</span>
+                    <span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">lineterminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">output_header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">hive_conf</span><span class="o">=</span><span class="n">hive_conf</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">mysql</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_preoperator</span><span class="p">()</span>
+                <span class="n">mysql</span><span class="o">.</span><span class="n">bulk_load</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_table</span><span class="p">,</span> <span class="n">tmp_file</span><span class="o">=</span><span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">hive_results</span> <span class="o">=</span> <span class="n">hive</span><span class="o">.</span><span class="n">get_records</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">,</span> <span class="n">hive_conf</span><span class="o">=</span><span class="n">hive_conf</span><span class="p">)</span>
-
-        <span class="n">mysql</span> <span class="o">=</span> <span class="n">MySqlHook</span><span class="p">(</span><span class="n">mysql_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_conn_id</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql_preoperator</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running MySQL preoperator&quot;</span><span class="p">)</span>
-            <span class="n">mysql</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_preoperator</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserting rows into MySQL&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulk_load</span><span class="p">:</span>
-            <span class="n">mysql</span><span class="o">.</span><span class="n">bulk_load</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_table</span><span class="p">,</span> <span class="n">tmp_file</span><span class="o">=</span><span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">tmp_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mysql</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_preoperator</span><span class="p">()</span>
             <span class="n">mysql</span><span class="o">.</span><span class="n">insert_rows</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_table</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">hive_results</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql_postoperator</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running MySQL postoperator&quot;</span><span class="p">)</span>
             <span class="n">mysql</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_postoperator</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HiveToMySqlOperator._call_preoperator"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/hive/transfers/hive_to_mysql/index.html#airflow.providers.apache.hive.transfers.hive_to_mysql.HiveToMySqlOperator._call_preoperator">[docs]</a>    <span class="k">def</span> <span class="nf">_call_preoperator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mysql</span> <span class="o">=</span> <span class="n">MySqlHook</span><span class="p">(</span><span class="n">mysql_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_conn_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql_preoperator</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running MySQL preoperator&quot;</span><span class="p">)</span>
+            <span class="n">mysql</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_preoperator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inserting rows into MySQL&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mysql</span></div></div>
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>

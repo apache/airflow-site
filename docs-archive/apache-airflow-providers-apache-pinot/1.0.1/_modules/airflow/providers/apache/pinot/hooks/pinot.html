@@ -270,7 +270,7 @@
 <div id="docs-version-selector" class="docs-version-selector sidebar__version-selector">
     <a class="dropdown-toggle" href="#" id="versionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
        aria-expanded="false">
-        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">master</span>
+        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">devel</span>
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 
@@ -402,7 +402,7 @@
 <div id="docs-version-selector" class="docs-version-selector sidebar__version-selector">
     <a class="dropdown-toggle" href="#" id="versionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
        aria-expanded="false">
-        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">master</span>
+        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">devel</span>
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 
@@ -782,26 +782,25 @@
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">))</span>
 
-        <span class="n">sub_process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+        <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
             <span class="n">command</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">close_fds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span>
-        <span class="p">)</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">sub_process</span><span class="p">:</span>
+            <span class="n">stdout</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">sub_process</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sub_process</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+                    <span class="n">stdout</span> <span class="o">+=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
-        <span class="n">stdout</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">sub_process</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sub_process</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-                <span class="n">stdout</span> <span class="o">+=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">sub_process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
 
-        <span class="n">sub_process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-
-        <span class="c1"># As of Pinot v0.1.0, either of &quot;Error: ...&quot; or &quot;Exception caught: ...&quot;</span>
-        <span class="c1"># is expected to be in the output messages. See:</span>
-        <span class="c1"># https://github.com/apache/incubator-pinot/blob/release-0.1.0/pinot-tools/src/main/java/org/apache/pinot/tools/admin/PinotAdministrator.java#L98-L101</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinot_admin_system_exit</span> <span class="ow">and</span> <span class="n">sub_process</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-            <span class="s2">&quot;Error&quot;</span> <span class="ow">in</span> <span class="n">stdout</span> <span class="ow">or</span> <span class="s2">&quot;Exception&quot;</span> <span class="ow">in</span> <span class="n">stdout</span>
-        <span class="p">):</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span>
+            <span class="c1"># As of Pinot v0.1.0, either of &quot;Error: ...&quot; or &quot;Exception caught: ...&quot;</span>
+            <span class="c1"># is expected to be in the output messages. See:</span>
+            <span class="c1"># https://github.com/apache/incubator-pinot/blob/release-0.1.0/pinot-tools/src/main/java/org/apache/pinot/tools/admin/PinotAdministrator.java#L98-L101</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinot_admin_system_exit</span> <span class="ow">and</span> <span class="n">sub_process</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="s2">&quot;Error&quot;</span> <span class="ow">in</span> <span class="n">stdout</span> <span class="ow">or</span> <span class="s2">&quot;Exception&quot;</span> <span class="ow">in</span> <span class="n">stdout</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">stdout</span></div></div>
 
