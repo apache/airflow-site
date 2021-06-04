@@ -13,6 +13,33 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# May 21, 2021
+
+I'm happy to announce that Apache **Airflow 2.1.0** was just released. This one includes a raft of fixes and other small improvements, but some notable additions include:
+
+- A Create a DAG Calendar View to show the status of your DAG run across time more easily
+
+- The cross-dag-dependencies view (which used to be an external plugin) is now part of core
+
+- Mask passwords and sensitive info in task logs and UI (finally!)
+
+- Improvmenets to webserver start up time (mostly around time spent syncing DAG permissions)
+
+Please note that *this* release no long includes the `HTTP` extra provider by default, as we discovered that it pulls in an LGPL dependency (via the `requests` module of all places) so it is now optional.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.1.0 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.0/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.0/changelog.html
+
+
+# May 20, 2021
+
+The first release of our official helm chart for Apache Airflow is here!
+
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow
+📚 Docs: ⁨https://airflow.apache.org/docs/helm-chart/1.0.
+🚀 Quick Start Installation Guide: https://airflow.apache.org/docs/helm-chart/1.0.0/quick-start.html
+
 # April 6, 2021
 
 Airflow PMC welcomes 2 new committers:
