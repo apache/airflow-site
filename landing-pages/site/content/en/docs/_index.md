@@ -159,7 +159,7 @@ Providers packages include integrations with third party integrations. They are 
 
 Airflow has an official Dockerfile and Docker image published in DockerHub as a convenience package for
 installation. You can extend and customize the image according to your requirements and use it in
-your own deployments.  
+your own deployments.
 [Read the documentation >>](/docs/docker-stack/index.html)
 
 
