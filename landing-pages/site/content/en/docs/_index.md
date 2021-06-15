@@ -165,7 +165,7 @@ your own deployments.
 
 ## [Helm Chart](/docs/helm-chart/stable/index.html)
 
-Airflow has an official Helm Chart that will help you set up your own Airflow on a cloud/on-prem Kubernetes environment and leverage its scalable nature to support a large group of users. Thanks to Kubernetes, we are not tied to a specific cloud provider.  
+Airflow has an official Helm Chart that will help you set up your own Airflow on a cloud/on-prem Kubernetes environment and leverage its scalable nature to support a large group of users. Thanks to Kubernetes, we are not tied to a specific cloud provider.
 [Read the documentation >>](/docs/helm-chart/stable/index.html)  
 
 <style>
