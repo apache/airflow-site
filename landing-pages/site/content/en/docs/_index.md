@@ -176,3 +176,8 @@ Airflow has an official Helm Chart that will help you set up your own Airflow on
         }
     }
 </style>
+
+## [Python API Client](https://github.com/apache/airflow-client-python)
+
+Airflow releases official Python API client that can be used to easily interact with Airflow REST API from Python code.
+[See the client repository](https://github.com/apache/airflow-client-python)
