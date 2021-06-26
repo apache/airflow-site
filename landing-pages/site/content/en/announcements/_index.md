@@ -13,6 +13,13 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# June 26, 2021
+
+Airflow PMC welcomes 2 new committers:
+
+- **Jed Cunningham** ([@jedcunningham](https://github.com/jedcunningham))
+- **Tzu-ping Chung** ([@uranusjr](https://github.com/uranusjr)
+
 # May 21, 2021
 
 I'm happy to announce that Apache **Airflow 2.1.0** was just released. This one includes a raft of fixes and other small improvements, but some notable additions include:
@@ -36,8 +43,8 @@ Please note that *this* release no long includes the `HTTP` extra provider by de
 
 The first release of our official helm chart for Apache Airflow is here!
 
-📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow
-📚 Docs: ⁨https://airflow.apache.org/docs/helm-chart/1.0.
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
+📚 Docs: ⁨https://airflow.apache.org/docs/helm-chart/1.0. \
 🚀 Quick Start Installation Guide: https://airflow.apache.org/docs/helm-chart/1.0.0/quick-start.html
 
 # April 6, 2021
