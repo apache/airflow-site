@@ -31,8 +31,8 @@
     
 
 <header>
-
-    <nav class="js-navbar-scroll navbar">
+    <a href="https://airflowsummit.org" target="_blank" class="d-block fixed-top px-3 py-2 bg-success text-center text-bold text-white">Airflow Summit 2021 is coming July 8-16. Register now!</a>
+    <nav class="js-navbar-scroll navbar" style="top: 40px;">
         <div class="navbar__icon-container">
             <a href="/">
                 <svg xmlns="http://www.w3.org/2000/svg" width="155.314" height="60" viewBox="0 0 155.314 60">
@@ -319,9 +319,14 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Entrypoint</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#allowing-arbitrary-user-to-run-the-container">Allowing arbitrary user to run the container</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-airflow-db-connection">Waits for Airflow DB connection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-admin-user">Creating admin user</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#executing-commands">Executing commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-quick-test-options">Additional quick test options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-admin-user">Creating admin user</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-additional-requirements">Installing additional requirements</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="recipes.html">Recipes</a></li>
@@ -459,9 +464,14 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Entrypoint</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#allowing-arbitrary-user-to-run-the-container">Allowing arbitrary user to run the container</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-airflow-db-connection">Waits for Airflow DB connection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-admin-user">Creating admin user</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#executing-commands">Executing commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-quick-test-options">Additional quick test options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-admin-user">Creating admin user</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-additional-requirements">Installing additional requirements</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="recipes.html">Recipes</a></li>
@@ -577,61 +587,8 @@
 <p>If you are using the default entrypoint of the production image,
 there are a few actions that are automatically performed when the container starts.
 In some cases, you can pass environment variables to the image to trigger some of that behaviour.</p>
-<p>The variables that control the &quot;execution&quot; behaviour start with <code class="docutils literal notranslate"><span class="pre">_AIRFLOW</span></code> to distinguish them
+<p>The variables that control the “execution” behaviour start with <code class="docutils literal notranslate"><span class="pre">_AIRFLOW</span></code> to distinguish them
 from the variables used to build the image starting with <code class="docutils literal notranslate"><span class="pre">AIRFLOW</span></code>.</p>
-<p>The image entrypoint works as follows:</p>
-<ul>
-<li><p>In case the user is not &quot;airflow&quot; (with undefined user id) and the group id of the user is set to <code class="docutils literal notranslate"><span class="pre">0</span></code> (root),
-then the user is dynamically added to <code class="docutils literal notranslate"><span class="pre">/etc/passwd</span></code> at entry using <code class="docutils literal notranslate"><span class="pre">USER_NAME</span></code> variable to define the user name.
-This is in order to accommodate the
-<a class="reference external" href="https://docs.openshift.com/enterprise/3.0/creating_images/guidelines.html">OpenShift Guidelines</a></p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">AIRFLOW_HOME</span></code> is set by default to <code class="docutils literal notranslate"><span class="pre">/opt/airflow/</span></code> - this means that DAGs
-are in default in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder and logs are in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/logs</span></code></p></li>
-<li><p>The working directory is <code class="docutils literal notranslate"><span class="pre">/opt/airflow</span></code> by default.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code> variable is passed to the container and it is either mysql or postgres
-SQL alchemy connection, then the connection is checked and the script waits until the database is reachable.
-If <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN_CMD</span></code> variable is passed to the container, it is evaluated as a
-command to execute and result of this evaluation is used as <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code>. The
-<code class="docutils literal notranslate"><span class="pre">_CMD</span></code> variable takes precedence over the <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code> variable.</p></li>
-<li><p>If no <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code> variable is set then SQLite database is created in
-<code class="docutils literal notranslate"><span class="pre">${AIRFLOW_HOME}/airflow.db</span></code> and db reset is executed.</p></li>
-<li><p>If first argument equals to &quot;bash&quot; - you are dropped to a bash shell or you can executes bash command
-if you specify extra arguments. For example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:master-python3.6 bash -c <span class="s2">&quot;ls -la&quot;</span>
-total <span class="m">16</span>
-drwxr-xr-x <span class="m">4</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 .
-drwxr-xr-x <span class="m">1</span> root    root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 ..
-drwxr-xr-x <span class="m">2</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 dags
-drwxr-xr-x <span class="m">2</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 logs
-</pre></div>
-</div>
-</li>
-<li><p>If first argument is equal to <code class="docutils literal notranslate"><span class="pre">python</span></code> - you are dropped in python shell or python commands are executed if
-you pass extra parameters. For example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:master-python3.6 python -c <span class="s2">&quot;print(&#39;test&#39;)&quot;</span>
-<span class="nb">test</span>
-</pre></div>
-</div>
-</li>
-<li><p>If first argument equals to &quot;airflow&quot; - the rest of the arguments is treated as an airflow command
-to execute. Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:master-python3.6 airflow webserver
-</pre></div>
-</div>
-</li>
-<li><p>If there are any other arguments - they are simply passed to the &quot;airflow&quot; command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:master-python3.6 version
-<span class="m">2</span>.1.0
-</pre></div>
-</div>
-</li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL</span></code> variable is passed and airflow command with
-scheduler, worker of flower command is used, then the script checks the broker connection
-and waits until the Celery broker database is reachable.
-If <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL_CMD</span></code> variable is passed to the container, it is evaluated as a
-command to execute and result of this evaluation is used as <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL</span></code>. The
-<code class="docutils literal notranslate"><span class="pre">_CMD</span></code> variable takes precedence over the <code class="docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL</span></code> variable.</p></li>
-</ul>
 <div class="section" id="allowing-arbitrary-user-to-run-the-container">
 <span id="arbitrary-docker-user"></span><h2>Allowing arbitrary user to run the container<a class="headerlink" href="#allowing-arbitrary-user-to-run-the-container" title="Permalink to this headline">¶</a></h2>
 <p>Airflow image is Open-Shift compatible, which means that you can start it with random user ID and the
@@ -651,24 +608,24 @@ those formats (See <a class="reference external" href="https://docs.docker.com/e
 See <a class="reference external" href="https://docs.docker.com/compose/compose-file/compose-file-v3/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir">Docker compose reference</a>
 for details. In our Quickstart Guide using Docker-Compose, the UID and GID can be passed via
 <code class="docutils literal notranslate"><span class="pre">AIRFLOW_UID</span></code> and <code class="docutils literal notranslate"><span class="pre">AIRFLOW_GID</span></code> variables as described in
-<a class="reference external" href="/docs/apache-airflow/stable/start/docker.html#initializing-docker-compose-environment" title="(in apache-airflow v2.2.0.dev0)"><span class="xref std std-ref">Initializing docker compose environment</span></a>.</p>
+<a class="reference external" href="/docs/apache-airflow/latest/start/docker.html#initializing-docker-compose-environment" title="(in apache-airflow v2.2.0.dev0)"><span class="xref std std-ref">Initializing docker compose environment</span></a>.</p>
 <p>In case <code class="docutils literal notranslate"><span class="pre">GID</span></code> is set to <code class="docutils literal notranslate"><span class="pre">0</span></code>, the user can be any UID, but in case UID is different than the default
 <code class="docutils literal notranslate"><span class="pre">airflow</span></code> (UID=50000), the user will be automatically created when entering the container.</p>
 <p>In order to accommodate a number of external libraries and projects, Airflow will automatically create
-such an arbitrary user in (<cite>/etc/passwd</cite>) and make it's home directory point to <code class="docutils literal notranslate"><span class="pre">/home/airflow</span></code>.
+such an arbitrary user in (<cite>/etc/passwd</cite>) and make it’s home directory point to <code class="docutils literal notranslate"><span class="pre">/home/airflow</span></code>.
 Many of 3rd-party libraries and packages require home directory of the user to be present, because they
 need to write some cache information there, so such a dynamic creation of a user is necessary.</p>
 <p>Such arbitrary user has to be able to write to certain directories that needs write access, and since
-it is not advised to allow write access to &quot;other&quot; for security reasons, the OpenShift
+it is not advised to allow write access to “other” for security reasons, the OpenShift
 guidelines introduced the concept of making all such folders have the <code class="docutils literal notranslate"><span class="pre">0</span></code> (<code class="docutils literal notranslate"><span class="pre">root</span></code>) group id (GID).
 All the directories that need write access in the Airflow production image have GID set to 0 (and
 they are writable for the group). We are following that concept and all the directories that need
 write access follow that.</p>
 <p>The GID=0 is set as default for the <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user, so any directories it creates have GID set to 0
 by default. The entrypoint sets <code class="docutils literal notranslate"><span class="pre">umask</span></code> to be <code class="docutils literal notranslate"><span class="pre">0002</span></code> - this means that any directories created by
-the user have also &quot;group write&quot; access for group <code class="docutils literal notranslate"><span class="pre">0</span></code> - they will be writable by other users with
-<code class="docutils literal notranslate"><span class="pre">root</span></code> group. Also whenever any &quot;arbitrary&quot; user creates a folder (for example in a mounted volume), that
-folder will have a &quot;group write&quot; access and <code class="docutils literal notranslate"><span class="pre">GID=0</span></code>, so that execution with another, arbitrary user
+the user have also “group write” access for group <code class="docutils literal notranslate"><span class="pre">0</span></code> - they will be writable by other users with
+<code class="docutils literal notranslate"><span class="pre">root</span></code> group. Also whenever any “arbitrary” user creates a folder (for example in a mounted volume), that
+folder will have a “group write” access and <code class="docutils literal notranslate"><span class="pre">GID=0</span></code>, so that execution with another, arbitrary user
 will still continue to work, even if such directory is mounted by another arbitrary user later.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">umask</span></code> setting however only works for runtime of the container - it is not used during building of
 the image. If you would like to extend the image and add your own packages, you should remember to add
@@ -681,7 +638,7 @@ that need group access will also be writable for the group. This can be done for
 </pre></div>
 </div>
 </div></blockquote>
-<p>You can read more about it in the &quot;Support arbitrary user ids&quot; chapter in the
+<p>You can read more about it in the “Support arbitrary user ids” chapter in the
 <a class="reference external" href="https://docs.openshift.com/container-platform/4.7/openshift_images/create-images.html#images-create-guide-openshift_create-images">Openshift best practices</a>.</p>
 </div>
 <div class="section" id="waits-for-airflow-db-connection">
@@ -690,7 +647,7 @@ that need group access will also be writable for the group. This can be done for
 available. This happens always when you use the default entrypoint.</p>
 <p>The script detects backend type depending on the URL schema and assigns default port numbers if not specified
 in the URL. Then it loops until the connection to the host/port specified can be established
-It tries <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT</span></code> times and sleeps <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_SLEEP_TIME</span></code> between checks
+It tries <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT</span></code> times and sleeps <span class="target" id="index-1"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">CONNECTION_CHECK_SLEEP_TIME</span></code> between checks
 To disable check, set <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT=0</span></code>.</p>
 <p>Supported schemes:</p>
 <ul class="simple">
@@ -699,10 +656,77 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 <li><p><code class="docutils literal notranslate"><span class="pre">sqlite://</span></code></p></li>
 </ul>
 <p>In case of SQLite backend, there is no connection to establish and waiting is skipped.</p>
+<p>For older than Airflow 1.10.14, waiting for connection involves checking if a matching port is open.
+The host information is derived from the variables <span class="target" id="index-2"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code> and
+<span class="target" id="index-3"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN_CMD</span></code>. If <span class="target" id="index-4"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN_CMD</span></code> variable
+is passed to the container, it is evaluated as a command to execute and result of this evaluation is used
+as <span class="target" id="index-5"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code>. The <span class="target" id="index-6"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN_CMD</span></code> variable
+takes precedence over the <span class="target" id="index-7"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CORE__SQL_ALCHEMY_CONN</span></code> variable.</p>
+<p>For newer versions, the <code class="docutils literal notranslate"><span class="pre">airflow</span> <span class="pre">db</span> <span class="pre">check</span></code> command is used, which means that a <code class="docutils literal notranslate"><span class="pre">select</span> <span class="pre">1</span> <span class="pre">as</span> <span class="pre">is_alive;</span></code> query
+is executed. This also means that you can keep your password in secret backend.</p>
 </div>
+<div class="section" id="waits-for-celery-broker-connection">
+<h2>Waits for celery broker connection<a class="headerlink" href="#waits-for-celery-broker-connection" title="Permalink to this headline">¶</a></h2>
+<p>In case Postgres or MySQL DB is used, and one of the <code class="docutils literal notranslate"><span class="pre">scheduler</span></code>, <code class="docutils literal notranslate"><span class="pre">celery</span></code>, <code class="docutils literal notranslate"><span class="pre">worker</span></code>, or <code class="docutils literal notranslate"><span class="pre">flower</span></code>
+commands are used the entrypoint will wait until the celery broker DB connection is available.</p>
+<p>The script detects backend type depending on the URL schema and assigns default port numbers if not specified
+in the URL. Then it loops until connection to the host/port specified can be established
+It tries <span class="target" id="index-8"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT</span></code> times and sleeps <span class="target" id="index-9"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">CONNECTION_CHECK_SLEEP_TIME</span></code> between checks.
+To disable check, set <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT=0</span></code>.</p>
+<p>Supported schemes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amqp(s)://</span></code>  (rabbitmq) - default port 5672</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">redis://</span></code>               - default port 6379</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">postgres://</span></code>            - default port 5432</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mysql://</span></code>               - default port 3306</p></li>
+</ul>
+<p>Waiting for connection involves checking if a matching port is open.
+The host information is derived from the variables <span class="target" id="index-10"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL</span></code> and
+<span class="target" id="index-11"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL_CMD</span></code>. If <span class="target" id="index-12"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL_CMD</span></code> variable
+is passed to the container, it is evaluated as a command to execute and result of this evaluation is used
+as <span class="target" id="index-13"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL</span></code>. The <span class="target" id="index-14"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL_CMD</span></code> variable
+takes precedence over the <span class="target" id="index-15"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">AIRFLOW__CELERY__BROKER_URL</span></code> variable.</p>
+</div>
+<div class="section" id="executing-commands">
+<span id="entrypoint-commands"></span><h2>Executing commands<a class="headerlink" href="#executing-commands" title="Permalink to this headline">¶</a></h2>
+<p>If first argument equals to “bash” - you are dropped to a bash shell or you can executes bash command
+if you specify extra arguments. For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.1.0-python3.6 bash -c <span class="s2">&quot;ls -la&quot;</span>
+total <span class="m">16</span>
+drwxr-xr-x <span class="m">4</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 .
+drwxr-xr-x <span class="m">1</span> root    root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 ..
+drwxr-xr-x <span class="m">2</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 dags
+drwxr-xr-x <span class="m">2</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 logs
+</pre></div>
+</div>
+<p>If first argument is equal to <code class="docutils literal notranslate"><span class="pre">python</span></code> - you are dropped in python shell or python commands are executed if
+you pass extra parameters. For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:2.1.0-python3.6 python -c <span class="s2">&quot;print(&#39;test&#39;)&quot;</span>
+<span class="nb">test</span>
+</pre></div>
+</div>
+<p>If first argument equals to “airflow” - the rest of the arguments is treated as an airflow command
+to execute. Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.1.0-python3.6 airflow webserver
+</pre></div>
+</div>
+<p>If there are any other arguments - they are simply passed to the “airflow” command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:2.1.0-python3.6 version
+<span class="m">2</span>.1.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="additional-quick-test-options">
+<h2>Additional quick test options<a class="headerlink" href="#additional-quick-test-options" title="Permalink to this headline">¶</a></h2>
+<p>The options below are mostly used for quick testing the image - for example with
+quick-start docker-compose or when you want to perform a local test with new packages
+added. They are not supposed to be run in the production environment as they add additional
+overhead for execution of additional commands. Those options in production should be realized
+either as maintenance operations on the database or should be embedded in the custom image used
+(when you want to add new packages).</p>
 <div class="section" id="upgrading-airflow-db">
-<h2>Upgrading Airflow DB<a class="headerlink" href="#upgrading-airflow-db" title="Permalink to this headline">¶</a></h2>
-<p>If you set <code class="docutils literal notranslate"><span class="pre">_AIRFLOW_DB_UPGRADE</span></code> variable to a non-empty value, the entrypoint will run
+<h3>Upgrading Airflow DB<a class="headerlink" href="#upgrading-airflow-db" title="Permalink to this headline">¶</a></h3>
+<p>If you set <span class="target" id="index-16"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">_AIRFLOW_DB_UPGRADE</span></code> variable to a non-empty value, the entrypoint will run
 the <code class="docutils literal notranslate"><span class="pre">airflow</span> <span class="pre">db</span> <span class="pre">upgrade</span></code> command right after verifying the connection. You can also use this
 when you are running airflow with internal SQLite database (default) to upgrade the db and create
 admin users at entrypoint, so that you can start the webserver immediately. Note - using SQLite is
@@ -710,13 +734,13 @@ intended only for testing purpose, never use SQLite in production as it has seve
 comes to concurrency.</p>
 </div>
 <div class="section" id="creating-admin-user">
-<h2>Creating admin user<a class="headerlink" href="#creating-admin-user" title="Permalink to this headline">¶</a></h2>
+<h3>Creating admin user<a class="headerlink" href="#creating-admin-user" title="Permalink to this headline">¶</a></h3>
 <p>The entrypoint can also create webserver user automatically when you enter it. you need to set
-<code class="docutils literal notranslate"><span class="pre">_AIRFLOW_WWW_USER_CREATE</span></code> to a non-empty value in order to do that. This is not intended for
+<span class="target" id="index-17"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">_AIRFLOW_WWW_USER_CREATE</span></code> to a non-empty value in order to do that. This is not intended for
 production, it is only useful if you would like to run a quick test with the production image.
 You need to pass at least password to create such user via <code class="docutils literal notranslate"><span class="pre">_AIRFLOW_WWW_USER_PASSWORD</span></code> or
-<code class="docutils literal notranslate"><span class="pre">_AIRFLOW_WWW_USER_PASSWORD_CMD</span></code> similarly like for other <code class="docutils literal notranslate"><span class="pre">*_CMD</span></code> variables, the content of
-the <code class="docutils literal notranslate"><span class="pre">*_CMD</span></code> will be evaluated as shell command and it's output will be set as password.</p>
+<span class="target" id="index-18"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">_AIRFLOW_WWW_USER_PASSWORD_CMD</span></code> similarly like for other <code class="docutils literal notranslate"><span class="pre">*_CMD</span></code> variables, the content of
+the <code class="docutils literal notranslate"><span class="pre">*_CMD</span></code> will be evaluated as shell command and it’s output will be set as password.</p>
 <p>User creation will fail if none of the <code class="docutils literal notranslate"><span class="pre">PASSWORD</span></code> variables are set - there is no default for
 password for security reasons.</p>
 <table class="docutils align-default">
@@ -766,36 +790,37 @@ database and creating an <code class="docutils literal notranslate"><span class=
   --env <span class="s2">&quot;_AIRFLOW_DB_UPGRADE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_CREATE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_PASSWORD=admin&quot;</span> <span class="se">\</span>
-    apache/airflow:master-python3.8 webserver
+    apache/airflow:main-python3.8 webserver
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it -p <span class="m">8080</span>:8080 <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_DB_UPGRADE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_CREATE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_PASSWORD_CMD=echo admin&quot;</span> <span class="se">\</span>
-    apache/airflow:master-python3.8 webserver
+    apache/airflow:main-python3.8 webserver
 </pre></div>
 </div>
 <p>The commands above perform initialization of the SQLite database, create admin user with admin password
 and Admin role. They also forward local port <code class="docutils literal notranslate"><span class="pre">8080</span></code> to the webserver port and finally start the webserver.</p>
 </div>
-<div class="section" id="waits-for-celery-broker-connection">
-<h2>Waits for celery broker connection<a class="headerlink" href="#waits-for-celery-broker-connection" title="Permalink to this headline">¶</a></h2>
-<p>In case Postgres or MySQL DB is used, and one of the <code class="docutils literal notranslate"><span class="pre">scheduler</span></code>, <code class="docutils literal notranslate"><span class="pre">celery</span></code>, <code class="docutils literal notranslate"><span class="pre">worker</span></code>, or <code class="docutils literal notranslate"><span class="pre">flower</span></code>
-commands are used the entrypoint will wait until the celery broker DB connection is available.</p>
-<p>The script detects backend type depending on the URL schema and assigns default port numbers if not specified
-in the URL. Then it loops until connection to the host/port specified can be established
-It tries <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT</span></code> times and sleeps <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_SLEEP_TIME</span></code> between checks.
-To disable check, set <code class="docutils literal notranslate"><span class="pre">CONNECTION_CHECK_MAX_COUNT=0</span></code>.</p>
-<p>Supported schemes:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">amqp(s)://</span></code>  (rabbitmq) - default port 5672</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">redis://</span></code>               - default port 6379</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">postgres://</span></code>            - default port 5432</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mysql://</span></code>               - default port 3306</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sqlite://</span></code></p></li>
-</ul>
-<p>In case of SQLite backend, there is no connection to establish and waiting is skipped.</p>
+<div class="section" id="installing-additional-requirements">
+<h3>Installing additional requirements<a class="headerlink" href="#installing-additional-requirements" title="Permalink to this headline">¶</a></h3>
+<p>Installing additional requirements can be done by specifying <code class="docutils literal notranslate"><span class="pre">_PIP_ADDITIONAL_REQUIREMENTS</span></code> variable.
+The variable should contain a list of requirements that should be installed additionally when entering
+the containers. Note that this option slows down starting of Airflow as every time any container starts
+it must install new packages. Therefore this option should only be used for testing. When testing is
+finished, you should create your custom image with dependencies baked in.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it -p <span class="m">8080</span>:8080 <span class="se">\</span>
+  --env <span class="s2">&quot;_PIP_ADDITIONAL_REQUIREMENTS=lxml==4.6.3 charset-normalizer==1.4.1&quot;</span> <span class="se">\</span>
+  --env <span class="s2">&quot;_AIRFLOW_DB_UPGRADE=true&quot;</span> <span class="se">\</span>
+  --env <span class="s2">&quot;_AIRFLOW_WWW_USER_CREATE=true&quot;</span> <span class="se">\</span>
+  --env <span class="s2">&quot;_AIRFLOW_WWW_USER_PASSWORD_CMD=echo admin&quot;</span> <span class="se">\</span>
+    apache/airflow:master-python3.8 webserver
+</pre></div>
+</div>
+<p>This method is only available starting from Docker image of Airflow 2.1.1 and above.</p>
+</div>
 </div>
 </div>
 
@@ -877,9 +902,14 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 <li><a class="reference internal" href="#">Entrypoint</a><ul>
 <li><a class="reference internal" href="#allowing-arbitrary-user-to-run-the-container">Allowing arbitrary user to run the container</a></li>
 <li><a class="reference internal" href="#waits-for-airflow-db-connection">Waits for Airflow DB connection</a></li>
+<li><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
+<li><a class="reference internal" href="#executing-commands">Executing commands</a></li>
+<li><a class="reference internal" href="#additional-quick-test-options">Additional quick test options</a><ul>
 <li><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
 <li><a class="reference internal" href="#creating-admin-user">Creating admin user</a></li>
-<li><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
+<li><a class="reference internal" href="#installing-additional-requirements">Installing additional requirements</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -926,14 +956,14 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
     <div class="footer-section footer-section__media-section">
         <div class="d-flex align-items-center">
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://github.com">
+            <a class="footer-section__media-section--link" target="_blank" href="https://github.com/apache/airflow">
                 <svg xmlns="http://www.w3.org/2000/svg" width="46.14" height="45" viewBox="0 0 46.14 45">
                     <path id="Path_207" d="M228.962 1078.578a23.072 23.072 0 0 0-7.29 44.96c1.154.212 1.574-.5 1.574-1.112 0-.548-.02-2-.031-3.924-6.417 1.394-7.771-3.093-7.771-3.093a6.109 6.109 0 0 0-2.562-3.375c-2.095-1.431.159-1.4.159-1.4a4.846 4.846 0 0 1 3.533 2.377c2.058 3.525 5.4 2.507 6.714 1.917a4.926 4.926 0 0 1 1.464-3.084c-5.123-.582-10.508-2.562-10.508-11.4a8.919 8.919 0 0 1 2.374-6.191 8.3 8.3 0 0 1 .226-6.105s1.937-.62 6.344 2.365a21.857 21.857 0 0 1 11.551 0c4.4-2.985 6.338-2.365 6.338-2.365a8.284 8.284 0 0 1 .23 6.105 8.9 8.9 0 0 1 2.371 6.191c0 8.862-5.393 10.812-10.533 11.384a5.506 5.506 0 0 1 1.566 4.272c0 3.084-.028 5.572-.028 6.329 0 .617.415 1.334 1.586 1.109a23.073 23.073 0 0 0-7.308-44.958z" fill="#fff" fill-rule="evenodd" data-name="Path 207" transform="translate(-205.894 -1078.578)"></path>
                 </svg>
 
             </a>
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://jira.atlassian.com/">
+            <a class="footer-section__media-section--link" target="_blank" href="https://github.com/apache/airflow/issues">
                 <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" viewBox="0 0 45 45">
                     <g id="Group_210" data-name="Group 210" transform="translate(-339.789 -1315.282)">
                         <path id="Path_218" d="M394.82 1315.282h-21.671a9.784 9.784 0 0 0 9.784 9.778h3.986v3.857a9.784 9.784 0 0 0 9.784 9.771v-21.523a1.884 1.884 0 0 0-1.883-1.883z" fill="#fff" data-name="Path 218" transform="translate(-11.914)"></path>
@@ -944,7 +974,7 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 
             </a>
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://slack.com">
+            <a class="footer-section__media-section--link" target="_blank" href="https://s.apache.org/airflow-slack">
                 <svg xmlns="http://www.w3.org/2000/svg" width="45.073" height="45.073" viewBox="0 0 45.073 45.073">
                     <g id="Group_208" data-name="Group 208" transform="translate(-661.145 -806.287)">
                         <g id="Group_204" data-name="Group 204" transform="translate(661.145 830.01)">
@@ -968,7 +998,7 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 
             </a>
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://stackoverflow.com">
+            <a class="footer-section__media-section--link" target="_blank" href="https://stackoverflow.com/questions/tagged/airflow">
                 <svg xmlns="http://www.w3.org/2000/svg" width="37.647" height="44.6" viewBox="0 0 37.647 44.6">
                     <g id="Group_209" data-name="Group 209" transform="translate(-645.2 -975.455)">
                         <path id="Path_216" d="M677.028 1043.1v-11.948h3.966v15.914H645.2v-15.914h3.966v11.948z" fill="#fff" data-name="Path 216" transform="translate(0 -27.014)"></path>
@@ -978,7 +1008,7 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 
             </a>
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://twitter.com">
+            <a class="footer-section__media-section--link" target="_blank" href="https://twitter.com/ApacheAirflow">
                 <svg xmlns="http://www.w3.org/2000/svg" width="44.355" height="44.355" viewBox="0 0 44.355 44.355">
                     <g id="Group_211" data-name="Group 211" transform="translate(-503 -1382.2)">
                         <path id="Path_221" d="M541.811 1382.2h-33.267a5.546 5.546 0 0 0-5.544 5.544v33.266a5.547 5.547 0 0 0 5.544 5.545h33.267a5.546 5.546 0 0 0 5.544-5.545v-33.266a5.546 5.546 0 0 0-5.544-5.544zm-5.611 16.533c.011.244.011.488.011.732 0 7.507-5.722 16.178-16.179 16.178a16.173 16.173 0 0 1-8.7-2.539 10.92 10.92 0 0 0 1.353.078 11.4 11.4 0 0 0 7.064-2.44 5.685 5.685 0 0 1-5.311-3.947 5.725 5.725 0 0 0 2.561-.1 5.7 5.7 0 0 1-4.557-5.578v-.078a5.752 5.752 0 0 0 2.572.71 5.709 5.709 0 0 1-1.763-7.6 16.146 16.146 0 0 0 11.721 5.944 6.282 6.282 0 0 1-.144-1.3 5.688 5.688 0 0 1 9.836-3.892 11.3 11.3 0 0 0 3.615-1.375 5.721 5.721 0 0 1-2.506 3.149 11.538 11.538 0 0 0 3.271-.9 11.585 11.585 0 0 1-2.844 2.958z" fill="#fff" data-name="Path 221"></path>
@@ -987,7 +1017,7 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 
             </a>
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://youtube.com">
+            <a class="footer-section__media-section--link" target="_blank" href="https://www.youtube.com/channel/UCSXwxpWZQ7XZ1WL3wqevChA">
                 <svg xmlns="http://www.w3.org/2000/svg" width="49.594" height="34.941" viewBox="0 0 49.594 34.941">
                     <path id="Path_223" d="M1124.557 1230a6.232 6.232 0 0 0-4.385-4.413c-3.867-1.043-19.376-1.043-19.376-1.043s-15.508 0-19.376 1.043a6.232 6.232 0 0 0-4.385 4.413c-1.036 3.893-1.036 12.014-1.036 12.014s0 8.122 1.036 12.015a6.232 6.232 0 0 0 4.385 4.413c3.867 1.043 19.376 1.043 19.376 1.043s15.509 0 19.376-1.043a6.232 6.232 0 0 0 4.385-4.413c1.036-3.893 1.036-12.015 1.036-12.015s.001-8.123-1.036-12.014zm-28.833 19.388v-14.748l12.962 7.374z" fill="#fff" data-name="Path 223" transform="translate(-1076 -1224.542)"></path>
                 </svg>
@@ -1010,7 +1040,7 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
     </div>
     <div class="footer-section footer-section__policies-section">
         <div class="footer-section">
-            <span>© The Apache Software Foundation 2019</span>
+            <span>© The Apache Software Foundation <script>document.write(new Date().getFullYear())</script></span>
             <div class="footer-section__policies-section--policies">
 
                 <a href="https://www.apache.org/licenses/" class="footer-section__policies-section--policy-item">
