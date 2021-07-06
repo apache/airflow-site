@@ -13,6 +13,20 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+
+
+# July 6, 2021
+
+Airflow PMC welcomes **Aneesh Joseph** ([@aneesh-joseph](https://github.com/aneesh-joseph)) as the newest Airflow Committer. 👏👏
+
+# July 2, 2021
+
+We've just released Apache **Airflow 2.1.1**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.1.1 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.1/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.1/changelog.html
+
 # June 26, 2021
 
 Airflow PMC welcomes 2 new committers:
