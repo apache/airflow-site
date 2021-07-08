@@ -29,6 +29,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache Airflow: Complete Hands-On Beginner to Advanced Class](https://www.udemy.com/course/apache-airflow-course) by Alexandra Abbas on Udemy
 
+[ETL with Apache Airflow for Data Analysis on Transaction Data from a Dummy Ecommerce Site](https://github.com/KimaruThagna/ml-pipelines-airflow) by [Kimaru Thagana](https://www.linkedin.com/in/kimaru-thagana-4920b5181/)
+
 &nbsp;
 
 ## Airflow as a Service
