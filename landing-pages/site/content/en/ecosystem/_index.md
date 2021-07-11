@@ -53,6 +53,18 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
+## Third Party Airflow Helm Charts
+
+Apache Airflow releases the [Official Apache Airflow Community Chart](https://airflow.apache.org/docs/helm-chart/stable/index.html) as of early 2021 but historically there were few other popular charts
+
+[User Community Chart](https://github.com/airflow-helm/charts) - the user community managed chart that has existed since 2018 and was previously called [stable/airflow](https://github.com/helm/charts/tree/master/stable/airflow) on the official (now deprecated) Helm Charts repo.
+
+[Bitnami Chart](https://github.com/bitnami/charts/tree/master/bitnami/airflow) - Bitnami manages a number of charts and the Airflow chart is one of those
+
+[Astronomer Chart](https://github.com/astronomer/airflow-chart) - The chart managed by Astronomer Chart. This was the original chart that the Official Airflow Community chart is based on (it was donated by Astronomer)
+
+&nbsp;
+
 ## Tools integrating with Airflow
 
 [afctl](https://github.com/qubole/afctl) - A CLI tool that includes everything required to create, manage and deploy airflow projects faster and smoother.
