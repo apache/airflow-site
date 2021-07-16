@@ -93,6 +93,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Databand](https://databand.ai/) - Observability platform built on top of Airflow.
 
+[DataHub](https://datahubproject.io/) - A metadata platform for the modern data stack. It can automatically [collect lineage and other metadata](https://datahubproject.io/docs/metadata-ingestion#lineage-with-airflow) from Airflow.
+
 [dbt (data build tool)](https://docs.getdbt.com/) - Data transformation tool, [dbt jobs can be scheduled using Airflow](https://docs.getdbt.com/docs/running-a-dbt-project/running-dbt-in-production/#using-airflow).
 
 [Elyra](https://github.com/elyra-ai/elyra) - Elyra provides a visual editor that enables data scientists to create AI pipelines in a low-code/no-code fashion.
