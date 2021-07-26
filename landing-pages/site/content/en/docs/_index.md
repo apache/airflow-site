@@ -29,6 +29,8 @@ Providers packages include integrations with third party integrations. They are 
 
   <li><a href="/docs/apache-airflow-providers-apache-cassandra/stable/index.html"><code>Apache Cassandra</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-drill/stable/index.html"><code>Apache Drill</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-druid/stable/index.html"><code>Apache Druid</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-hdfs/stable/index.html"><code>Apache HDFS</code></a></li>
