@@ -1,6 +1,6 @@
 ---
-title: "Airflow Summit Takeaways 2021"
-linkTitle: "Airflow Summit Takeaways 2021"
+title: "Airflow Summit 2021 Takeaways"
+linkTitle: "Airflow Summit 2021 Takeaways"
 author: "Christophe Blefari"
 description: "Main takeaways from the Airflow Summit 2021."
 tags: ["Community", "Airflow Summit"]
