@@ -2,6 +2,9 @@
 title: "Airflow Summit 2021 Takeaways"
 linkTitle: "Airflow Summit 2021 Takeaways"
 author: "Christophe Blefari"
+twitter: "_Blef"
+github: "Bl3f"
+linkedin: "christopheblefari"
 description: "Main takeaways from the Airflow Summit 2021."
 tags: ["Community", "Airflow Summit"]
 date: "2021-07-28"
