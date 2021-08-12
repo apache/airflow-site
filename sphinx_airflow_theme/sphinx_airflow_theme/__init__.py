@@ -18,7 +18,7 @@
 from os import path
 from sphinx.application import Sphinx
 
-__version__ = '0.0.2'
+__version__ = '0.0.5'
 __version_full__ = __version__
 
 
@@ -36,5 +36,5 @@ def setup_my_func(app, config):
 # See http://www.sphinx-doc.org/en/stable/theming.html#distribute-your-theme-as-a-python-package
 def setup(app: Sphinx):
     app.add_html_theme('sphinx_airflow_theme', path.abspath(path.dirname(__file__)))
-    app.add_stylesheet('_gen/css/main-custom.min.css')
+    app.add_css_file('_gen/css/main-custom.min.css')
     app.connect("config-inited", setup_my_func)

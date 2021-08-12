@@ -621,7 +621,7 @@
 <span class="sd">    :param mysql_table: target MySQL table, use dot notation to target a</span>
 <span class="sd">        specific database. (templated)</span>
 <span class="sd">    :type mysql_table: str</span>
-<span class="sd">    :param mysql_conn_id: source mysql connection</span>
+<span class="sd">    :param mysql_conn_id: Reference to :ref:`mysql connection id &lt;howto/connection:mysql&gt;`.</span>
 <span class="sd">    :type mysql_conn_id: str</span>
 <span class="sd">    :param mysql_preoperator: sql statement to run against MySQL prior to</span>
 <span class="sd">        import, typically use to truncate of delete in place of the data</span>
@@ -685,17 +685,16 @@
                 <span class="n">selected_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulk_load</span><span class="p">:</span>
-                    <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmpfile</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Selecting rows from Vertica to local file </span><span class="si">%s</span><span class="s2">...&quot;</span><span class="p">,</span> <span class="n">tmpfile</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
 
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Selecting rows from Vertica to local file </span><span class="si">%s</span><span class="s2">...&quot;</span><span class="p">,</span> <span class="n">tmpfile</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
+                        <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">iterate</span><span class="p">():</span>
+                            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
 
-                    <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">iterate</span><span class="p">():</span>
-                        <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
-                        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-
-                    <span class="n">tmpfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                        <span class="n">tmpfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Selecting rows from Vertica...&quot;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>

@@ -19,7 +19,7 @@ name: Build docs
 
 on:
   push:
-    branches: ['master']
+    branches: ['main']
   pull_request:
 
 jobs:
@@ -61,11 +61,17 @@ jobs:
           path: './dist'
           if-no-files-found: error
           retention-days: 14
+      - name: 👷🏻 Copy .asf.yaml to /dist/
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          # The asf.yaml file must be in the branch from which the files are published.
+          # Otherwise, ASF publising tools cannot detect it.
+          cp .asf.yaml ./dist/
       - name: 🚀 Deploy website on asf-site branch
         uses: apache/airflow-JamesIves-github-pages-deploy-action@132898c54c57c7cc6b80eb3a89968de8fc283505  # v3.7.1
         if: ${{ github.event_name == 'push' }}
         with:
-          BRANCH: asf-site  # The branch the action should deploy to.
+          BRANCH: gh-pages  # The branch the action should deploy to.
           FOLDER: dist  # The folder the action should deploy.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLEAN: true  # Automatically remove deleted files from the deploy branch
@@ -103,7 +109,7 @@ jobs:
           GITHUB_COMMIT: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
         if: >
-          github.ref == 'refs/heads/master' && github.repository == 'apache/airflow-site' &&
+          github.ref == 'refs/heads/main' && github.repository == 'apache/airflow-site' &&
           github.event_name == 'push'
         run: |
           gh auth status

@@ -38,7 +38,6 @@ with open('README.md', encoding='utf-8') as file:
 
 setup(
     name='sphinx_airflow_theme',
-    version='0.0.4',
     url='https://github.com/apache/airflow-site/tree/aip-11',
     license='Apache License 2.0',
     author='Apache Software Foundation',
@@ -65,7 +64,7 @@ setup(
         ]
     },
     install_requires=[
-        'sphinx'
+        'sphinx>=1.8'
     ],
     tests_require=[],
     extras_require={

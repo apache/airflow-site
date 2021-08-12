@@ -31,7 +31,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
-## Airflow-As-A-Service
+## Airflow as a Service
 
 [Astronomer](https://www.astronomer.io/) - Managed Apache Airflow in Astronomer Cloud, or self-hosted within your environment
 
@@ -43,13 +43,35 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
+## Third Party Airflow Plugins and Providers
+
+[Astronomer Registry](https://registry.astronomer.io/) - The discovery and distribution hub for Apache Airflow integrations created to aggregate and curate the best bits of the ecosystem.
+
+[Airflow Plugins](https://github.com/airflow-plugins/) - Central collection of repositories of various plugins for Airflow, including mailchimp, trello, sftp, GitHub, etc.
+
+[Airflow ECR Plugin](https://github.com/asandeep/airflow-ecr-plugin) - Plugin to refresh AWS ECR login token at regular intervals. This is helpful where DockerOperator needs to pull images hosted on ECR.
+
+&nbsp;
+
+## Third Party Airflow Helm Charts
+
+Apache Airflow releases the [Official Apache Airflow Community Chart](https://airflow.apache.org/docs/helm-chart/stable/index.html) as of early 2021 but historically there were few other popular charts
+
+[User Community Chart](https://github.com/airflow-helm/charts) - the user community managed chart that has existed since 2018 and was previously called [stable/airflow](https://github.com/helm/charts/tree/master/stable/airflow) on the official (now deprecated) Helm Charts repo.
+
+[Bitnami Chart](https://github.com/bitnami/charts/tree/master/bitnami/airflow) - Bitnami manages a number of charts and the Airflow chart is one of those
+
+[Astronomer Chart](https://github.com/astronomer/airflow-chart) - The chart managed by Astronomer Chart. This was the original chart that the Official Airflow Community chart is based on (it was donated by Astronomer)
+
+&nbsp;
+
 ## Tools integrating with Airflow
 
 [afctl](https://github.com/qubole/afctl) - A CLI tool that includes everything required to create, manage and deploy airflow projects faster and smoother.
 
 [airflow-aws-executors](https://github.com/aelzeiny/airflow-aws-executors) - Run Airflow Tasks directly on AWS Batch, AWS Fargate, or AWS ECS; provisioning less infra is more.
 
-[airflow-code-editor](https://github.com/andreax79/airflow-code-editor) - A plugin for Apache Airflow that allows you to edit DAGs in browser.
+[airflow-code-editor](https://github.com/andreax79/airflow-code-editor) - A tool for Apache Airflow that allows you to edit DAGs in browser.
 
 [airflow-diagrams](https://github.com/feluelle/airflow-diagrams) - Auto-generated Diagrams from Airflow DAGs
 
@@ -59,9 +81,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Ditto](https://github.com/angadsingh/airflow-ditto) - An extensible framework to do transformations to an Airflow DAG and convert it into another DAG which is flow-isomorphic with the original DAG, to be able to run it on different environments (e.g. on different clouds, or even different container frameworks - Apache Spark on YARN vs Kubernetes). Comes with out-of-the-box support for EMR-to-HDInsight-DAG transforms.
 
-[Airflow ECR Plugin](https://github.com/asandeep/airflow-ecr-plugin) - Plugin to refresh AWS ECR login token at regular intervals. This is helpful where DockerOperator needs to pull images hosted on ECR.
-
-[Airflow Plugins](https://github.com/airflow-plugins/) - Central collection of repositories of various plugins for Airflow, including mailchimp, trello, sftp, GitHub, etc.
+[Amundsen](https://github.com/amundsen-io/amundsen) - Amundsen is a data discovery and metadata platform for improving the productivity of data analysts, data scientists and engineers when interacting with data. It can surface which Airflow task generates a given table.
 
 [Apache-Liminal-Incubating](https://github.com/apache/incubator-liminal) -  Liminal provides a domain-specific-language (DSL) to build ML/AI workflows on top of Apache Airflow. Its goal is to operationalise the machine learning process, allowing data scientists to quickly transition from a successful experiment to an automated pipeline of model training, validation, deployment and inference in production.
 
@@ -71,11 +91,15 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [dag-factory](https://github.com/ajbosco/dag-factory) - A library for dynamically generating Apache Airflow DAGs from YAML configuration files.
 
-[Dag Dependencies viewer](https://github.com/ms32035/airflow-dag-dependencies) - A plugin which creates a view to visualize dependencies between the Airflow DAGs
+[Dag Dependencies viewer](https://github.com/ms32035/airflow-dag-dependencies) - A tool which creates a view to visualize dependencies between the Airflow DAGs
 
 [Databand](https://databand.ai/) - Observability platform built on top of Airflow.
 
+[DataHub](https://datahubproject.io/) - A metadata platform for the modern data stack. It can automatically [collect lineage and other metadata](https://datahubproject.io/docs/metadata-ingestion#lineage-with-airflow) from Airflow.
+
 [dbt (data build tool)](https://docs.getdbt.com/) - Data transformation tool, [dbt jobs can be scheduled using Airflow](https://docs.getdbt.com/docs/running-a-dbt-project/running-dbt-in-production/#using-airflow).
+
+[Elyra](https://github.com/elyra-ai/elyra) - Elyra provides a visual editor that enables data scientists to create AI pipelines in a low-code/no-code fashion.
 
 [GeniumCloud](https://geniumcloud.com) - One-Stop-Shop Platform for rapid build, scheduling and control Airflow workflows via completely new UI. Out of the box comprehensive Airflow infrastructure monitoring, integration with alerting systems and service adoption from small to enterprise organizations. The easiest way to manage complex workflows.
 
@@ -87,8 +111,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
-[whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
-
-[simple-dag-editor](https://github.com/ohadmata/simple-dag-editor) - Zero configuration Airflow plugin that let you manage your DAG files.
+[simple-dag-editor](https://github.com/ohadmata/simple-dag-editor) - Zero configuration Airflow tool that let you manage your DAG files.
 
 [Viewflow](https://github.com/datacamp/viewflow) - An Airflow-based framework that allows data scientists to create data models without writing Airflow code.
+
+[whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
