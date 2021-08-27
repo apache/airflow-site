@@ -14,6 +14,18 @@ menu:
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
 
+# August 27, 2021
+
+Airflow PMC welcomes **Brent Bovenzi** ([@aneesh-joseph](https://github.com/bbovenzi)) as the newest Airflow Committer. 👏👏
+
+# August 23, 2021
+
+We’ve just released Apache **Airflow 2.1.3**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.1.3/ \
+📚 Docs: ⁨https://airflow.apache.org/docs/apache-airflow/2.1.3/ \
+🛠️ Changelog: ⁨https://airflow.apache.org/docs/apache-airflow/2.1.3/changelog.html
+
 
 # July 6, 2021
 
