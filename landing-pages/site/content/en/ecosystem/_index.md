@@ -53,7 +53,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
-## Third Party Airflow Helm Charts
+## Deployment
+### Third Party Airflow Helm Charts
 
 Apache Airflow releases the [Official Apache Airflow Community Chart](https://airflow.apache.org/docs/helm-chart/stable/index.html) as of early 2021 but historically there were few other popular charts
 
@@ -62,6 +63,10 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 [Bitnami Chart](https://github.com/bitnami/charts/tree/master/bitnami/airflow) - Bitnami manages a number of charts and the Airflow chart is one of those
 
 [Astronomer Chart](https://github.com/astronomer/airflow-chart) - The chart managed by Astronomer Chart. This was the original chart that the Official Airflow Community chart is based on (it was donated by Astronomer)
+
+### Installer
+
+[Airflow-Component](https://github.com/noelmcloughlin/airflow-component#lightweight-federated-apache-airflow-installer) - Lightweigth Federated Airflow Installer on Compute VM(s).
 
 &nbsp;
 
