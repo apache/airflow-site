@@ -23,6 +23,8 @@ Providers packages include integrations with third party integrations. They are 
 
   <li><a href="/docs/apache-airflow-providers-airbyte/stable/index.html"><code>Airbyte</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-alibaba/stable/index.html"><code>Alibaba</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-beam/stable/index.html"><code>Apache Beam</code></a></li>
@@ -92,6 +94,8 @@ Providers packages include integrations with third party integrations. They are 
   <li><a href="/docs/apache-airflow-providers-jira/stable/index.html"><code>Jira</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-microsoft-psrp/stable/index.html"><code>Microsoft PowerShell Remoting Protocol (PSRP)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-mssql/stable/index.html"><code>Microsoft SQL Server (MSSQL)</code></a></li>
 
