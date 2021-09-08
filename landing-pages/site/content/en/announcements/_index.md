@@ -16,7 +16,7 @@ menu:
 
 # August 27, 2021
 
-Airflow PMC welcomes **Brent Bovenzi** ([@aneesh-joseph](https://github.com/bbovenzi)) as the newest Airflow Committer. 👏👏
+Airflow PMC welcomes **Brent Bovenzi** ([@bbovenzi](https://github.com/bbovenzi)) as the newest Airflow Committer. 👏👏
 
 # August 23, 2021
 
