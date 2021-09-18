@@ -132,7 +132,7 @@ if you specify extra arguments. For example:
 
 .. code-block:: bash
 
-  docker run -it apache/airflow:2.1.2-python3.6 bash -c "ls -la"
+  docker run -it apache/airflow:2.1.0-python3.6 bash -c "ls -la"
   total 16
   drwxr-xr-x 4 airflow root 4096 Jun  5 18:12 .
   drwxr-xr-x 1 root    root 4096 Jun  5 18:12 ..
@@ -144,7 +144,7 @@ you pass extra parameters. For example:
 
 .. code-block:: bash
 
-  > docker run -it apache/airflow:2.1.2-python3.6 python -c "print('test')"
+  > docker run -it apache/airflow:2.1.0-python3.6 python -c "print('test')"
   test
 
 If first argument equals to "airflow" - the rest of the arguments is treated as an airflow command
@@ -152,14 +152,55 @@ to execute. Example:
 
 .. code-block:: bash
 
-   docker run -it apache/airflow:2.1.2-python3.6 airflow webserver
+   docker run -it apache/airflow:2.1.0-python3.6 airflow webserver
 
 If there are any other arguments - they are simply passed to the "airflow" command
 
 .. code-block:: bash
 
-  > docker run -it apache/airflow:2.1.2-python3.6 version
-  2.1.2
+  > docker run -it apache/airflow:2.1.0-python3.6 version
+  2.1.0
+
+Signal propagation
+------------------
+
+Airflow uses ``dumb-init`` to run as "init" in the entrypoint. This is in order to propagate
+signals and reap child processes properly. This means that the process that you run does not have
+to install signal handlers to work properly and be killed when the container is gracefully terminated.
+The behaviour of signal propagation is configured by ``DUMB_INIT_SETSID`` variable which is set to
+``1`` by default - meaning that the signals will be propagated to the whole process group, but you can
+set it to ``0`` to enable ``single-child`` behaviour of ``dumb-init`` which only propagates the
+signals to only single child process.
+
+The table below summarizes ``DUMB_INIT_SETSID`` possible values and their use cases.
+
++----------------+----------------------------------------------------------------------+
+| Variable value | Use case                                                             |
++----------------+----------------------------------------------------------------------+
+| 1 (default)    | Propagates signals to all processes in the process group of the main |
+|                | process running in the container.                                    |
+|                |                                                                      |
+|                | If you run your processes via ``["bash", "-c"]`` command and bash    |
+|                | spawn  new processes without ``exec``, this will help to terminate   |
+|                | your container gracefully as all processes will receive the signal.  |
++----------------+----------------------------------------------------------------------+
+| 0              | Propagates signals to the main process only.                         |
+|                |                                                                      |
+|                | This is useful if your main process handles signals gracefully.      |
+|                | A good example is warm shutdown of Celery workers. The ``dumb-init`` |
+|                | in this case will only propagate the signals to the main process,    |
+|                | but not to the processes that are spawned in the same process        |
+|                | group as the main one. For example in case of Celery, the main       |
+|                | process will put the worker in "offline" mode, and will wait         |
+|                | until all running tasks complete, and only then it will              |
+|                | terminate all processes.                                             |
+|                |                                                                      |
+|                | For Airflow's Celery worker, you should set the variable to 0        |
+|                | and either use ``["celery", "worker"]`` command.                     |
+|                | If you are running it through ``["bash", "-c"]`` command,            |
+|                | you  need to start the worker via ``exec airflow celery worker``     |
+|                | as the last command executed.                                        |
++----------------+----------------------------------------------------------------------+
 
 Additional quick test options
 -----------------------------
@@ -239,28 +280,11 @@ and Admin role. They also forward local port ``8080`` to the webserver port and 
 Installing additional requirements
 ..................................
 
-.. warning:: Installing requirements this way is a very convenient method of running Airflow, very useful for
-    testing and debugging. However, do not be tricked by its convenience. You should never, ever use it in
-    production environment. We have deliberately chose to make it a development/test dependency and we print
-    a warning, whenever it is used. There is an inherent security-related issue with using this method in
-    production. Installing the requirements this way can happen at literally any time - when your containers
-    get restarted, when your machines in K8S cluster get restarted. In a K8S Cluster those events can happen
-    literally any time. This opens you up to a serious vulnerability where your production environment
-    might be brought down by a single dependency being removed from PyPI - or even dependency of your
-    dependency. This means that you put your production service availability in hands of 3rd-party developers.
-    At any time, any moment including weekends and holidays those 3rd party developers might bring your
-    production Airflow instance down, without you even knowing it. This is a serious vulnerability that
-    is similar to the infamous
-    `leftpad <https://qz.com/646467/how-one-programmer-broke-the-internet-by-deleting-a-tiny-piece-of-code/>`_
-    problem. You can fully protect against this case by building your own, immutable custom image, where the
-    dependencies are baked in. You have been warned.
-
 Installing additional requirements can be done by specifying ``_PIP_ADDITIONAL_REQUIREMENTS`` variable.
 The variable should contain a list of requirements that should be installed additionally when entering
 the containers. Note that this option slows down starting of Airflow as every time any container starts
-it must install new packages and it opens up huge potential security vulnerability when used in production
-(see below). Therefore this option should only be used for testing. When testing is finished,
-you should create your custom image with dependencies baked in.
+it must install new packages. Therefore this option should only be used for testing. When testing is
+finished, you should create your custom image with dependencies baked in.
 
 Example:
 
