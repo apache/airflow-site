@@ -13,6 +13,28 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# September 28, 2021
+
+We've just released Apache **Airflow Helm chart 1.2.0**.
+
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow
+📚 Docs: https://airflow.apache.org/docs/helm-chart/1.2.0/
+🛠️ Changelog: https://airflow.apache.org/docs/helm-chart/1.2.0/changelog.html
+
+# September 18, 2021
+
+We’ve just released Apache **Airflow 2.1.4**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.1.4/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.4/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.4/changelog.html
+
+# August 31, 2021
+
+Airflow PMC welcomes 2 new members to the Airflow PMC:
+
+- **Ephraim Anierobi** ([@ephraimbuddy](https://github.com/ephraimbuddy))
+- **Elad Kalif** ([@eladkal](https://github.com/eladkal))
 
 # August 27, 2021
 
