@@ -17,8 +17,8 @@ menu:
 
 We've just released Apache **Airflow Helm chart 1.2.0**.
 
-📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow
-📚 Docs: https://airflow.apache.org/docs/helm-chart/1.2.0/
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
+📚 Docs: https://airflow.apache.org/docs/helm-chart/1.2.0/ \
 🛠️ Changelog: https://airflow.apache.org/docs/helm-chart/1.2.0/changelog.html
 
 # September 18, 2021
