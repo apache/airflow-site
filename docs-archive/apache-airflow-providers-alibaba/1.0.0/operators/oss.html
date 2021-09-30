@@ -325,6 +325,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/main/airflow/providers/alibaba/cloud/example_dags">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-alibaba/">PyPI Repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Commits</span></p>
 <ul>
@@ -466,6 +467,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/main/airflow/providers/alibaba/cloud/example_dags">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-alibaba/">PyPI Repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Commits</span></p>
 <ul>
@@ -610,13 +612,20 @@ new OSS bucket with a given bucket name then delete it.</p>
 <p>In the following code we create a new bucket and then delete the bucket.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header example-header--with-button"><span class="example-title">airflow/providers/alibaba/cloud/example_dags/example_oss_bucket.py</span><a class="example-header-button viewcode-button reference internal" href="../_modules/airflow/providers/alibaba/cloud/example_dags/example_oss_bucket.html"><span>View Source</span></a></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="n">create_bucket</span> <span class="o">=</span> <span class="n">OSSCreateBucketOperator</span><span class="p">(</span>
-        <span class="n">oss_conn_id</span><span class="o">=</span><span class="s1">&#39;oss_default&#39;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;your region&#39;</span><span class="p">,</span> <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task1&#39;</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="s1">&#39;your bucket&#39;</span>
-    <span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
+    <span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;oss_bucket_dag&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">default_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;region&#39;</span><span class="p">:</span> <span class="s1">&#39;your region&#39;</span><span class="p">,</span> <span class="s1">&#39;bucket_name&#39;</span><span class="p">:</span> <span class="s1">&#39;your bucket&#39;</span><span class="p">},</span>
+    <span class="n">max_active_runs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
 
-    <span class="n">delete_bucket</span> <span class="o">=</span> <span class="n">OSSDeleteBucketOperator</span><span class="p">(</span>
-        <span class="n">oss_conn_id</span><span class="o">=</span><span class="s1">&#39;oss_default&#39;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;your region&#39;</span><span class="p">,</span> <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task2&#39;</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="s1">&#39;your bucket&#39;</span>
-    <span class="p">)</span>
+    <span class="n">create_bucket</span> <span class="o">=</span> <span class="n">OSSCreateBucketOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task1&#39;</span><span class="p">)</span>
+
+    <span class="n">delete_bucket</span> <span class="o">=</span> <span class="n">OSSDeleteBucketOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;task2&#39;</span><span class="p">)</span>
+
+    <span class="n">create_bucket</span> <span class="o">&gt;&gt;</span> <span class="n">delete_bucket</span>
 </pre></div>
 </div>
 </div>

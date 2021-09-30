@@ -322,6 +322,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/main/airflow/providers/dingding/example_dags">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-dingding/">PyPI Repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Commits</span></p>
 <ul>
@@ -462,6 +463,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/main/airflow/providers/dingding/example_dags">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-dingding/">PyPI Repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Commits</span></p>
 <ul>
@@ -590,11 +592,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This is an example dag for using the DingdingOperator.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.dingding.operators.dingding</span> <span class="kn">import</span> <span class="n">DingdingOperator</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.dates</span> <span class="kn">import</span> <span class="n">days_ago</span>
 
 
 <span class="c1"># [START howto_operator_dingding_failure_callback]</span>
@@ -615,7 +616,6 @@
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;dingding_success_callback&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
         <span class="n">at_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -629,14 +629,14 @@
     <span class="n">default_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;retries&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;on_failure_callback&#39;</span><span class="p">:</span> <span class="n">failure_callback</span><span class="p">},</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="s1">&#39;@once&#39;</span><span class="p">,</span>
     <span class="n">dagrun_timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">60</span><span class="p">),</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
 
     <span class="c1"># [START howto_operator_dingding]</span>
     <span class="n">text_msg_remind_none</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;text_msg_remind_none&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Airflow dingding text message remind none&#39;</span><span class="p">,</span>
         <span class="n">at_mobiles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -646,7 +646,6 @@
 
     <span class="n">text_msg_remind_specific</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;text_msg_remind_specific&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Airflow dingding text message remind specific users&#39;</span><span class="p">,</span>
         <span class="n">at_mobiles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;156XXXXXXXX&#39;</span><span class="p">,</span> <span class="s1">&#39;130XXXXXXXX&#39;</span><span class="p">],</span>
@@ -655,7 +654,6 @@
 
     <span class="n">text_msg_remind_include_invalid</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;text_msg_remind_include_invalid&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Airflow dingding text message remind users including invalid&#39;</span><span class="p">,</span>
         <span class="c1"># 123 is invalid user or user not in the group</span>
@@ -666,7 +664,6 @@
     <span class="c1"># [START howto_operator_dingding_remind_users]</span>
     <span class="n">text_msg_remind_all</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;text_msg_remind_all&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Airflow dingding text message remind all users in group&#39;</span><span class="p">,</span>
         <span class="c1"># list of user phone/email here in the group</span>
@@ -678,7 +675,6 @@
 
     <span class="n">link_msg</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;link_msg&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;link&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="p">{</span>
             <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Airflow dingding link message&#39;</span><span class="p">,</span>
@@ -691,7 +687,6 @@
     <span class="c1"># [START howto_operator_dingding_rich_text]</span>
     <span class="n">markdown_msg</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;markdown_msg&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;markdown&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="p">{</span>
             <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Airflow dingding markdown message&#39;</span><span class="p">,</span>
@@ -707,7 +702,6 @@
 
     <span class="n">single_action_card_msg</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;single_action_card_msg&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;actionCard&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="p">{</span>
             <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Airflow dingding single actionCard message&#39;</span><span class="p">,</span>
@@ -723,7 +717,6 @@
 
     <span class="n">multi_action_card_msg</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;multi_action_card_msg&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;actionCard&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="p">{</span>
             <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Airflow dingding multi actionCard message&#39;</span><span class="p">,</span>
@@ -741,7 +734,6 @@
 
     <span class="n">feed_card_msg</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;feed_card_msg&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;feedCard&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;links&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -766,7 +758,6 @@
 
     <span class="n">msg_failure_callback</span> <span class="o">=</span> <span class="n">DingdingOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;msg_failure_callback&#39;</span><span class="p">,</span>
-        <span class="n">dingding_conn_id</span><span class="o">=</span><span class="s1">&#39;dingding_default&#39;</span><span class="p">,</span>
         <span class="n">message_type</span><span class="o">=</span><span class="s1">&#39;not_support_msg_type&#39;</span><span class="p">,</span>
         <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span>
