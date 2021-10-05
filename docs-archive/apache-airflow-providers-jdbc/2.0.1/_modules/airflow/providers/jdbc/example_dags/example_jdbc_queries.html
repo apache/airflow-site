@@ -323,6 +323,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/main/airflow/providers/jdbc/example_dags">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-jdbc/">PyPI Repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Commits</span></p>
 <ul>
@@ -464,6 +465,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/main/airflow/providers/jdbc/example_dags">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-jdbc/">PyPI Repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Commits</span></p>
 <ul>
@@ -592,25 +594,22 @@
 
 <span class="sd">&quot;&quot;&quot;Example DAG demonstrating the usage of the JdbcOperator.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
 <span class="kn">from</span> <span class="nn">airflow.operators.dummy</span> <span class="kn">import</span> <span class="n">DummyOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.jdbc.operators.jdbc</span> <span class="kn">import</span> <span class="n">JdbcOperator</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.dates</span> <span class="kn">import</span> <span class="n">days_ago</span>
 
 <span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
     <span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;example_jdbc_operator&#39;</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="s1">&#39;0 0 * * *&#39;</span><span class="p">,</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">dagrun_timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">60</span><span class="p">),</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
 
-    <span class="n">run_this_last</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span>
-        <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_last&#39;</span><span class="p">,</span>
-        <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">run_this_last</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_last&#39;</span><span class="p">)</span>
 
     <span class="c1"># [START howto_operator_jdbc_template]</span>
     <span class="n">delete_data</span> <span class="o">=</span> <span class="n">JdbcOperator</span><span class="p">(</span>
@@ -618,7 +617,6 @@
         <span class="n">sql</span><span class="o">=</span><span class="s1">&#39;delete from my_schema.my_table where dt = {{ ds }}&#39;</span><span class="p">,</span>
         <span class="n">jdbc_conn_id</span><span class="o">=</span><span class="s1">&#39;my_jdbc_connection&#39;</span><span class="p">,</span>
         <span class="n">autocommit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># [END howto_operator_jdbc_template]</span>
 
@@ -628,7 +626,6 @@
         <span class="n">sql</span><span class="o">=</span><span class="s1">&#39;insert into my_schema.my_table select dt, value from my_schema.source_data&#39;</span><span class="p">,</span>
         <span class="n">jdbc_conn_id</span><span class="o">=</span><span class="s1">&#39;my_jdbc_connection&#39;</span><span class="p">,</span>
         <span class="n">autocommit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># [END howto_operator_jdbc]</span>
 
