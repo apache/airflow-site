@@ -11,13 +11,13 @@ menu:
 
 ## [Apache Airflow](/docs/apache-airflow/stable/index.html)
 
-Apache Airflow Core, which includes webserver, scheduler, CLI and other components that are needed for minimal Airflow installation.  
-[Read the documentation >>](/docs/apache-airflow/stable/index.html)  
+Apache Airflow Core, which includes webserver, scheduler, CLI and other components that are needed for minimal Airflow installation.
+[Read the documentation >>](/docs/apache-airflow/stable/index.html)
 
 ## [Providers packages](/docs/apache-airflow-providers/index.html)
 
-Providers packages include integrations with third party integrations. They are updated independently of the Apache Airflow core.  
-[Read the documentation >>](/docs/apache-airflow-providers/index.html)  
+Providers packages include integrations with third party integrations. They are updated independently of the Apache Airflow core.
+[Read the documentation >>](/docs/apache-airflow-providers/index.html)
 
 <ul class="list-providers">
 
@@ -34,8 +34,6 @@ Providers packages include integrations with third party integrations. They are 
   <li><a href="/docs/apache-airflow-providers-apache-hdfs/stable/index.html"><code>Apache HDFS</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
-
-  <li><a href="/docs/apache-airflow-providers-apache-influxdb/stable/index.html"><code>Influx DB</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Kylin</code></a></li>
 
@@ -82,6 +80,8 @@ Providers packages include integrations with third party integrations. They are 
   <li><a href="/docs/apache-airflow-providers-hashicorp/stable/index.html"><code>Hashicorp</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-http/stable/index.html"><code>Hypertext Transfer Protocol (HTTP)</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-influxdb/stable/index.html"><code>Influx DB</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-imap/stable/index.html"><code>Internet Message Access Protocol (IMAP)</code></a></li>
 
@@ -166,7 +166,7 @@ your own deployments.
 ## [Helm Chart](/docs/helm-chart/stable/index.html)
 
 Airflow has an official Helm Chart that will help you set up your own Airflow on a cloud/on-prem Kubernetes environment and leverage its scalable nature to support a large group of users. Thanks to Kubernetes, we are not tied to a specific cloud provider.
-[Read the documentation >>](/docs/helm-chart/stable/index.html)  
+[Read the documentation >>](/docs/helm-chart/stable/index.html)
 
 <style>
     @media (min-width: 768px) {
