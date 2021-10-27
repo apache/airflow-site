@@ -29,9 +29,9 @@ To provide more scheduling flexibility, determining when a DAG should run is now
 
 `execution_date` has long been confusing to new Airflowers, so as part of this change a new concept has been added to Airflow to replace it named `data_interval`, which is the period of data that a task should operate on. The following are now available:
 
-`logical_date` (aka `execution_date`)
-`data_interval_start` (same value as `execution_date` for cron)
-`data_interval_end` (aka `next_execution_date`)
+- `logical_date` (aka `execution_date`)
+- `data_interval_start` (same value as `execution_date` for cron)
+- `data_interval_end` (aka `next_execution_date`)
 
 If you write your own timetables, keep in mind they should be idempotent and fast as they are used in the scheduler to create DagRuns.
 
