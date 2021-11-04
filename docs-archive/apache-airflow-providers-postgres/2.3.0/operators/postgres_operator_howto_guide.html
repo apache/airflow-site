@@ -589,10 +589,10 @@
 workflow. Airflow is essentially a graph (Directed Acyclic Graph) made up of tasks (nodes) and dependencies (edges).</p>
 <p>A task defined or implemented by a operator is a unit of work in your data pipeline.</p>
 <dl class="simple">
-<dt>The purpose of Postgres Operator is to define tasks involving interactions with the PostgreSQL database.</dt><dd><p>In <code class="docutils literal notranslate"><span class="pre">Airflow-2.0</span></code>, the <code class="docutils literal notranslate"><span class="pre">PostgresOperator</span></code> class resides at <code class="docutils literal notranslate"><span class="pre">airflow.providers.postgres.operator.postgres</span></code>.</p>
+<dt>The purpose of Postgres Operator is to define tasks involving interactions with the PostgreSQL database.</dt><dd><p>In <code class="docutils literal notranslate"><span class="pre">Airflow-2.0</span></code>, the <code class="docutils literal notranslate"><span class="pre">PostgresOperator</span></code> class resides at <code class="docutils literal notranslate"><span class="pre">airflow.providers.postgres.operators.postgres</span></code>.</p>
 </dd>
 </dl>
-<p>Under the hood, the <code class="xref py py-class docutils literal notranslate"><span class="pre">PostgresOperator</span></code> delegates its heavy lifting to the <a class="reference internal" href="../_api/airflow/providers/postgres/hooks/postgres/index.html#airflow.providers.postgres.hooks.postgres.PostgresHook" title="airflow.providers.postgres.hooks.postgres.PostgresHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">PostgresHook</span></code></a>.</p>
+<p>Under the hood, the <a class="reference internal" href="../_api/airflow/providers/postgres/operators/postgres/index.html#airflow.providers.postgres.operators.postgres.PostgresOperator" title="airflow.providers.postgres.operators.postgres.PostgresOperator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PostgresOperator</span></code></a> delegates its heavy lifting to the <a class="reference internal" href="../_api/airflow/providers/postgres/hooks/postgres/index.html#airflow.providers.postgres.hooks.postgres.PostgresHook" title="airflow.providers.postgres.hooks.postgres.PostgresHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">PostgresHook</span></code></a>.</p>
 </div>
 <div class="section" id="common-database-operations-with-postgresoperator">
 <h2>Common Database Operations with PostgresOperator<a class="headerlink" href="#common-database-operations-with-postgresoperator" title="Permalink to this headline">¶</a></h2>
@@ -632,7 +632,7 @@ These two parameters are eventually fed to the postgres hook object that interac
 </pre></div>
 </div>
 </div>
-<p>Dumping SQL statements into your PostgresOperator isn't quite appealing and will create maintainability pains somewhere
+<p>Dumping SQL statements into your PostgresOperator isn’t quite appealing and will create maintainability pains somewhere
 down to the road. To prevent this, Airflow offers an elegant solution. This is how it works: you simply create
 a directory inside the DAG folder called <code class="docutils literal notranslate"><span class="pre">sql</span></code> and then put all the SQL files containing your SQL queries inside it.</p>
 <p>Your <code class="docutils literal notranslate"><span class="pre">dags/sql/pet_schema.sql</span></code> should like this:</p>
@@ -645,7 +645,7 @@ a directory inside the DAG folder called <code class="docutils literal notransla
     <span class="n">OWNER</span> <span class="n">VARCHAR</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Now let's refactor <code class="docutils literal notranslate"><span class="pre">create_pet_table</span></code> in our DAG:</p>
+<p>Now let’s refactor <code class="docutils literal notranslate"><span class="pre">create_pet_table</span></code> in our DAG:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">create_pet_table</span> <span class="o">=</span> <span class="n">PostgresOperator</span><span class="p">(</span>
     <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;create_pet_table&quot;</span><span class="p">,</span>
     <span class="n">postgres_conn_id</span><span class="o">=</span><span class="s2">&quot;postgres_default&quot;</span><span class="p">,</span>
@@ -656,7 +656,7 @@ a directory inside the DAG folder called <code class="docutils literal notransla
 </div>
 <div class="section" id="inserting-data-into-a-postgres-database-table">
 <h2>Inserting data into a Postgres database table<a class="headerlink" href="#inserting-data-into-a-postgres-database-table" title="Permalink to this headline">¶</a></h2>
-<p>Let's say we already have the SQL insert statement below in our <code class="docutils literal notranslate"><span class="pre">dags/sql/pet_schema.sql</span></code> file:</p>
+<p>Let’s say we already have the SQL insert statement below in our <code class="docutils literal notranslate"><span class="pre">dags/sql/pet_schema.sql</span></code> file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span> <span class="n">populate</span> <span class="n">pet</span> <span class="n">table</span>
 <span class="n">INSERT</span> <span class="n">INTO</span> <span class="n">pet</span> <span class="n">VALUES</span> <span class="p">(</span> <span class="s1">&#39;Max&#39;</span><span class="p">,</span> <span class="s1">&#39;Dog&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-07-05&#39;</span><span class="p">,</span> <span class="s1">&#39;Jane&#39;</span><span class="p">);</span>
 <span class="n">INSERT</span> <span class="n">INTO</span> <span class="n">pet</span> <span class="n">VALUES</span> <span class="p">(</span> <span class="s1">&#39;Susie&#39;</span><span class="p">,</span> <span class="s1">&#39;Cat&#39;</span><span class="p">,</span> <span class="s1">&#39;2019-05-01&#39;</span><span class="p">,</span> <span class="s1">&#39;Phil&#39;</span><span class="p">);</span>
@@ -690,7 +690,7 @@ a directory inside the DAG folder called <code class="docutils literal notransla
 SQL requests during runtime. The BaseOperator class has the <code class="docutils literal notranslate"><span class="pre">params</span></code> attribute which is available to the PostgresOperator
 by virtue of inheritance. Both <code class="docutils literal notranslate"><span class="pre">parameters</span></code> and <code class="docutils literal notranslate"><span class="pre">params</span></code> make it possible to dynamically pass in parameters in many
 interesting ways.</p>
-<p>To find the owner of the pet called 'Lester':</p>
+<p>To find the owner of the pet called ‘Lester’:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">get_birth_date</span> <span class="o">=</span> <span class="n">PostgresOperator</span><span class="p">(</span>
     <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;get_birth_date&quot;</span><span class="p">,</span>
     <span class="n">postgres_conn_id</span><span class="o">=</span><span class="s2">&quot;postgres_default&quot;</span><span class="p">,</span>
@@ -699,7 +699,7 @@ interesting ways.</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>Now lets refactor our <code class="docutils literal notranslate"><span class="pre">get_birth_date</span></code> task. Instead of dumping SQL statements directly into our code, let's tidy things up
+<p>Now lets refactor our <code class="docutils literal notranslate"><span class="pre">get_birth_date</span></code> task. Instead of dumping SQL statements directly into our code, let’s tidy things up
 by creating a sql file.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span> <span class="n">dags</span><span class="o">/</span><span class="n">sql</span><span class="o">/</span><span class="n">birth_date</span><span class="o">.</span><span class="n">sql</span>
 <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">pet</span> <span class="n">WHERE</span> <span class="n">birth_date</span> <span class="n">BETWEEN</span> <span class="n">SYMMETRIC</span> <span class="p">{{</span> <span class="n">params</span><span class="o">.</span><span class="n">begin_date</span> <span class="p">}}</span> <span class="n">AND</span> <span class="p">{{</span> <span class="n">params</span><span class="o">.</span><span class="n">end_date</span> <span class="p">}};</span>
@@ -777,7 +777,7 @@ class.</p>
 </div>
 <div class="section" id="conclusion">
 <h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
-<p>In this how-to guide we explored the Apache Airflow PostgreOperator. Let's quickly highlight the key takeaways.
+<p>In this how-to guide we explored the Apache Airflow PostgreOperator. Let’s quickly highlight the key takeaways.
 In Airflow-2.0, PostgresOperator class now resides in the <code class="docutils literal notranslate"><span class="pre">providers</span></code> package. It is best practice to create subdirectory
 called <code class="docutils literal notranslate"><span class="pre">sql</span></code> in your <code class="docutils literal notranslate"><span class="pre">dags</span></code> directory where you can store your sql files. This will make your code more elegant and more
 maintainable. And finally, we looked at the different ways you can dynamically pass parameters into our postgres operator
