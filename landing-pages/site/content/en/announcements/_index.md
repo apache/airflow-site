@@ -69,6 +69,15 @@ We’ve just released Apache **Airflow 2.1.3**.
 🛠️ Changelog: ⁨https://airflow.apache.org/docs/apache-airflow/2.1.3/changelog.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.1.3/installation.html#installing-airflow-from-released-sources-and-packages
 
+# July 7, 2021
+
+We've just released Apache **Airflow 2.1.2**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.1.2 \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.2/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.2/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.1.2/installation.html#installing-airflow-from-released-sources-and-packages
+
 
 # July 6, 2021
 
