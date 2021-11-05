@@ -66,7 +66,8 @@ We’ve just released Apache **Airflow 2.1.3**.
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.1.3/ \
 📚 Docs: ⁨https://airflow.apache.org/docs/apache-airflow/2.1.3/ \
-🛠️ Changelog: ⁨https://airflow.apache.org/docs/apache-airflow/2.1.3/changelog.html
+🛠️ Changelog: ⁨https://airflow.apache.org/docs/apache-airflow/2.1.3/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.1.3/installation.html#installing-airflow-from-released-sources-and-packages
 
 
 # July 6, 2021
@@ -79,7 +80,8 @@ We've just released Apache **Airflow 2.1.1**.
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.1.1 \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.1/ \
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.1/changelog.html
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.1/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.1.1/installation.html#installing-airflow-from-released-sources-and-packages
 
 # June 26, 2021
 
@@ -104,7 +106,8 @@ Please note that *this* release no long includes the `HTTP` extra provider by de
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.1.0 \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.0/ \
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.0/changelog.html
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.0/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.1.0/installation.html#installing-airflow-from-released-sources-and-packages
 
 
 # May 20, 2021
