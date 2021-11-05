@@ -19,7 +19,8 @@ We’ve just released Apache **Airflow 2.2.1**.
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.2.1/ \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.2.1/ \
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.2.1/changelog.html
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.2.1/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.2.1/installation/installing-from-sources.html
 
 # October 11, 2021
 
@@ -27,7 +28,8 @@ We’ve just released Apache **Airflow 2.2.0**. You can read more in the [What's
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.2.0/ \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.2.0/ \
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.2.0/changelog.html
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.2.0/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.2.0/installation/installing-from-sources.html
 
 # September 28, 2021
 
@@ -35,7 +37,8 @@ We've just released Apache **Airflow Helm chart 1.2.0**.
 
 📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
 📚 Docs: https://airflow.apache.org/docs/helm-chart/1.2.0/ \
-🛠️ Changelog: https://airflow.apache.org/docs/helm-chart/1.2.0/changelog.html
+🛠️ Changelog: https://airflow.apache.org/docs/helm-chart/1.2.0/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.2.0/installing-helm-chart-from-sources.html
 
 # September 18, 2021
 
@@ -43,7 +46,8 @@ We’ve just released Apache **Airflow 2.1.4**.
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.1.4/ \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.1.4/ \
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.4/changelog.html
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.1.4/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.1.4/installation/installing-from-sources.html
 
 # August 31, 2021
 
