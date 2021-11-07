@@ -143,8 +143,6 @@ Airflow Summit will be held online July 8-16, 2021. To register or propose a tal
 
 We've just released **Airflow Backport Provider Packages 2020.10.5**.
 
-https://dist.apache.org/repos/dist/release/airflow/backport-providers/
-
 # March 17, 2021
 
 We've just released Apache **Airflow 1.10.15**.
@@ -236,8 +234,6 @@ Changelog: https://airflow.readthedocs.io/en/1.10.13/changelog.html
 
 We've just released Airflow Backport Provider Packages 2020.10.5.
 
-https://dist.apache.org/repos/dist/release/airflow/backport-providers/
-
 # October 28, 2020
 
 Airflow PMC welcomes **Ryan Hamilton** ([@ryanahamilton](https://github.com/ryanahamilton)) as the new Airflow Committer.
@@ -245,8 +241,6 @@ Airflow PMC welcomes **Ryan Hamilton** ([@ryanahamilton](https://github.com/ryan
 # October 6, 2020
 
 We've just released Airflow Backport Provider Packages 2020.10.5.
-
-https://dist.apache.org/repos/dist/release/airflow/backport-providers/
 
 57 packages have been released.
 
@@ -543,8 +537,6 @@ Congratulations folks - Very well deserved.
 
 New Apache Airflow release 1.10.3 is out!
 
-Source, Binary "Sdist" & binary wheel release - https://www.apache.org/dist/airflow/1.10.3/
-
 Pypi - https://pypi.org/project/apache-airflow/1.10.3/ (Run `pip install apache-airflow`)
 
 Changelog - https://airflow.apache.org/1.10.3/changelog.html#airflow-1-10-3-2019-04-09
@@ -578,8 +570,6 @@ We are pleased to announce our newest Meetup, this one in [Portland, Oregon, USA
 
 New Apache Airflow release 1.10.2 is out!
 
-Source & Binary "Sdist" release - https://dist.apache.org/repos/dist/release/airflow/1.10.2/
-
 Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airflow`)
 
 Changelog - https://airflow.apache.org/changelog.html#airflow-1-10-2-2019-01-19
@@ -611,8 +601,6 @@ Apache Airflow graduates from the Incubator and is now a TLP!
 # Nov 21, 2018
 
 New Apache Airflow release 1.10.1-incubating is out!
-
-Source & Binary "Sdist" release - https://dist.apache.org/repos/dist/release/incubator/airflow/1.10.1-incubating/
 
 Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airflow`)
 
@@ -661,8 +649,6 @@ The Apache Airflow Meetup group in Amsterdam will be hosting its [2nd meetup at 
 
 New Apache Airflow release 1.10.0-incubating is out!
 
-Source & Binary "Sdist" release - https://dist.apache.org/repos/dist/release/incubator/airflow/1.10.0-incubating/
-
 Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airflow`)
 
 Changelog - https://github.com/apache/incubator-airflow/blob/8100f1f/CHANGELOG.txt
@@ -705,8 +691,6 @@ The Apache Airflow PPMC welcomes new committer and PPMC member, **Ash Berlin-Tay
 
 New Apache Airflow release 1.9.0-incubating is out!
 
-Source & Binary "Sdist" release - https://dist.apache.org/repos/dist/release/incubator/airflow/1.9.0-incubating/
-
 Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airflow`)
 
 ReleaseNotes - https://github.com/apache/incubator-airflow/blob/master/CHANGELOG.txt
@@ -747,8 +731,6 @@ The Apache Airflow PPMC welcomes new committer and PPMC member, **Fokko Driespon
 
 New Apache Airflow release 1.8.2-incubating is out!
 
-Source & Binary "Sdist" release - https://dist.apache.org/repos/dist/release/incubator/airflow/1.8.2-incubating/
-
 Pypi - https://pypi.python.org/pypi/apache-airflow
 
 Release Notes - http://bit.ly/2gH9QFx
@@ -778,13 +760,6 @@ The first official Apache Airflow release (1.8.0-incubating) is out!
 **Git Tag:** https://github.com/apache/incubator-airflow/releases/tag/1.8.0%2Bapache.incubating
 
 **Change log:** 205 commits as shown in [Changelog (1.8.0-incubating)](https://github.com/apache/incubator-airflow/blob/1.8.0%2Bapache.incubating/CHANGELOG.txt)
-
-**Tarball:** https://dist.apache.org/repos/dist/release/incubator/airflow/1.8.0-incubating/
-
-- You can install via :
-
-        pip install https://dist.apache.org/repos/dist/release/incubator/airflow/1.8.0-incubating/airflow-1.8.0+apache.incubating.tar.gz
-
 
 **PyPi:** coming soon, check https://pypi.python.org/pypi/airflow
 
