@@ -168,7 +168,7 @@ function relativepath {
     common_part=$source # for now
     result="" # for now
 
-    while [[ "${target#$common_part}" == "${target}" ]]; do
+    while [[ "${target#"$common_part"}" == "${target}" ]]; do
         # no match, means that candidate common part is not correct
         # go up one level (reduce common part)
         common_part="$(dirname "$common_part")"
@@ -187,7 +187,7 @@ function relativepath {
 
     # since we now have identified the common part,
     # compute the non-common part
-    forward_part="${target#$common_part}"
+    forward_part="${target#"$common_part"}"
 
     # and now stick all parts together
     if [[ -n $result ]] && [[ -n $forward_part ]]; then
