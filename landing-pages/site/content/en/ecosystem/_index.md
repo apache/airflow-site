@@ -116,3 +116,5 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 [Viewflow](https://github.com/datacamp/viewflow) - An Airflow-based framework that allows data scientists to create data models without writing Airflow code.
 
 [whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
+
+[ZenML](https://github.com/zenml-io/zenml) - Run your machine learning specific pipelines on Airflow, easily integrating with your existing data science tools and workflows.
