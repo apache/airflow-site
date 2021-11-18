@@ -46,9 +46,12 @@ def run(command: str, check=True, silent=False) -> subprocess.CompletedProcess:
 def build_site():
     run('which git')
 
+def build_image():
+    run('docker build -t airflow-site .')
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Build Airflow website')
-    parser.add_argument("action", choices=['build-site', 'stop'], default="build-site", nargs="?")
+    parser.add_argument("action", choices=['build-site', 'build-image', 'stop'], default="build-site", nargs="?")
 
     args = parser.parse_args()
     return args
@@ -62,6 +65,8 @@ def main():
 
     if args.action == 'build-site':
         build_site()
+    elif args.action == 'build-image':
+        build_image()
     elif args.action == 'stop':
         print("do nothing")
         sys.exit(1)
@@ -74,4 +79,3 @@ if __name__ == '__main__':
     except Exception as err:
         print("Script failed to run")
         raise err
-
