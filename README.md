@@ -20,7 +20,7 @@
 Apache Airflow website
 ======================
 
-[![Build Status](https://api.travis-ci.com/apache/airflow-site.svg)](https://travis-ci.com/apache/airflow-site)
+[![Build docs](https://github.com/apache/airflow-site/actions/workflows/build.yml/badge.svg)](https://github.com/apache/airflow-site/actions/workflows/build.yml)
 
 This is a repository of [Apache Airflow website](https://airflow.apache.org).
 The repository of Apache Airflow can be found [here](https://github.com/apache/airflow/).
