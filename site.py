@@ -22,6 +22,19 @@ import sys
 import shlex
 
 
+class Logger:
+
+    @classmethod
+    def print_out(cls, msg: str, end=os.linesep):
+        print(msg, end=end, file=sys.stdout)
+    
+    @classmethod
+    def print_err(cls, msg: str, end=os.linesep):
+        print(msg, end=end, file=sys.stderr)
+    
+print_out = Logger.print_out
+print_err = Logger.print_err
+
 def run(command: str, check=True, silent=False) -> subprocess.CompletedProcess:
     """
     Runs a command provided as a string
@@ -35,10 +48,15 @@ def run(command: str, check=True, silent=False) -> subprocess.CompletedProcess:
 
     if not silent:
         log_msg = f"Executing: {command}" + os.linesep
-        print(log_msg, end=os.linesep, file=sys.stderr)
+        print_out(log_msg)
+        print_err(log_msg)
     
     # https://docs.python.org/3/library/subprocess.html
-    proc = subprocess.run(shlex.split(command), check=check)
+    proc = subprocess.run(shlex.split(command), check=check, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    if not silent:
+        print_err(proc.stderr.decode())
+        print_out(proc.stdout.decode())
 
     return proc
     
