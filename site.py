@@ -20,7 +20,7 @@ import os
 import subprocess
 import sys
 import shlex
-
+from datetime import datetime
 
 class Logger:
 
@@ -47,7 +47,9 @@ def run(command: str, check=True, silent=False) -> subprocess.CompletedProcess:
     """
 
     if not silent:
-        log_msg = f"Executing: {command}" + os.linesep
+        # https://docs.python.org/3/library/datetime.html#examples-of-usage-datetime
+        log_msg = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " \
+                  f"Executing: {command}" + os.linesep
         print_out(log_msg)
         print_err(log_msg)
     
