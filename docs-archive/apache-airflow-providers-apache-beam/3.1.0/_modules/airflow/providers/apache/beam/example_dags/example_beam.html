@@ -592,6 +592,7 @@
 <span class="sd">Example Airflow DAG for Apache Beam operators</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
 
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">models</span>
@@ -603,7 +604,7 @@
 <span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.operators.dataflow</span> <span class="kn">import</span> <span class="n">DataflowConfiguration</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.sensors.dataflow</span> <span class="kn">import</span> <span class="n">DataflowJobStatusSensor</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.transfers.gcs_to_local</span> <span class="kn">import</span> <span class="n">GCSToLocalFilesystemOperator</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.dates</span> <span class="kn">import</span> <span class="n">days_ago</span>
+<span class="kn">from</span> <span class="nn">airflow.utils.trigger_rule</span> <span class="kn">import</span> <span class="n">TriggerRule</span>
 
 <span class="n">GCP_PROJECT_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;GCP_PROJECT_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;example-project&#39;</span><span class="p">)</span>
 <span class="n">GCS_INPUT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;APACHE_BEAM_PYTHON&#39;</span><span class="p">,</span> <span class="s1">&#39;gs://INVALID BUCKET NAME/shakespeare/kinglear.txt&#39;</span><span class="p">)</span>
@@ -645,18 +646,18 @@
 <span class="n">GCS_JAR_FLINK_RUNNER_OBJECT_NAME</span> <span class="o">=</span> <span class="n">GCS_JAR_FLINK_RUNNER_PARTS</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
 
-<span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;default_pipeline_options&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="s1">&#39;/tmp/example_beam&#39;</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;trigger_rule&quot;</span><span class="p">:</span> <span class="s2">&quot;all_done&quot;</span><span class="p">,</span>
+<span class="n">DEFAULT_ARGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default_pipeline_options&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="s1">&#39;/tmp/example_beam&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;trigger_rule&#39;</span><span class="p">:</span> <span class="n">TriggerRule</span><span class="o">.</span><span class="n">ALL_DONE</span><span class="p">,</span>
 <span class="p">}</span>
+<span class="n">START_DATE</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
 
 <span class="k">with</span> <span class="n">models</span><span class="o">.</span><span class="n">DAG</span><span class="p">(</span>
     <span class="s2">&quot;example_beam_native_java_direct_runner&quot;</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Override to match your needs</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">START_DATE</span><span class="p">,</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag_native_java_direct_runner</span><span class="p">:</span>
 
@@ -684,7 +685,8 @@
 <span class="k">with</span> <span class="n">models</span><span class="o">.</span><span class="n">DAG</span><span class="p">(</span>
     <span class="s2">&quot;example_beam_native_java_dataflow_runner&quot;</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Override to match your needs</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">START_DATE</span><span class="p">,</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag_native_java_dataflow_runner</span><span class="p">:</span>
     <span class="c1"># [START howto_operator_start_java_dataflow_runner_pipeline]</span>
@@ -714,7 +716,8 @@
 <span class="k">with</span> <span class="n">models</span><span class="o">.</span><span class="n">DAG</span><span class="p">(</span>
     <span class="s2">&quot;example_beam_native_java_spark_runner&quot;</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Override to match your needs</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">START_DATE</span><span class="p">,</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag_native_java_spark_runner</span><span class="p">:</span>
 
@@ -741,7 +744,8 @@
 <span class="k">with</span> <span class="n">models</span><span class="o">.</span><span class="n">DAG</span><span class="p">(</span>
     <span class="s2">&quot;example_beam_native_java_flink_runner&quot;</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Override to match your needs</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">START_DATE</span><span class="p">,</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag_native_java_flink_runner</span><span class="p">:</span>
 
@@ -768,9 +772,10 @@
 
 <span class="k">with</span> <span class="n">models</span><span class="o">.</span><span class="n">DAG</span><span class="p">(</span>
     <span class="s2">&quot;example_beam_native_python&quot;</span><span class="p">,</span>
-    <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">START_DATE</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Override to match your needs</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">default_args</span><span class="o">=</span><span class="n">DEFAULT_ARGS</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag_native_python</span><span class="p">:</span>
 
@@ -852,9 +857,10 @@
 
 <span class="k">with</span> <span class="n">models</span><span class="o">.</span><span class="n">DAG</span><span class="p">(</span>
     <span class="s2">&quot;example_beam_native_python_dataflow_async&quot;</span><span class="p">,</span>
-    <span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">days_ago</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">default_args</span><span class="o">=</span><span class="n">DEFAULT_ARGS</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">START_DATE</span><span class="p">,</span>
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Override to match your needs</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag_native_python_dataflow_async</span><span class="p">:</span>
     <span class="c1"># [START howto_operator_start_python_dataflow_runner_pipeline_async_gcs_file]</span>
