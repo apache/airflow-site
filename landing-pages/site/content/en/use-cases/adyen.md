@@ -3,7 +3,7 @@ title: "Adyen"
 linkTitle: "Adyen"
 quote:
     text: "Apache Airflow is highly extensible and its plugin interface can be used to meet a variety of use cases. It supports variety of deployment models and has a very active community to scale innovation."
-    author: "Jorrick Sleijster"
+    author: "Raman Gupta"
 logo: "adyen-logo.svg"
 ---
 
