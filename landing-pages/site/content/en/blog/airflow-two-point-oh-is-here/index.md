@@ -129,7 +129,7 @@ But that’s not all: you can write your own custom providers and add things lik
 Our very own Jarek Potiuk has written about [providers in much more detail](https://higrys.medium.com/airflow-2-0-providers-1bd21ba3bd93) on Jarek's blog.
 
 Docs on the [providers concept and writing custom providers](http://airflow.apache.org/docs/apache-airflow-providers/) \
-Docs on the [all providers packages available](http://airflow.apache.org/docs/apache-airflow-providers/packages-ref.html)
+Docs on [all providers packages available](http://airflow.apache.org/docs/apache-airflow-providers/packages-ref.html)
 
 ## Security
 
