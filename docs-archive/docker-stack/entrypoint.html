@@ -320,6 +320,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-airflow-db-connection">Waits for Airflow DB connection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#executing-commands">Executing commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#execute-custom-code-before-the-airflow-entrypoint">Execute custom code before the Airflow entrypoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-custom-image-behaviour">Adding custom image behaviour</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#signal-propagation">Signal propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#additional-quick-test-options">Additional quick test options</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
@@ -466,6 +468,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-airflow-db-connection">Waits for Airflow DB connection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#executing-commands">Executing commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#execute-custom-code-before-the-airflow-entrypoint">Execute custom code before the Airflow entrypoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-custom-image-behaviour">Adding custom image behaviour</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#signal-propagation">Signal propagation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#additional-quick-test-options">Additional quick test options</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
@@ -672,7 +676,7 @@ To disable check, set <code class="docutils literal notranslate"><span class="pr
 <span id="entrypoint-commands"></span><h2>Executing commands<a class="headerlink" href="#executing-commands" title="Permalink to this headline">¶</a></h2>
 <p>If first argument equals to “bash” - you are dropped to a bash shell or you can executes bash command
 if you specify extra arguments. For example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.2.2-python3.6 bash -c <span class="s2">&quot;ls -la&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.2.3-python3.6 bash -c <span class="s2">&quot;ls -la&quot;</span>
 total <span class="m">16</span>
 drwxr-xr-x <span class="m">4</span> airflow root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 .
 drwxr-xr-x <span class="m">1</span> root    root <span class="m">4096</span> Jun  <span class="m">5</span> <span class="m">18</span>:12 ..
@@ -682,17 +686,17 @@ drwxr-xr-x <span class="m">2</span> airflow root <span class="m">4096</span> Jun
 </div>
 <p>If first argument is equal to <code class="docutils literal notranslate"><span class="pre">python</span></code> - you are dropped in python shell or python commands are executed if
 you pass extra parameters. For example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:2.2.2-python3.6 python -c <span class="s2">&quot;print(&#39;test&#39;)&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:2.2.3-python3.6 python -c <span class="s2">&quot;print(&#39;test&#39;)&quot;</span>
 <span class="nb">test</span>
 </pre></div>
 </div>
 <p>If first argument equals to “airflow” - the rest of the arguments is treated as an airflow command
 to execute. Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.2.2-python3.6 airflow webserver
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.2.3-python3.6 airflow webserver
 </pre></div>
 </div>
 <p>If there are any other arguments - they are simply passed to the “airflow” command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:2.2.2-python3.6 <span class="nb">help</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt; docker run -it apache/airflow:2.2.3-python3.6 <span class="nb">help</span>
   usage: airflow <span class="o">[</span>-h<span class="o">]</span> GROUP_OR_COMMAND ...
 
   positional arguments:
@@ -727,6 +731,60 @@ to execute. Example:</p>
 
   optional arguments:
     -h, --help         show this <span class="nb">help</span> message and <span class="nb">exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="execute-custom-code-before-the-airflow-entrypoint">
+<h2>Execute custom code before the Airflow entrypoint<a class="headerlink" href="#execute-custom-code-before-the-airflow-entrypoint" title="Permalink to this headline">¶</a></h2>
+<p>If you want to execute some custom code before Airflow’s entrypoint you can by using
+a custom script and calling Airflow’s entrypoint as the
+last <code class="docutils literal notranslate"><span class="pre">exec</span></code> instruction in your custom one. However you have to remember to use <code class="docutils literal notranslate"><span class="pre">dumb-init</span></code> in the same
+way as it is used with Airflow’s entrypoint, otherwise you might have problems with proper signal
+propagation (See the next chapter).</p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span> <span class="s">airflow::2.3.0.dev0</span>
+<span class="k">COPY</span> my_entrypoint.sh /
+<span class="k">ENTRYPOINT</span> <span class="p">[</span><span class="s2">&quot;/usr/bin/dumb-init&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;/my_entrypoint.sh&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Your entrypoint might for example modify or add variables on the fly. For example the below
+entrypoint sets max count of DB checks from the first parameter passed as parameter of the image
+execution (A bit useless example but should give the reader an example of how you could use it).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="nb">export</span> <span class="nv">CONNECTION_CHECK_MAX_COUNT</span><span class="o">=</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span>
+<span class="nb">shift</span>
+<span class="nb">exec</span> /entrypoint <span class="s2">&quot;</span><span class="si">${</span><span class="p">@</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>Make sure Airflow’s entrypoint is run with <code class="docutils literal notranslate"><span class="pre">exec</span> <span class="pre">/entrypoint</span> <span class="pre">&quot;${&#64;}&quot;</span></code> as the last command in your
+custom entrypoint. This way signals will be properly propagated and arguments will be passed
+to the entrypoint as usual (you can use <code class="docutils literal notranslate"><span class="pre">shift</span></code> as above if you need to pass some extra
+arguments. Note that passing secret values this way or storing secrets inside the image is a bad
+idea from security point of view - as both image and parameters to run the image with are accessible
+to anyone who has access to logs of your Kubernetes or image registry.</p>
+<p>Also be aware that code executed before Airflow’s entrypoint should not create any files or
+directories inside the container and everything might not work the same way when it is executed.
+Before Airflow entrypoint is executed, the following functionalities are not available:</p>
+<ul class="simple">
+<li><p>umask is not set properly to allow <code class="docutils literal notranslate"><span class="pre">group</span></code> write access</p></li>
+<li><p>user is not yet created in <code class="docutils literal notranslate"><span class="pre">/etc/passwd</span></code> if an arbitrary user is used to run the image</p></li>
+<li><p>the database and brokers might not be available yet</p></li>
+</ul>
+</div>
+<div class="section" id="adding-custom-image-behaviour">
+<h2>Adding custom image behaviour<a class="headerlink" href="#adding-custom-image-behaviour" title="Permalink to this headline">¶</a></h2>
+<p>The Airflow image executes a lot of steps in the entrypoint, and sets the right environment, but
+you might want to run additional code after the entrypoint creates the user, sets the umask, sets
+variables and checks that database is running.</p>
+<p>Rather than running regular commands - <code class="docutils literal notranslate"><span class="pre">scheduler</span></code>, <code class="docutils literal notranslate"><span class="pre">webserver</span></code> you can run <em>custom</em> script that
+you can embed into the image. You can even execute the usual components of airflow -
+<code class="docutils literal notranslate"><span class="pre">scheduler</span></code>, <code class="docutils literal notranslate"><span class="pre">webserver</span></code> in your custom script when you finish your custom setup.
+Similarly to custom entrypoint, it can be added to the image by extending it.</p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span> <span class="s">airflow::2.3.0.dev0</span>
+<span class="k">COPY</span> my_after_entrypoint_script.sh /
+</pre></div>
+</div>
+<p>And then you can run this script by running the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it apache/airflow:2.2.3-python3.6 bash -c <span class="s2">&quot;/my_after_entrypoint_script.sh&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -851,14 +909,14 @@ database and creating an <code class="docutils literal notranslate"><span class=
   --env <span class="s2">&quot;_AIRFLOW_DB_UPGRADE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_CREATE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_PASSWORD=admin&quot;</span> <span class="se">\</span>
-    apache/airflow:2.2.2-python3.8 webserver
+    apache/airflow:2.2.3-python3.8 webserver
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -it -p <span class="m">8080</span>:8080 <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_DB_UPGRADE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_CREATE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_PASSWORD_CMD=echo admin&quot;</span> <span class="se">\</span>
-    apache/airflow:2.2.2-python3.8 webserver
+    apache/airflow:2.2.3-python3.8 webserver
 </pre></div>
 </div>
 <p>The commands above perform initialization of the SQLite database, create admin user with admin password
@@ -896,7 +954,7 @@ you should create your custom image with dependencies baked in.</p>
   --env <span class="s2">&quot;_AIRFLOW_DB_UPGRADE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_CREATE=true&quot;</span> <span class="se">\</span>
   --env <span class="s2">&quot;_AIRFLOW_WWW_USER_PASSWORD_CMD=echo admin&quot;</span> <span class="se">\</span>
-    apache/airflow:2.2.2-python3.8 webserver
+    apache/airflow:2.2.3-python3.8 webserver
 </pre></div>
 </div>
 <p>This method is only available starting from Docker image of Airflow 2.1.1 and above.</p>
@@ -984,6 +1042,8 @@ you should create your custom image with dependencies baked in.</p>
 <li><a class="reference internal" href="#waits-for-airflow-db-connection">Waits for Airflow DB connection</a></li>
 <li><a class="reference internal" href="#waits-for-celery-broker-connection">Waits for celery broker connection</a></li>
 <li><a class="reference internal" href="#executing-commands">Executing commands</a></li>
+<li><a class="reference internal" href="#execute-custom-code-before-the-airflow-entrypoint">Execute custom code before the Airflow entrypoint</a></li>
+<li><a class="reference internal" href="#adding-custom-image-behaviour">Adding custom image behaviour</a></li>
 <li><a class="reference internal" href="#signal-propagation">Signal propagation</a></li>
 <li><a class="reference internal" href="#additional-quick-test-options">Additional quick test options</a><ul>
 <li><a class="reference internal" href="#upgrading-airflow-db">Upgrading Airflow DB</a></li>
