@@ -1,5 +1,5 @@
-:mod:`airflow.providers.apache.beam.operators.beam`
-===================================================
+:py:mod:`airflow.providers.apache.beam.operators.beam`
+======================================================
 
 .. py:module:: airflow.providers.apache.beam.operators.beam
 
@@ -12,26 +12,48 @@
 Module Contents
 ---------------
 
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.apache.beam.operators.beam.BeamDataflowMixin
+   airflow.providers.apache.beam.operators.beam.BeamRunPythonPipelineOperator
+   airflow.providers.apache.beam.operators.beam.BeamRunJavaPipelineOperator
+
+
+
+
 .. py:class:: BeamDataflowMixin
 
    Helper class to store common, Dataflow specific logic for both
    :class:`~airflow.providers.apache.beam.operators.beam.BeamRunPythonPipelineOperator` and
    :class:`~airflow.providers.apache.beam.operators.beam.BeamRunJavaPipelineOperator`.
 
-   .. attribute:: dataflow_hook
-      :annotation: :Optional[DataflowHook]
+   .. py:attribute:: dataflow_hook
+      :annotation: :Optional[airflow.providers.google.cloud.hooks.dataflow.DataflowHook]
 
       
 
-   .. attribute:: dataflow_config
-      :annotation: :Optional[DataflowConfiguration]
+   .. py:attribute:: dataflow_config
+      :annotation: :airflow.providers.google.cloud.operators.dataflow.DataflowConfiguration
+
+      
+
+   .. py:attribute:: gcp_conn_id
+      :annotation: :str
+
+      
+
+   .. py:attribute:: delegate_to
+      :annotation: :Optional[str]
 
       
 
 
-.. py:class:: BeamRunPythonPipelineOperator(*, py_file: str, runner: str = 'DirectRunner', default_pipeline_options: Optional[dict] = None, pipeline_options: Optional[dict] = None, py_interpreter: str = 'python3', py_options: Optional[List[str]] = None, py_requirements: Optional[List[str]] = None, py_system_site_packages: bool = False, gcp_conn_id: str = 'google_cloud_default', delegate_to: Optional[str] = None, dataflow_config: Optional[Union[DataflowConfiguration, dict]] = None, **kwargs)
+.. py:class:: BeamRunPythonPipelineOperator(*, py_file: str, runner: str = 'DirectRunner', default_pipeline_options: Optional[dict] = None, pipeline_options: Optional[dict] = None, py_interpreter: str = 'python3', py_options: Optional[List[str]] = None, py_requirements: Optional[List[str]] = None, py_system_site_packages: bool = False, gcp_conn_id: str = 'google_cloud_default', delegate_to: Optional[str] = None, dataflow_config: Optional[Union[airflow.providers.google.cloud.operators.dataflow.DataflowConfiguration, dict]] = None, **kwargs)
 
-   Bases: :class:`airflow.models.BaseOperator`, :class:`airflow.providers.apache.beam.operators.beam.BeamDataflowMixin`
+   Bases: :py:obj:`airflow.models.BaseOperator`, :py:obj:`BeamDataflowMixin`
 
    Launching Apache Beam pipelines written in Python. Note that both
    ``default_pipeline_options`` and ``pipeline_options`` will be merged to specify pipeline
@@ -100,32 +122,33 @@ Module Contents
    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner
    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]
 
-   .. attribute:: template_fields
-      :annotation: = ['py_file', 'runner', 'pipeline_options', 'default_pipeline_options', 'dataflow_config']
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['py_file', 'runner', 'pipeline_options', 'default_pipeline_options', 'dataflow_config']
 
       
 
-   .. attribute:: template_fields_renderers
+   .. py:attribute:: template_fields_renderers
       
 
       
 
-   
-   .. method:: execute(self, context)
+   .. py:method:: execute(self, context: airflow.utils.context.Context)
 
       Execute the Apache Beam Pipeline.
 
 
+   .. py:method:: on_kill(self) -> None
 
-   
-   .. method:: on_kill(self)
+      Override this method to cleanup subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up or it will leave
+      ghost processes behind.
 
 
 
+.. py:class:: BeamRunJavaPipelineOperator(*, jar: str, runner: str = 'DirectRunner', job_class: Optional[str] = None, default_pipeline_options: Optional[dict] = None, pipeline_options: Optional[dict] = None, gcp_conn_id: str = 'google_cloud_default', delegate_to: Optional[str] = None, dataflow_config: Optional[Union[airflow.providers.google.cloud.operators.dataflow.DataflowConfiguration, dict]] = None, **kwargs)
 
-.. py:class:: BeamRunJavaPipelineOperator(*, jar: str, runner: str = 'DirectRunner', job_class: Optional[str] = None, default_pipeline_options: Optional[dict] = None, pipeline_options: Optional[dict] = None, gcp_conn_id: str = 'google_cloud_default', delegate_to: Optional[str] = None, dataflow_config: Optional[Union[DataflowConfiguration, dict]] = None, **kwargs)
-
-   Bases: :class:`airflow.models.BaseOperator`, :class:`airflow.providers.apache.beam.operators.beam.BeamDataflowMixin`
+   Bases: :py:obj:`airflow.models.BaseOperator`, :py:obj:`BeamDataflowMixin`
 
    Launching Apache Beam pipelines written in Java.
 
@@ -181,31 +204,32 @@ Module Contents
    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner
    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]
 
-   .. attribute:: template_fields
-      :annotation: = ['jar', 'runner', 'job_class', 'pipeline_options', 'default_pipeline_options', 'dataflow_config']
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['jar', 'runner', 'job_class', 'pipeline_options', 'default_pipeline_options', 'dataflow_config']
 
       
 
-   .. attribute:: template_fields_renderers
+   .. py:attribute:: template_fields_renderers
       
 
       
 
-   .. attribute:: ui_color
+   .. py:attribute:: ui_color
       :annotation: = #0273d4
 
       
 
-   
-   .. method:: execute(self, context)
+   .. py:method:: execute(self, context: airflow.utils.context.Context)
 
       Execute the Apache Beam Pipeline.
 
 
+   .. py:method:: on_kill(self) -> None
 
-   
-   .. method:: on_kill(self)
-
+      Override this method to cleanup subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up or it will leave
+      ghost processes behind.
 
 
 

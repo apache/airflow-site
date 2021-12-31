@@ -1,0 +1,172 @@
+:py:mod:`airflow.providers.cncf.kubernetes.utils.pod_manager`
+=============================================================
+
+.. py:module:: airflow.providers.cncf.kubernetes.utils.pod_manager
+
+.. autoapi-nested-parse::
+
+   Launches PODs
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.utils.pod_manager.PodPhase
+   airflow.providers.cncf.kubernetes.utils.pod_manager.PodManager
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.utils.pod_manager.should_retry_start_pod
+   airflow.providers.cncf.kubernetes.utils.pod_manager.container_is_running
+
+
+
+.. py:exception:: PodLaunchFailedException
+
+   Bases: :py:obj:`airflow.exceptions.AirflowException`
+
+   When pod launching fails in KubernetesPodOperator.
+
+
+.. py:function:: should_retry_start_pod(exception: Exception) -> bool
+
+   Check if an Exception indicates a transient error and warrants retrying
+
+
+.. py:class:: PodPhase
+
+   Possible pod phases
+   See https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase.
+
+   .. py:attribute:: PENDING
+      :annotation: = Pending
+
+      
+
+   .. py:attribute:: RUNNING
+      :annotation: = Running
+
+      
+
+   .. py:attribute:: FAILED
+      :annotation: = Failed
+
+      
+
+   .. py:attribute:: SUCCEEDED
+      :annotation: = Succeeded
+
+      
+
+   .. py:attribute:: terminal_states
+      
+
+      
+
+
+.. py:function:: container_is_running(pod: kubernetes.client.models.v1_pod.V1Pod, container_name: str) -> bool
+
+   Examines V1Pod ``pod`` to determine whether ``container_name`` is running.
+   If that container is present and running, returns True.  Returns False otherwise.
+
+
+.. py:class:: PodManager(kube_client: kubernetes.client.CoreV1Api = None, in_cluster: bool = True, cluster_context: Optional[str] = None)
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Helper class for creating, monitoring, and otherwise interacting with Kubernetes pods
+   for use with the KubernetesPodOperator
+
+   .. py:method:: run_pod_async(self, pod: kubernetes.client.models.v1_pod.V1Pod, **kwargs) -> kubernetes.client.models.v1_pod.V1Pod
+
+      Runs POD asynchronously
+
+
+   .. py:method:: delete_pod(self, pod: kubernetes.client.models.v1_pod.V1Pod) -> None
+
+      Deletes POD
+
+
+   .. py:method:: create_pod(self, pod: kubernetes.client.models.v1_pod.V1Pod) -> kubernetes.client.models.v1_pod.V1Pod
+
+      Launches the pod asynchronously.
+
+
+   .. py:method:: await_pod_start(self, pod: kubernetes.client.models.v1_pod.V1Pod, startup_timeout: int = 120) -> None
+
+      Waits for the pod to reach phase other than ``Pending``
+
+      :param pod:
+      :param startup_timeout: Timeout (in seconds) for startup of the pod
+          (if pod is pending for too long, fails task)
+      :return:
+
+
+   .. py:method:: follow_container_logs(self, pod: kubernetes.client.models.v1_pod.V1Pod, container_name: str) -> None
+
+      Follows the logs of container and streams to airflow logging.
+      Returns when container exits.
+
+      .. note:: :meth:`read_pod_logs` follows the logs, so we shouldn't necessarily *need* to
+          loop as we do here. But in a long-running process we might temporarily lose connectivity.
+          So the looping logic is there to let us resume following the logs.
+
+
+   .. py:method:: await_container_completion(self, pod: kubernetes.client.models.v1_pod.V1Pod, container_name: str) -> None
+
+
+   .. py:method:: await_pod_completion(self, pod: kubernetes.client.models.v1_pod.V1Pod) -> kubernetes.client.models.v1_pod.V1Pod
+
+      Monitors a pod and returns the final state
+
+      :param pod: pod spec that will be monitored
+      :return:  Tuple[State, Optional[str]]
+
+
+   .. py:method:: parse_log_line(self, line: str) -> Tuple[Optional[Union[pendulum.Date, pendulum.Time, pendulum.DateTime, pendulum.Duration]], str]
+
+      Parse K8s log line and returns the final state
+
+      :param line: k8s log line
+      :type line: str
+      :return: timestamp and log message
+      :rtype: Tuple[str, str]
+
+
+   .. py:method:: container_is_running(self, pod: kubernetes.client.models.v1_pod.V1Pod, container_name: str) -> bool
+
+      Reads pod and checks if container is running
+
+
+   .. py:method:: read_pod_logs(self, pod: kubernetes.client.models.v1_pod.V1Pod, container_name: str, tail_lines: Optional[int] = None, timestamps: bool = False, since_seconds: Optional[int] = None) -> Iterable[str]
+
+      Reads log from the POD
+
+
+   .. py:method:: read_pod_events(self, pod: kubernetes.client.models.v1_pod.V1Pod) -> kubernetes.client.models.v1_event_list.V1EventList
+
+      Reads events from the POD
+
+
+   .. py:method:: read_pod(self, pod: kubernetes.client.models.v1_pod.V1Pod) -> kubernetes.client.models.v1_pod.V1Pod
+
+      Read POD information
+
+
+   .. py:method:: extract_xcom(self, pod: kubernetes.client.models.v1_pod.V1Pod) -> str
+
+      Retrieves XCom value and kills xcom sidecar container
+
+
+
