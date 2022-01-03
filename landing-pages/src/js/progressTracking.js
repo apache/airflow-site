@@ -31,7 +31,7 @@ const runProgressTracking = () => {
     const target = hash.substr(1);
     let targetElement;
     if (target) {
-      targetElement = document.querySelector(`#${target}`);
+      targetElement = document.getElementById(target);
     } else {
       targetElement = document.body;
     }
