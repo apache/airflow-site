@@ -13,6 +13,10 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# January 4, 2022
+
+Airflow PMC welcomes **Jed Cunningham** ([@jedcunningham](https://github.com/jedcunningham)) as the newest addition to Airflow PMC.
+
 # December 21, 2021
 
 We’ve just released Apache **Airflow 2.2.3**.
