@@ -1,5 +1,5 @@
-:mod:`airflow.providers.slack.operators.slack`
-==============================================
+:py:mod:`airflow.providers.slack.operators.slack`
+=================================================
 
 .. py:module:: airflow.providers.slack.operators.slack
 
@@ -7,9 +7,21 @@
 Module Contents
 ---------------
 
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.slack.operators.slack.SlackAPIOperator
+   airflow.providers.slack.operators.slack.SlackAPIPostOperator
+   airflow.providers.slack.operators.slack.SlackAPIFileOperator
+
+
+
+
 .. py:class:: SlackAPIOperator(*, slack_conn_id: Optional[str] = None, token: Optional[str] = None, method: Optional[str] = None, api_params: Optional[Dict] = None, **kwargs)
 
-   Bases: :class:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.models.BaseOperator`
 
    Base Slack Operator
    The SlackAPIPostOperator is derived from this operator.
@@ -28,8 +40,8 @@ Module Contents
    :param client_args: Slack Hook parameters. Optional. Check airflow.providers.slack.hooks.SlackHook
    :type client_args: dict
 
-   
-   .. method:: construct_api_call_params(self)
+   .. py:method:: construct_api_call_params(self) -> Any
+      :abstractmethod:
 
       Used by the execute function. Allows templating on the source fields
       of the api_call_params dict before construction
@@ -41,19 +53,16 @@ Module Contents
       API call parameters (https://api.slack.com/methods)
 
 
-
-   
-   .. method:: execute(self, **kwargs)
+   .. py:method:: execute(self, **kwargs)
 
       The SlackAPIOperator calls will not fail even if the call is not unsuccessful.
       It should not prevent a DAG from completing in success
 
 
 
-
 .. py:class:: SlackAPIPostOperator(channel: str = '#general', username: str = 'Airflow', text: str = 'No message has been set.\nHere is a cat video instead\nhttps://www.youtube.com/watch?v=J---aiyznGQ', icon_url: str = 'https://raw.githubusercontent.com/apache/airflow/main/airflow/www/static/pin_100.png', attachments: Optional[List] = None, blocks: Optional[List] = None, **kwargs)
 
-   Bases: :class:`airflow.providers.slack.operators.slack.SlackAPIOperator`
+   Bases: :py:obj:`SlackAPIOperator`
 
    Posts messages to a slack channel
    Examples:
@@ -84,25 +93,32 @@ Module Contents
        - see https://api.slack.com/reference/block-kit/blocks.
    :type blocks: list of hashes
 
-   .. attribute:: template_fields
-      :annotation: = ['username', 'text', 'attachments', 'blocks', 'channel']
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['username', 'text', 'attachments', 'blocks', 'channel']
 
       
 
-   .. attribute:: ui_color
+   .. py:attribute:: ui_color
       :annotation: = #FFBA40
 
       
 
-   
-   .. method:: construct_api_call_params(self)
+   .. py:method:: construct_api_call_params(self) -> Any
+
+      Used by the execute function. Allows templating on the source fields
+      of the api_call_params dict before construction
+
+      Override in child classes.
+      Each SlackAPIOperator child class is responsible for
+      having a construct_api_call_params function
+      which sets self.api_call_params with a dict of
+      API call parameters (https://api.slack.com/methods)
 
 
 
+.. py:class:: SlackAPIFileOperator(channel: str = '#general', initial_comment: str = 'No message has been set!', filename: Optional[str] = None, filetype: Optional[str] = None, content: Optional[str] = None, **kwargs)
 
-.. py:class:: SlackAPIFileOperator(channel: str = '#general', initial_comment: str = 'No message has been set!', filename: str = None, filetype: str = None, content: str = None, **kwargs)
-
-   Bases: :class:`airflow.providers.slack.operators.slack.SlackAPIOperator`
+   Bases: :py:obj:`SlackAPIOperator`
 
    Send a file to a slack channel
    Examples:
@@ -142,22 +158,20 @@ Module Contents
    :param content: file content. (templated)
    :type content: str
 
-   .. attribute:: template_fields
-      :annotation: = ['channel', 'initial_comment', 'filename', 'filetype', 'content']
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['channel', 'initial_comment', 'filename', 'filetype', 'content']
 
       
 
-   .. attribute:: ui_color
+   .. py:attribute:: ui_color
       :annotation: = #44BEDF
 
       
 
-   
-   .. method:: execute(self, **kwargs)
+   .. py:method:: execute(self, **kwargs)
 
       The SlackAPIOperator calls will not fail even if the call is not unsuccessful.
       It should not prevent a DAG from completing in success
-
 
 
 
