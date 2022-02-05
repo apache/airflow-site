@@ -1,0 +1,139 @@
+:py:mod:`airflow.providers.amazon.aws.operators.batch`
+======================================================
+
+.. py:module:: airflow.providers.amazon.aws.operators.batch
+
+.. autoapi-nested-parse::
+
+   An Airflow operator for AWS Batch services
+
+   .. seealso::
+
+       - http://boto3.readthedocs.io/en/latest/guide/configuration.html
+       - http://boto3.readthedocs.io/en/latest/reference/services/batch.html
+       - https://docs.aws.amazon.com/batch/latest/APIReference/Welcome.html
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.operators.batch.BatchOperator
+   airflow.providers.amazon.aws.operators.batch.AwsBatchOperator
+
+
+
+
+.. py:class:: BatchOperator(*, job_name, job_definition, job_queue, overrides, array_properties = None, parameters = None, job_id = None, waiters = None, max_retries = None, status_retries = None, aws_conn_id = None, region_name = None, tags = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Execute a job on AWS Batch
+
+   :param job_name: the name for the job that will run on AWS Batch (templated)
+
+   :param job_definition: the job definition name on AWS Batch
+
+   :param job_queue: the queue name on AWS Batch
+
+   :param overrides: the `containerOverrides` parameter for boto3 (templated)
+
+   :param array_properties: the `arrayProperties` parameter for boto3
+
+   :param parameters: the `parameters` for boto3 (templated)
+
+   :param job_id: the job ID, usually unknown (None) until the
+       submit_job operation gets the jobId defined by AWS Batch
+
+   :param waiters: an :py:class:`.BatchWaiters` object (see note below);
+       if None, polling is used with max_retries and status_retries.
+
+   :param max_retries: exponential back-off retries, 4200 = 48 hours;
+       polling is only used when waiters is None
+
+   :param status_retries: number of HTTP retries to get job status, 10;
+       polling is only used when waiters is None
+
+   :param aws_conn_id: connection id of AWS credentials / region name. If None,
+       credential boto3 strategy will be used.
+
+   :param region_name: region name to use in AWS Hook.
+       Override the region_name in connection (if provided)
+
+   :param tags: collection of tags to apply to the AWS Batch job submission
+       if None, no tags are submitted
+
+   .. note::
+       Any custom waiters must return a waiter for these calls:
+       .. code-block:: python
+
+           waiter = waiters.get_waiter("JobExists")
+           waiter = waiters.get_waiter("JobRunning")
+           waiter = waiters.get_waiter("JobComplete")
+
+   .. py:attribute:: ui_color
+      :annotation: = #c3dae0
+
+      
+
+   .. py:attribute:: arn
+      :annotation: :Optional[str]
+
+      
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['job_name', 'overrides', 'parameters']
+
+      
+
+   .. py:attribute:: template_fields_renderers
+      
+
+      
+
+   .. py:method:: execute(self, context)
+
+      Submit and monitor an AWS Batch job
+
+      :raises: AirflowException
+
+
+   .. py:method:: on_kill(self)
+
+      Override this method to cleanup subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up or it will leave
+      ghost processes behind.
+
+
+   .. py:method:: submit_job(self, context)
+
+      Submit an AWS Batch job
+
+      :raises: AirflowException
+
+
+   .. py:method:: monitor_job(self, context)
+
+      Monitor an AWS Batch job
+      monitor_job can raise an exception or an AirflowTaskTimeout can be raised if execution_timeout
+      is given while creating the task. These exceptions should be handled in taskinstance.py
+      instead of here like it was previously done
+
+      :raises: AirflowException
+
+
+
+.. py:class:: AwsBatchOperator(*args, **kwargs)
+
+   Bases: :py:obj:`BatchOperator`
+
+   This operator is deprecated.
+   Please use :class:`airflow.providers.amazon.aws.operators.batch.BatchOperator`.
+
+
