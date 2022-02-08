@@ -270,19 +270,6 @@
             <div class="content-drawer">
                 <div class="td-sidebar">
 
-<div id="docs-version-selector" class="docs-version-selector sidebar__version-selector">
-    <a class="dropdown-toggle" href="#" id="versionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
-       aria-expanded="false">
-        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">devel</span>
-    </a>
-    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-
-    </div>
-    <script type="application/x-template" id="version-item-template">
-        <a class="dropdown-item"></a>
-    </script>
-</div>
-
 <div class="searchb-box">
     <form class="search-form" action="../search.html" method="get">
         <input class="search-form__input" type="text" name="q" placeholder="Search docs" size="16">
@@ -321,6 +308,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../core-extensions/index.html">Core Extensions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Update community providers</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-creating-a-new-community-provider">How-to creating a new community provider</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-provider-features">Optional provider features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-update-a-community-provider">How-to Update a community provider</a></li>
 </ul>
 </li>
@@ -406,19 +394,6 @@
             
     <div class="td-sidebar desktop-only d-print-none">
 
-<div id="docs-version-selector" class="docs-version-selector sidebar__version-selector">
-    <a class="dropdown-toggle" href="#" id="versionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
-       aria-expanded="false">
-        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">devel</span>
-    </a>
-    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-
-    </div>
-    <script type="application/x-template" id="version-item-template">
-        <a class="dropdown-item"></a>
-    </script>
-</div>
-
 <div class="searchb-box">
     <form class="search-form" action="../search.html" method="get">
         <input class="search-form__input" type="text" name="q" placeholder="Search docs" size="16">
@@ -457,6 +432,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../core-extensions/index.html">Core Extensions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Update community providers</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-creating-a-new-community-provider">How-to creating a new community provider</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-provider-features">Optional provider features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-update-a-community-provider">How-to Update a community provider</a></li>
 </ul>
 </li>
@@ -840,6 +816,52 @@ main Airflow documentation that involves some steps with the providers is also w
 </div></blockquote>
 </div>
 </div>
+<div class="section" id="optional-provider-features">
+<h2>Optional provider features<a class="headerlink" href="#optional-provider-features" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This feature is available in Airflow 2.3+.</p>
+</div>
+</div></blockquote>
+<p>Some providers might provide optional features, which are only available when some packages or libraries
+are installed. Such features will typically result in <code class="docutils literal notranslate"><span class="pre">ImportErrors</span></code> however those import errors
+should be silently ignored rather than pollute the logs of Airflow with false warnings. False warnings
+are a very bad pattern, as they tend to turn into blind spots, so avoiding false warnings is encouraged.
+However until Airflow 2.3, Airflow had no mechanism to selectively ignore &quot;known&quot; ImportErrors. So
+Airflow 2.1 and 2.2 silently ignored all ImportErrors coming from providers with actually lead to
+ignoring even important import errors - without giving the clue to Airflow users that there is something
+missing in provider dependencies.</p>
+<p>In Airflow 2.3, new exception <code class="xref py py-class docutils literal notranslate"><span class="pre">OptionalProviderFeatureException</span></code> has been
+introduced and Providers can use the exception to signal that the ImportError (or any other error) should
+be ignored by Airflow ProvidersManager. However this Exception is only available in Airflow 2.3 so if
+providers would like to remain compatible with Airflow 2.1 and 2.2, they should continue throwing
+the ImportError exception.</p>
+<p>Example code (from Plyvel Hook, part of the Google Provider) explains how such conditional error handling
+should be implemented to keep compatibility with Airflow 2.1 and 2.2</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">plyvel</span>
+    <span class="kn">from</span> <span class="nn">plyvel</span> <span class="kn">import</span> <span class="n">DB</span>
+
+    <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
+    <span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
+
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="c1"># Plyvel is an optional feature and if imports are missing, it should be silently ignored</span>
+    <span class="c1"># As of Airflow 2.3  and above the operator can throw OptionalProviderFeatureException</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowOptionalProviderFeatureException</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="c1"># However, in order to keep backwards-compatibility with Airflow 2.1 and 2.2, if the</span>
+        <span class="c1"># 2.3 exception cannot be imported, the original ImportError should be raised.</span>
+        <span class="c1"># This try/except can be removed when the provider depends on Airflow &gt;= 2.3.0</span>
+        <span class="k">raise</span> <span class="n">e</span>
+    <span class="k">raise</span> <span class="n">AirflowOptionalProviderFeatureException</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
 <div class="section" id="how-to-update-a-community-provider">
 <h2>How-to Update a community provider<a class="headerlink" href="#how-to-update-a-community-provider" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference external" href="https://github.com/apache/airflow/blob/main/dev/README_RELEASE_PROVIDER_PACKAGES.md#provider-packages-versioning">Provider packages versioning</a></p>
@@ -929,6 +951,7 @@ main Airflow documentation that involves some steps with the providers is also w
 <li><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#optional-provider-features">Optional provider features</a></li>
 <li><a class="reference internal" href="#how-to-update-a-community-provider">How-to Update a community provider</a></li>
 </ul>
 </li>

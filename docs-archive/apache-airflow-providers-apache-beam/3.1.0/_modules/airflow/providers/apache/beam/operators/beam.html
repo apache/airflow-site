@@ -692,17 +692,13 @@
 
 <span class="sd">    :param py_file: Reference to the python Apache Beam pipeline file.py, e.g.,</span>
 <span class="sd">        /some/local/file/path/to/your/python/pipeline/file. (templated)</span>
-<span class="sd">    :type py_file: str</span>
 <span class="sd">    :param runner: Runner on which pipeline will be run. By default &quot;DirectRunner&quot; is being used.</span>
 <span class="sd">        Other possible options: DataflowRunner, SparkRunner, FlinkRunner.</span>
 <span class="sd">        See: :class:`~providers.apache.beam.hooks.beam.BeamRunnerType`</span>
 <span class="sd">        See: https://beam.apache.org/documentation/runners/capability-matrix/</span>
 
-<span class="sd">    :type runner: str</span>
 <span class="sd">    :param py_options: Additional python options, e.g., [&quot;-m&quot;, &quot;-v&quot;].</span>
-<span class="sd">    :type py_options: list[str]</span>
 <span class="sd">    :param default_pipeline_options: Map of default pipeline options.</span>
-<span class="sd">    :type default_pipeline_options: dict</span>
 <span class="sd">    :param pipeline_options: Map of pipeline options.The key must be a dictionary.</span>
 <span class="sd">        The value can contain different types:</span>
 
@@ -715,33 +711,27 @@
 <span class="sd">        * Other value types will be replaced with the Python textual representation.</span>
 
 <span class="sd">        When defining labels (``labels`` option), you can also provide a dictionary.</span>
-<span class="sd">    :type pipeline_options: dict</span>
 <span class="sd">    :param py_interpreter: Python version of the beam pipeline.</span>
 <span class="sd">        If None, this defaults to the python3.</span>
 <span class="sd">        To track python versions supported by beam and related</span>
 <span class="sd">        issues check: https://issues.apache.org/jira/browse/BEAM-1251</span>
-<span class="sd">    :type py_interpreter: str</span>
 <span class="sd">    :param py_requirements: Additional python package(s) to install.</span>
 <span class="sd">        If a value is passed to this parameter, a new virtual environment has been created with</span>
 <span class="sd">        additional packages installed.</span>
 
 <span class="sd">        You could also install the apache_beam package if it is not installed on your system or you want</span>
 <span class="sd">        to use a different version.</span>
-<span class="sd">    :type py_requirements: List[str]</span>
 <span class="sd">    :param py_system_site_packages: Whether to include system_site_packages in your virtualenv.</span>
 <span class="sd">        See virtualenv documentation for more information.</span>
 
 <span class="sd">        This option is only relevant if the ``py_requirements`` parameter is not None.</span>
 <span class="sd">    :param gcp_conn_id: Optional.</span>
 <span class="sd">        The connection ID to use connecting to Google Cloud Storage if python file is on GCS.</span>
-<span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param delegate_to:  Optional.</span>
 <span class="sd">        The account to impersonate using domain-wide delegation of authority,</span>
 <span class="sd">        if any. For this to work, the service account making the request must have</span>
 <span class="sd">        domain-wide delegation enabled.</span>
-<span class="sd">    :type delegate_to: str</span>
 <span class="sd">    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner</span>
-<span class="sd">    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BeamRunPythonPipelineOperator.template_fields"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/beam/operators/beam/index.html#airflow.providers.apache.beam.operators.beam.BeamRunPythonPipelineOperator.template_fields">[docs]</a>    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -826,7 +816,7 @@
                 <span class="n">tmp_gcs_file</span> <span class="o">=</span> <span class="n">exit_stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">gcs_hook</span><span class="o">.</span><span class="n">provide_file</span><span class="p">(</span><span class="n">object_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">py_file</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">py_file</span> <span class="o">=</span> <span class="n">tmp_gcs_file</span><span class="o">.</span><span class="n">name</span>
 
-            <span class="k">if</span> <span class="n">is_dataflow</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_dataflow</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="p">:</span>
                 <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="o">.</span><span class="n">provide_authorized_gcloud</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">beam_hook</span><span class="o">.</span><span class="n">start_python_pipeline</span><span class="p">(</span>
                         <span class="n">variables</span><span class="o">=</span><span class="n">formatted_pipeline_options</span><span class="p">,</span>
@@ -838,12 +828,13 @@
                         <span class="n">process_line_callback</span><span class="o">=</span><span class="n">process_line_callback</span><span class="p">,</span>
                     <span class="p">)</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="o">.</span><span class="n">wait_for_done</span><span class="p">(</span>
-                    <span class="n">job_name</span><span class="o">=</span><span class="n">dataflow_job_name</span><span class="p">,</span>
-                    <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
-                    <span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_job_id</span><span class="p">,</span>
-                    <span class="n">multiple_jobs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">dataflow_job_name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">location</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="o">.</span><span class="n">wait_for_done</span><span class="p">(</span>
+                        <span class="n">job_name</span><span class="o">=</span><span class="n">dataflow_job_name</span><span class="p">,</span>
+                        <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+                        <span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_job_id</span><span class="p">,</span>
+                        <span class="n">multiple_jobs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">beam_hook</span><span class="o">.</span><span class="n">start_python_pipeline</span><span class="p">(</span>
@@ -891,16 +882,12 @@
 <span class="sd">    Use ``pipeline_options`` to pass on pipeline_options to your job.</span>
 
 <span class="sd">    :param jar: The reference to a self executing Apache Beam jar (templated).</span>
-<span class="sd">    :type jar: str</span>
 <span class="sd">    :param runner: Runner on which pipeline will be run. By default &quot;DirectRunner&quot; is being used.</span>
 <span class="sd">        See:</span>
 <span class="sd">        https://beam.apache.org/documentation/runners/capability-matrix/</span>
-<span class="sd">    :type runner: str</span>
 <span class="sd">    :param job_class: The name of the Apache Beam pipeline class to be executed, it</span>
 <span class="sd">        is often not the main class configured in the pipeline jar file.</span>
-<span class="sd">    :type job_class: str</span>
 <span class="sd">    :param default_pipeline_options: Map of default job pipeline_options.</span>
-<span class="sd">    :type default_pipeline_options: dict</span>
 <span class="sd">    :param pipeline_options: Map of job specific pipeline_options.The key must be a dictionary.</span>
 <span class="sd">        The value can contain different types:</span>
 
@@ -913,15 +900,11 @@
 <span class="sd">        * Other value types will be replaced with the Python textual representation.</span>
 
 <span class="sd">        When defining labels (``labels`` option), you can also provide a dictionary.</span>
-<span class="sd">    :type pipeline_options: dict</span>
 <span class="sd">    :param gcp_conn_id: The connection ID to use connecting to Google Cloud Storage if jar is on GCS</span>
-<span class="sd">    :type gcp_conn_id: str</span>
 <span class="sd">    :param delegate_to: The account to impersonate using domain-wide delegation of authority,</span>
 <span class="sd">        if any. For this to work, the service account making the request must have</span>
 <span class="sd">        domain-wide delegation enabled.</span>
-<span class="sd">    :type delegate_to: str</span>
 <span class="sd">    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner</span>
-<span class="sd">    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BeamRunJavaPipelineOperator.template_fields"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/beam/operators/beam/index.html#airflow.providers.apache.beam.operators.beam.BeamRunJavaPipelineOperator.template_fields">[docs]</a>    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -995,7 +978,7 @@
                 <span class="n">tmp_gcs_file</span> <span class="o">=</span> <span class="n">exit_stack</span><span class="o">.</span><span class="n">enter_context</span><span class="p">(</span><span class="n">gcs_hook</span><span class="o">.</span><span class="n">provide_file</span><span class="p">(</span><span class="n">object_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">jar</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">jar</span> <span class="o">=</span> <span class="n">tmp_gcs_file</span><span class="o">.</span><span class="n">name</span>
 
-            <span class="k">if</span> <span class="n">is_dataflow</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_dataflow</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="p">:</span>
                 <span class="n">is_running</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">check_if_running</span> <span class="o">!=</span> <span class="n">CheckJobRunning</span><span class="o">.</span><span class="n">IgnoreJob</span><span class="p">:</span>
                     <span class="n">is_running</span> <span class="o">=</span> <span class="p">(</span>
@@ -1029,14 +1012,19 @@
                             <span class="n">job_class</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_class</span><span class="p">,</span>
                             <span class="n">process_line_callback</span><span class="o">=</span><span class="n">process_line_callback</span><span class="p">,</span>
                         <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="o">.</span><span class="n">wait_for_done</span><span class="p">(</span>
-                        <span class="n">job_name</span><span class="o">=</span><span class="n">dataflow_job_name</span><span class="p">,</span>
-                        <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
-                        <span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_job_id</span><span class="p">,</span>
-                        <span class="n">multiple_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">multiple_jobs</span><span class="p">,</span>
-                        <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
-                    <span class="p">)</span>
-
+                    <span class="k">if</span> <span class="n">dataflow_job_name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">location</span><span class="p">:</span>
+                        <span class="n">multiple_jobs</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">multiple_jobs</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">multiple_jobs</span>
+                            <span class="k">else</span> <span class="kc">False</span>
+                        <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dataflow_hook</span><span class="o">.</span><span class="n">wait_for_done</span><span class="p">(</span>
+                            <span class="n">job_name</span><span class="o">=</span><span class="n">dataflow_job_name</span><span class="p">,</span>
+                            <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+                            <span class="n">job_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_job_id</span><span class="p">,</span>
+                            <span class="n">multiple_jobs</span><span class="o">=</span><span class="n">multiple_jobs</span><span class="p">,</span>
+                            <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataflow_config</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span>
+                        <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">beam_hook</span><span class="o">.</span><span class="n">start_java_pipeline</span><span class="p">(</span>
                     <span class="n">variables</span><span class="o">=</span><span class="n">pipeline_options</span><span class="p">,</span>

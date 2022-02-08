@@ -629,17 +629,17 @@
 <div class="viewcode-block" id="ElasticsearchTaskHandler"><a class="viewcode-back" href="../../../../../_api/airflow/providers/elasticsearch/log/es_task_handler/index.html#airflow.providers.elasticsearch.log.es_task_handler.ElasticsearchTaskHandler">[docs]</a><span class="k">class</span> <span class="nc">ElasticsearchTaskHandler</span><span class="p">(</span><span class="n">FileTaskHandler</span><span class="p">,</span> <span class="n">ExternalLoggingMixin</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ElasticsearchTaskHandler is a python log handler that</span>
-<span class="sd">    reads logs from Elasticsearch. Note logs are not directly</span>
-<span class="sd">    indexed into Elasticsearch. Instead, it flushes logs</span>
+<span class="sd">    reads logs from Elasticsearch. Note that Airflow does not handle the indexing</span>
+<span class="sd">    of logs into Elasticsearch. Instead, Airflow flushes logs</span>
 <span class="sd">    into local files. Additional software setup is required</span>
-<span class="sd">    to index the log into Elasticsearch, such as using</span>
+<span class="sd">    to index the logs into Elasticsearch, such as using</span>
 <span class="sd">    Filebeat and Logstash.</span>
-<span class="sd">    To efficiently query and sort Elasticsearch results, we assume each</span>
+<span class="sd">    To efficiently query and sort Elasticsearch results, this handler assumes each</span>
 <span class="sd">    log message has a field `log_id` consists of ti primary keys:</span>
 <span class="sd">    `log_id = {dag_id}-{task_id}-{execution_date}-{try_number}`</span>
 <span class="sd">    Log messages with specific log_id are sorted based on `offset`,</span>
 <span class="sd">    which is a unique integer indicates log message&#39;s order.</span>
-<span class="sd">    Timestamp here are unreliable because multiple log messages</span>
+<span class="sd">    Timestamps here are unreliable because multiple log messages</span>
 <span class="sd">    might have the same timestamp.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -772,15 +772,24 @@
         <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;end_of_log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">logs</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">loading_hosts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
         <span class="n">cur_ts</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-        <span class="c1"># Assume end of log after not receiving new log for 5 min,</span>
-        <span class="c1"># as executor heartbeat is 1 min and there might be some</span>
-        <span class="c1"># delay before Elasticsearch makes the log available.</span>
         <span class="k">if</span> <span class="s1">&#39;last_log_timestamp&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
             <span class="n">last_log_ts</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;last_log_timestamp&#39;</span><span class="p">])</span>
+
+            <span class="c1"># if we are not getting any logs at all after more than N seconds of trying,</span>
+            <span class="c1"># assume logs do not exist</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">next_offset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">cur_ts</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">last_log_ts</span><span class="p">)</span><span class="o">.</span><span class="n">in_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;end_of_log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">missing_log_message</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;*** Log </span><span class="si">{</span><span class="n">log_id</span><span class="si">}</span><span class="s2"> not found in Elasticsearch. &quot;</span>
+                    <span class="s2">&quot;If your task started recently, please wait a moment and reload this page. &quot;</span>
+                    <span class="s2">&quot;Otherwise, the logs for this task instance may have been removed.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="p">[(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">missing_log_message</span><span class="p">)],</span> <span class="n">metadata</span>
             <span class="k">if</span> <span class="p">(</span>
+                <span class="c1"># Assume end of log after not receiving new log for N min,</span>
                 <span class="n">cur_ts</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">last_log_ts</span><span class="p">)</span><span class="o">.</span><span class="n">in_minutes</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">5</span>
-                <span class="ow">or</span> <span class="s1">&#39;max_offset&#39;</span> <span class="ow">in</span> <span class="n">metadata</span>
-                <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;max_offset&#39;</span><span class="p">])</span>
+                <span class="c1"># if max_offset specified, respect it</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;max_offset&#39;</span> <span class="ow">in</span> <span class="n">metadata</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;max_offset&#39;</span><span class="p">]))</span>
             <span class="p">):</span>
                 <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;end_of_log&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -817,11 +826,8 @@
 <span class="sd">        Returns &#39;&#39; if no log is found or there was an error.</span>
 
 <span class="sd">        :param log_id: the log_id of the log to read.</span>
-<span class="sd">        :type log_id: str</span>
 <span class="sd">        :param offset: the offset start to read log from.</span>
-<span class="sd">        :type offset: str</span>
 <span class="sd">        :param metadata: log metadata, used for steaming log download.</span>
-<span class="sd">        :type metadata: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Offset is the unique key for sorting logs given log_id.</span>
         <span class="n">search</span> <span class="o">=</span> <span class="n">Search</span><span class="p">(</span><span class="n">using</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;match_phrase&#39;</span><span class="p">,</span> <span class="n">log_id</span><span class="o">=</span><span class="n">log_id</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offset_field</span><span class="p">)</span>
@@ -934,7 +940,6 @@
 <span class="sd">        :param task_instance: task instance object</span>
 <span class="sd">        :type: task_instance: TaskInstance</span>
 <span class="sd">        :param try_number: task instance try_number to read logs from.</span>
-<span class="sd">        :type try_number: Optional[int]</span>
 <span class="sd">        :return: URL to the external log collection service</span>
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
