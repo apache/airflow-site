@@ -77,6 +77,8 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html"><code>File Transfer Protocol (FTP)</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-github/stable/index.html"><code>Github</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-google/stable/index.html"><code>Google</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-grpc/stable/index.html"><code>gRPC</code></a></li>
