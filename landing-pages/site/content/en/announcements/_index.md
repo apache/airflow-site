@@ -13,6 +13,13 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# February 19, 2022
+
+Airflow PMC welcomes two new Airlow Committers:
+
+* **Malthe Borch** ([@malthe](https://github.com/malthe))
+* **Josh Fell** ([@josh-fell](https://github.com/josh-fell))
+
 # January 10, 2022
 
 We've just released Apache **Airflow Helm chart 1.4.0**.
@@ -137,7 +144,7 @@ We've just released Apache **Airflow 2.1.1**.
 Airflow PMC welcomes 2 new committers:
 
 - **Jed Cunningham** ([@jedcunningham](https://github.com/jedcunningham))
-- **Tzu-ping Chung** ([@uranusjr](https://github.com/uranusjr)
+- **Tzu-ping Chung** ([@uranusjr](https://github.com/uranusjr))
 
 # May 21, 2021
 
