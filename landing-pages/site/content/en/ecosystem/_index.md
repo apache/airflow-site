@@ -33,7 +33,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 ## Airflow as a Service
 
-[Astronomer](https://www.astronomer.io/) - Managed Apache Airflow in Astronomer Cloud, or self-hosted within your environment
+[Astro](https://www.astronomer.io/product) - Provided by Astronomer, Astro is the modern data orchestration platform, powered by Apache Airflow. Astro enables data engineers, data scientists, and data analysts to build, run, and observe pipelines-as-code.
 
 [Google Cloud Composer](https://cloud.google.com/composer) - Managed Apache Airflow service on Google Cloud Platform
 
