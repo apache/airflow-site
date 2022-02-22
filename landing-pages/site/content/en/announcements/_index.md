@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# February 22, 2022
+
+We’ve just released Apache **Airflow 2.2.4**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.2.4/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.2.4/ \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.2.4/changelog.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.2.4/installation/installing-from-sources.html
+
 # February 19, 2022
 
 Airflow PMC welcomes two new Airlow Committers:
