@@ -1,0 +1,117 @@
+:py:mod:`airflow.models.xcom_arg`
+=================================
+
+.. py:module:: airflow.models.xcom_arg
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.xcom_arg.XComArg
+
+
+
+
+.. py:class:: XComArg(operator: airflow.models.baseoperator.BaseOperator, key: str = XCOM_RETURN_KEY)
+
+   Bases: :py:obj:`airflow.models.taskmixin.TaskMixin`
+
+   Class that represents a XCom push from a previous operator.
+   Defaults to "return_value" as only key.
+
+   Current implementation supports
+       xcomarg >> op
+       xcomarg << op
+       op >> xcomarg   (by BaseOperator code)
+       op << xcomarg   (by BaseOperator code)
+
+   **Example**: The moment you get a result from any operator (decorated or regular) you can ::
+
+       any_op = AnyOperator()
+       xcomarg = XComArg(any_op)
+       # or equivalently
+       xcomarg = any_op.output
+       my_op = MyOperator()
+       my_op >> xcomarg
+
+   This object can be used in legacy Operators via Jinja.
+
+   **Example**: You can make this result to be part of any generated string ::
+
+       any_op = AnyOperator()
+       xcomarg = any_op.output
+       op1 = MyOperator(my_text_message=f"the value is {xcomarg}")
+       op2 = MyOperator(my_text_message=f"the value is {xcomarg['topic']}")
+
+   :param operator: operator to which the XComArg belongs to
+   :type operator: airflow.models.baseoperator.BaseOperator
+   :param key: key value which is used for xcom_pull (key in the XCom table)
+   :type key: str
+
+   .. py:method:: __eq__(self, other)
+
+      Return self==value.
+
+
+   .. py:method:: __getitem__(self, item)
+
+      Implements xcomresult['some_result_key']
+
+
+   .. py:method:: __str__(self)
+
+      Backward compatibility for old-style jinja used in Airflow Operators
+
+      **Example**: to use XComArg at BashOperator::
+
+          BashOperator(cmd=f"... { xcomarg } ...")
+
+      :return:
+
+
+   .. py:method:: operator(self) -> airflow.models.baseoperator.BaseOperator
+      :property:
+
+      Returns operator of this XComArg.
+
+
+   .. py:method:: roots(self) -> List[airflow.models.baseoperator.BaseOperator]
+      :property:
+
+      Required by TaskMixin
+
+
+   .. py:method:: leaves(self) -> List[airflow.models.baseoperator.BaseOperator]
+      :property:
+
+      Required by TaskMixin
+
+
+   .. py:method:: key(self) -> str
+      :property:
+
+      Returns keys of this XComArg
+
+
+   .. py:method:: set_upstream(self, task_or_task_list: Union[airflow.models.taskmixin.TaskMixin, Sequence[airflow.models.taskmixin.TaskMixin]], edge_modifier: Optional[airflow.utils.edgemodifier.EdgeModifier] = None)
+
+      Proxy to underlying operator set_upstream method. Required by TaskMixin.
+
+
+   .. py:method:: set_downstream(self, task_or_task_list: Union[airflow.models.taskmixin.TaskMixin, Sequence[airflow.models.taskmixin.TaskMixin]], edge_modifier: Optional[airflow.utils.edgemodifier.EdgeModifier] = None)
+
+      Proxy to underlying operator set_downstream method. Required by TaskMixin.
+
+
+   .. py:method:: resolve(self, context: airflow.utils.context.Context) -> Any
+
+      Pull XCom value for the existing arg. This method is run during ``op.execute()``
+      in respectable context.
+
+
+
