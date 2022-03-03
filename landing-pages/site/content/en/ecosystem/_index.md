@@ -11,7 +11,7 @@ menu:
 
 # Ecosystem
 
-Those resources and services are not maintained, nor endorsed by the Apache Airflow Community and Apache Airflow project (maintained by the Committers and the Airflow PMC). Use them at your sole discretion. The community does not verify the licences nor validity of those tools, so it's your responsibility to verify them.
+These resources and services are not maintained, nor endorsed by the Apache Airflow Community and Apache Airflow project (maintained by the Committers and the Airflow PMC). Use them at your sole discretion. The community does not verify the licences nor validity of those tools, so it's your responsibility to verify them.
 
 If you would you like to be included on this page, please reach out to the [Apache Airflow dev or user mailing list](https://airflow.apache.org/community/) and let us know or simply open a Pull Request to that page.
 
@@ -52,6 +52,10 @@ If you would you like to be included on this page, please reach out to the [Apac
 [Airflow ECR Plugin](https://github.com/asandeep/airflow-ecr-plugin) - Plugin to refresh AWS ECR login token at regular intervals. This is helpful where DockerOperator needs to pull images hosted on ECR.
 
 &nbsp;
+
+## Async Providers
+
+[Astronomer Providers](https://github.com/astronomer/astronomer-providers) - A collection of Async Operators and Sensors for Apache Airflow built and maintained by Astronomer.
 
 ## Third Party Airflow Helm Charts
 
