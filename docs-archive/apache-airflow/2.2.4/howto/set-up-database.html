@@ -334,7 +334,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-a-sqlite-database">Setting up a SQLite Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-a-postgresql-database">Setting up a PostgreSQL Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-a-mysql-database">Setting up a MySQL Database</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#setting-up-a-mssql-database">Setting up a MsSQL Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#other-configuration-options">Other configuration options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#initialize-the-database">Initialize the database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#what-s-next">What’s next?</a></li>
@@ -530,7 +529,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-a-sqlite-database">Setting up a SQLite Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-a-postgresql-database">Setting up a PostgreSQL Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-a-mysql-database">Setting up a MySQL Database</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#setting-up-a-mssql-database">Setting up a MsSQL Database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#other-configuration-options">Other configuration options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#initialize-the-database">Initialize the database</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#what-s-next">What’s next?</a></li>
@@ -694,13 +692,12 @@
 <p>The document below describes the database engine configurations, the necessary changes to their configuration to be used with Airflow, as well as changes to the Airflow configurations to connect to these databases.</p>
 <div class="section" id="choosing-database-backend">
 <h2>Choosing database backend<a class="headerlink" href="#choosing-database-backend" title="Permalink to this headline">¶</a></h2>
-<p>If you want to take a real test drive of Airflow, you should consider setting up a database backend to <strong>PostgreSQL</strong>, <strong>MySQL</strong>, or <strong>MSSQL</strong>.
+<p>If you want to take a real test drive of Airflow, you should consider setting up a database backend to <strong>PostgreSQL</strong>, <strong>MySQL</strong>.
 By default, Airflow uses <strong>SQLite</strong>, which is intended for development purposes only.</p>
 <p>Airflow supports the following database engine versions, so make sure which version you have. Old versions may not support all SQL statements.</p>
 <ul class="simple">
 <li><p>PostgreSQL:  9.6, 10, 11, 12, 13</p></li>
 <li><p>MySQL: 5.7, 8</p></li>
-<li><p>MsSQL: 2017, 2019</p></li>
 <li><p>SQLite: 3.15.0+</p></li>
 </ul>
 <p>If you plan on running more than one scheduler, you have to meet additional requirements.
@@ -891,33 +888,6 @@ without any cert options provided.</p>
 and setup of the SqlAlchemy connection.</p>
 <p>In addition, you also should pay particular attention to MySQL’s encoding. Although the <code class="docutils literal notranslate"><span class="pre">utf8mb4</span></code> character set is more and more popular for MySQL (actually, <code class="docutils literal notranslate"><span class="pre">utf8mb4</span></code> becomes default character set in MySQL8.0), using the <code class="docutils literal notranslate"><span class="pre">utf8mb4</span></code> encoding requires additional setting in Airflow 2+ (See more details in <a class="reference external" href="https://github.com/apache/airflow/pull/7570">#7570</a>.). If you use <code class="docutils literal notranslate"><span class="pre">utf8mb4</span></code> as character set, you should also set <code class="docutils literal notranslate"><span class="pre">sql_engine_collation_for_ids=utf8mb3_bin</span></code>.</p>
 </div>
-<div class="section" id="setting-up-a-mssql-database">
-<h2>Setting up a MsSQL Database<a class="headerlink" href="#setting-up-a-mssql-database" title="Permalink to this headline">¶</a></h2>
-<p>You need to create a database and a database user that Airflow will use to access this database.
-In the example below, a database <code class="docutils literal notranslate"><span class="pre">airflow_db</span></code> and user  with username <code class="docutils literal notranslate"><span class="pre">airflow_user</span></code> with password <code class="docutils literal notranslate"><span class="pre">airflow_pass</span></code> will be created.
-Note, that in case of MsSQL, Airflow uses <code class="docutils literal notranslate"><span class="pre">READ</span> <span class="pre">COMMITTED</span></code> transaction isolation and it must have
-<code class="docutils literal notranslate"><span class="pre">READ_COMMITTED_SNAPSHOT</span></code> feature enabled, otherwise read transactions might generate deadlocks
-(especially in case of backfill). Airflow will refuse to use database that has the feature turned off.
-You can read more about transaction isolation and snapshot features at
-<a class="reference external" href="https://docs.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql">Transaction isolation level</a></p>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">airflow</span><span class="p">;</span><span class="w"></span>
-<span class="k">ALTER</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">airflow</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">READ_COMMITTED_SNAPSHOT</span><span class="w"> </span><span class="k">ON</span><span class="p">;</span><span class="w"></span>
-<span class="k">CREATE</span><span class="w"> </span><span class="n">LOGIN</span><span class="w"> </span><span class="n">airflow_user</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="n">PASSWORD</span><span class="o">=</span><span class="s1">&#39;airflow_pass123%&#39;</span><span class="p">;</span><span class="w"></span>
-<span class="n">USE</span><span class="w"> </span><span class="n">airflow</span><span class="p">;</span><span class="w"></span>
-<span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">airflow_user</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">LOGIN</span><span class="w"> </span><span class="n">airflow_user</span><span class="p">;</span><span class="w"></span>
-<span class="k">GRANT</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">airflow</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">airflow_user</span><span class="p">;</span><span class="w"></span>
-</pre></div>
-</div>
-<p>We recommend using the <code class="docutils literal notranslate"><span class="pre">mssql+pyodbc</span></code> driver and specifying it in your SqlAlchemy connection string.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>mssql+pyodbc://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;[:port]/&lt;db&gt;?[driver=&lt;driver&gt;]
-</pre></div>
-</div>
-<p>You do not need to specify the Driver if you have default driver configured in your system. For the
-Official Docker image we have ODBC driver installed, so you need to specify the ODBC driver to use:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>mssql+pyodbc://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;[:port]/&lt;db&gt;[?driver=ODBC+Driver+17+for+SQL+Server]
-</pre></div>
-</div>
-</div>
 <div class="section" id="other-configuration-options">
 <h2>Other configuration options<a class="headerlink" href="#other-configuration-options" title="Permalink to this headline">¶</a></h2>
 <p>There are more configuration options for configuring SQLAlchemy behavior. For details, see <a class="reference internal" href="../configurations-ref.html#config-core"><span class="std std-ref">reference documentation</span></a> for <code class="docutils literal notranslate"><span class="pre">sqlalchemy_*</span></code> option in <code class="docutils literal notranslate"><span class="pre">[core]</span></code> section.</p>
@@ -1017,7 +987,6 @@ configuring a different <a class="reference internal" href="../executor/index.ht
 <li><a class="reference internal" href="#setting-up-a-sqlite-database">Setting up a SQLite Database</a></li>
 <li><a class="reference internal" href="#setting-up-a-postgresql-database">Setting up a PostgreSQL Database</a></li>
 <li><a class="reference internal" href="#setting-up-a-mysql-database">Setting up a MySQL Database</a></li>
-<li><a class="reference internal" href="#setting-up-a-mssql-database">Setting up a MsSQL Database</a></li>
 <li><a class="reference internal" href="#other-configuration-options">Other configuration options</a></li>
 <li><a class="reference internal" href="#initialize-the-database">Initialize the database</a></li>
 <li><a class="reference internal" href="#what-s-next">What’s next?</a></li>
