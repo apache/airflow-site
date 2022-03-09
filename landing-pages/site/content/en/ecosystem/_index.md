@@ -57,6 +57,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Astronomer Providers](https://github.com/astronomer/astronomer-providers) - A collection of Async Operators and Sensors for Apache Airflow built and maintained by Astronomer.
 
+[Airflow Kafka Provider](https://github.com/astronomer/airflow-provider-kafka) - Apache Airflow Kafka provider containing Deferrable Operators & Sensors.
+
 ## Third Party Airflow Helm Charts
 
 Apache Airflow releases the [Official Apache Airflow Community Chart](https://airflow.apache.org/docs/helm-chart/stable/index.html) as of early 2021 but historically there were few other popular charts
