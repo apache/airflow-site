@@ -16,27 +16,28 @@ menu:
 # March 11, 2022
 
 
-Airflow Summit 2022
+[Airflow Summit 2022](https://airflowsummit.org)
+
 The biggest Airflow Event of the Year returns May 23–27! Airflow Summit 2022 will bring together the global
 community of Apache Airflow practitioners and data leaders.
 
-## What’s on the Agenda
+### What’s on the Agenda
 
 During the free conference, you will hear about Apache Airflow best practices, trends in building data
 pipelines, data governance, Airflow and machine learning, and the future of Airflow.
 There will also be a series of presentations on non-code contributions driving the open-source project.
 
-## How to Attend
+### How to Attend
 
 This year’s edition will include a variety of online sessions across different time zones. Additionally,
 you can take part in local in-person events organized worldwide for data communities
 to watch the event and network.
 
-## Interested?
+### Interested?
 
-🪶 [Register for Airflow Summit 2022](https://www.crowdcast.io/e/airflowsummit2022/register?utm_campaign=Astronomer_marketing&utm_source=Astronomer%20website&utm_medium=website&utm_term=Airflow%20Summit) today!
-🗣️ If you have an Airflow story to share, [join as a speaker](https://sessionize.com/airflow-summit-2022/).
-✨ [Follow Airflow Summit on LinkedIn](https://www.linkedin.com/company/airflow-summit/) to stay current with the latest updates.
+🪶 [Register for Airflow Summit 2022](https://www.crowdcast.io/e/airflowsummit2022/register?utm_campaign=Astronomer_marketing&utm_source=Astronomer%20website&utm_medium=website&utm_term=Airflow%20Summit) today! \
+🗣️ If you have an Airflow story to share, [join as a speaker](https://sessionize.com/airflow-summit-2022/) \
+✨ [Follow Airflow Summit on LinkedIn](https://www.linkedin.com/company/airflow-summit/) to stay current with the latest updates. \
 🤝 [Check out the in-person events](https://airflowsummit.org/in-person-events/) planned for Airflow Summit 2022.
 
 # February 22, 2022
