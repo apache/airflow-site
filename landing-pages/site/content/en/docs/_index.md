@@ -63,6 +63,8 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-datadog/stable/index.html"><code>Datadog</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-dbt-cloud/stable/index.html"><code>DBT cloud</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-dingding/stable/index.html"><code>Dingding</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-discord/stable/index.html"><code>Discord</code></a></li>
