@@ -310,6 +310,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#how-to-creating-a-new-community-provider">How-to creating a new community provider</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-provider-features">Optional provider features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-providers-with-dynamic-task-mapping">Using Providers with dynamic task mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#having-sensors-return-xom-values">Having sensors return XOM values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-update-a-community-provider">How-to Update a community provider</a></li>
 </ul>
 </li>
@@ -435,6 +436,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#how-to-creating-a-new-community-provider">How-to creating a new community provider</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-provider-features">Optional provider features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-providers-with-dynamic-task-mapping">Using Providers with dynamic task mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#having-sensors-return-xom-values">Having sensors return XOM values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-update-a-community-provider">How-to Update a community provider</a></li>
 </ul>
 </li>
@@ -900,6 +902,45 @@ this (note the <code class="docutils literal notranslate"><span class="pre">if</
 </div>
 </div></blockquote>
 </div>
+<div class="section" id="having-sensors-return-xom-values">
+<h2>Having sensors return XOM values<a class="headerlink" href="#having-sensors-return-xom-values" title="Permalink to this headline">¶</a></h2>
+<p>In Airflow 2.3, sensor operators will be able to return XCOM values. This is achieved by returning an instance of the <code class="docutils literal notranslate"><span class="pre">PokeReturnValue</span></code> object at the end of the <code class="docutils literal notranslate"><span class="pre">poke()</span></code> method:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow.sensors.base</span> <span class="kn">import</span> <span class="n">PokeReturnValue</span>
+
+
+<span class="k">class</span> <span class="nc">SensorWithXcomValue</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">PokeReturnValue</span><span class="p">]:</span>
+        <span class="c1"># ...</span>
+        <span class="n">is_done</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># set to true if the sensor should stop poking.</span>
+        <span class="n">xcom_value</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># return value of the sensor operator to be pushed to XCOM.</span>
+        <span class="k">return</span> <span class="n">PokeReturnValue</span><span class="p">(</span><span class="n">is_done</span><span class="p">,</span> <span class="n">xcom_value</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To implement a sensor operator that pushes a XCOM value and supports both version 2.3 and pre-2.3, you need to explicitly push the XCOM value if the version is pre-2.3.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">airflow.sensors.base</span> <span class="kn">import</span> <span class="n">PokeReturnValue</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">PokeReturnValue</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">class</span> <span class="nc">SensorWithXcomValue</span><span class="p">(</span><span class="n">BaseSensorOperator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># ...</span>
+        <span class="n">is_done</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># set to true if the sensor should stop poking.</span>
+        <span class="n">xcom_value</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># return value of the sensor operator to be pushed to XCOM.</span>
+        <span class="k">if</span> <span class="n">PokeReturnValue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PokeReturnValue</span><span class="p">(</span><span class="n">is_done</span><span class="p">,</span> <span class="n">xcom_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_done</span><span class="p">:</span>
+                <span class="n">context</span><span class="p">[</span><span class="s2">&quot;ti&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">xcom_push</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;xcom_key&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">xcom_value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">is_done</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
 <div class="section" id="how-to-update-a-community-provider">
 <h2>How-to Update a community provider<a class="headerlink" href="#how-to-update-a-community-provider" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference external" href="https://github.com/apache/airflow/blob/main/dev/README_RELEASE_PROVIDER_PACKAGES.md#provider-packages-versioning">Provider packages versioning</a></p>
@@ -991,6 +1032,7 @@ this (note the <code class="docutils literal notranslate"><span class="pre">if</
 </li>
 <li><a class="reference internal" href="#optional-provider-features">Optional provider features</a></li>
 <li><a class="reference internal" href="#using-providers-with-dynamic-task-mapping">Using Providers with dynamic task mapping</a></li>
+<li><a class="reference internal" href="#having-sensors-return-xom-values">Having sensors return XOM values</a></li>
 <li><a class="reference internal" href="#how-to-update-a-community-provider">How-to Update a community provider</a></li>
 </ul>
 </li>
