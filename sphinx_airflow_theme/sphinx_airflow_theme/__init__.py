@@ -18,7 +18,7 @@
 from os import path
 from sphinx.application import Sphinx
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 __version_full__ = __version__
 
 
@@ -38,3 +38,4 @@ def setup(app: Sphinx):
     app.add_html_theme('sphinx_airflow_theme', path.abspath(path.dirname(__file__)))
     app.add_css_file('_gen/css/main-custom.min.css')
     app.connect("config-inited", setup_my_func)
+    return {"version": "__version__", "parallel_read_safe": True, "parallel_write_safe": True}
