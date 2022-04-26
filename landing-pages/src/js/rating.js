@@ -25,16 +25,7 @@ const handleFeedback = () => {
   if (!rating) return;
 
   const sendFeedback = (value) => {
-    if (typeof ga !== "function") return;
-    const args = {
-      command: "send",
-      hitType: "event",
-      category: "Helpful",
-      action: "click",
-      label: window.location.pathname,
-      value: value
-    };
-    ga(args.command, args.hitType, args.category, args.action, args.label, args.value);
+    window._paq.push(['trackEvent', 'Rating', 'Docs', window.location.pathname, value]);
   };
 
   const displayMessage = () => {
