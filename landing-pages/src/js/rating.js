@@ -17,15 +17,13 @@
  * under the License.
  */
 
-/* global ga */
-
 const handleFeedback = () => {
   const rating = window.document.querySelector(".rating");
 
   if (!rating) return;
 
   const sendFeedback = (value) => {
-    window._paq.push(['trackEvent', 'Docs', 'Rating', window.location.pathname, value]);
+    window._paq.push(["trackEvent", "Docs", "Rating", window.location.pathname, value]);
   };
 
   const displayMessage = () => {
