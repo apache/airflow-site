@@ -25,7 +25,7 @@ const handleFeedback = () => {
   if (!rating) return;
 
   const sendFeedback = (value) => {
-    window._paq.push(['trackEvent', 'Rating', 'Docs', window.location.pathname, value]);
+    window._paq.push(['trackEvent', 'Docs', 'Rating', window.location.pathname, value]);
   };
 
   const displayMessage = () => {
