@@ -56,12 +56,19 @@ Grid view replaces tree view in Airflow 2.3.0.
 **Screenshots**:
 ![The new grid view](grid-view.png)
 
+## Purge history from metadata database
+
+Airflow 2.3.0 introduces a new `airflow db clean` command that can be used to purge old data from the metadata database.
+
+You would want to use this command if you want to reduce the size of the metadata database.
+
+More information can be found here: [Purge history from metadata database](https://airflow.apache.org/docs/apache-airflow/2.3.0/usage-cli.html#purge-history-from-metadata-database)
 
 ## LocalKubernetesExecutor
 
-There is a new executor names LocalKubernetesExecutor. This executor helps you run some tasks using LocalExecutor and run another set of tasks using the KubernetesExecutor in the same deployment based on the task's queue.
+There is a new executor named LocalKubernetesExecutor. This executor helps you run some tasks using LocalExecutor and run another set of tasks using the KubernetesExecutor in the same deployment based on the task's queue.
 
-More information can be found here: [LocalKubernetesExecutor](https://airflow.apache.org/docs/apache-airflow/latest/executor/local_kubernetes.html)
+More information can be found here: [LocalKubernetesExecutor](https://airflow.apache.org/docs/apache-airflow/2.3.0/executor/local_kubernetes.html)
 
 
 ## DagProcessorManager as standalone process (AIP-43)
@@ -70,7 +77,7 @@ As of 2.3.0, you can run the DagProcessorManager as a standalone process. Becaus
 
 The `airflow dag-processor` cli command will start a new process that will run the DagProcessorManager in a separate process. Before you can run the DagProcessorManager as a standalone process, you need to set the [[scheduler] standalone_dag_processor](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#standalone_dag_processor) to `True`.
 
-More information can be found here: [dag-processor CLI command](https://airflow.apache.org/docs/apache-airflow/latest/cli-and-env-variables-ref.html#dag-processor)
+More information can be found here: [dag-processor CLI command](https://airflow.apache.org/docs/apache-airflow/2.3.0/cli-and-env-variables-ref.html#dag-processor)
 
 ## JSON serialization for connections
 You can now create connections using the `json` serialization format.
@@ -92,7 +99,7 @@ airflow connections add 'my_prod_db' \
 ```
 You can also use `json` serialization format when setting the connection in environment variables.
 
-More information can be found here: [JSON serialization for connections](https://airflow.apache.org/docs/apache-airflow/latest/howto/connection.html)
+More information can be found here: [JSON serialization for connections](https://airflow.apache.org/docs/apache-airflow/2.3.0/howto/connection.html)
 
 ## Airflow `db downgrade` and Offline generation of SQL scripts
 
@@ -100,7 +107,7 @@ Airflow 2.3.0 introduced a new command `airflow db downgrade` that will downgrad
 
 You can also generate the downgrade/upgrade SQL scripts for your database and manually run it against your database or just view the SQL queries that would be run by the downgrade/upgrade command.
 
-More information can be found here: [Airflow `db downgrade` and Offline generation of SQL scripts](https://airflow.apache.org/docs/apache-airflow/latest/usage-cli.html#downgrading-airflow)
+More information can be found here: [Airflow `db downgrade` and Offline generation of SQL scripts](https://airflow.apache.org/docs/apache-airflow/2.3.0/usage-cli.html#downgrading-airflow)
 
 ## Reuse of decorated tasks
 
@@ -122,7 +129,7 @@ def mydag():
         start >> add_task.override(task_id=f"add_start_{i}")(start, i)
 ```
 
-More information can be found here: [Reuse of decorated DAGs](https://airflow.apache.org/docs/apache-airflow/latest/tutorial_taskflow_api.html#reusing-a-decorated-task)
+More information can be found here: [Reuse of decorated DAGs](https://airflow.apache.org/docs/apache-airflow/2.3.0/tutorial_taskflow_api.html#reusing-a-decorated-task)
 
 ## Other small features
 
@@ -130,7 +137,6 @@ This isn’t a comprehensive list, but some noteworthy or interesting small feat
 
 - Support different timeout value for dag file parsing
 - `airflow dags reserialize` command to reserialize dags
-- `db clean` CLI command for purging old data
 - Events Timetable
 - SmoothOperator - Operator that does literally nothing except logging a YouTube link to
     Sade's "Smooth Operator". Enjoy!
