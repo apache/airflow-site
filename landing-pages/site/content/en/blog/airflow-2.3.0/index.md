@@ -15,7 +15,7 @@ Apache Airflow 2.3.0 contains over TBD commits since 2.2.0 and includes TBD new 
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.3.0/ \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.3.0/ \
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.3.0/changelog.html \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.3.0/release_notes.html \
 🐳 Docker Image: docker pull apache/airflow:2.3.0 \
 🚏 Constraints: https://github.com/apache/airflow/tree/constraints-2.3.0
 
@@ -47,7 +47,7 @@ with DAG(dag_id="dynamic-map", start_date=datetime(2022, 4, 2)) as dag:
     consumer.expand(arg=make_list())
 ```
 
-More information can be found here: [Dynamic Task Mapping](https://airflow.apache.org/docs/apache-airflow/latest/concepts/dynamic-task-mapping.html)
+More information can be found here: [Dynamic Task Mapping](https://airflow.apache.org/docs/apache-airflow/2.3.0/concepts/dynamic-task-mapping.html)
 
 ## Grid View replaces Tree View
 
@@ -59,7 +59,7 @@ Grid view replaces tree view in Airflow 2.3.0.
 
 ## LocalKubernetesExecutor
 
-Airflow 2.3.0, features a new executor called LocalKubernetesExecutor. This executor helps you run some tasks using LocalExecutor and run another set of tasks using the KubernetesExecutor in the same deployment using task's queue to coordinate the switching.
+There is a new executor names LocalKubernetesExecutor. This executor helps you run some tasks using LocalExecutor and run another set of tasks using the KubernetesExecutor in the same deployment based on the task's queue.
 
 More information can be found here: [LocalKubernetesExecutor](https://airflow.apache.org/docs/apache-airflow/latest/executor/local_kubernetes.html)
 
@@ -68,7 +68,7 @@ More information can be found here: [LocalKubernetesExecutor](https://airflow.ap
 
 As of 2.3.0, you can run the DagProcessorManager as a standalone process. Because DagProcessorManager runs user code, separating it from the scheduler process and running it as an independent process in a different host is a good idea.
 
-`airflow dag-processor` cli command will start a new process that will run the DagProcessorManager in a separate process. Before you can run the DagProcessorManager as a standalone process, you need to set the `AIRFLOW__SCHEDULER__STANDALONE_DAG_PROCESSOR` to `True`.
+The `airflow dag-processor` cli command will start a new process that will run the DagProcessorManager in a separate process. Before you can run the DagProcessorManager as a standalone process, you need to set the [[scheduler] standalone_dag_processor](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#standalone_dag_processor) to `True`.
 
 More information can be found here: [dag-processor CLI command](https://airflow.apache.org/docs/apache-airflow/latest/cli-and-env-variables-ref.html#dag-processor)
 
@@ -98,7 +98,7 @@ More information can be found here: [JSON serialization for connections](https:/
 
 Airflow 2.3.0 introduced a new command `airflow db downgrade` that will downgrade the database to your chosen version.
 
-You can also generate the downgrade/upgrade SQL scripts for your database and manually run it against your database or just view the SQL scripts that would be run by the downgrade/upgrade command.
+You can also generate the downgrade/upgrade SQL scripts for your database and manually run it against your database or just view the SQL queries that would be run by the downgrade/upgrade command.
 
 More information can be found here: [Airflow `db downgrade` and Offline generation of SQL scripts](https://airflow.apache.org/docs/apache-airflow/latest/usage-cli.html#downgrading-airflow)
 
@@ -132,8 +132,8 @@ This isn’t a comprehensive list, but some noteworthy or interesting small feat
 - `airflow dags reserialize` command to reserialize dags
 - `db clean` CLI command for purging old data
 - Events Timetable
-- SmoothOperator - Operator that does literally nothing but it logs YouTube link to
-    Sade song "Smooth Operator"
+- SmoothOperator - Operator that does literally nothing except logging a YouTube link to
+    Sade's "Smooth Operator". Enjoy!
 
 ## Contributors
 Thanks to everyone who contributed to this release: TBD
