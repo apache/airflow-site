@@ -142,4 +142,4 @@ This isn’t a comprehensive list, but some noteworthy or interesting small feat
     Sade's "Smooth Operator". Enjoy!
 
 ## Contributors
-Thanks to everyone who contributed to this release: TBD
+Thanks to everyone who contributed to this release: Ash Berlin-Taylor, Brent Bovenzi, Daniel Standish, Elad, Ephraim Anierobi, Jarek Potiuk, Jed Cunningham, Josh Fell, Kamil Breguła, Kanthi, Kaxil Naik, Khalid Mammadov, Malthe Borch, Ping Zhang, Tzu-ping Chung and many others who keep making Airflow better for everyone.
