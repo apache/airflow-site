@@ -20,21 +20,23 @@
             <link rel="search" title="Search" href="search.html" />
             <link rel="next" title="Entrypoint" href="entrypoint.html" />
             <link rel="prev" title="Docker Image for Apache Airflow" href="index.html" />
-<!-- Matomo -->
-<script>
-  var _paq = window._paq = window._paq || [];
-  _paq.push(['disableCookies']);
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="https://analytics.apache.org/";
-    _paq.push(['setTrackerUrl', u+'matomo.php']);
-    _paq.push(['setSiteId', '13']);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<!-- End Matomo -->
+    <!-- Matomo -->
+    <script>
+        var _paq = window._paq = window._paq || [];
+        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        /* We explicitly disable cookie tracking to avoid privacy issues */
+        _paq.push(['disableCookies']);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+        var u="https://analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '13']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+        })();
+    </script>
+    <!-- End Matomo Code -->
 
     
 </head><body class="td-section">
@@ -322,7 +324,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#extending-vs-customizing-the-image">Extending vs. customizing the image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-the-image">Extending the image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-of-image-extending">Examples of image extending</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#example-of-upgrading-airflow-provider-packages">Example of upgrading Airflow Provider packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-of-customizing-airflow-provider-packages">Example of customizing Airflow Provider packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-of-adding-airflow-provider-package-and-apt-package">Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-adding-apt-package">Example of adding <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-adding-pypi-package">Example of adding <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-when-writable-directory-is-needed">Example when writable directory is needed</a></li>
@@ -331,6 +334,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#customizing-the-image">Customizing the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choosing-debian-version-when-customizing-the-image">Choosing Debian version when customizing the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-docker-context-files">Using docker-context-files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-of-image-customizing">Examples of image customizing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#building-from-pypi-packages">Building from PyPI packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-optimized-images">Building optimized images</a></li>
@@ -348,6 +353,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="entrypoint.html">Entrypoint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Dockerfile Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="recipes.html">Recipes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -477,7 +483,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#extending-vs-customizing-the-image">Extending vs. customizing the image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-the-image">Extending the image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-of-image-extending">Examples of image extending</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#example-of-upgrading-airflow-provider-packages">Example of upgrading Airflow Provider packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-of-customizing-airflow-provider-packages">Example of customizing Airflow Provider packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-of-adding-airflow-provider-package-and-apt-package">Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-adding-apt-package">Example of adding <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-adding-pypi-package">Example of adding <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-when-writable-directory-is-needed">Example when writable directory is needed</a></li>
@@ -486,6 +493,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#customizing-the-image">Customizing the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choosing-debian-version-when-customizing-the-image">Choosing Debian version when customizing the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-docker-context-files">Using docker-context-files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-of-image-customizing">Examples of image customizing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#building-from-pypi-packages">Building from PyPI packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-optimized-images">Building optimized images</a></li>
@@ -503,6 +512,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="entrypoint.html">Entrypoint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Dockerfile Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="recipes.html">Recipes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -629,11 +639,20 @@ starting your containers, but this is a bad idea for multiple reasons - starting
 and ending with the extra time needed to install those packages - which has to happen every time every
 container starts. The only viable way to deal with new dependencies and requirements in production is to
 build and use your own image. You should only use installing dependencies dynamically in case of
-&quot;hobbyist&quot; and &quot;quick start&quot; scenarios when you want to iterate quickly to try things out and later
+“hobbyist” and “quick start” scenarios when you want to iterate quickly to try things out and later
 replace it with your own images.</p>
 </div>
 <div class="section" id="how-to-build-your-own-image">
 <h2>How to build your own image<a class="headerlink" href="#how-to-build-your-own-image" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> does not strictly follow the <a class="reference external" href="https://semver.org/">SemVer</a> approach of
+Apache Airflow when it comes to features and backwards compatibility. While Airflow code strictly
+follows it, the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> is really a way to conveniently package Airflow using standard container
+approach, occasionally there are some changes in the building process or in the entrypoint of the image
+that require slight adaptation. Details of changes and adaptation needed can be found in the
+<a class="reference internal" href="changelog.html"><span class="doc">Changelog</span></a>.</p>
+</div>
 <p>There are several most-typical scenarios that you will encounter and here is a quick recipe on how to achieve
 your goal quickly. In order to understand details you can read further, but for the simple cases using
 typical tools here are the simple examples.</p>
@@ -662,7 +681,7 @@ method your image will be deployed. This can be set for example as image name in
 <li><p>[Optional] Test the image. Airflow contains tool that allows you to test the image. This step however,
 requires locally checked out or extracted Airflow sources. If you happen to have the sources you can
 test the image by running this command (in airflow root folder). The output will tell you if the image
-is &quot;good-to-go&quot;.</p></li>
+is “good-to-go”.</p></li>
 </ol>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./scripts/ci/tools/verify_docker_image.sh PROD my-image:0.0.1
 </pre></div>
@@ -671,16 +690,16 @@ is &quot;good-to-go&quot;.</p></li>
 <li><p>Once you build the image locally you have usually several options to make them available for your deployment:</p></li>
 </ol>
 <ul class="simple">
-<li><p>For <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> deployment, if you've already built your image, and want to continue
+<li><p>For <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> deployment, if you’ve already built your image, and want to continue
 building the image manually when needed with <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">build</span></code>, you can edit the
-docker-compose.yaml and replace the &quot;apache/airflow:&lt;version&gt;&quot; image with the
-image you've just built <code class="docutils literal notranslate"><span class="pre">my-image:0.0.1</span></code> - it will be used from your local Docker
+docker-compose.yaml and replace the “apache/airflow:&lt;version&gt;” image with the
+image you’ve just built <code class="docutils literal notranslate"><span class="pre">my-image:0.0.1</span></code> - it will be used from your local Docker
 Engine cache. You can also simply set <code class="docutils literal notranslate"><span class="pre">AIRFLOW_IMAGE_NAME</span></code> variable to
 point to your image and <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> will use it automatically without having
 to modify the file.</p></li>
 <li><p>Also for <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> deployment, you can delegate image building to the docker-compose.
-To do that - open your <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code> file and search for the phrase &quot;In order to add custom dependencies&quot;.
-Follow these instructions of commenting the &quot;image&quot; line and uncommenting the &quot;build&quot; line.
+To do that - open your <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code> file and search for the phrase “In order to add custom dependencies”.
+Follow these instructions of commenting the “image” line and uncommenting the “build” line.
 This is a standard docker-compose feature and you can read about it in
 <a class="reference external" href="https://docs.docker.com/compose/reference/build/">Docker Compose build reference</a>.
 Run <code class="docutils literal notranslate"><span class="pre">docker-compose</span> <span class="pre">build</span></code> to build the images. Similarly as in the previous case, the
@@ -700,10 +719,12 @@ Example Dockerfiles for those scenarios are below, and you can read further
 for more complex cases which might involve either extending or customizing the image.</p>
 <div class="section" id="adding-new-apt-package">
 <h3>Adding new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package<a class="headerlink" href="#adding-new-apt-package" title="Permalink to this headline">¶</a></h3>
-<p>The following example adds <code class="docutils literal notranslate"><span class="pre">vim</span></code> to the airflow image.</p>
+<p>The following example adds <code class="docutils literal notranslate"><span class="pre">vim</span></code> to the airflow image. When adding packages via <code class="docutils literal notranslate"><span class="pre">apt</span></code> you should
+switch to <code class="docutils literal notranslate"><span class="pre">root</span></code> user for the time of installation, but do not forget to switch back to the
+<code class="docutils literal notranslate"><span class="pre">airflow</span></code> user after installation is complete.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-apt-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 <span class="k">USER</span><span class="w"> </span><span class="s">root</span>
 <span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
   <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
@@ -718,10 +739,12 @@ for more complex cases which might involve either extending or customizing the i
 </div>
 <div class="section" id="adding-a-new-pypi-package">
 <h3>Adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package<a class="headerlink" href="#adding-a-new-pypi-package" title="Permalink to this headline">¶</a></h3>
-<p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image.</p>
+<p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image. When adding packages via
+<code class="docutils literal notranslate"><span class="pre">pip</span></code> you need to use <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user rather than <code class="docutils literal notranslate"><span class="pre">root</span></code>. Attempts to install <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages
+with root, when you using typical <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> command will fail with appropriate error message.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 <span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir lxml
 </pre></div>
 </div>
@@ -732,7 +755,7 @@ for more complex cases which might involve either extending or customizing the i
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">test_dag.py</span></code> to your image in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 
 <span class="k">COPY</span><span class="w"> </span>--chown<span class="o">=</span>airflow:root test_dag.py /opt/airflow/dags
 </pre></div>
@@ -746,7 +769,7 @@ for more complex cases which might involve either extending or customizing the i
 <span class="kn">import</span> <span class="nn">pendulum</span>
 
 <span class="kn">from</span> <span class="nn">airflow.models.dag</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.operators.dummy</span> <span class="kn">import</span> <span class="n">DummyOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.empty</span> <span class="kn">import</span> <span class="n">EmptyOperator</span>
 
 <span class="n">now</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
 <span class="n">now_to_the_hour</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -761,10 +784,10 @@ for more complex cases which might involve either extending or customizing the i
     <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">run_this_1</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
-<span class="n">run_this_2</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_1</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_2</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
 <span class="n">run_this_2</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_1</span><span class="p">)</span>
-<span class="n">run_this_3</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_3</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
 <span class="n">run_this_3</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_2</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -790,40 +813,36 @@ how you want to build your image.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Can be built without airflow sources</p></td>
+<tr class="row-even"><td><p>Uses familiar ‘FROM ‘ pattern of image building</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p>Uses familiar 'FROM ' pattern of image building</p></td>
+<tr class="row-odd"><td><p>Requires only basic knowledge about images</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p>Requires only basic knowledge about images</p></td>
+<tr class="row-even"><td><p>Builds quickly</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p>Builds quickly</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p>Produces image heavily optimized for size</p></td>
+<tr class="row-odd"><td><p>Produces image heavily optimized for size</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p>Can build from custom airflow sources (forks)</p></td>
+<tr class="row-even"><td><p>Can build from custom airflow sources (forks)</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p>Can build on air-gaped system</p></td>
+<tr class="row-odd"><td><p>Can build on air-gaped system</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 </tr>
 </tbody>
 </table>
-<p>TL;DR; If you have a need to build custom image, it is easier to start with &quot;Extending&quot; however if your
+<p>TL;DR; If you have a need to build custom image, it is easier to start with “Extending” however if your
 dependencies require compilation step or when your require to build the image from security vetted
-packages, switching to &quot;Customizing&quot; the image provides much more optimized images. In the example further
-where we compare equivalent &quot;Extending&quot; and &quot;Customizing&quot; the image, similar images build by
+packages, switching to “Customizing” the image provides much more optimized images. In the example further
+where we compare equivalent “Extending” and “Customizing” the image, similar images build by
 Extending vs. Customization had shown 1.1GB vs 874MB image sizes respectively - with 20% improvement in
 size of the Customized image.</p>
 <div class="admonition note">
@@ -832,9 +851,9 @@ size of the Customized image.</p>
 optimized base image first using <code class="docutils literal notranslate"><span class="pre">customization</span></code> method (for example by your admin team) with all
 the heavy compilation required dependencies and you can publish it in your registry and let others
 <code class="docutils literal notranslate"><span class="pre">extend</span></code> your image using <code class="docutils literal notranslate"><span class="pre">FROM</span></code> and add their own lightweight dependencies. This reflects well
-the split where typically &quot;Casual&quot; users will Extend the image and &quot;Power-users&quot; will customize it.</p>
+the split where typically “Casual” users will Extend the image and “Power-users” will customize it.</p>
 </div>
-<p>Airflow Summit 2020's <a class="reference external" href="https://youtu.be/wDr3Y7q2XoI">Production Docker Image</a> talk provides more
+<p>Airflow Summit 2020’s <a class="reference external" href="https://youtu.be/wDr3Y7q2XoI">Production Docker Image</a> talk provides more
 details about the context, architecture and customization/extension methods for the Production Image.</p>
 </div>
 <div class="section" id="extending-the-image">
@@ -843,18 +862,18 @@ details about the context, architecture and customization/extension methods for 
 compiling. The compilation framework of Linux (so called <code class="docutils literal notranslate"><span class="pre">build-essential</span></code>) is pretty big, and
 for the production images, size is really important factor to optimize for, so our Production Image
 does not contain <code class="docutils literal notranslate"><span class="pre">build-essential</span></code>. If you need compiler like gcc or g++ or make/cmake etc. - those
-are not found in the image and it is recommended that you follow the &quot;customize&quot; route instead.</p>
+are not found in the image and it is recommended that you follow the “customize” route instead.</p>
 <p>How to extend the image - it is something you are most likely familiar with - simply
-build a new image using Dockerfile's <code class="docutils literal notranslate"><span class="pre">FROM</span></code> directive and add whatever you need. Then you can add your
+build a new image using Dockerfile’s <code class="docutils literal notranslate"><span class="pre">FROM</span></code> directive and add whatever you need. Then you can add your
 Debian dependencies with <code class="docutils literal notranslate"><span class="pre">apt</span></code> or PyPI dependencies with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> or any other stuff you need.</p>
 <p>You should be aware, about a few things:</p>
 <ul class="simple">
-<li><p>The production image of airflow uses &quot;airflow&quot; user, so if you want to add some of the tools
+<li><p>The production image of airflow uses “airflow” user, so if you want to add some of the tools
 as <code class="docutils literal notranslate"><span class="pre">root</span></code> user, you need to switch to it with <code class="docutils literal notranslate"><span class="pre">USER</span></code> directive of the Dockerfile and switch back to
 <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user when you are done. Also you should remember about following the
 <a class="reference external" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/">best practices of Dockerfiles</a>
 to make sure your image is lean and small.</p></li>
-<li><p>The PyPI dependencies in Apache Airflow are installed in the user library, of the &quot;airflow&quot; user, so
+<li><p>The PyPI dependencies in Apache Airflow are installed in the user library, of the “airflow” user, so
 PIP packages are installed to <code class="docutils literal notranslate"><span class="pre">~/.local</span></code> folder as if the <code class="docutils literal notranslate"><span class="pre">--user</span></code> flag was specified when running PIP.
 Note also that using <code class="docutils literal notranslate"><span class="pre">--no-cache-dir</span></code> is a good idea that can help to make your image smaller.</p></li>
 </ul>
@@ -866,10 +885,10 @@ variable to <code class="docutils literal notranslate"><span class="pre">true</s
 </div>
 <ul class="simple">
 <li><p>If your apt, or PyPI dependencies require some of the <code class="docutils literal notranslate"><span class="pre">build-essential</span></code> or other packages that need
-to compile your python dependencies, then your best choice is to follow the &quot;Customize the image&quot; route,
-because you can build a highly-optimized (for size) image this way. However it requires to checkout sources
-of Apache Airflow, so you might still want to choose to add <code class="docutils literal notranslate"><span class="pre">build-essential</span></code> to your image,
-even if your image will be significantly bigger.</p></li>
+to compile your python dependencies, then your best choice is to follow the “Customize the image” route,
+because you can build a highly-optimized (for size) image this way. However it requires you to use
+the Dockerfile that is released as part of Apache Airflow sources (also available at
+<a class="reference external" href="https://github.com/apache/airflow/blob/main/Dockerfile">Dockerfile</a>)</p></li>
 <li><p>You can also embed your dags in the image by simply adding them with COPY directive of Airflow.
 The DAGs in production image are in <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder.</p></li>
 <li><p>You can build your image without any need for Airflow sources. It is enough that you place the
@@ -901,15 +920,36 @@ group for airflow user:</p>
 </div>
 <div class="section" id="examples-of-image-extending">
 <h2>Examples of image extending<a class="headerlink" href="#examples-of-image-extending" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="example-of-upgrading-airflow-provider-packages">
-<h3>Example of upgrading Airflow Provider packages<a class="headerlink" href="#example-of-upgrading-airflow-provider-packages" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="example-of-customizing-airflow-provider-packages">
+<h3>Example of customizing Airflow Provider packages<a class="headerlink" href="#example-of-customizing-airflow-provider-packages" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference external" href="/docs/apache-airflow-providers/index.html#providers-community-maintained-providers" title="(in apache-airflow-providers vdevel)"><span class="xref std std-ref">Airflow Providers</span></a> are released independently of core
 Airflow and sometimes you might want to upgrade specific providers only to fix some problems or
 use features available in that provider version. Here is an example of how you can do it</p>
 <div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/custom-providers/Dockerfile</span></p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir apache-airflow-providers-docker<span class="o">==</span><span class="m">2</span>.5.1
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="example-of-adding-airflow-provider-package-and-apt-package">
+<h3>Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package<a class="headerlink" href="#example-of-adding-airflow-provider-package-and-apt-package" title="Permalink to this headline">¶</a></h3>
+<p>The following example adds <code class="docutils literal notranslate"><span class="pre">apache-spark</span></code> airflow-providers which requires both <code class="docutils literal notranslate"><span class="pre">java</span></code> and
+python package from PyPI.</p>
+<div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-providers/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
-<span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir apache-airflow-providers-docker<span class="o">==</span><span class="m">2</span>.1.0
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<span class="k">USER</span><span class="w"> </span><span class="s">root</span>
+<span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
+         openjdk-11-jre-headless <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> apt-get autoremove -yqq --purge <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> apt-get clean <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> rm -rf /var/lib/apt/lists/*
+<span class="k">USER</span><span class="w"> </span><span class="s">airflow</span>
+<span class="k">ENV</span><span class="w"> </span><span class="nv">JAVA_HOME</span><span class="o">=</span>/usr/lib/jvm/java-11-openjdk-amd64
+<span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir apache-airflow-providers-apache-spark<span class="o">==</span><span class="m">2</span>.1.3
 </pre></div>
 </div>
 </div>
@@ -919,7 +959,7 @@ use features available in that provider version. Here is an example of how you c
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">vim</span></code> to the airflow image.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-apt-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 <span class="k">USER</span><span class="w"> </span><span class="s">root</span>
 <span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
   <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
@@ -937,7 +977,7 @@ use features available in that provider version. Here is an example of how you c
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 <span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir lxml
 </pre></div>
 </div>
@@ -949,7 +989,7 @@ use features available in that provider version. Here is an example of how you c
 running the container.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/writable-directory/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 <span class="k">RUN</span><span class="w"> </span><span class="nb">umask</span> <span class="m">0002</span><span class="p">;</span> <span class="se">\</span>
     mkdir -p ~/writeable-directory
 </pre></div>
@@ -961,7 +1001,7 @@ running the container.</p>
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package which requires both <code class="docutils literal notranslate"><span class="pre">build-essential</span></code> and <code class="docutils literal notranslate"><span class="pre">mpi</span> <span class="pre">compiler</span></code>.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-build-essential-extend/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 <span class="k">USER</span><span class="w"> </span><span class="s">root</span>
 <span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
   <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
@@ -975,14 +1015,14 @@ running the container.</p>
 </div>
 </div>
 <p>The size of this image is ~ 1.1 GB when build. As you will see further, you can achieve 20% reduction in
-size of the image in case you use &quot;Customizing&quot; rather than &quot;Extending&quot; the image.</p>
+size of the image in case you use “Customizing” rather than “Extending” the image.</p>
 </div>
 <div class="section" id="example-when-you-want-to-embed-dags">
 <h3>Example when you want to embed DAGs<a class="headerlink" href="#example-when-you-want-to-embed-dags" title="Permalink to this headline">¶</a></h3>
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">test_dag.py</span></code> to your image in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.2.5</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
 
 <span class="k">COPY</span><span class="w"> </span>--chown<span class="o">=</span>airflow:root test_dag.py /opt/airflow/dags
 </pre></div>
@@ -996,7 +1036,7 @@ size of the image in case you use &quot;Customizing&quot; rather than &quot;Exte
 <span class="kn">import</span> <span class="nn">pendulum</span>
 
 <span class="kn">from</span> <span class="nn">airflow.models.dag</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.operators.dummy</span> <span class="kn">import</span> <span class="n">DummyOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.empty</span> <span class="kn">import</span> <span class="n">EmptyOperator</span>
 
 <span class="n">now</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
 <span class="n">now_to_the_hour</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -1011,10 +1051,10 @@ size of the image in case you use &quot;Customizing&quot; rather than &quot;Exte
     <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">run_this_1</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
-<span class="n">run_this_2</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_1</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_2</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
 <span class="n">run_this_2</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_1</span><span class="p">)</span>
-<span class="n">run_this_3</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_3</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
 <span class="n">run_this_3</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_2</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1023,23 +1063,58 @@ size of the image in case you use &quot;Customizing&quot; rather than &quot;Exte
 </div>
 <div class="section" id="customizing-the-image">
 <h2>Customizing the image<a class="headerlink" href="#customizing-the-image" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>BREAKING CHANGE! As of Airflow 2.3.0 you need to use
+<a class="reference external" href="https://docs.docker.com/develop/develop-images/build_enhancements/">Buildkit</a> to build customized
+Airflow Docker image. We are using new features of Building (and <code class="docutils literal notranslate"><span class="pre">dockerfile:1.4</span></code> syntax)
+to make our image faster to build and “standalone” - i.e. not needing any extra files from
+Airflow in order to be build. As of Airflow 2.3.0, the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> that is released with Airflow
+does not need any extra folders or files and can be copied and used from any folder.
+Previously you needed to copy Airflow sources together with the Dockerfile as some scripts were
+needed to make it work. You also need to use <code class="docutils literal notranslate"><span class="pre">DOCKER_CONTEXT_FILES</span></code> build arg if you want to
+use your own custom files during the build (see
+<a class="reference internal" href="#using-docker-context-files"><span class="std std-ref">Using docker context files</span></a> for details).</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can usually use the latest <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> released by Airflow to build previous Airflow versions.
+Note however, that there are slight changes in the Dockerfile and entrypoint scripts that can make it
+behave slightly differently, depending which Dockerfile version you used. Details of what has changed
+in each of the released versions of Docker image can be found in the <a class="reference internal" href="changelog.html"><span class="doc">Changelog</span></a>.</p>
+</div>
+<p>Prerequisites for building customized docker image:</p>
+<ul class="simple">
+<li><p>You need to enable <a class="reference external" href="https://docs.docker.com/develop/develop-images/build_enhancements/">Buildkit</a> to
+build the image. This can be done by setting <code class="docutils literal notranslate"><span class="pre">DOCKER_BUILDKIT=1</span></code> as an environment variable
+or by installing <a class="reference external" href="https://docs.docker.com/buildx/working-with-buildx/">the buildx plugin</a>
+and running <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">buildx</span> <span class="pre">build</span></code> command.</p></li>
+<li><p>You need to have a new Docker installed to handle <code class="docutils literal notranslate"><span class="pre">1.4</span></code> syntax of the Dockerfile.
+Docker version <code class="docutils literal notranslate"><span class="pre">20.10.7</span></code> and above is known to work.</p></li>
+</ul>
+<p>Before attempting to customize the image, you need to download flexible and customizable <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code>.
+You can extract the officially released version of the Dockerfile from the
+<a class="reference external" href="https://airflow.apache.org/docs/apache-airflow/stable/installation/installing-from-sources.html">released sources</a>.
+You can also conveniently download the latest released version
+<a class="reference external" href="https://raw.githubusercontent.com/apache/airflow/|version|/Dockerfile">from GitHub</a>. You can save it
+in any directory - there is no need for any other files to be present there. If you wish to use your own
+files (for example custom configuration of <code class="docutils literal notranslate"><span class="pre">pip</span></code> or your own <code class="docutils literal notranslate"><span class="pre">requirements</span></code> or custom dependencies,
+you need to use <code class="docutils literal notranslate"><span class="pre">DOCKER_CONTEXT_FILES</span></code> build arg and place the files in the directory pointed at by
+the arg (see <a class="reference internal" href="#using-docker-context-files"><span class="std std-ref">Using docker context files</span></a> for details).</p>
 <p>Customizing the image is an optimized way of adding your own dependencies to the image - better
 suited to prepare highly optimized (for size) production images, especially when you have dependencies
 that require to be compiled before installing (such as <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code>).</p>
-<p>It also allows more sophisticated usages, needed by &quot;Power-users&quot; - for example using forked version
+<p>It also allows more sophisticated usages, needed by “Power-users” - for example using forked version
 of Airflow, or building the images from security-vetted sources.</p>
 <p>The big advantage of this method is that it produces optimized image even if you need some compile-time
 dependencies that are not needed in the final image.</p>
-<p>The disadvantage is that you need to use Airflow Sources to build such images from the
-<a class="reference external" href="https://downloads.apache.org/airflow/">official distribution repository of Apache Airflow</a> for the
-released versions, or from the checked out sources (using release tags or main branches) in the
-<a class="reference external" href="https://github.com/apache/airflow">Airflow GitHub Project</a> or from your own fork
-if you happen to do maintain your own fork of Airflow.</p>
-<p>Another disadvantage is that the pattern of building Docker images with <code class="docutils literal notranslate"><span class="pre">--build-arg</span></code> is less familiar
-to developers of such images. However it is quite well-known to &quot;power-users&quot;. That's why the
+<p>The disadvantage it that building the image takes longer and it requires you to use
+the Dockerfile that is released as part of Apache Airflow sources.</p>
+<p>The disadvantage is that the pattern of building Docker images with <code class="docutils literal notranslate"><span class="pre">--build-arg</span></code> is less familiar
+to developers of such images. However it is quite well-known to “power-users”. That’s why the
 customizing flow is better suited for those users who have more familiarity and have more custom
 requirements.</p>
-<p>The image also usually builds much longer than the equivalent &quot;Extended&quot; image because instead of
+<p>The image also usually builds much longer than the equivalent “Extended” image because instead of
 extending the layers that are already coming from the base image, it rebuilds the layers needed
 to add extra dependencies needed at early stages of image building.</p>
 <p>When customizing the image you can choose a number of options how you install Airflow:</p>
@@ -1054,7 +1129,7 @@ want to release the custom Airflow version to PyPI.</p></li>
 particularly useful if you want to build Airflow in a highly-secure environment where all such packages
 must be vetted by your security team and stored in your private artifact registry. This also
 allows to build airflow image in an air-gaped environment.</p></li>
-<li><p>Side note. Building <code class="docutils literal notranslate"><span class="pre">Airflow</span></code> in an <code class="docutils literal notranslate"><span class="pre">air-gaped</span></code> environment sounds pretty funny, doesn't it?</p></li>
+<li><p>Side note. Building <code class="docutils literal notranslate"><span class="pre">Airflow</span></code> in an <code class="docutils literal notranslate"><span class="pre">air-gaped</span></code> environment sounds pretty funny, doesn’t it?</p></li>
 </ul>
 <p>You can also add a range of customizations while building the image:</p>
 <ul class="simple">
@@ -1086,6 +1161,117 @@ contains specified version of dependencies to add with <code class="docutils lit
 stable set of requirements, independent if someone releases a newer version. However you have
 to make sure to update those requirements and rebuild the images to account for latest security fixes.</p>
 </div>
+<div class="section" id="choosing-debian-version-when-customizing-the-image">
+<h2>Choosing Debian version when customizing the image<a class="headerlink" href="#choosing-debian-version-when-customizing-the-image" title="Permalink to this headline">¶</a></h2>
+<p>The reference Airflow image currently uses <code class="docutils literal notranslate"><span class="pre">bullseye</span></code> version of Debian (also known as Debian 10) as base
+image, however when you want to build a custom image, you can also use <code class="docutils literal notranslate"><span class="pre">buster</span></code> version of base images.
+Airflow supports both versions of Debian. You choose which version of Debian to use by choosing the
+right version of python base image:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--build-arg</span> <span class="pre">PYTHON_BASE_IMAGE=&quot;python:3.7-slim-buster</span></code> uses buster version of Debian (Debian 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--build-arg</span> <span class="pre">PYTHON_BASE_IMAGE=&quot;python:3.7-slim-bullseye</span></code> uses bullseye version of Debian (Debian 11)</p></li>
+</ul>
+</div>
+<div class="section" id="using-docker-context-files">
+<span id="id2"></span><h2>Using docker-context-files<a class="headerlink" href="#using-docker-context-files" title="Permalink to this headline">¶</a></h2>
+<p>When customizing the image, you can optionally make Airflow install custom binaries or provide custom
+configuration for your pip in <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code>. In order to enable it, you need to add
+<code class="docutils literal notranslate"><span class="pre">--build-arg</span> <span class="pre">DOCKER_CONTEXT_FILES=docker-context-files</span></code> build arg when you build the image.
+You can pass any subdirectory of your docker context, it will always be mapped to <code class="docutils literal notranslate"><span class="pre">/docker-context-files</span></code>
+during the build.</p>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code> for the following purposes:</p>
+<ul class="simple">
+<li><p>you can place <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and add any <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages you want to install in the
+<code class="docutils literal notranslate"><span class="pre">docker-context-file</span></code> folder. Those requirements will be automatically installed during the build.</p></li>
+</ul>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/own-requirements.sh</span></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p docker-context-files
+
+cat <span class="s">&lt;&lt;EOF &gt;./docker-context-files/requirements.txt</span>
+<span class="s">beautifulsoup4==4.10.0</span>
+<span class="s">EOF</span>
+
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+docker build . <span class="se">\</span>
+    --build-arg <span class="nv">DOCKER_CONTEXT_FILES</span><span class="o">=</span>./docker-context-files <span class="se">\</span>
+    --tag <span class="s2">&quot;my-beautifulsoup4-airflow:0.0.1&quot;</span>
+docker run -it my-beautifulsoup4-airflow:0.0.1 python -c <span class="s1">&#39;import bs4; import sys; sys.exit(0)&#39;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    <span class="nb">echo</span> <span class="s2">&quot;Success! Beautifulsoup4 installed&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span>
+</pre></div>
+</div>
+</div>
+<ul class="simple">
+<li><p>you can place <code class="docutils literal notranslate"><span class="pre">pip.conf</span></code> (and legacy <code class="docutils literal notranslate"><span class="pre">.piprc</span></code>) in the <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code> folder and they
+will be used for all <code class="docutils literal notranslate"><span class="pre">pip</span></code> commands (for example you can configure your own sources
+or authentication mechanisms)</p></li>
+</ul>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/custom-pip.sh</span></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p docker-context-files
+
+cat <span class="s">&lt;&lt;EOF &gt;./docker-context-files/pip.conf</span>
+<span class="s">[global]</span>
+<span class="s">verbose = 2</span>
+<span class="s">EOF</span>
+
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+docker build . <span class="se">\</span>
+    --build-arg <span class="nv">DOCKER_CONTEXT_FILES</span><span class="o">=</span>./docker-context-files <span class="se">\</span>
+    --tag <span class="s2">&quot;my-custom-pip-verbose-airflow:0.0.1&quot;</span>
+docker run -it my-beautifulsoup4-airflow:0.0.1 python -c <span class="s1">&#39;import bs4; import sys; sys.exit(0)&#39;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    <span class="nb">echo</span> <span class="s2">&quot;Success! Beautifulsoup4 installed&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span>
+</pre></div>
+</div>
+</div>
+<ul class="simple">
+<li><p>you can place <code class="docutils literal notranslate"><span class="pre">.whl</span></code> packages that you downloaded and install them with
+<code class="docutils literal notranslate"><span class="pre">INSTALL_PACKAGES_FROM_CONTEXT</span></code> set to <code class="docutils literal notranslate"><span class="pre">true</span></code> . It’s useful if you build the image in
+restricted security environments (see: <a class="reference internal" href="#image-build-secure-environments"><span class="std std-ref">Build images in security restricted environments</span></a> for details):</p></li>
+</ul>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/restricted/restricted_environments.sh</span></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p docker-context-files
+<span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;2.2.4&quot;</span>
+rm docker-context-files/*.whl docker-context-files/*.tar.gz docker-context-files/*.txt <span class="o">||</span> <span class="nb">true</span>
+
+curl -Lo <span class="s2">&quot;docker-context-files/constraints-3.7.txt&quot;</span> <span class="se">\</span>
+    <span class="s2">&quot;https://raw.githubusercontent.com/apache/airflow/constraints-</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">/constraints-3.7.txt&quot;</span>
+
+<span class="nb">echo</span>
+<span class="nb">echo</span> <span class="s2">&quot;Make sure you use the right python version here (should be same as in constraints)!&quot;</span>
+<span class="nb">echo</span>
+python --version
+
+pip download --dest docker-context-files <span class="se">\</span>
+    --constraint docker-context-files/constraints-3.7.txt  <span class="se">\</span>
+    <span class="s2">&quot;apache-airflow[async,celery,elasticsearch,kubernetes,postgres,redis,ssh,statsd,virtualenv]==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can also pass <code class="docutils literal notranslate"><span class="pre">--build-arg</span> <span class="pre">DOCKER_CONTEXT_FILES=.</span></code> if you want to place your <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code>
+in main directory without creating a dedicated folder, however this is a good practice to keep any files
+that you copy to the image context in a sub-folder. This makes it easier to separate things that
+are used on the host from those that are passed in Docker context. Of course, by default when you run
+<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">build</span> <span class="pre">.</span></code> the whole folder is available as “Docker build context” and sent to the docker
+engine, but the <code class="docutils literal notranslate"><span class="pre">DOCKER_CONTEXT_FILES</span></code> are always copied to the <code class="docutils literal notranslate"><span class="pre">build</span></code> segment of the image so
+copying all your local folder might unnecessarily increase time needed to build the image and your
+cache will be invalidated every time any of the files in your local folder change.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>BREAKING CHANGE! As of Airflow 2.3.0 you need to specify additional flag:
+<code class="docutils literal notranslate"><span class="pre">--build-arg</span> <span class="pre">DOCKER_CONTEXT_Files=docker-context-files</span></code> in order to use the files placed
+in <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code>. Previously that switch was not needed. Unfortunately this change is needed
+in order to enable <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> as standalone Dockerfile without any extra files. As of Airflow 2.3.0
+the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> that is released with Airflow does not need any extra folders or files and can
+be copied and used from any folder. Previously you needed to copy Airflow sources together with the
+Dockerfile as some scripts were needed to make it work. With Airflow 2.3.0, we are using <code class="docutils literal notranslate"><span class="pre">Buildkit</span></code>
+features that enable us to make the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> a completely standalone file that can be used “as-is”.</p>
+</div>
+</div>
 <div class="section" id="examples-of-image-customizing">
 <h2>Examples of image customizing<a class="headerlink" href="#examples-of-image-customizing" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="building-from-pypi-packages">
@@ -1095,7 +1281,9 @@ to make sure to update those requirements and rebuild the images to account for 
 with default set of Airflow extras and dependencies. The <code class="docutils literal notranslate"><span class="pre">2.0.2</span></code> constraints are used automatically.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/stable-airflow.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+
+docker build . <span class="se">\</span>
     --tag <span class="s2">&quot;my-stable-airflow:0.0.1&quot;</span>
 </pre></div>
 </div>
@@ -1104,11 +1292,11 @@ with default set of Airflow extras and dependencies. The <code class="docutils l
 package. The <code class="docutils literal notranslate"><span class="pre">2.0.2</span></code> constraints are used automatically.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/pypi-selected-version.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.4
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
 docker build . <span class="se">\</span>
-    --build <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-bullseye&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --tag <span class="s2">&quot;my-pypi-selected-version:0.0.1&quot;</span>
 </pre></div>
@@ -1119,10 +1307,12 @@ docker build . <span class="se">\</span>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/pypi-extras-and-deps.sh</span></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.2
+<span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
 docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.8-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.8-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_AIRFLOW_EXTRAS</span><span class="o">=</span><span class="s2">&quot;mssql,hdfs&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_PYTHON_DEPS</span><span class="o">=</span><span class="s2">&quot;oauth2client&quot;</span> <span class="se">\</span>
@@ -1133,11 +1323,13 @@ docker build . <span class="se">\</span>
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package which requires both <code class="docutils literal notranslate"><span class="pre">build-essential</span></code> and <code class="docutils literal notranslate"><span class="pre">mpi</span> <span class="pre">compiler</span></code>.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/add-build-essential-custom.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.4
+<span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
 docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_PYTHON_DEPS</span><span class="o">=</span><span class="s2">&quot;mpi4py&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_DEV_APT_DEPS</span><span class="o">=</span><span class="s2">&quot;libopenmpi-dev&quot;</span> <span class="se">\</span>
@@ -1146,9 +1338,9 @@ docker build . <span class="se">\</span>
 </pre></div>
 </div>
 </div>
-<p>The above image is equivalent of the &quot;extended&quot; image from previous chapter but its size is only
-874 MB. Comparing to 1.1 GB of the &quot;extended image&quot; this is about 230 MB less, so you can achieve ~20%
-improvement in size of the image by using &quot;customization&quot; vs. extension. The saving can increase in case you
+<p>The above image is equivalent of the “extended” image from previous chapter but its size is only
+874 MB. Comparing to 1.1 GB of the “extended image” this is about 230 MB less, so you can achieve ~20%
+improvement in size of the image by using “customization” vs. extension. The saving can increase in case you
 have more complex dependencies to build.</p>
 </div>
 <div class="section" id="building-optimized-images">
@@ -1158,16 +1350,18 @@ PyPI package but it includes additional apt dev and runtime dependencies.</p>
 <p>The dev dependencies are those that require <code class="docutils literal notranslate"><span class="pre">build-essential</span></code> and usually need to involve recompiling
 of some python dependencies so those packages might require some additional DEV dependencies to be
 present during recompilation. Those packages are not needed at runtime, so we only install them for the
-&quot;build&quot; time. They are not installed in the final image, thus producing much smaller images.
+“build” time. They are not installed in the final image, thus producing much smaller images.
 In this case pandas requires recompilation so it also needs gcc and g++ as dev APT dependencies.
 The <code class="docutils literal notranslate"><span class="pre">jre-headless</span></code> does not require recompiling so it can be installed as the runtime APT dependency.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/pypi-dev-runtime-deps.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.4
+<span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
 docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_AIRFLOW_EXTRAS</span><span class="o">=</span><span class="s2">&quot;jdbc&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_PYTHON_DEPS</span><span class="o">=</span><span class="s2">&quot;pandas&quot;</span> <span class="se">\</span>
@@ -1189,9 +1383,12 @@ specific constraints, otherwise the default <code class="docutils literal notran
 constraints are taken from latest version of the constraints-main branch in GitHub.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/github-main.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+
+docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_INSTALLATION_METHOD</span><span class="o">=</span><span class="s2">&quot;https://github.com/apache/airflow/archive/main.tar.gz#egg=apache-airflow&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_CONSTRAINTS_REFERENCE</span><span class="o">=</span><span class="s2">&quot;constraints-main&quot;</span> <span class="se">\</span>
     --tag <span class="s2">&quot;my-github-main:0.0.1&quot;</span>
@@ -1201,13 +1398,16 @@ constraints are taken from latest version of the constraints-main branch in GitH
 <p>The following example builds the production image with default extras from the
 latest <code class="docutils literal notranslate"><span class="pre">v2-*-test</span></code> version and constraints are taken from the latest version of
 the <code class="docutils literal notranslate"><span class="pre">constraints-2-*</span></code> branch in GitHub (for example <code class="docutils literal notranslate"><span class="pre">v2-2-test</span></code> branch matches <code class="docutils literal notranslate"><span class="pre">constraints-2-2</span></code>).
-Note that this command might fail occasionally as only the &quot;released version&quot; constraints when building a
-version and &quot;main&quot; constraints when building main are guaranteed to work.</p>
+Note that this command might fail occasionally as only the “released version” constraints when building a
+version and “main” constraints when building main are guaranteed to work.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/github-v2-2-test.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+
+docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.8-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.8-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_INSTALLATION_METHOD</span><span class="o">=</span><span class="s2">&quot;https://github.com/apache/airflow/archive/v2-2-test.tar.gz#egg=apache-airflow&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_CONSTRAINTS_REFERENCE</span><span class="o">=</span><span class="s2">&quot;constraints-2-2&quot;</span> <span class="se">\</span>
     --tag <span class="s2">&quot;my-github-v2-2:0.0.1&quot;</span>
@@ -1220,9 +1420,12 @@ repository source, you must specify it as additional <code class="docutils liter
 are also downloaded from that repository.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/github-different-repository.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+
+docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.8-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.8-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_INSTALLATION_METHOD</span><span class="o">=</span><span class="s2">&quot;https://github.com/potiuk/airflow/archive/main.tar.gz#egg=apache-airflow&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_CONSTRAINTS_REFERENCE</span><span class="o">=</span><span class="s2">&quot;constraints-main&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">CONSTRAINTS_GITHUB_REPOSITORY</span><span class="o">=</span><span class="s2">&quot;potiuk/airflow&quot;</span> <span class="se">\</span>
@@ -1256,7 +1459,7 @@ are not present in the <code class="docutils literal notranslate"><span class="p
 <p>Similar results could be achieved by modifying the Dockerfile manually (see below) and injecting the
 commands needed, but by specifying the customizations via build-args, you avoid the need of
 synchronizing the changes from future Airflow Dockerfiles. Those customizations should work with the
-future version of Airflow's official <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> at most with minimal modifications od parameter
+future version of Airflow’s official <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> at most with minimal modifications od parameter
 names (if any), so using the build command for your customizations makes your custom image more
 future-proof.</p>
 </div>
@@ -1272,11 +1475,14 @@ future-proof.</p>
 </ul>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/custom-sources.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.2.4
+<span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;buster&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
 docker build . -f Dockerfile <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-buster&quot;</span> <span class="se">\</span>
+    --platform <span class="s1">&#39;linux/amd64&#39;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_AIRFLOW_EXTRAS</span><span class="o">=</span><span class="s2">&quot;slack,odbc&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">ADDITIONAL_PYTHON_DEPS</span><span class="o">=</span><span class="s2">&quot; \</span>
@@ -1316,26 +1522,32 @@ first download such constraint file locally and then use <code class="docutils l
 but in most likely scenario, those wheel files should be copied from an internal repository of such .whl
 files. Note that <code class="docutils literal notranslate"><span class="pre">AIRFLOW_VERSION_SPECIFICATION</span></code> is only there for reference, the apache airflow <code class="docutils literal notranslate"><span class="pre">.whl</span></code> file
 in the right version is part of the <code class="docutils literal notranslate"><span class="pre">.whl</span></code> files downloaded.</p>
-<p>Note that 'pip download' will only works on Linux host as some of the packages need to be compiled from
+<p>Note that ‘pip download’ will only works on Linux host as some of the packages need to be compiled from
 sources and you cannot install them providing <code class="docutils literal notranslate"><span class="pre">--platform</span></code> switch. They also need to be downloaded using
 the same python version as the target image.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">download</span></code> might happen in a separate environment. The files can be committed to a separate
 binary repository and vetted/verified by the security team and used subsequently to build images
 of Airflow when needed on an air-gaped system.</p>
 <p>Example of preparing the constraint files and wheel files. Note that <code class="docutils literal notranslate"><span class="pre">mysql</span></code> dependency is removed
-as <code class="docutils literal notranslate"><span class="pre">mysqlclient</span></code> is installed from Oracle's <code class="docutils literal notranslate"><span class="pre">apt</span></code> repository and if you want to add it, you need
-to provide this library from your repository if you want to build Airflow image in an &quot;air-gaped&quot; system.</p>
+as <code class="docutils literal notranslate"><span class="pre">mysqlclient</span></code> is installed from Oracle’s <code class="docutils literal notranslate"><span class="pre">apt</span></code> repository and if you want to add it, you need
+to provide this library from your repository if you want to build Airflow image in an “air-gaped” system.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/restricted/restricted_environments.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;2.2.3&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p docker-context-files
+<span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;2.2.4&quot;</span>
 rm docker-context-files/*.whl docker-context-files/*.tar.gz docker-context-files/*.txt <span class="o">||</span> <span class="nb">true</span>
 
 curl -Lo <span class="s2">&quot;docker-context-files/constraints-3.7.txt&quot;</span> <span class="se">\</span>
     <span class="s2">&quot;https://raw.githubusercontent.com/apache/airflow/constraints-</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">/constraints-3.7.txt&quot;</span>
 
+<span class="nb">echo</span>
+<span class="nb">echo</span> <span class="s2">&quot;Make sure you use the right python version here (should be same as in constraints)!&quot;</span>
+<span class="nb">echo</span>
+python --version
+
 pip download --dest docker-context-files <span class="se">\</span>
     --constraint docker-context-files/constraints-3.7.txt  <span class="se">\</span>
-    <span class="s2">&quot;apache-airflow[async,aws,azure,celery,dask,elasticsearch,gcp,kubernetes,postgres,redis,slack,ssh,statsd,virtualenv]==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;apache-airflow[async,celery,elasticsearch,kubernetes,postgres,redis,ssh,statsd,virtualenv]==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -1348,17 +1560,19 @@ security vetting and only use the new packages when they were vetted.</p>
 <p>On a separate (air-gaped) system, all the PyPI packages can be copied to <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code>
 where you can build the image using the packages downloaded by passing those build args:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">INSTALL_FROM_DOCKER_CONTEXT_FILES=&quot;true&quot;</span></code>  - to use packages present in <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INSTALL_PACKAGES_FROM_CONTEXT=&quot;true&quot;</span></code>  - to use packages present in <code class="docutils literal notranslate"><span class="pre">docker-context-files</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">AIRFLOW_PRE_CACHED_PIP_PACKAGES=&quot;false&quot;</span></code>  - to not pre-cache packages from PyPI when building image</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">AIRFLOW_CONSTRAINTS_LOCATION=/docker-context-files/YOUR_CONSTRAINT_FILE.txt</span></code> - to downloaded constraint files</p></li>
 <li><p>(Optional) <code class="docutils literal notranslate"><span class="pre">INSTALL_MYSQL_CLIENT=&quot;false&quot;</span></code> if you do not want to install <code class="docutils literal notranslate"><span class="pre">MySQL</span></code>
 client from the Oracle repositories.</p></li>
 <li><p>(Optional) <code class="docutils literal notranslate"><span class="pre">INSTALL_MSSQL_CLIENT=&quot;false&quot;</span></code> if you do not want to install <code class="docutils literal notranslate"><span class="pre">MsSQL</span></code>
 client from the Microsoft repositories.</p></li>
+<li><p>(Optional) <code class="docutils literal notranslate"><span class="pre">INSTALL_POSTGRES_CLIENT=&quot;false&quot;</span></code> if you do not want to install <code class="docutils literal notranslate"><span class="pre">Postgres</span></code>
+client from the Postgres repositories.</p></li>
 </ul>
 <p>Note, that the solution we have for installing python packages from local packages, only solves the problem
-of &quot;air-gaped&quot; python installation. The Docker image also downloads <code class="docutils literal notranslate"><span class="pre">apt</span></code> dependencies and <code class="docutils literal notranslate"><span class="pre">node-modules</span></code>.
-Those types of dependencies are however more likely to be available in your &quot;air-gaped&quot; system via transparent
+of “air-gaped” python installation. The Docker image also downloads <code class="docutils literal notranslate"><span class="pre">apt</span></code> dependencies and <code class="docutils literal notranslate"><span class="pre">node-modules</span></code>.
+Those types of dependencies are however more likely to be available in your “air-gaped” system via transparent
 proxies and it should automatically reach out to your private registries, however in the future the
 solution might be applied to both of those installation steps.</p>
 <p>You can also use techniques described in the previous chapter to make <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">build</span></code> use your private
@@ -1367,15 +1581,20 @@ apt sources or private PyPI repositories (via <code class="docutils literal notr
 to the below:</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/restricted/restricted_environments.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
+<span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
+
+docker build . <span class="se">\</span>
     --pull <span class="se">\</span>
-    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-buster&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">PYTHON_BASE_IMAGE</span><span class="o">=</span><span class="s2">&quot;python:3.7-slim-</span><span class="si">${</span><span class="nv">DEBIAN_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_INSTALLATION_METHOD</span><span class="o">=</span><span class="s2">&quot;apache-airflow&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">INSTALL_MYSQL_CLIENT</span><span class="o">=</span><span class="s2">&quot;false&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">INSTALL_MSSQL_CLIENT</span><span class="o">=</span><span class="s2">&quot;false&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">INSTALL_POSTGRES_CLIENT</span><span class="o">=</span><span class="s2">&quot;true&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_PRE_CACHED_PIP_PACKAGES</span><span class="o">=</span><span class="s2">&quot;false&quot;</span> <span class="se">\</span>
-    --build-arg <span class="nv">INSTALL_FROM_DOCKER_CONTEXT_FILES</span><span class="o">=</span><span class="s2">&quot;true&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">DOCKER_CONTEXT_FILES</span><span class="o">=</span><span class="s2">&quot;docker-context-files&quot;</span> <span class="se">\</span>
+    --build-arg <span class="nv">INSTALL_PACKAGES_FROM_CONTEXT</span><span class="o">=</span><span class="s2">&quot;true&quot;</span> <span class="se">\</span>
     --build-arg <span class="nv">AIRFLOW_CONSTRAINTS_LOCATION</span><span class="o">=</span><span class="s2">&quot;/docker-context-files/constraints-3.7.txt&quot;</span> <span class="se">\</span>
     --tag airflow-my-restricted-environment:0.0.1
 </pre></div>
@@ -1518,7 +1737,8 @@ using COPY command if you want to get the files in your final image (in the main
 <li><a class="reference internal" href="#extending-vs-customizing-the-image">Extending vs. customizing the image</a></li>
 <li><a class="reference internal" href="#extending-the-image">Extending the image</a></li>
 <li><a class="reference internal" href="#examples-of-image-extending">Examples of image extending</a><ul>
-<li><a class="reference internal" href="#example-of-upgrading-airflow-provider-packages">Example of upgrading Airflow Provider packages</a></li>
+<li><a class="reference internal" href="#example-of-customizing-airflow-provider-packages">Example of customizing Airflow Provider packages</a></li>
+<li><a class="reference internal" href="#example-of-adding-airflow-provider-package-and-apt-package">Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li><a class="reference internal" href="#example-of-adding-apt-package">Example of adding <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li><a class="reference internal" href="#example-of-adding-pypi-package">Example of adding <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package</a></li>
 <li><a class="reference internal" href="#example-when-writable-directory-is-needed">Example when writable directory is needed</a></li>
@@ -1527,6 +1747,8 @@ using COPY command if you want to get the files in your final image (in the main
 </ul>
 </li>
 <li><a class="reference internal" href="#customizing-the-image">Customizing the image</a></li>
+<li><a class="reference internal" href="#choosing-debian-version-when-customizing-the-image">Choosing Debian version when customizing the image</a></li>
+<li><a class="reference internal" href="#using-docker-context-files">Using docker-context-files</a></li>
 <li><a class="reference internal" href="#examples-of-image-customizing">Examples of image customizing</a><ul>
 <li><a class="reference internal" href="#building-from-pypi-packages">Building from PyPI packages</a></li>
 <li><a class="reference internal" href="#building-optimized-images">Building optimized images</a></li>
