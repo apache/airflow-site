@@ -6,7 +6,7 @@ github: "ephraimbuddy"
 linkedin: "ephraimanierobi"
 description: "We're proud to announce that Apache Airflow 2.3.0 has been released."
 tags: [Release]
-date: "2022-05-01"
+date: "2022-04-30"
 ---
 
 Apache Airflow 2.3.0 contains over 700 commits since 2.2.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.
