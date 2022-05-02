@@ -698,15 +698,15 @@
 <div></div></blockquote>
 <div class="section" id="customizing-dag-scheduling-with-timetables">
 <h1>Customizing DAG Scheduling with Timetables<a class="headerlink" href="#customizing-dag-scheduling-with-timetables" title="Permalink to this headline">¶</a></h1>
-<p>For our example, let’s say a company wants to run a job after each weekday to
+<p>For our example, let's say a company wants to run a job after each weekday to
 process data collected during the work day. The first intuitive answer to this
 would be <code class="docutils literal notranslate"><span class="pre">schedule_interval=&quot;0</span> <span class="pre">0</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">1-5&quot;</span></code> (midnight on Monday to Friday), but
 this means data collected on Friday will <em>not</em> be processed right after Friday
-ends, but on the next Monday, and that run’s interval would be from midnight
+ends, but on the next Monday, and that run's interval would be from midnight
 Friday to midnight <em>Monday</em>. What we want is:</p>
 <ul class="simple">
 <li><p>Schedule a run for each Monday, Tuesday, Wednesday, Thursday, and Friday. The
-run’s data interval would cover from midnight of each day, to midnight of the
+run's data interval would cover from midnight of each day, to midnight of the
 next day (e.g. 2021-01-01 00:00:00 to 2021-01-02 00:00:00).</p></li>
 <li><p>Each run would be created right after the data interval ends. The run covering
 Monday happens on midnight Tuesday and so on. The run covering Friday happens
@@ -715,8 +715,8 @@ on midnight Saturday. No runs happen on midnights Sunday and Monday.</p></li>
 <p>For simplicity, we will only deal with UTC datetimes in this example.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All datetime values returned by a custom timetable <strong>MUST</strong> be “aware”, i.e.
-contains timezone information. Furthermore, they must use <code class="docutils literal notranslate"><span class="pre">pendulum</span></code>’s
+<p>All datetime values returned by a custom timetable <strong>MUST</strong> be &quot;aware&quot;, i.e.
+contains timezone information. Furthermore, they must use <code class="docutils literal notranslate"><span class="pre">pendulum</span></code>'s
 datetime and timezone types.</p>
 </div>
 <div class="section" id="timetable-registration">
@@ -737,7 +737,7 @@ skeleton for us to implement a new timetable:</p>
     <span class="n">timetables</span> <span class="o">=</span> <span class="p">[</span><span class="n">AfterWorkdayTimetable</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Next, we’ll start putting code into <code class="docutils literal notranslate"><span class="pre">AfterWorkdayTimetable</span></code>. After the
+<p>Next, we'll start putting code into <code class="docutils literal notranslate"><span class="pre">AfterWorkdayTimetable</span></code>. After the
 implementation is finished, we should be able to use the timetable in our DAG
 file:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pendulum</span>
@@ -758,17 +758,17 @@ file:</p>
 </div>
 <div class="section" id="define-scheduling-logic">
 <h2>Define Scheduling Logic<a class="headerlink" href="#define-scheduling-logic" title="Permalink to this headline">¶</a></h2>
-<p>When Airflow’s scheduler encounters a DAG, it calls one of the two methods to
-know when to schedule the DAG’s next run.</p>
+<p>When Airflow's scheduler encounters a DAG, it calls one of the two methods to
+know when to schedule the DAG's next run.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">next_dagrun_info</span></code>: The scheduler uses this to learn the timetable’s regular
-schedule, i.e. the “one for every workday, run at the end of it” part in our
+<li><p><code class="docutils literal notranslate"><span class="pre">next_dagrun_info</span></code>: The scheduler uses this to learn the timetable's regular
+schedule, i.e. the &quot;one for every workday, run at the end of it&quot; part in our
 example.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">infer_manual_data_interval</span></code>: When a DAG run is manually triggered (from the web
 UI, for example), the scheduler uses this method to learn about how to
-reverse-infer the out-of-schedule run’s data interval.</p></li>
+reverse-infer the out-of-schedule run's data interval.</p></li>
 </ul>
-<p>We’ll start with <code class="docutils literal notranslate"><span class="pre">infer_manual_data_interval</span></code> since it’s the easier of the two:</p>
+<p>We'll start with <code class="docutils literal notranslate"><span class="pre">infer_manual_data_interval</span></code> since it's the easier of the two:</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header example-header--with-button"><span class="example-title">airflow/example_dags/plugins/workday.py</span><a class="example-header-button viewcode-button reference internal" href="../_modules/airflow/example_dags/plugins/workday.html"><span class="viewcode-link">[source]</span></a></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">infer_manual_data_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_after</span><span class="p">:</span> <span class="n">DateTime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataInterval</span><span class="p">:</span>
@@ -834,7 +834,7 @@ interval.</p>
 </div>
 <p>This method accepts two arguments. <code class="docutils literal notranslate"><span class="pre">last_automated_dagrun</span></code> is a
 <a class="reference internal" href="../_api/airflow/timetables/base/index.html#airflow.timetables.base.DataInterval" title="airflow.timetables.base.DataInterval"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataInterval</span></code></a> instance indicating the data
-interval of this DAG’s previous non-manually-triggered run, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if this
+interval of this DAG's previous non-manually-triggered run, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if this
 is the first time ever the DAG is being scheduled. <code class="docutils literal notranslate"><span class="pre">restriction</span></code> encapsulates
 how the DAG and its tasks specify the schedule, and contains three attributes:</p>
 <ul class="simple">
@@ -844,21 +844,21 @@ the DAG and its tasks, or <code class="docutils literal notranslate"><span class
 found at all.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">latest</span></code>: Similar to <code class="docutils literal notranslate"><span class="pre">earliest</span></code>, this is the latest time the DAG may be
 scheduled, calculated from <code class="docutils literal notranslate"><span class="pre">end_date</span></code> arguments.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">catchup</span></code>: A boolean reflecting the DAG’s <code class="docutils literal notranslate"><span class="pre">catchup</span></code> argument.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">catchup</span></code>: A boolean reflecting the DAG's <code class="docutils literal notranslate"><span class="pre">catchup</span></code> argument.</p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Both <code class="docutils literal notranslate"><span class="pre">earliest</span></code> and <code class="docutils literal notranslate"><span class="pre">latest</span></code> apply to the DAG run’s logical date
+<p>Both <code class="docutils literal notranslate"><span class="pre">earliest</span></code> and <code class="docutils literal notranslate"><span class="pre">latest</span></code> apply to the DAG run's logical date
 (the <em>start</em> of the data interval), not when the run will be scheduled
 (usually after the end of the data interval).</p>
 </div>
 <p>If there was a run scheduled previously, we should now schedule for the next
 weekday, i.e. plus one day if the previous run was on Monday through Thursday,
 or three days if it was on Friday. If there was not a previous scheduled run,
-however, we pick the next workday’s midnight after <code class="docutils literal notranslate"><span class="pre">restriction.earliest</span></code>
-(unless it <em>is</em> a workday’s midnight; in which case it’s used directly).
-<code class="docutils literal notranslate"><span class="pre">restriction.catchup</span></code> also needs to be considered—if it’s <code class="docutils literal notranslate"><span class="pre">False</span></code>, we
-can’t schedule before the current time, even if <code class="docutils literal notranslate"><span class="pre">start_date</span></code> values are in the
+however, we pick the next workday's midnight after <code class="docutils literal notranslate"><span class="pre">restriction.earliest</span></code>
+(unless it <em>is</em> a workday's midnight; in which case it's used directly).
+<code class="docutils literal notranslate"><span class="pre">restriction.catchup</span></code> also needs to be considered---if it's <code class="docutils literal notranslate"><span class="pre">False</span></code>, we
+can't schedule before the current time, even if <code class="docutils literal notranslate"><span class="pre">start_date</span></code> values are in the
 past. Finally, if our calculated data interval is later than
 <code class="docutils literal notranslate"><span class="pre">restriction.latest</span></code>, we must respect it and not schedule a run by returning
 <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
@@ -867,7 +867,7 @@ past. Finally, if our calculated data interval is later than
 attributes:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">data_interval</span></code>: A <a class="reference internal" href="../_api/airflow/timetables/base/index.html#airflow.timetables.base.DataInterval" title="airflow.timetables.base.DataInterval"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataInterval</span></code></a> instance
-describing the next run’s data interval.</p></li>
+describing the next run's data interval.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">run_after</span></code>: A <code class="docutils literal notranslate"><span class="pre">pendulum.DateTime</span></code> instance that tells the scheduler when
 the DAG run can be scheduled.</p></li>
 </ul>
@@ -885,7 +885,7 @@ provides a shortcut for this:</p>
 <span class="k">assert</span> <span class="n">info</span><span class="o">.</span><span class="n">data_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">==</span> <span class="n">info</span><span class="o">.</span><span class="n">run_after</span>  <span class="c1"># Always True.</span>
 </pre></div>
 </div>
-<p>For reference, here’s our plugin and DAG files in their entirety:</p>
+<p>For reference, here's our plugin and DAG files in their entirety:</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header example-header--with-button"><span class="example-title">airflow/example_dags/plugins/workday.py</span><a class="example-header-button viewcode-button reference internal" href="../_modules/airflow/example_dags/plugins/workday.html"><span class="viewcode-link">[source]</span></a></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
@@ -972,7 +972,7 @@ provides a shortcut for this:</p>
 with our <code class="docutils literal notranslate"><span class="pre">AfterWorkdayTimetable</span></code> example, maybe we have DAGs running on
 different timezones, and we want to schedule some DAGs at 8am the next day,
 instead of on midnight. Instead of creating a separate timetable for each
-purpose, we’d want to do something like:</p>
+purpose, we'd want to do something like:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SometimeAfterWorkdayTimetable</span><span class="p">(</span><span class="n">Timetable</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule_at</span><span class="p">:</span> <span class="n">Time</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_schedule_at</span> <span class="o">=</span> <span class="n">schedule_at</span>
@@ -1007,7 +1007,7 @@ serialized DAG is accessed by the scheduler to reconstruct the timetable.</p>
 <div class="section" id="timetable-display-in-ui">
 <h2>Timetable Display in UI<a class="headerlink" href="#timetable-display-in-ui" title="Permalink to this headline">¶</a></h2>
 <p>By default, a custom timetable is displayed by their class name in the UI (e.g.
-the <em>Schedule</em> column in the “DAGs” table). It is possible to customize this
+the <em>Schedule</em> column in the &quot;DAGs&quot; table). It is possible to customize this
 by overriding the <code class="docutils literal notranslate"><span class="pre">summary</span></code> property. This is especially useful for
 parameterized timetables to include arguments provided in <code class="docutils literal notranslate"><span class="pre">__init__</span></code>. For
 our <code class="docutils literal notranslate"><span class="pre">SometimeAfterWorkdayTimetable</span></code> class, for example, we could have:</p>
