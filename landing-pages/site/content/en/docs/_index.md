@@ -51,6 +51,8 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-apache-sqoop/stable/index.html"><code>Apache Sqoop</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-arangodb/stable/index.html"><code>ArangoDB</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-asana/stable/index.html"><code>Asana</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
