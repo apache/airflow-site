@@ -26,9 +26,9 @@ We've just released Apache **Airflow Helm chart 1.6.0**.
 
 We’ve just released Apache **Airflow 2.3.0**. You can read more in the [What's new in Apache Airflow 2.3.0]({{< ref "blog/airflow-2.3.0/index.md" >}}) blog post.
 
-📦 PyPI: https://pypi.org/project/apache-airflow/2.3.0/
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.3.0
-🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.3.0/release_notes.html
+📦 PyPI: https://pypi.org/project/apache-airflow/2.3.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.3.0 \
+🛠️ Changelog: https://airflow.apache.org/docs/apache-airflow/2.3.0/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.3.0/installation/installing-from-sources.html
 
 # April 04, 2022
