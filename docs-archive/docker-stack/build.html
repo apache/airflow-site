@@ -314,15 +314,20 @@
     <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Building the image</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#why-custom-image">Why custom image ?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-build-your-own-image">How to build your own image</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start-scenarios-of-image-extending">Quick start scenarios of image extending</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#adding-new-apt-package">Adding new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#adding-a-new-pypi-package">Adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#embedding-dags">Embedding DAGs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-vs-customizing-the-image">Extending vs. customizing the image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#extending-the-image">Extending the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-customizing-the-image">Why customizing the image ?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-images-primer">Building images primer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-the-image">Extending the image</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-images">Base images</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#important-notes-for-the-base-images">Important notes for the base images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-of-image-extending">Examples of image extending</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-customizing-airflow-provider-packages">Example of customizing Airflow Provider packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-adding-airflow-provider-package-and-apt-package">Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
@@ -473,15 +478,20 @@
     <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Building the image</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#why-custom-image">Why custom image ?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-build-your-own-image">How to build your own image</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start-scenarios-of-image-extending">Quick start scenarios of image extending</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#adding-new-apt-package">Adding new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#adding-a-new-pypi-package">Adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#embedding-dags">Embedding DAGs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-vs-customizing-the-image">Extending vs. customizing the image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#extending-the-image">Extending the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-customizing-the-image">Why customizing the image ?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-images-primer">Building images primer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-the-image">Extending the image</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-images">Base images</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#important-notes-for-the-base-images">Important notes for the base images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-of-image-extending">Examples of image extending</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-customizing-airflow-provider-packages">Example of customizing Airflow Provider packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-of-adding-airflow-provider-package-and-apt-package">Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
@@ -625,8 +635,153 @@
 <span id="build-build-image"></span><h1>Building the image<a class="headerlink" href="#building-the-image" title="Permalink to this headline">¶</a></h1>
 <p>Before you dive-deeply in the way how the Airflow Image is built, let us first explain why you might need
 to build the custom container image and we show a few typical ways you can do it.</p>
-<div class="section" id="why-custom-image">
-<h2>Why custom image ?<a class="headerlink" href="#why-custom-image" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quick-start-scenarios-of-image-extending">
+<h2>Quick start scenarios of image extending<a class="headerlink" href="#quick-start-scenarios-of-image-extending" title="Permalink to this headline">¶</a></h2>
+<p>The most common scenarios where you want to build your own image are adding a new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package,
+adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> dependency and embedding DAGs into the image.
+Example Dockerfiles for those scenarios are below, and you can read further
+for more complex cases which might involve either extending or customizing the image. You will find
+more information about more complex scenarios below, but if your goal is to quickly extend the Airflow
+image with new provider, package, etc. then here is a quick start for you.</p>
+<div class="section" id="adding-new-apt-package">
+<h3>Adding new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package<a class="headerlink" href="#adding-new-apt-package" title="Permalink to this headline">¶</a></h3>
+<p>The following example adds <code class="docutils literal notranslate"><span class="pre">vim</span></code> to the Airflow image. When adding packages via <code class="docutils literal notranslate"><span class="pre">apt</span></code> you should
+switch to the <code class="docutils literal notranslate"><span class="pre">root</span></code> user when running the <code class="docutils literal notranslate"><span class="pre">apt</span></code> commands, but do not forget to switch back to the
+<code class="docutils literal notranslate"><span class="pre">airflow</span></code> user after installation is complete.</p>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-apt-packages/Dockerfile</span></p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
+<span class="k">USER</span><span class="w"> </span><span class="s">root</span>
+<span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
+         vim <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> apt-get autoremove -yqq --purge <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> apt-get clean <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> rm -rf /var/lib/apt/lists/*
+<span class="k">USER</span><span class="w"> </span><span class="s">airflow</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="adding-a-new-pypi-package">
+<h3>Adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package<a class="headerlink" href="#adding-a-new-pypi-package" title="Permalink to this headline">¶</a></h3>
+<p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image. When adding packages via
+<code class="docutils literal notranslate"><span class="pre">pip</span></code> you need to use the <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user rather than <code class="docutils literal notranslate"><span class="pre">root</span></code>. Attempts to install <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages
+as <code class="docutils literal notranslate"><span class="pre">root</span></code> will fail with an appropriate error message.</p>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
+<span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir lxml
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="embedding-dags">
+<h3>Embedding DAGs<a class="headerlink" href="#embedding-dags" title="Permalink to this headline">¶</a></h3>
+<p>The following example adds <code class="docutils literal notranslate"><span class="pre">test_dag.py</span></code> to your image in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder.</p>
+<div class="example-block-wrapper docutils container">
+<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/Dockerfile</span></p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
+
+<span class="k">COPY</span><span class="w"> </span>--chown<span class="o">=</span>airflow:root test_dag.py /opt/airflow/dags
+</pre></div>
+</div>
+</div>
+<div class="example-block-wrapper docutils container">
+<p class="example-header example-header--with-button"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/test_dag.py</span><a class="example-header-button viewcode-button reference internal" href="_modules/docs/docker-stack/docker-examples/extending/embedding-dags/test_dag.html"><span class="viewcode-link">[source]</span></a></p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;This dag only runs some simple tasks to test Airflow&#39;s task execution.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">pendulum</span>
+
+<span class="kn">from</span> <span class="nn">airflow.models.dag</span> <span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.empty</span> <span class="kn">import</span> <span class="n">EmptyOperator</span>
+
+<span class="n">now</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+<span class="n">now_to_the_hour</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">START_DATE</span> <span class="o">=</span> <span class="n">now_to_the_hour</span>
+<span class="n">DAG_NAME</span> <span class="o">=</span> <span class="s1">&#39;test_dag_v1&#39;</span>
+
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span>
+    <span class="n">DAG_NAME</span><span class="p">,</span>
+    <span class="n">schedule_interval</span><span class="o">=</span><span class="s1">&#39;*/10 * * * *&#39;</span><span class="p">,</span>
+    <span class="n">default_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;depends_on_past&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">pendulum</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">),</span>
+    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">run_this_1</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_2</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_2</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_1</span><span class="p">)</span>
+<span class="n">run_this_3</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
+<span class="n">run_this_3</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="extending-vs-customizing-the-image">
+<h2>Extending vs. customizing the image<a class="headerlink" href="#extending-vs-customizing-the-image" title="Permalink to this headline">¶</a></h2>
+<p>You might want to know very quickly whether you need to extend or customize the existing image
+for Apache Airflow. This chapter gives you a short answer to those questions.</p>
+<p>Here is the comparison of the two approaches:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 68%" />
+<col style="width: 14%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Extending</p></th>
+<th class="head"><p>Customizing</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Uses familiar ‘FROM’ pattern of image building</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Requires only basic knowledge about images</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Builds quickly</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Produces image heavily optimized for size</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Can build from custom airflow sources (forks)</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Can build on air-gaped system</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+</tbody>
+</table>
+<p>TL;DR; If you have a need to build custom image, it is easier to start with “Extending”. However, if your
+dependencies require compilation steps or when your require to build the image from security vetted
+packages, switching to “Customizing” the image provides much more optimized images. For example,
+if we compare equivalent images built by “Extending” and “Customization”, they end up being
+1.1GB and 874MB respectively - a 20% improvement in size for the Customized image.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can also combine both - customizing &amp; extending the image in one. You can build your
+optimized base image first using <code class="docutils literal notranslate"><span class="pre">customization</span></code> method (for example by your admin team) with all
+the heavy compilation required dependencies and you can publish it in your registry and let others
+<code class="docutils literal notranslate"><span class="pre">extend</span></code> your image using <code class="docutils literal notranslate"><span class="pre">FROM</span></code> and add their own lightweight dependencies. This reflects well
+the split where typically “Casual” users will Extend the image and “Power-users” will customize it.</p>
+</div>
+<p>Airflow Summit 2020’s <a class="reference external" href="https://youtu.be/wDr3Y7q2XoI">Production Docker Image</a> talk provides more
+details about the context, architecture and customization/extension methods for the Production Image.</p>
+</div>
+<div class="section" id="why-customizing-the-image">
+<h2>Why customizing the image ?<a class="headerlink" href="#why-customizing-the-image" title="Permalink to this headline">¶</a></h2>
 <p>The Apache Airflow community, releases Docker Images which are <code class="docutils literal notranslate"><span class="pre">reference</span> <span class="pre">images</span></code> for Apache Airflow.
 However, Airflow has more than 60 community managed providers (installable via extras) and some of the
 default extras/providers installed are not used by everyone, sometimes others extras/providers
@@ -642,8 +797,8 @@ build and use your own image. You should only use installing dependencies dynami
 “hobbyist” and “quick start” scenarios when you want to iterate quickly to try things out and later
 replace it with your own images.</p>
 </div>
-<div class="section" id="how-to-build-your-own-image">
-<h2>How to build your own image<a class="headerlink" href="#how-to-build-your-own-image" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="building-images-primer">
+<h2>Building images primer<a class="headerlink" href="#building-images-primer" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> does not strictly follow the <a class="reference external" href="https://semver.org/">SemVer</a> approach of
@@ -713,159 +868,80 @@ images to the cluster.</p></li>
 of storing and exposing the images, and it is most portable way of publishing the image. Both
 Docker-Compose and Kubernetes can make use of images exposed via registries.</p></li>
 </ul>
-<p>The most common scenarios where you want to build your own image are adding a new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package,
-adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> dependency and embedding DAGs into the image.
-Example Dockerfiles for those scenarios are below, and you can read further
-for more complex cases which might involve either extending or customizing the image.</p>
-<div class="section" id="adding-new-apt-package">
-<h3>Adding new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package<a class="headerlink" href="#adding-new-apt-package" title="Permalink to this headline">¶</a></h3>
-<p>The following example adds <code class="docutils literal notranslate"><span class="pre">vim</span></code> to the airflow image. When adding packages via <code class="docutils literal notranslate"><span class="pre">apt</span></code> you should
-switch to <code class="docutils literal notranslate"><span class="pre">root</span></code> user for the time of installation, but do not forget to switch back to the
-<code class="docutils literal notranslate"><span class="pre">airflow</span></code> user after installation is complete.</p>
-<div class="example-block-wrapper docutils container">
-<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-apt-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
-<span class="k">USER</span><span class="w"> </span><span class="s">root</span>
-<span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
-  <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
-         vim <span class="se">\</span>
-  <span class="o">&amp;&amp;</span> apt-get autoremove -yqq --purge <span class="se">\</span>
-  <span class="o">&amp;&amp;</span> apt-get clean <span class="se">\</span>
-  <span class="o">&amp;&amp;</span> rm -rf /var/lib/apt/lists/*
-<span class="k">USER</span><span class="w"> </span><span class="s">airflow</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="adding-a-new-pypi-package">
-<h3>Adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package<a class="headerlink" href="#adding-a-new-pypi-package" title="Permalink to this headline">¶</a></h3>
-<p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image. When adding packages via
-<code class="docutils literal notranslate"><span class="pre">pip</span></code> you need to use <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user rather than <code class="docutils literal notranslate"><span class="pre">root</span></code>. Attempts to install <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages
-with root, when you using typical <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> command will fail with appropriate error message.</p>
-<div class="example-block-wrapper docutils container">
-<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
-<span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir lxml
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="embedding-dags">
-<h3>Embedding DAGs<a class="headerlink" href="#embedding-dags" title="Permalink to this headline">¶</a></h3>
-<p>The following example adds <code class="docutils literal notranslate"><span class="pre">test_dag.py</span></code> to your image in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder.</p>
-<div class="example-block-wrapper docutils container">
-<p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
-
-<span class="k">COPY</span><span class="w"> </span>--chown<span class="o">=</span>airflow:root test_dag.py /opt/airflow/dags
-</pre></div>
-</div>
-</div>
-<div class="example-block-wrapper docutils container">
-<p class="example-header example-header--with-button"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/test_dag.py</span><a class="example-header-button viewcode-button reference internal" href="_modules/docs/docker-stack/docker-examples/extending/embedding-dags/test_dag.html"><span class="viewcode-link">[source]</span></a></p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;This dag only runs some simple tasks to test Airflow&#39;s task execution.&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-
-<span class="kn">import</span> <span class="nn">pendulum</span>
-
-<span class="kn">from</span> <span class="nn">airflow.models.dag</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.operators.empty</span> <span class="kn">import</span> <span class="n">EmptyOperator</span>
-
-<span class="n">now</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
-<span class="n">now_to_the_hour</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">START_DATE</span> <span class="o">=</span> <span class="n">now_to_the_hour</span>
-<span class="n">DAG_NAME</span> <span class="o">=</span> <span class="s1">&#39;test_dag_v1&#39;</span>
-
-<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">(</span>
-    <span class="n">DAG_NAME</span><span class="p">,</span>
-    <span class="n">schedule_interval</span><span class="o">=</span><span class="s1">&#39;*/10 * * * *&#39;</span><span class="p">,</span>
-    <span class="n">default_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;depends_on_past&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
-    <span class="n">start_date</span><span class="o">=</span><span class="n">pendulum</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">),</span>
-    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">run_this_1</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_1&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
-<span class="n">run_this_2</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_2&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
-<span class="n">run_this_2</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_1</span><span class="p">)</span>
-<span class="n">run_this_3</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;run_this_3&#39;</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">dag</span><span class="p">)</span>
-<span class="n">run_this_3</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">run_this_2</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="extending-vs-customizing-the-image">
-<h2>Extending vs. customizing the image<a class="headerlink" href="#extending-vs-customizing-the-image" title="Permalink to this headline">¶</a></h2>
-<p>You might want to know very quickly how you can extend or customize the existing image
-for Apache Airflow. This chapter gives you a short answer to those questions.</p>
-<p>Here is the comparison of the two types of building images. Here is your guide if you want to choose
-how you want to build your image.</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 68%" />
-<col style="width: 14%" />
-<col style="width: 17%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"></th>
-<th class="head"><p>Extending</p></th>
-<th class="head"><p>Customizing</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Uses familiar ‘FROM ‘ pattern of image building</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p>Requires only basic knowledge about images</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p>Builds quickly</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p>Produces image heavily optimized for size</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p>Can build from custom airflow sources (forks)</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p>Can build on air-gaped system</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-</tbody>
-</table>
-<p>TL;DR; If you have a need to build custom image, it is easier to start with “Extending” however if your
-dependencies require compilation step or when your require to build the image from security vetted
-packages, switching to “Customizing” the image provides much more optimized images. In the example further
-where we compare equivalent “Extending” and “Customizing” the image, similar images build by
-Extending vs. Customization had shown 1.1GB vs 874MB image sizes respectively - with 20% improvement in
-size of the Customized image.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>You can also combine both - customizing &amp; extending the image in one. You can build your
-optimized base image first using <code class="docutils literal notranslate"><span class="pre">customization</span></code> method (for example by your admin team) with all
-the heavy compilation required dependencies and you can publish it in your registry and let others
-<code class="docutils literal notranslate"><span class="pre">extend</span></code> your image using <code class="docutils literal notranslate"><span class="pre">FROM</span></code> and add their own lightweight dependencies. This reflects well
-the split where typically “Casual” users will Extend the image and “Power-users” will customize it.</p>
-</div>
-<p>Airflow Summit 2020’s <a class="reference external" href="https://youtu.be/wDr3Y7q2XoI">Production Docker Image</a> talk provides more
-details about the context, architecture and customization/extension methods for the Production Image.</p>
 </div>
 <div class="section" id="extending-the-image">
 <h2>Extending the image<a class="headerlink" href="#extending-the-image" title="Permalink to this headline">¶</a></h2>
 <p>Extending the image is easiest if you just need to add some dependencies that do not require
 compiling. The compilation framework of Linux (so called <code class="docutils literal notranslate"><span class="pre">build-essential</span></code>) is pretty big, and
 for the production images, size is really important factor to optimize for, so our Production Image
-does not contain <code class="docutils literal notranslate"><span class="pre">build-essential</span></code>. If you need compiler like gcc or g++ or make/cmake etc. - those
+does not contain <code class="docutils literal notranslate"><span class="pre">build-essential</span></code>. If you need a compiler like gcc or g++ or make/cmake etc. - those
 are not found in the image and it is recommended that you follow the “customize” route instead.</p>
 <p>How to extend the image - it is something you are most likely familiar with - simply
 build a new image using Dockerfile’s <code class="docutils literal notranslate"><span class="pre">FROM</span></code> directive and add whatever you need. Then you can add your
 Debian dependencies with <code class="docutils literal notranslate"><span class="pre">apt</span></code> or PyPI dependencies with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> or any other stuff you need.</p>
+<div class="section" id="base-images">
+<h3>Base images<a class="headerlink" href="#base-images" title="Permalink to this headline">¶</a></h3>
+<p>There are two types of images you can extend your image from:</p>
+<ol class="arabic simple">
+<li><p>Regular Airflow image that contains the most common extras and providers, and all supported backend
+database clients for AMD64 platform and Postgres for ARM64 platform.</p></li>
+<li><p>Slim Airflow image, which is a minimal image, contains all supported backends database clients installed
+for AMD64 platform and Postgres for ARM64 platform, but contains no extras or providers, except
+the 4 default providers.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Differences of slim image vs. regular image.</p>
+<p>The slim image is small comparing to regular image (~500 MB vs ~1.1GB) and you might need to add a
+lot more packages and providers in order to make it useful for your case (but if you use only a
+small subset of providers, it might be a good starting point for you).</p>
+<p>The slim images might have dependencies in different versions than those used when providers are
+preinstalled, simply because core Airflow might have less limits on the versions on its own.
+When you install some providers they might require downgrading some dependencies if the providers
+require different limits for the same dependencies.</p>
+</div>
+<p>Naming conventions for the images:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 17%" />
+<col style="width: 31%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Image</p></th>
+<th class="head"><p>Python</p></th>
+<th class="head"><p>Standard image</p></th>
+<th class="head"><p>Slim image</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Latest default
+Default
+Latest
+Specific</p></td>
+<td><p>3.7
+3.7
+3.7,3.8,3.9,3.10
+3.7,3.8,3.9,3.10</p></td>
+<td><p>apache/airflow:latest
+apache/airflow:X.Y.Z
+apache/airflow:latest-pythonN.M
+apache/airflow:X.Y.Z-pythonN.M</p></td>
+<td><p>apache/airflow:slim-latest
+apache/airflow:slim-X.Y.Z
+apache/airflow:slim-latest-pythonN.M
+apache/airflow:slim-X.Y.Z-pythonN.M</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>The “latest” image is always the latest released stable version available.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="important-notes-for-the-base-images">
+<h2>Important notes for the base images<a class="headerlink" href="#important-notes-for-the-base-images" title="Permalink to this headline">¶</a></h2>
 <p>You should be aware, about a few things:</p>
 <ul class="simple">
 <li><p>The production image of airflow uses “airflow” user, so if you want to add some of the tools
@@ -927,7 +1003,7 @@ Airflow and sometimes you might want to upgrade specific providers only to fix s
 use features available in that provider version. Here is an example of how you can do it</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/custom-providers/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 <span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir apache-airflow-providers-docker<span class="o">==</span><span class="m">2</span>.5.1
 </pre></div>
 </div>
@@ -939,7 +1015,7 @@ use features available in that provider version. Here is an example of how you c
 python package from PyPI.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-providers/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 <span class="k">USER</span><span class="w"> </span><span class="s">root</span>
 <span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
   <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
@@ -959,7 +1035,7 @@ python package from PyPI.</p>
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">vim</span></code> to the airflow image.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-apt-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 <span class="k">USER</span><span class="w"> </span><span class="s">root</span>
 <span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
   <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
@@ -977,7 +1053,7 @@ python package from PyPI.</p>
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 <span class="k">RUN</span><span class="w"> </span>pip install --no-cache-dir lxml
 </pre></div>
 </div>
@@ -989,7 +1065,7 @@ python package from PyPI.</p>
 running the container.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/writable-directory/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 <span class="k">RUN</span><span class="w"> </span><span class="nb">umask</span> <span class="m">0002</span><span class="p">;</span> <span class="se">\</span>
     mkdir -p ~/writeable-directory
 </pre></div>
@@ -1001,7 +1077,7 @@ running the container.</p>
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> package which requires both <code class="docutils literal notranslate"><span class="pre">build-essential</span></code> and <code class="docutils literal notranslate"><span class="pre">mpi</span> <span class="pre">compiler</span></code>.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/add-build-essential-extend/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 <span class="k">USER</span><span class="w"> </span><span class="s">root</span>
 <span class="k">RUN</span><span class="w"> </span>apt-get update <span class="se">\</span>
   <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends <span class="se">\</span>
@@ -1022,7 +1098,7 @@ size of the image in case you use “Customizing” rather than “Extending” 
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">test_dag.py</span></code> to your image in the <code class="docutils literal notranslate"><span class="pre">/opt/airflow/dags</span></code> folder.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/extending/embedding-dags/Dockerfile</span></p>
-<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.0</span>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.3.1</span>
 
 <span class="k">COPY</span><span class="w"> </span>--chown<span class="o">=</span>airflow:root test_dag.py /opt/airflow/dags
 </pre></div>
@@ -1292,7 +1368,7 @@ docker build . <span class="se">\</span>
 package. The <code class="docutils literal notranslate"><span class="pre">2.3.0</span></code> constraints are used automatically.</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/pypi-selected-version.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.3.0
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.3.1
 <span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
 docker build . <span class="se">\</span>
@@ -1306,7 +1382,7 @@ docker build . <span class="se">\</span>
 (<code class="docutils literal notranslate"><span class="pre">mssql,hdfs</span></code>) from <code class="docutils literal notranslate"><span class="pre">2.3.0</span></code> PyPI package, and additional dependency (<code class="docutils literal notranslate"><span class="pre">oauth2client</span></code>).</p>
 <div class="example-block-wrapper docutils container">
 <p class="example-header"><span class="example-title">docs/docker-stack/docker-examples/customizing/pypi-extras-and-deps.sh</span></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.3.0
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIRFLOW_VERSION</span><span class="o">=</span><span class="m">2</span>.3.1
 <span class="nb">export</span> <span class="nv">DEBIAN_VERSION</span><span class="o">=</span><span class="s2">&quot;bullseye&quot;</span>
 <span class="nb">export</span> <span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
 
@@ -1727,15 +1803,20 @@ using COPY command if you want to get the files in your final image (in the main
         <div class="wy-menu-vertical">
             <ul>
 <li><a class="reference internal" href="#">Building the image</a><ul>
-<li><a class="reference internal" href="#why-custom-image">Why custom image ?</a></li>
-<li><a class="reference internal" href="#how-to-build-your-own-image">How to build your own image</a><ul>
+<li><a class="reference internal" href="#quick-start-scenarios-of-image-extending">Quick start scenarios of image extending</a><ul>
 <li><a class="reference internal" href="#adding-new-apt-package">Adding new <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
 <li><a class="reference internal" href="#adding-a-new-pypi-package">Adding a new <code class="docutils literal notranslate"><span class="pre">PyPI</span></code> package</a></li>
 <li><a class="reference internal" href="#embedding-dags">Embedding DAGs</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#extending-vs-customizing-the-image">Extending vs. customizing the image</a></li>
-<li><a class="reference internal" href="#extending-the-image">Extending the image</a></li>
+<li><a class="reference internal" href="#why-customizing-the-image">Why customizing the image ?</a></li>
+<li><a class="reference internal" href="#building-images-primer">Building images primer</a></li>
+<li><a class="reference internal" href="#extending-the-image">Extending the image</a><ul>
+<li><a class="reference internal" href="#base-images">Base images</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#important-notes-for-the-base-images">Important notes for the base images</a></li>
 <li><a class="reference internal" href="#examples-of-image-extending">Examples of image extending</a><ul>
 <li><a class="reference internal" href="#example-of-customizing-airflow-provider-packages">Example of customizing Airflow Provider packages</a></li>
 <li><a class="reference internal" href="#example-of-adding-airflow-provider-package-and-apt-package">Example of adding Airflow Provider package and <code class="docutils literal notranslate"><span class="pre">apt</span></code> package</a></li>
