@@ -86,7 +86,7 @@ Providers packages include integrations with third party projects. They are upda
   <li><a href="/docs/apache-airflow-providers-hashicorp/stable/index.html"><code>Hashicorp</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-http/stable/index.html"><code>Hypertext Transfer Protocol (HTTP)</code></a></li>
-  
+
   <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>IBM Cloudant</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-influxdb/stable/index.html"><code>Influx DB</code></a></li>
@@ -98,7 +98,7 @@ Providers packages include integrations with third party projects. They are upda
   <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html"><code>Jenkins</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-jira/stable/index.html"><code>Jira</code></a></li>
-  
+
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
