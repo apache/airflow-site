@@ -7,7 +7,6 @@ linkedin: "john-e-thomas"
 description: "2021 saw rapid adoption of Airflow 2, and continued growth of the community. This annual survey helps us understand how people are using Airflow, and where we can best focus our efforts going forward."
 tags: ["community", "survey", "users"]
 date: "2022-06-17"
-draft: true
 ---
 
 # Airflow User Survey 2022
