@@ -43,6 +43,12 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
+## Other deployments methods
+
+[Airflow Heroku Deployment](https://github.com/slyapustin/airflow-on-heroku) - Airflow Heroku Deployment allows creating a demo Airflow instance in just a couple of clicks.
+
+&nbsp;
+
 ## Third Party Airflow Plugins and Providers
 
 [Astronomer Registry](https://registry.astronomer.io/) - The discovery and distribution hub for Apache Airflow integrations created to aggregate and curate the best bits of the ecosystem.
