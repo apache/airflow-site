@@ -41,6 +41,10 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Amazon Managed Workflows for Apache Airflow](https://aws.amazon.com/managed-workflows-for-apache-airflow) - Managed Apache Airflow on Amazon Web Services (AWS)
 
+&nbsp;
+
+## Other deployments methods
+
 [Airflow Heroku Deployment](https://github.com/slyapustin/airflow-on-heroku) - Airflow Heroku Deployment configuration, which allow to create demo Airflow instance without any configurations in just couple clicks.
 
 &nbsp;
