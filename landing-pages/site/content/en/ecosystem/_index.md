@@ -45,7 +45,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 ## Other deployments methods
 
-[Airflow Heroku Deployment](https://github.com/slyapustin/airflow-on-heroku) - Airflow Heroku Deployment configuration, which allow to create demo Airflow instance without any configurations in just couple clicks.
+[Airflow Heroku Deployment](https://github.com/slyapustin/airflow-on-heroku) - Airflow Heroku Deployment allows creating a demo Airflow instance in just a couple of clicks.
 
 &nbsp;
 
