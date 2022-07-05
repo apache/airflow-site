@@ -81,6 +81,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [afctl](https://github.com/qubole/afctl) - A CLI tool that includes everything required to create, manage and deploy airflow projects faster and smoother.
 
+[airflint](https://github.com/feluelle/airflint) - Enforce Best Practices for all your Airflow DAGs.
+
 [airflow-aws-executors](https://github.com/aelzeiny/airflow-aws-executors) - Run Airflow Tasks directly on AWS Batch, AWS Fargate, or AWS ECS; provisioning less infra is more.
 
 [airflow-code-editor](https://github.com/andreax79/airflow-code-editor) - A tool for Apache Airflow that allows you to edit DAGs in browser.
