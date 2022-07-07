@@ -61,7 +61,7 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-datadog/stable/index.html"><code>Datadog</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-dbt-cloud/stable/index.html"><code>DBT cloud</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-dbt-cloud/stable/index.html"><code>dbt Cloud</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-dingding/stable/index.html"><code>Dingding</code></a></li>
 
@@ -77,7 +77,7 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html"><code>File Transfer Protocol (FTP)</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-github/stable/index.html"><code>Github</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-github/stable/index.html"><code>GitHub</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-google/stable/index.html"><code>Google</code></a></li>
 
@@ -113,7 +113,7 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-mysql/stable/index.html"><code>MySQL</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-neo4j/stable/index.html"><code>Neo4J</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-neo4j/stable/index.html"><code>Neo4j</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-odbc/stable/index.html"><code>ODBC</code></a></li>
 
