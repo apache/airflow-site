@@ -15,6 +15,46 @@
 # specific language governing permissions and limitations
 # under the License.
 
+#
+# The first stage builds golang and hugo from source
+#
+
+FROM debian:stretch-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        g++ \
+        gccgo \
+        git \
+        ca-certificates \
+        curl \
+    && apt-get autoremove -yqq --purge \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/go
+
+# Use gccgo to bootstrap a build of a relatively new version of golang
+RUN update-alternatives --install /usr/bin/go go /usr/bin/go-6 1 \
+    && curl -sL https://go.dev/dl/go1.16.15.src.tar.gz > go.tar.gz \
+    && tar --strip-components 1 -zxf go.tar.gz && cd src \
+    && GOROOT_BOOTSTRAP=/usr ./make.bash \
+    && update-alternatives --install /usr/bin/go go /opt/go/bin/go 1 \
+    && update-alternatives --set go /opt/go/bin/go
+
+WORKDIR /opt/hugo
+
+# Use the golang bin we just built to make an extended hugo binary
+RUN curl -sL https://github.com/gohugoio/hugo/archive/refs/tags/v0.89.2.tar.gz > hugo.tar.gz \
+    && tar --strip-components 1 -zxf hugo.tar.gz \
+    && export GOPATH=/root/go && mkdir $GOPATH \
+    && go get \
+    && CGO_ENABLED=1 go install --tags extended
+
+#
+# The second stage is the website build image
+#
+
 FROM debian:stretch-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
@@ -38,7 +78,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         nodejs \
@@ -57,12 +97,8 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 RUN curl -sL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" > /usr/local/bin/jq \
     && chmod +x /usr/local/bin/jq
 
-RUN HUGOHOME="$(mktemp -d)" \
-    && export HUGOHOME \
-    && curl -sL https://github.com/gohugoio/hugo/releases/download/v0.58.3/hugo_extended_0.58.3_Linux-64bit.tar.gz > "${HUGOHOME}/hugo.tar.gz" \
-    && tar -xzvf "${HUGOHOME}/hugo.tar.gz" hugo \
-    && mv hugo /usr/local/bin/hugo \
-    && chmod +x /usr/local/bin/hugo \
-    && rm -r "${HUGOHOME}"
+# Copy the extended Hugo binary from stage 1
+COPY --from=0 /root/go/bin/hugo /usr/local/bin/hugo
+RUN chmod +x /usr/local/bin/hugo
 
 WORKDIR /opt/site/
