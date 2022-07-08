@@ -19,7 +19,7 @@
 # The first stage builds golang and hugo from source
 #
 
-FROM debian:stretch-slim
+FROM debian:stretch-slim as hugobuilder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -35,10 +35,14 @@ RUN apt-get update \
 WORKDIR /opt/go
 
 # Use gccgo to bootstrap a build of a relatively new version of golang
+
 RUN update-alternatives --install /usr/bin/go go /usr/bin/go-6 1 \
     && curl -sL https://go.dev/dl/go1.16.15.src.tar.gz > go.tar.gz \
-    && tar --strip-components 1 -zxf go.tar.gz && cd src \
-    && GOROOT_BOOTSTRAP=/usr ./make.bash \
+    && tar --strip-components 1 -zxf go.tar.gz
+
+WORKDIR /opt/go/src
+
+RUN GOROOT_BOOTSTRAP=/usr ./make.bash \
     && update-alternatives --install /usr/bin/go go /opt/go/bin/go 1 \
     && update-alternatives --set go /opt/go/bin/go
 
@@ -98,7 +102,7 @@ RUN curl -sL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     && chmod +x /usr/local/bin/jq
 
 # Copy the extended Hugo binary from stage 1
-COPY --from=0 /root/go/bin/hugo /usr/local/bin/hugo
+COPY --from=hugobuilder /root/go/bin/hugo /usr/local/bin/hugo
 RUN chmod +x /usr/local/bin/hugo
 
 WORKDIR /opt/site/
