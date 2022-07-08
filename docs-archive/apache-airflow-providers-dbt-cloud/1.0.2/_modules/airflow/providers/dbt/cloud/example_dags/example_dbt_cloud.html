@@ -19,21 +19,23 @@
             <link rel="shortcut icon" href="../../../../../../_static/pin_32.png"/>
             <link rel="index" title="Index" href="../../../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../../../search.html" />
-<!-- Matomo -->
-<script>
-  var _paq = window._paq = window._paq || [];
-  _paq.push(['disableCookies']);
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="https://analytics.apache.org/";
-    _paq.push(['setTrackerUrl', u+'matomo.php']);
-    _paq.push(['setSiteId', '13']);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<!-- End Matomo -->
+    <!-- Matomo -->
+    <script>
+        var _paq = window._paq = window._paq || [];
+        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        /* We explicitly disable cookie tracking to avoid privacy issues */
+        _paq.push(['disableCookies']);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+        var u="https://analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '13']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+        })();
+    </script>
+    <!-- End Matomo Code -->
 
     
 </head><body class="td-section">
@@ -604,8 +606,12 @@
 
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
-<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.operators.dummy</span> <span class="kn">import</span> <span class="n">DummyOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">BaseOperator</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">airflow.operators.empty</span> <span class="kn">import</span> <span class="n">EmptyOperator</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">airflow.operators.dummy</span> <span class="kn">import</span> <span class="n">DummyOperator</span> <span class="k">as</span> <span class="n">EmptyOperator</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.dbt.cloud.operators.dbt</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">DbtCloudGetJobRunArtifactOperator</span><span class="p">,</span>
     <span class="n">DbtCloudRunJobOperator</span><span class="p">,</span>
@@ -620,8 +626,8 @@
     <span class="n">schedule_interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
-    <span class="n">begin</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;begin&quot;</span><span class="p">)</span>
-    <span class="n">end</span> <span class="o">=</span> <span class="n">DummyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">)</span>
+    <span class="n">begin</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;begin&quot;</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">)</span>
 
     <span class="c1"># [START howto_operator_dbt_cloud_run_job]</span>
     <span class="n">trigger_job_run1</span> <span class="o">=</span> <span class="n">DbtCloudRunJobOperator</span><span class="p">(</span>
@@ -633,7 +639,7 @@
     <span class="c1"># [END howto_operator_dbt_cloud_run_job]</span>
 
     <span class="c1"># [START howto_operator_dbt_cloud_get_artifact]</span>
-    <span class="n">get_run_results_artifact</span> <span class="o">=</span> <span class="n">DbtCloudGetJobRunArtifactOperator</span><span class="p">(</span>
+    <span class="n">get_run_results_artifact</span><span class="p">:</span> <span class="n">BaseOperator</span> <span class="o">=</span> <span class="n">DbtCloudGetJobRunArtifactOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;get_run_results_artifact&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="o">=</span><span class="n">trigger_job_run1</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;run_results.json&quot;</span>
     <span class="p">)</span>
     <span class="c1"># [END howto_operator_dbt_cloud_get_artifact]</span>
@@ -648,7 +654,7 @@
     <span class="c1"># [END howto_operator_dbt_cloud_run_job_async]</span>
 
     <span class="c1"># [START howto_operator_dbt_cloud_run_job_sensor]</span>
-    <span class="n">job_run_sensor</span> <span class="o">=</span> <span class="n">DbtCloudJobRunSensor</span><span class="p">(</span>
+    <span class="n">job_run_sensor</span><span class="p">:</span> <span class="n">BaseOperator</span> <span class="o">=</span> <span class="n">DbtCloudJobRunSensor</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;job_run_sensor&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="o">=</span><span class="n">trigger_job_run2</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">20</span>
     <span class="p">)</span>
     <span class="c1"># [END howto_operator_dbt_cloud_run_job_sensor]</span>

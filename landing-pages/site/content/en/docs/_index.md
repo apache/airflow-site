@@ -51,19 +51,17 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-apache-sqoop/stable/index.html"><code>Apache Sqoop</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-arangodb/stable/index.html"><code>ArangoDB</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-asana/stable/index.html"><code>Asana</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
-
-  <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>IBM Cloudant</code></a></li>
-
-  <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-databricks/stable/index.html"><code>Databricks</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-datadog/stable/index.html"><code>Datadog</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-dbt-cloud/stable/index.html"><code>DBT cloud</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-dbt-cloud/stable/index.html"><code>dbt Cloud</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-dingding/stable/index.html"><code>Dingding</code></a></li>
 
@@ -79,7 +77,7 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html"><code>File Transfer Protocol (FTP)</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-github/stable/index.html"><code>Github</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-github/stable/index.html"><code>GitHub</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-google/stable/index.html"><code>Google</code></a></li>
 
@@ -88,6 +86,8 @@ Providers packages include integrations with third party projects. They are upda
   <li><a href="/docs/apache-airflow-providers-hashicorp/stable/index.html"><code>Hashicorp</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-http/stable/index.html"><code>Hypertext Transfer Protocol (HTTP)</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>IBM Cloudant</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-influxdb/stable/index.html"><code>Influx DB</code></a></li>
 
@@ -99,19 +99,21 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-jira/stable/index.html"><code>Jira</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-psrp/stable/index.html"><code>Microsoft PowerShell Remoting Protocol (PSRP)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-mssql/stable/index.html"><code>Microsoft SQL Server (MSSQL)</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-microsoft-winrm/stable/index.html"><code>Windows Remote Management (WinRM)</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-microsoft-winrm/stable/index.html"><code>Microsoft Windows Remote Management (WinRM)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-mongo/stable/index.html"><code>MongoDB</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-mysql/stable/index.html"><code>MySQL</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-neo4j/stable/index.html"><code>Neo4J</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-neo4j/stable/index.html"><code>Neo4j</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-odbc/stable/index.html"><code>ODBC</code></a></li>
 
