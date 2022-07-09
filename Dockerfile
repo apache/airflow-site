@@ -44,7 +44,7 @@ RUN curl -sL https://github.com/gohugoio/hugo/archive/refs/tags/v0.58.3.tar.gz >
 # The second stage is the website build image
 #
 
-FROM debian:buster-slim
+FROM debian:stretch-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
