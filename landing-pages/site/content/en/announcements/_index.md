@@ -15,6 +15,15 @@ menu:
 
 # June 04, 2022
 
+We’ve just released Apache **Airflow 2.3.3**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.3.3/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.3.3 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.3.3/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.3.3/installation/installing-from-sources.html
+
+# June 04, 2022
+
 We’ve just released Apache **Airflow 2.3.2**.
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.3.2/ \
