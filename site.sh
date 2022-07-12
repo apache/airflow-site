@@ -29,20 +29,20 @@ function usage {
 cat << EOF
 usage: ${0} <command> [<args>]
 
-These are  ${0} commands used in various situations:
+These are the ${0} commands that can be used in various situations:
 
-    build-site            Prepare dist directory with landing pages and documentation.
-    preview-landing-pages Starts the web server with preview of the website.
-    build-landing-pages   Builds a landing pages.
-    prepare-theme         Prepares and copies files needed for the proper functioning of the sphinx theme.
+    build-site            Prepare dist/ directory with landing pages and docs.
+    preview-landing-pages Start the web server with preview of the landing pages.
+    build-landing-pages   Build the landing pages.
+    prepare-theme         Copy required CSS/JS files from landing pages into the docs theme.
     install-node-deps     Download all the Node dependencies.
-    check-site-links      Checks if the links are correct in the website.
+    check-site-links      Check to make sure that links are correct in the website.
     lint-css              Lint CSS files.
     lint-js               Lint Javascript files.
     help                  Display usage.
 
-The lint-css and lint-js accept paths in arguments. If no path is given, the script
-will be executed for all supported files.
+The lint-css and lint-js commands accept paths in arguments. If no path is given,
+the script will be executed for all supported files.
 
 EOF
 }

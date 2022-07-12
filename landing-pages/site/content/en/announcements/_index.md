@@ -13,7 +13,7 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
-# June 04, 2022
+# July 09, 2022
 
 We’ve just released Apache **Airflow 2.3.3**.
 
