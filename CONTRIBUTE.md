@@ -65,7 +65,9 @@ be done by the site.sh script
 The following applications must be installed to use the project:
 
 * git
-* docker
+* docker (for the shell language linter)
+* Node 16
+* Hugo
 
 It is also worth adding SSH keys for the `github.com` server to trusted ones. It is necessary to clone repositories. You can do this using following command:
 ```bash
@@ -89,6 +91,37 @@ Git must have commit author information configured, run these commands
 ```bash
 git config --global user.email '<your.email@example.com>'
 git config --global user.name '<you name>'
+```
+
+To install Node 16, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 16 with these commands:
+
+```bash
+nvm install 16
+nvm use 16
+```
+
+To install hugo on Debian, run the following command:
+```bash
+sudo apt install hugo -y
+```
+
+**macOS installation**
+
+To install git on macOS, install the XCode Command Line Tools with the following command:
+```bash
+xcode-select --install
+```
+
+Then, install [Homebrew](https://brew.sh). Once that has completed, you can install Hugo:
+```bash
+brew install hugo
+```
+
+To install Node 16, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 16 with these commands:
+
+```bash
+nvm install 16
+nvm use 16
 ```
 
 ### Static checks
@@ -127,8 +160,7 @@ git submodule update --init --recursive
 
 ### Use `site.sh` script
 
-In order to run an environment for the project, make sure that you have Docker installed. Then, use the `site.sh`
-script to work with the website in a Docker container.
+In order to manage your local environment for the project, use the `site.sh` script.
 
 `site.sh` provides the following commands.
 
@@ -136,14 +168,10 @@ script to work with the website in a Docker container.
     preview-landing-pages Starts the web server with preview of the website
     build-landing-pages   Builds a landing pages
     prepare-theme         Prepares and copies files needed for the proper functioning of the sphinx theme.
-    shell                 Start shell
-    build-image           Build a Docker image with a environment
     install-node-deps     Download all the Node dependencies
     check-site-links      Checks if the links are correct in the website
     lint-css              Lint CSS files
     lint-js               Lint Javascript files
-    cleanup               Delete the virtual environment in Docker
-    stop                  Stop the environment
     help                  Display usage
 
 ### How to add a new blogpost
