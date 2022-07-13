@@ -558,3 +558,7 @@ The results are quite self-explanatory. According to the survey results, the top
 | Support for hybrid executors                            | 22  | 11.3% |
 
 According to the survey results, DAG Versioning is a winner for new features in Airflow, and it’s not a surprise as this feature may positively impact daily work of Airflow users. It is followed by three other ideas: Dependency management and Data-driven scheduling (42.6%), More dynamic task structure (42.1%) and Multi-Tenancy (37.9%). Another interesting point from that question is that only 11.3% think that support for hybrid executors is needed in Airflow.
+
+## Data
+
+If you're interested in taking a look at the raw data yourself, it's available here: (Airflow User Survey 2022.csv)[/data/survey-responses/airflow-user-survey-responses-2022.csv.zip]
