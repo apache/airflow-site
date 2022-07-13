@@ -19,6 +19,8 @@ Apache Airflow Core, which includes webserver, scheduler, CLI and other componen
 Providers packages include integrations with third party projects. They are updated independently of the Apache Airflow core.
 [Read the documentation >>](/docs/apache-airflow-providers/index.html)
 
+{{< rawhtml >}}
+
 <ul class="list-providers">
 
   <li><a href="/docs/apache-airflow-providers-airbyte/stable/index.html"><code>Airbyte</code></a></li>
@@ -171,6 +173,8 @@ Providers packages include integrations with third party projects. They are upda
 
 </ul>
 
+{{< /rawhtml >}}
+
 ## [Docker stack](/docs/docker-stack/index.html)
 
 Airflow has an official Dockerfile and Docker image published in DockerHub as a convenience package for
@@ -183,19 +187,6 @@ your own deployments.
 
 Airflow has an official Helm Chart that will help you set up your own Airflow on a cloud/on-prem Kubernetes environment and leverage its scalable nature to support a large group of users. Thanks to Kubernetes, we are not tied to a specific cloud provider.
 [Read the documentation >>](/docs/helm-chart/stable/index.html)
-
-<style>
-    @media (min-width: 768px) {
-        .list-providers {
-            column-count: 2
-        }
-    }
-    @media (min-width: 1000px) {
-        .list-providers {
-            column-count: 3
-        }
-    }
-</style>
 
 ## [Python API Client](https://github.com/apache/airflow-client-python)
 
