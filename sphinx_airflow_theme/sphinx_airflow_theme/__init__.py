@@ -37,5 +37,6 @@ def setup_my_func(app, config):
 def setup(app: Sphinx):
     app.add_html_theme('sphinx_airflow_theme', path.abspath(path.dirname(__file__)))
     app.add_css_file('_gen/css/main-custom.min.css')
+    app.add_js_file('js/globaltoc.js')
     app.connect("config-inited", setup_my_func)
     return {"version": "__version__", "parallel_read_safe": True, "parallel_write_safe": True}
