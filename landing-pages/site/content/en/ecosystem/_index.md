@@ -67,8 +67,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Kafka Provider](https://github.com/astronomer/airflow-provider-kafka) - Apache Airflow Kafka provider containing Deferrable Operators & Sensors.
 
-&nbsp;
-
 ## Third Party Airflow Helm Charts
 
 Apache Airflow releases the [Official Apache Airflow Community Chart](https://airflow.apache.org/docs/helm-chart/stable/index.html) as of early 2021 but historically there were few other popular charts
