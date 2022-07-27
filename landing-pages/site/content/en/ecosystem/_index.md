@@ -57,6 +57,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow ECR Plugin](https://github.com/asandeep/airflow-ecr-plugin) - Plugin to refresh AWS ECR login token at regular intervals. This is helpful where DockerOperator needs to pull images hosted on ECR.
 
+[Airflow OpenMLDB Provider](https://github.com/4paradigm/OpenMLDB/tree/main/extensions/airflow-provider-openmldb) - Airflow OpenMLDB Provider containing Operators for Feature Extraction on OpenMLDB.
+
 &nbsp;
 
 ## Async Providers
@@ -64,6 +66,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 [Astronomer Providers](https://github.com/astronomer/astronomer-providers) - A collection of Async Operators and Sensors for Apache Airflow built and maintained by Astronomer.
 
 [Airflow Kafka Provider](https://github.com/astronomer/airflow-provider-kafka) - Apache Airflow Kafka provider containing Deferrable Operators & Sensors.
+
+&nbsp;
 
 ## Third Party Airflow Helm Charts
 
