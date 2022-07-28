@@ -192,7 +192,7 @@ your own deployments.
 Airflow has an official Helm Chart that will help you set up your own Airflow on a cloud/on-prem Kubernetes environment and leverage its scalable nature to support a large group of users. Thanks to Kubernetes, we are not tied to a specific cloud provider.
 [Read the documentation >>](/docs/helm-chart/stable/index.html)
 
-## [Python API Client](https://github.com/apache/airflow-client-python)
+## [Python API Client](https://github.com/apache/airflow-client-python/blob/master/airflow_client/README.md)
 
 Airflow releases official Python API client that can be used to easily interact with Airflow REST API from Python code.
 [See the client repository](https://github.com/apache/airflow-client-python)
