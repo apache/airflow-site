@@ -59,6 +59,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow OpenMLDB Provider](https://github.com/4paradigm/OpenMLDB/tree/main/extensions/airflow-provider-openmldb) - Airflow OpenMLDB Provider containing Operators for Feature Extraction on OpenMLDB.
 
+[Airflow Apache Mesos Provider](https://github.com/AVENTER-UG/airflow-provider-mesos/blob/master/README.md) - Airflow Apache Mesos Provider containing Scheduler to scale out with Apache Mesos.
+
 &nbsp;
 
 ## Async Providers
