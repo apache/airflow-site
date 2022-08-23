@@ -61,6 +61,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Apache Mesos Provider](https://github.com/AVENTER-UG/airflow-provider-mesos/blob/master/README.md) - Airflow Apache Mesos Provider containing Scheduler to scale out with Apache Mesos.
 
+[Airflow Netezza Provider](https://github.com/sanjay-rendu/apache-airflow-providers-nz) - Airflow Provider to connect with [Netezza](https://www.ibm.com/products/netezza) using [nzpy](https://github.com/IBM/nzpy)
+
 &nbsp;
 
 ## Async Providers
