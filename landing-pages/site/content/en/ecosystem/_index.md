@@ -140,3 +140,5 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 [whirl](https://github.com/godatadriven/whirl) - Fast iterative local development and testing of Apache Airflow workflows.
 
 [ZenML](https://github.com/zenml-io/zenml) - Run your machine learning specific pipelines on Airflow, easily integrating with your existing data science tools and workflows.
+
+[Airflow Vscode Extension](https://github.com/necatiarslan/airflow-vscode-extension) This is a VSCode extension for Apache Airflow 2+. You can trigger your DAGs, pause/unpause DAGs, view execution logs, explore source code and do much more.
