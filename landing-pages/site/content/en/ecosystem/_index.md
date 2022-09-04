@@ -85,6 +85,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 ## Tools integrating with Airflow
 
+[as-scraper](https://github.com/Avila-Systems/as-scraper) - An integration with Selenium to build & mantain web scrapers inside Airflow.
+
 [afctl](https://github.com/qubole/afctl) - A CLI tool that includes everything required to create, manage and deploy airflow projects faster and smoother.
 
 [airflint](https://github.com/feluelle/airflint) - Enforce Best Practices for all your Airflow DAGs.
