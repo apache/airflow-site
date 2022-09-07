@@ -47,6 +47,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Heroku Deployment](https://github.com/slyapustin/airflow-on-heroku) - Airflow Heroku Deployment allows creating a demo Airflow instance in just a couple of clicks.
 
+[Self-managed Airflow on Amazon EKS](https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/examples/analytics/airflow-on-eks) - Self-managed Apache Airflow deployment on Aamzon EKS using [Terraform](https://www.terraform.io/). See [docs](https://aws-ia.github.io/terraform-aws-eks-blueprints/main/add-ons/apache-airflow/) for more details.
+
 &nbsp;
 
 ## Third Party Airflow Plugins and Providers
@@ -70,6 +72,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 [Astronomer Providers](https://github.com/astronomer/astronomer-providers) - A collection of Async Operators and Sensors for Apache Airflow built and maintained by Astronomer.
 
 [Airflow Kafka Provider](https://github.com/astronomer/airflow-provider-kafka) - Apache Airflow Kafka provider containing Deferrable Operators & Sensors.
+
+&nbsp;
 
 ## Third Party Airflow Helm Charts
 
