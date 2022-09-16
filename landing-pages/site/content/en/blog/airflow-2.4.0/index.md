@@ -133,6 +133,7 @@ With over 650 commits the full list of features, fixes and changes is too big to
 - Add roles delete command to cli (#25854)
 - Add support for `TaskGroup` in `ExternalTaskSensor` (#24902)
 - Add `@task.kubernetes` taskflow decorator (#25663)
+- Add experimental `parsing_context` to enable optimization of Dynamic DAG handling in workers (#25161)
 - Consolidate to one `schedule` param (#25410)
 - Allow showing non-sensitive config values in Admin -> Configuration (rather than all or nothing) (#25346)
 - Operator name separate from class (no more `_PythonDecoratedOperator` when using TaskFlow) (#22834)
