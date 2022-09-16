@@ -10,7 +10,7 @@ date: "2022-09-19"
 ---
 
 Apache Airflow
-Apache Airflow 2.4.0 contains over 650 "user-facing" commits in this release (excluding commits to providers or chart) and over 870 in total, not cou since 2.3.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.
+Apache Airflow 2.4.0 contains over 650 "user-facing" commits in this release (excluding commits to providers or chart) and over 870 in total since 2.3.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.
 
 **Details**:
 
