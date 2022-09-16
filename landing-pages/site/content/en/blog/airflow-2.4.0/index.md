@@ -9,8 +9,7 @@ tags: [Release]
 date: "2022-09-19"
 ---
 
-Apache Airflow
-Apache Airflow 2.4.0 contains over 650 "user-facing" commits in this release (excluding commits to providers or chart) and over 870 in total since 2.3.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.
+Apache Airflow 2.4.0 contains over 650 "user-facing" commits (excluding commits to providers or chart) and over 870 total. That includes 46 new features, 39 improvements, 52 bug fixes, and several documentation changes.
 
 **Details**:
 
@@ -55,8 +54,6 @@ with DAG(dag_id='dataset-consumer', schedule=[dataset]):
 
 With these two DAGs, the instant `my_task` finishes, Airflow will create the DAG run for the `dataset-consumer` workflow.
 
-If you have the producer and consumer DAGs in different files you do not need to use the same Dataset object, two `Dataset()`s created with the same URI are equal.
-
 We know that what exists right now won't fit all use cases that people might wish for datasets, and in the coming minor releases (2.5, 2.6, etc.) we will expand and improve upon this foundation.
 
 Datasets represent the abstract concept of a dataset, and (for now) do not have any direct read or write capability - in this release we are adding the foundational feature that we will build upon in the future - and it's part of our goal to have smaller releases to get new features in your hands sooner!
@@ -75,9 +72,9 @@ You asked, we listened. Dynamic task mapping now includes support for:
 
 For more information on dynamic task mapping, see the new sections of the doc on [Transforming Mapped Data][transforming-mapped-data], [Combining upstream data (aka "zipping")][task-mapping-zip], and [Assigning multiple parameters to a non-TaskFlow operator][expand-kwargs].
 
-[task-mapping-zip]: https://airflow.apache.org/docs/apache-airflow/stable/concepts/dynamic-task-mapping.html#combining-upstream-data-aka-zipping
-[transforming-mapped-data]: https://airflow.apache.org/docs/apache-airflow/stable/concepts/dynamic-task-mapping.html#transforming-mapped-data
-[expand-kwargs]: https://airflow.apache.org/docs/apache-airflow/stable/concepts/dynamic-task-mapping.html#assigning-multiple-parameters-to-a-non-taskflow-operator
+[task-mapping-zip]: https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/dynamic-task-mapping.html#combining-upstream-data-aka-zipping
+[transforming-mapped-data]: https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/dynamic-task-mapping.html#transforming-mapped-data
+[expand-kwargs]: https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/dynamic-task-mapping.html#assigning-multiple-parameters-to-a-non-taskflow-operator
 
 ## Auto-register DAGs used in a context manager (no more `as dag:` needed)
 
