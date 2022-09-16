@@ -1,10 +1,11 @@
 ---
-title: "Apache Airflow 2.4.0: Data
+title: "Apache Airflow 2.4.0: That Data Aware Release
 linkTitle: "Apache Airflow 2.4.0"
 author: "Ash Berlin-Taylor"
 github: "ashberlin"
+twitter: "ashberlin"
 linkedin: "ashberlin-taylor"
-description: "We're proud to announce that Apache Airflow 2.4.0 has been released."
+description: "We're proud to announce that Apache Airflow 2.4.0 has been released with many exciting improvements."
 tags: [Release]
 date: "2022-09-19"
 ---
@@ -60,7 +61,24 @@ Datasets represent the abstract concept of a dataset, and (for now) do not have 
 
 For more information on datasets, see the [documentation on Data-aware scheduling][data-aware-scheduling]. That includes details on how datasets are identified (URIs), how you can depend on multiple datasets, and how to think about what a dataset is (hint: don't include "date partitions" in a dataset, it's higher level than that).
 
-[data-aware-scheduling]: https://airflow.apache.org/docs/apache-airflow/stable/concepts/datasets.html
+[data-aware-scheduling]: https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/datasets.html
+
+## Easier management of conflicting python dependencies using the new ExternalPythonOperator
+
+As much as we wish all python libraries could be used happily together that sadly isn't the world we live in, and sometimes there are conflicts when trying to install multiple python libraries in an Airflow install -- right now we hear this a lot with `dbt-core`.
+
+To make this easier we have introduced `@task.external_python` (and the matching `ExternalPythonOperator`) that lets you run an python function as an Airflow task in a pre-configured virtual env, or even a whole different python version. For example:
+
+```python
+@task.external_python(python='/opt/venvs/task_deps/bin/python')
+def my_task(data_interval_start, data_interval_env)
+    print(f'Looking at data between {data_interval_start} and {data_interval_end}')
+    ...
+```
+
+There are a few subtlties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the [how-to on using the ExternalPythonOperator][howto-externalpythonop]
+
+[howto-externalpythonop]: http://airflow.apache.org/docs/apache-airflow/2.4.0/howto/operator/python.html#externalpythonoperator
 
 ## More improvments to Dynamic Task Mapping (AIP-42)
 
@@ -126,7 +144,7 @@ We're sorry to remove this feature (we didn't do it lightly) but to enable us to
 
 ## Additional improvements
 
-With over 650 commits the full list of features, fixes and changes is too big to go in to here (check out the release notes for a full list), but some noteworthy or interesting small features include:
+With over 650 commits the [full list of features, fixes and changes][release-notes-2.4.0] is too big to go in to here (check out the release notes for a full list), but some noteworthy or interesting small features include:
 
 - Auto-refresh on the home page
 - Add `@task.short_circuit` TaskFlow decorator
@@ -137,6 +155,8 @@ With over 650 commits the full list of features, fixes and changes is too big to
 - Consolidate to one `schedule` param (#25410)
 - Allow showing non-sensitive config values in Admin -> Configuration (rather than all or nothing) (#25346)
 - Operator name separate from class (no more `_PythonDecoratedOperator` when using TaskFlow) (#22834)
+
+[release-notes-2.4.0]: https://airflow.apache.org/docs/apache-airflow/2.4.0/release_notes.html#airflow-2-4-0-2022-09-19
 
 ## Contributors
 
