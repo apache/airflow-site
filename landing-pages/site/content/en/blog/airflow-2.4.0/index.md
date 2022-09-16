@@ -92,6 +92,7 @@ def dag_maker():
 
 
 dag2 = dag_maker()
+```
 
 can become
 
@@ -107,6 +108,7 @@ def my_dag():
 
 
 my_dag()
+```
 
 If you want to disable the behaviour for any reason then set `auto_register=False` on the dag:
 
