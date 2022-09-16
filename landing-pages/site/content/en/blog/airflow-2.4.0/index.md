@@ -148,13 +148,13 @@ With over 650 commits the [full list of features, fixes and changes][release-not
 
 - Auto-refresh on the home page
 - Add `@task.short_circuit` TaskFlow decorator
-- Add roles delete command to cli (#25854)
-- Add support for `TaskGroup` in `ExternalTaskSensor` (#24902)
-- Add `@task.kubernetes` taskflow decorator (#25663)
-- Add experimental `parsing_context` to enable optimization of Dynamic DAG handling in workers (#25161)
-- Consolidate to one `schedule` param (#25410)
-- Allow showing non-sensitive config values in Admin -> Configuration (rather than all or nothing) (#25346)
-- Operator name separate from class (no more `_PythonDecoratedOperator` when using TaskFlow) (#22834)
+- Add roles delete command to cli
+- Add support for `TaskGroup` in `ExternalTaskSensor`
+- Add `@task.kubernetes` taskflow decorator
+- Add experimental `parsing_context` to enable optimization of Dynamic DAG handling in workers
+- Consolidate to one `schedule` param
+- Allow showing non-sensitive config values in Admin -> Configuration (rather than all or nothing)
+- Operator name separate from class (no more `_PythonDecoratedOperator` when using TaskFlow)
 
 [release-notes-2.4.0]: https://airflow.apache.org/docs/apache-airflow/2.4.0/release_notes.html#airflow-2-4-0-2022-09-19
 
