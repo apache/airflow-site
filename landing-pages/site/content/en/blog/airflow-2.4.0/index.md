@@ -24,7 +24,7 @@ Apache Airflow 2.4.0 contains over 650 "user-facing" commits (excluding commits 
 
 This one is big. Airflow now has the ability to schedule DAGs based on other tasks updating datasets.
 
-What does this mean, exactly? This is a great new feature and lets DAG authors create smaller, more self-contained DAGs, that can chain together into a larger data-based workflow. If you are currently using `ExternalTaskSensor` or `TriggerDagRunOperator` you should take a look at datasets -- in most cases you can replace them with something that will speed up the scheduling!
+What does this mean, exactly? This is a great new feature that lets DAG authors create smaller, more self-contained DAGs, which chain together into a larger data-based workflow. If you are currently using `ExternalTaskSensor` or `TriggerDagRunOperator` you should take a look at datasets -- in most cases you can replace them with something that will speed up the scheduling!
 
 But enough talking, lets have a short example. First lets write a simple DAG with a task called `my_task` that produces a dataset called `my-dataset`:
 
