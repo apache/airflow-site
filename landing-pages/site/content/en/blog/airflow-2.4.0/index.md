@@ -26,7 +26,7 @@ This one is big. Airflow now has the ability to schedule DAGs based on other tas
 
 What does this mean, exactly? This is a great new feature and lets DAG authors create smaller, more self-contained DAGs, that can chain together into a larger data-based workflow. If you are currently using `ExternalTaskSensor` or `TriggerDagRunOperator` you should take a look at datasets -- in most cases you can replace them with something that will speed up the scheduling!
 
-But enough talking, lets have a short example. First lets create the task that produces the dataset:
+But enough talking, lets have a short example. First lets write a simple DAG with a task called `my_task` that produces a dataset called `my-dataset`:
 
 ```python
 from airflow import Dataset
@@ -81,7 +81,7 @@ For more information on dynamic task mapping, see the new sections of the doc on
 
 ## Auto-register DAGs used in a context manager (no more `as dag:` needed)
 
-This one is a small quality of life improvement, and I don't want to admit how many times I forgot the `as dag:`, or worse, had `as dag:` repeated (meaning only the last use showed up)
+This one is a small quality of life improvement, and I don't want to admit how many times I forgot the `as dag:`, or worse, had `as dag:` repeated.
 
 ```python
 
