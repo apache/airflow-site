@@ -40,7 +40,7 @@ with DAG(dag_id='producer', ...)
         ...
 ```
 
-And then we can tell Airflow to schedule a DAG whenever this Dataset changes:
+Datasets are defined by a URI. Now, we can create a second DAG (`consumer`) that gets scheduled whenever this dataset changes:
 
 ```python
 
