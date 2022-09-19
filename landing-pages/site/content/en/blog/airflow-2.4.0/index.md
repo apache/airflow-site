@@ -136,12 +136,6 @@ with DAG(dag_id="example", auto_register=False):
     ...
 ```
 
-## Removal of experimental Smart Sensors feature
-
-Smart Sensors were added in Airflow 2.0 and are were deprecated starting from Airflow 2.2 in favor of Deferrable operators. If you are using smart sensors, you will have to switch to using deferrable operators before you can upgrade to Airflow 2.4.
-
-We're sorry to remove this feature (we didn't do it lightly) but to enable us to continue to grow and evolve Airflow we needed to remove this experimental code. We will only do this sort of change in a minor release for features marked as experimental. Any feature that is fully supported will only ever be removed in a major release.
-
 ## Additional improvements
 
 With over 650 commits the [full list of features, fixes and changes][release-notes-2.4.0] is too big to go in to here (check out the release notes for a full list), but some noteworthy or interesting small features include:
