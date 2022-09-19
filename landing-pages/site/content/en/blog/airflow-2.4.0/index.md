@@ -1,5 +1,5 @@
 ---
-title: "Apache Airflow 2.4.0: That Data Aware Release
+title: "Apache Airflow 2.4.0: That Data Aware Release"
 linkTitle: "Apache Airflow 2.4.0"
 author: "Ash Berlin-Taylor"
 github: "ashberlin"
