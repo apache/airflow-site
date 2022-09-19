@@ -80,7 +80,7 @@ There are a few subtlties as to what you need installed in the virtual env depen
 
 [howto-externalpythonop]: http://airflow.apache.org/docs/apache-airflow/2.4.0/howto/operator/python.html#externalpythonoperator
 
-## More improvments to Dynamic Task Mapping (AIP-42)
+## More improvements to Dynamic Task Mapping (AIP-42)
 
 You asked, we listened. Dynamic task mapping now includes support for:
 
