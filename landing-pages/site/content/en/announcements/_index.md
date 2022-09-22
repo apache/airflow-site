@@ -13,6 +13,18 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# September 22, 2022
+
+Airflow PMC welcomes new Airlow Committer:
+
+* **Pierre Jeambrun** ([@pierrejeambrun](https://github.com/pierrejeambrun))
+
+and new Airflow PMC members:
+
+* **Tzu-ping Chung** ([@uranusjr](https://github.com/uranusjr))
+* **Daniel Standish** ([@dstadish](https://github.com/dstandish))
+
+
 # September 19, 2022
 
 We’ve just released Apache **Airflow 2.4.0**. You can read all about [what's new in Apache Airflow 2.4.0]({{< ref "blog/airflow-2.4.0/index.md" >}}) blog post.
