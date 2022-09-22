@@ -15,7 +15,7 @@ menu:
 
 # September 22, 2022
 
-Airflow PMC welcomes new Airlow Committer:
+Airflow PMC welcomes new Airflow Committer:
 
 * **Pierre Jeambrun** ([@pierrejeambrun](https://github.com/pierrejeambrun))
 
