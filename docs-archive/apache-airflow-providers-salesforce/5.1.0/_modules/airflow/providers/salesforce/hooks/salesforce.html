@@ -604,7 +604,6 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
-<span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains a Salesforce Hook which allows you to connect to your Salesforce instance,</span>
 <span class="sd">retrieve data from it, and write that data to a file for other uses.</span>
@@ -612,9 +611,11 @@
 <span class="sd">.. note:: this hook also relies on the simple_salesforce package:</span>
 <span class="sd">      https://github.com/simple-salesforce/simple-salesforce</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Session</span>
@@ -657,8 +658,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">salesforce_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">default_conn_name</span><span class="p">,</span>
-        <span class="n">session_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">session</span><span class="p">:</span> <span class="n">Session</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span> <span class="o">=</span> <span class="n">salesforce_conn_id</span>
@@ -666,7 +667,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
 
     <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="SalesforceHook.get_connection_form_widgets"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.get_connection_form_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_connection_form_widgets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SalesforceHook.get_connection_form_widgets"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.get_connection_form_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_connection_form_widgets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns connection widgets to add to connection form&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">flask_appbuilder.fieldwidgets</span> <span class="kn">import</span> <span class="n">BS3PasswordFieldWidget</span><span class="p">,</span> <span class="n">BS3TextFieldWidget</span>
         <span class="kn">from</span> <span class="nn">flask_babel</span> <span class="kn">import</span> <span class="n">lazy_gettext</span>
@@ -703,7 +704,7 @@
         <span class="p">}</span>
 
     <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="SalesforceHook.get_ui_field_behaviour"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.get_ui_field_behaviour">[docs]</a>    <span class="k">def</span> <span class="nf">get_ui_field_behaviour</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SalesforceHook.get_ui_field_behaviour"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.get_ui_field_behaviour">[docs]</a>    <span class="k">def</span> <span class="nf">get_ui_field_behaviour</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns custom field behaviour&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;hidden_fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;schema&quot;</span><span class="p">,</span> <span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="s2">&quot;extra&quot;</span><span class="p">,</span> <span class="s2">&quot;host&quot;</span><span class="p">],</span>
@@ -745,9 +746,7 @@
         <span class="sd">&quot;&quot;&quot;Returns a Salesforce instance. (cached)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span></div>
 
-<div class="viewcode-block" id="SalesforceHook.make_query"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.make_query">[docs]</a>    <span class="k">def</span> <span class="nf">make_query</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">include_deleted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">query_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="SalesforceHook.make_query"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.make_query">[docs]</a>    <span class="k">def</span> <span class="nf">make_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">include_deleted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">query_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a query to Salesforce.</span>
 
@@ -783,7 +782,7 @@
 
         <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SalesforceHook.get_available_fields"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.get_available_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_available_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="SalesforceHook.get_available_fields"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.get_available_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_available_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a list of all available fields for an object.</span>
 
@@ -856,7 +855,7 @@
 
 <div class="viewcode-block" id="SalesforceHook.write_object_to_file"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.write_object_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">write_object_to_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">query_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
+        <span class="n">query_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
         <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span>
         <span class="n">coerce_to_timestamp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -933,7 +932,7 @@
         <span class="k">return</span> <span class="n">df</span></div>
 
 <div class="viewcode-block" id="SalesforceHook.object_to_df"><a class="viewcode-back" href="../../../../../_api/airflow/providers/salesforce/hooks/salesforce/index.html#airflow.providers.salesforce.hooks.salesforce.SalesforceHook.object_to_df">[docs]</a>    <span class="k">def</span> <span class="nf">object_to_df</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">query_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">coerce_to_timestamp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">record_time_added</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">query_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">coerce_to_timestamp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">record_time_added</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Export query results to dataframe.</span>

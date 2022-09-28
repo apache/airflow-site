@@ -101,7 +101,7 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html"><code>Jenkins</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-jira/stable/index.html"><code>Jira</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-atlassian-jira/stable/index.html"><code>Atlassian Jira</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 

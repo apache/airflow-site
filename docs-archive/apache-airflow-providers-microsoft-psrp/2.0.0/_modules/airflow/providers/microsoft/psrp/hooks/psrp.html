@@ -600,11 +600,12 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">DEBUG</span><span class="p">,</span> <span class="n">ERROR</span><span class="p">,</span> <span class="n">INFO</span><span class="p">,</span> <span class="n">WARNING</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Generator</span>
 <span class="kn">from</span> <span class="nn">weakref</span> <span class="kn">import</span> <span class="n">WeakKeyDictionary</span>
 
 <span class="kn">from</span> <span class="nn">pypsrp.host</span> <span class="kn">import</span> <span class="n">PSHost</span>
@@ -660,18 +661,18 @@
 
     <span class="n">_conn</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_configuration_name</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_wsman_ref</span><span class="p">:</span> <span class="s2">&quot;WeakKeyDictionary[RunspacePool, WSMan]&quot;</span> <span class="o">=</span> <span class="n">WeakKeyDictionary</span><span class="p">()</span>
+    <span class="n">_wsman_ref</span><span class="p">:</span> <span class="n">WeakKeyDictionary</span><span class="p">[</span><span class="n">RunspacePool</span><span class="p">,</span> <span class="n">WSMan</span><span class="p">]</span> <span class="o">=</span> <span class="n">WeakKeyDictionary</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">psrp_conn_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">logging_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEBUG</span><span class="p">,</span>
-        <span class="n">operation_timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">runspace_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">wsman_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">on_output_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OutputCallback</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">operation_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">runspace_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wsman_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">on_output_callback</span><span class="p">:</span> <span class="n">OutputCallback</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exchange_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">host</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PSHost</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">host</span><span class="p">:</span> <span class="n">PSHost</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span> <span class="o">=</span> <span class="n">psrp_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logging_level</span> <span class="o">=</span> <span class="n">logging_level</span>
@@ -799,7 +800,7 @@
             <span class="k">if</span> <span class="n">local_context</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PsrpHook.invoke_cmdlet"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/microsoft/psrp/hooks/psrp/index.html#airflow.providers.microsoft.psrp.hooks.psrp.PsrpHook.invoke_cmdlet">[docs]</a>    <span class="k">def</span> <span class="nf">invoke_cmdlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_local_scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">PowerShell</span><span class="p">:</span>
+<div class="viewcode-block" id="PsrpHook.invoke_cmdlet"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/microsoft/psrp/hooks/psrp/index.html#airflow.providers.microsoft.psrp.hooks.psrp.PsrpHook.invoke_cmdlet">[docs]</a>    <span class="k">def</span> <span class="nf">invoke_cmdlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_local_scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">PowerShell</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Invoke a PowerShell cmdlet and return session.&quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">invoke</span><span class="p">()</span> <span class="k">as</span> <span class="n">ps</span><span class="p">:</span>
             <span class="n">ps</span><span class="o">.</span><span class="n">add_cmdlet</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">use_local_scope</span><span class="o">=</span><span class="n">use_local_scope</span><span class="p">)</span>
