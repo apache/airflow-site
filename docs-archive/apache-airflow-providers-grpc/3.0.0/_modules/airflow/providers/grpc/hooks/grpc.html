@@ -599,9 +599,10 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
-
 <span class="sd">&quot;&quot;&quot;GRPC Hook&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Generator</span>
 
 <span class="kn">import</span> <span class="nn">grpc</span>
 <span class="kn">from</span> <span class="nn">google</span> <span class="kn">import</span> <span class="n">auth</span> <span class="k">as</span> <span class="n">google_auth</span>
@@ -636,7 +637,7 @@
 <div class="viewcode-block" id="GrpcHook.hook_name"><a class="viewcode-back" href="../../../../../_api/airflow/providers/grpc/hooks/grpc/index.html#airflow.providers.grpc.hooks.grpc.GrpcHook.hook_name">[docs]</a>    <span class="n">hook_name</span> <span class="o">=</span> <span class="s1">&#39;GRPC Connection&#39;</span></div>
 
     <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="GrpcHook.get_connection_form_widgets"><a class="viewcode-back" href="../../../../../_api/airflow/providers/grpc/hooks/grpc/index.html#airflow.providers.grpc.hooks.grpc.GrpcHook.get_connection_form_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_connection_form_widgets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="GrpcHook.get_connection_form_widgets"><a class="viewcode-back" href="../../../../../_api/airflow/providers/grpc/hooks/grpc/index.html#airflow.providers.grpc.hooks.grpc.GrpcHook.get_connection_form_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_connection_form_widgets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns connection widgets to add to connection form&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">flask_appbuilder.fieldwidgets</span> <span class="kn">import</span> <span class="n">BS3TextFieldWidget</span>
         <span class="kn">from</span> <span class="nn">flask_babel</span> <span class="kn">import</span> <span class="n">lazy_gettext</span>
@@ -657,8 +658,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">grpc_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">default_conn_name</span><span class="p">,</span>
-        <span class="n">interceptors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">custom_connection_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">interceptors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">custom_connection_func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grpc_conn_id</span> <span class="o">=</span> <span class="n">grpc_conn_id</span>
@@ -710,7 +711,7 @@
         <span class="k">return</span> <span class="n">channel</span></div>
 
 <div class="viewcode-block" id="GrpcHook.run"><a class="viewcode-back" href="../../../../../_api/airflow/providers/grpc/hooks/grpc/index.html#airflow.providers.grpc.hooks.grpc.GrpcHook.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">stub_class</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">call_func</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">streaming</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">stub_class</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">call_func</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">streaming</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Call gRPC function and yield response to caller&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
