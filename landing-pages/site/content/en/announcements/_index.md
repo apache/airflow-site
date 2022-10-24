@@ -13,6 +13,16 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+
+# October 24, 2022
+
+We’ve just released Apache **Airflow 2.4.2**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.4.2/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.4.2 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.4.2/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.4.2/installation/installing-from-sources.html
+
 # October 14, 2022
 
 We've just released Apache **Airflow Helm chart 1.7.0**.
