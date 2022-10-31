@@ -123,6 +123,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Dag Dependencies viewer](https://github.com/ms32035/airflow-dag-dependencies) - A tool which creates a view to visualize dependencies between the Airflow DAGs
 
+[data-dag](https://github.com/rearc-data/data-dag) - A library for building factories to dynamically generate DAGs from data (such as YAML files)
+
 [Databand](https://databand.ai/) - Observability platform built on top of Airflow.
 
 [DataHub](https://datahubproject.io/) - A metadata platform for the modern data stack. It can automatically [collect lineage and other metadata](https://datahubproject.io/docs/metadata-ingestion#lineage-with-airflow) from Airflow.
