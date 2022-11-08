@@ -145,6 +145,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
+[Redactics](https://www.redactics.com) - A managed appliance (built on Airflow) installed next to your databases that powers a growing collection of data management workflows.
+
 [simple-dag-editor](https://github.com/ohadmata/simple-dag-editor) - Zero configuration Airflow tool that let you manage your DAG files.
 
 [Viewflow](https://github.com/datacamp/viewflow) - An Airflow-based framework that allows data scientists to create data models without writing Airflow code.
