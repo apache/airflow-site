@@ -1,0 +1,171 @@
+:py:mod:`airflow.providers.dbt.cloud.operators.dbt`
+===================================================
+
+.. py:module:: airflow.providers.dbt.cloud.operators.dbt
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.dbt.cloud.operators.dbt.DbtCloudRunJobOperatorLink
+   airflow.providers.dbt.cloud.operators.dbt.DbtCloudRunJobOperator
+   airflow.providers.dbt.cloud.operators.dbt.DbtCloudGetJobRunArtifactOperator
+   airflow.providers.dbt.cloud.operators.dbt.DbtCloudListJobsOperator
+
+
+
+
+.. py:class:: DbtCloudRunJobOperatorLink
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`
+
+   Operator link for DbtCloudRunJobOperator. This link allows users to monitor the triggered job run
+   directly in dbt Cloud.
+
+   .. py:attribute:: name
+      :annotation: = Monitor Job Run
+
+      
+
+   .. py:method:: get_link(operator, *, ti_key=None)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: DbtCloudRunJobOperator(*, dbt_cloud_conn_id = DbtCloudHook.default_conn_name, job_id, account_id = None, trigger_reason = None, steps_override = None, schema_override = None, wait_for_termination = True, timeout = 60 * 60 * 24 * 7, check_interval = 60, additional_run_config = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Executes a dbt Cloud job.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:DbtCloudRunJobOperator`
+
+   :param dbt_cloud_conn_id: The connection ID for connecting to dbt Cloud.
+   :param job_id: The ID of a dbt Cloud job.
+   :param account_id: Optional. The ID of a dbt Cloud account.
+   :param trigger_reason: Optional. Description of the reason to trigger the job.
+   :param steps_override: Optional. List of dbt commands to execute when triggering the job instead of those
+       configured in dbt Cloud.
+   :param schema_override: Optional. Override the destination schema in the configured target for this job.
+   :param wait_for_termination: Flag to wait on a job run's termination.  By default, this feature is
+       enabled but could be disabled to perform an asynchronous wait for a long-running job run execution
+       using the ``DbtCloudJobRunSensor``.
+   :param timeout: Time in seconds to wait for a job run to reach a terminal status for non-asynchronous
+       waits. Used only if ``wait_for_termination`` is True. Defaults to 7 days.
+   :param check_interval: Time in seconds to check on a job run's status for non-asynchronous waits.
+       Used only if ``wait_for_termination`` is True. Defaults to 60 seconds.
+   :param additional_run_config: Optional. Any additional parameters that should be included in the API
+       request when triggering the job.
+   :return: The ID of the triggered dbt Cloud job run.
+
+   .. py:attribute:: template_fields
+      :annotation: = ['dbt_cloud_conn_id', 'job_id', 'account_id', 'trigger_reason', 'steps_override',...
+
+      
+
+   .. py:attribute:: operator_extra_links
+      
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to cleanup subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up or it will leave
+      ghost processes behind.
+
+
+
+.. py:class:: DbtCloudGetJobRunArtifactOperator(*, dbt_cloud_conn_id = DbtCloudHook.default_conn_name, run_id, path, account_id = None, step = None, output_file_name = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Download artifacts from a dbt Cloud job run.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:DbtCloudGetJobRunArtifactOperator`
+
+   :param dbt_cloud_conn_id: The connection ID for connecting to dbt Cloud.
+   :param run_id: The ID of a dbt Cloud job run.
+   :param path: The file path related to the artifact file. Paths are rooted at the target/ directory.
+       Use "manifest.json", "catalog.json", or "run_results.json" to download dbt-generated artifacts
+       for the run.
+   :param account_id: Optional. The ID of a dbt Cloud account.
+   :param step: Optional. The index of the Step in the Run to query for artifacts. The first step in the
+       run has the index 1. If the step parameter is omitted, artifacts for the last step in the run will
+       be returned.
+   :param output_file_name: Optional. The desired file name for the download artifact file.
+       Defaults to <run_id>_<path> (e.g. "728368_run_results.json").
+
+   .. py:attribute:: template_fields
+      :annotation: = ['dbt_cloud_conn_id', 'run_id', 'path', 'account_id', 'output_file_name']
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: DbtCloudListJobsOperator(*, dbt_cloud_conn_id = DbtCloudHook.default_conn_name, account_id = None, project_id = None, order_by = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   List jobs in a dbt Cloud project.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:DbtCloudListJobsOperator`
+
+   Retrieves metadata for all jobs tied to a specified dbt Cloud account. If a ``project_id`` is
+   supplied, only jobs pertaining to this project id will be retrieved.
+
+   :param account_id: Optional. If an account ID is not provided explicitly,
+       the account ID from the dbt Cloud connection will be used.
+   :param order_by: Optional. Field to order the result by. Use '-' to indicate reverse order.
+       For example, to use reverse order by the run ID use ``order_by=-id``.
+   :param project_id: Optional. The ID of a dbt Cloud project.
+
+   .. py:attribute:: template_fields
+      :annotation: = ['account_id', 'project_id']
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
