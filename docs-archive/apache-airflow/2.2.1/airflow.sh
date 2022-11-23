@@ -26,7 +26,7 @@ set -euo pipefail
 
 export COMPOSE_FILE="${PROJECT_DIR}/docker-compose.yaml"
 if [ $# -gt 0 ]; then
-    exec docker-compose run --rm airflow-cli "${@}"
+    exec docker compose run --rm airflow-cli "${@}"
 else
-    exec docker-compose run --rm airflow-cli
+    exec docker compose run --rm airflow-cli
 fi
