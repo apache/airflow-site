@@ -49,7 +49,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Self-Managed Airflow via CNDI](https://github.com/polyseam/cndi) - Toolkit for deploying Airflow Kubernetes clusters, with support for AWS, GCP, Azure, VMWare, Bare-Metal, and even multi/hybrid cloud support. See [docs](https://docs.cndi.run) for more details.
 
-[Self-managed Airflow on Amazon EKS](https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/examples/analytics/airflow-on-eks) - Self-managed Apache Airflow deployment on Aamzon EKS using [Terraform](https://www.terraform.io/). See [docs](https://aws-ia.github.io/terraform-aws-eks-blueprints/main/add-ons/apache-airflow/) for more details.
+[Self-managed Airflow on Amazon EKS](https://github.com/awslabs/data-on-eks/tree/main/schedulers/terraform/managed-airflow-mwaa) - Self-managed Apache Airflow deployment on Aamzon EKS using [Terraform](https://www.terraform.io/). See [docs](https://aws-ia.github.io/terraform-aws-eks-blueprints/main/add-ons/apache-airflow/) for more details.
 
 &nbsp;
 
