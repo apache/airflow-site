@@ -64,6 +64,102 @@ size of the Customized image.
 Airflow Summit 2020's `Production Docker Image <https://youtu.be/wDr3Y7q2XoI>`_ talk provides more
 details about the context, architecture and customization/extension methods for the Production Image.
 
+<<<<<<< HEAD
+=======
+Why customizing the image ?
+---------------------------
+
+The Apache Airflow community, releases Docker Images which are ``reference images`` for Apache Airflow.
+However, Airflow has more than 60 community managed providers (installable via extras) and some of the
+default extras/providers installed are not used by everyone, sometimes others extras/providers
+are needed, sometimes (very often actually) you need to add your own custom dependencies,
+packages or even custom providers.
+
+In Kubernetes and Docker terms this means that you need another image with your specific requirements.
+This is why you should learn how to build your own Docker (or more properly Container) image.
+You might be tempted to use the ``reference image`` and dynamically install the new packages while
+starting your containers, but this is a bad idea for multiple reasons - starting from fragility of the build
+and ending with the extra time needed to install those packages - which has to happen every time every
+container starts. The only viable way to deal with new dependencies and requirements in production is to
+build and use your own image. You should only use installing dependencies dynamically in case of
+"hobbyist" and "quick start" scenarios when you want to iterate quickly to try things out and later
+replace it with your own images.
+
+Building images primer
+----------------------
+
+.. note::
+  The ``Dockerfile`` does not strictly follow the `SemVer <https://semver.org/>`_ approach of
+  Apache Airflow when it comes to features and backwards compatibility. While Airflow code strictly
+  follows it, the ``Dockerfile`` is really a way to conveniently package Airflow using standard container
+  approach, occasionally there are some changes in the building process or in the entrypoint of the image
+  that require slight adaptation. Details of changes and adaptation needed can be found in the
+  :doc:`Changelog <changelog>`.
+
+There are several most-typical scenarios that you will encounter and here is a quick recipe on how to achieve
+your goal quickly. In order to understand details you can read further, but for the simple cases using
+typical tools here are the simple examples.
+
+In the simplest case building your image consists of those steps:
+
+1) Create your own ``Dockerfile`` (name it ``Dockerfile``) where you add:
+
+* information what your image should be based on (for example ``FROM: apache/airflow:|airflow-version|-python3.8``
+
+* additional steps that should be executed in your image (typically in the form of ``RUN <command>``)
+
+2) Build your image. This can be done with ``docker`` CLI tools and examples below assume ``docker`` is used.
+   There are other tools like ``kaniko`` or ``podman`` that allow you to build the image, but ``docker`` is
+   so far the most popular and developer-friendly tool out there. Typical way of building the image looks
+   like follows (``my-image:0.0.1`` is the custom tag of your image containing version).
+   In case you use some kind of registry where you will be using the image from, it is usually named
+   in the form of ``registry/image-name``. The name of the image has to be configured for the deployment
+   method your image will be deployed. This can be set for example as image name in the
+   `docker-compose file <running-airflow-in-docker>`_ or in the `Helm chart <helm-chart>`_.
+
+.. code-block:: shell
+
+   docker build . -f Dockerfile --pull --tag my-image:0.0.1
+
+3) [Optional] Test the image. Airflow contains tool that allows you to test the image. This step however,
+   requires locally checked out or extracted Airflow sources. If you happen to have the sources you can
+   test the image by running this command (in airflow root folder). The output will tell you if the image
+   is "good-to-go".
+
+.. code-block:: shell
+
+   ./scripts/ci/tools/verify_docker_image.sh PROD my-image:0.0.1
+
+4) Once you build the image locally you have usually several options to make them available for your deployment:
+
+* For ``docker-compose`` deployment, if you've already built your image, and want to continue
+  building the image manually when needed with ``docker build``, you can edit the
+  docker-compose.yaml and replace the "apache/airflow:<version>" image with the
+  image you've just built ``my-image:0.0.1`` - it will be used from your local Docker
+  Engine cache. You can also simply set ``AIRFLOW_IMAGE_NAME`` variable to
+  point to your image and ``docker-compose`` will use it automatically without having
+  to modify the file.
+
+* Also for ``docker-compose`` deployment, you can delegate image building to the docker-compose.
+  To do that - open your ``docker-compose.yaml`` file and search for the phrase "In order to add custom dependencies".
+  Follow these instructions of commenting the "image" line and uncommenting the "build" line.
+  This is a standard docker-compose feature and you can read about it in
+  `Docker Compose build reference <https://docs.docker.com/compose/reference/build/>`_.
+  Run ``docker compose build`` to build the images. Similarly as in the previous case, the
+  image is stored in Docker engine cache and Docker Compose will use it from there.
+  The ``docker compose build`` command uses the same ``docker build`` command that
+  you can run manually under-the-hood.
+
+* For some - development targeted - Kubernetes deployments you can load the images directly to
+  Kubernetes clusters. Clusters such as ``kind`` or ``minikube`` have dedicated ``load`` method to load the
+  images to the cluster.
+
+* Last but not least - you can push your image to a remote registry which is the most common way
+  of storing and exposing the images, and it is most portable way of publishing the image. Both
+  Docker-Compose and Kubernetes can make use of images exposed via registries.
+
+
+>>>>>>> 545348b48f ((#685) feat: docker compose v2 (#686))
 Extending the image
 -------------------
 

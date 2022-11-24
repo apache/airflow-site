@@ -102,9 +102,9 @@ In the simplest case building your image consists of those steps:
   Follow these instructions of commenting the "image" line and uncommenting the "build" line.
   This is a standard docker-compose feature and you can read about it in
   `Docker Compose build reference <https://docs.docker.com/compose/reference/build/>`_.
-  Run ``docker-compose build`` to build the images. Similarly as in the previous case, the
+  Run ``docker compose build`` to build the images. Similarly as in the previous case, the
   image is stored in Docker engine cache and Docker Compose will use it from there.
-  The ``docker-compose build`` command uses the same ``docker build`` command that
+  The ``docker compose build`` command uses the same ``docker build`` command that
   you can run manually under-the-hood.
 
 * For some - development targeted - Kubernetes deployments you can load the images directly to
