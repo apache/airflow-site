@@ -67,7 +67,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Netezza Provider](https://github.com/sanjay-rendu/apache-airflow-providers-nz) - Airflow Provider to connect with [Netezza](https://www.ibm.com/products/netezza) using [nzpy](https://github.com/IBM/nzpy)
 
-[Airflow Grafana Loki Provider](https://github.com/snjypl/airflow-provider-grafana-loki) - Provides Hook and LogHandler that integrates with [Grafana Loki](https://grafana.com/oss/loki/). This provides a LogHandler for writing and reading Task Logs to and from Grafana Loki. 
+[Airflow Grafana Loki Provider](https://github.com/snjypl/airflow-provider-grafana-loki) - Provides Hook and LogHandler that integrates with [Grafana Loki](https://grafana.com/oss/loki/). This provides a LogHandler for writing and reading Task Logs to and from Grafana Loki.
 
 &nbsp;
 
