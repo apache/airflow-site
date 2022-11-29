@@ -687,15 +687,10 @@ the corresponding objects from the kubernetes library:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">airflow.providers.cncf.kubernetes.backcompat.pod_runtime_info_env</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">airflow.providers.cncf.kubernetes.backcompat.volume</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">airflow.providers.cncf.kubernetes.backcompat.volume_mount</span></code></p></li>
-</ul>
-<p>In <code class="docutils literal notranslate"><span class="pre">KubernetesHook.get_namespace</span></code>, if a connection is defined but a namespace isn’t set, we
-currently return ‘default’; this behavior is deprecated. In the next release, we’ll return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">deprecated</span> <span class="pre">backcompat</span> <span class="pre">objects</span> <span class="pre">for</span> <span class="pre">KPO</span> <span class="pre">(#27518)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">support</span> <span class="pre">for</span> <span class="pre">node_selectors</span> <span class="pre">param</span> <span class="pre">in</span> <span class="pre">KPO</span> <span class="pre">(#27515)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">unused</span> <span class="pre">backcompat</span> <span class="pre">method</span> <span class="pre">in</span> <span class="pre">k8s</span> <span class="pre">hook</span> <span class="pre">(#27490)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Drop</span> <span class="pre">support</span> <span class="pre">for</span> <span class="pre">providing</span> <span class="pre">''resource''</span> <span class="pre">as</span> <span class="pre">dict</span> <span class="pre">in</span> <span class="pre">''KubernetesPodOperator''</span> <span class="pre">(#27197)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Deprecate</span> <span class="pre">use</span> <span class="pre">of</span> <span class="pre">core</span> <span class="pre">get_kube_client</span> <span class="pre">in</span> <span class="pre">PodManager</span> <span class="pre">(#26848)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Don't</span> <span class="pre">consider</span> <span class="pre">airflow</span> <span class="pre">core</span> <span class="pre">conf</span> <span class="pre">for</span> <span class="pre">KPO</span> <span class="pre">(#26849)</span></code></p></li>
 </ul>
 </div>
@@ -708,15 +703,20 @@ currently return ‘default’; this behavior is deprecated. In the next release
 </div>
 <div class="section" id="features">
 <h4>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h4>
-<p>Previously, <code class="docutils literal notranslate"><span class="pre">name</span></code> was a required argument for KubernetesPodOperator (when also not supplying pod
-template or full pod spec). Now, if <code class="docutils literal notranslate"><span class="pre">name</span></code> is not supplied, <code class="docutils literal notranslate"><span class="pre">task_id</span></code> will be used.</p>
-<p>KubernetsPodOperator argument <code class="docutils literal notranslate"><span class="pre">namespace</span></code> is now optional.  If not supplied via KPO param or pod
+<p>KubernetesPodOperator argument <code class="docutils literal notranslate"><span class="pre">name</span></code> is now optional. Previously, <code class="docutils literal notranslate"><span class="pre">name</span></code> was a
+required argument for KubernetesPodOperator when also not supplying pod
+template or full pod spec. Now, if <code class="docutils literal notranslate"><span class="pre">name</span></code> is not supplied, <code class="docutils literal notranslate"><span class="pre">task_id</span></code> will be used.</p>
+<p>KubernetesPodOperator argument <code class="docutils literal notranslate"><span class="pre">namespace</span></code> is now optional.  If not supplied via KPO param or pod
 template file or full pod spec, then we’ll check the airflow conn,
 then if in a k8s pod, try to infer the namespace from the container, then finally
 will use the <code class="docutils literal notranslate"><span class="pre">default</span></code> namespace.</p>
+<p>When using an Airflow connection of type <code class="docutils literal notranslate"><span class="pre">kubernetes</span></code>, if defining the connection in an env var
+or secrets backend, it’s no longer necessary to prefix the “extra” fields with <code class="docutils literal notranslate"><span class="pre">extra__kubernetes__</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">extra</span></code> contains duplicate fields (one with prefix, one without) then the non-prefixed
+one will be used.</p>
 <ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">extra__kubernetes__</span> <span class="pre">prefix</span> <span class="pre">from</span> <span class="pre">k8s</span> <span class="pre">hook</span> <span class="pre">extras</span> <span class="pre">(#27021)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">container_resources</span> <span class="pre">as</span> <span class="pre">KubernetesPodOperator</span> <span class="pre">templatable</span> <span class="pre">(#27457)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">deprecation</span> <span class="pre">warning</span> <span class="pre">re</span> <span class="pre">unset</span> <span class="pre">namespace</span> <span class="pre">in</span> <span class="pre">k8s</span> <span class="pre">hook</span> <span class="pre">(#27202)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">add</span> <span class="pre">container_name</span> <span class="pre">option</span> <span class="pre">for</span> <span class="pre">SparkKubernetesSensor</span> <span class="pre">(#26560)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Allow</span> <span class="pre">xcom</span> <span class="pre">sidecar</span> <span class="pre">container</span> <span class="pre">image</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">configurable</span> <span class="pre">in</span> <span class="pre">KPO</span> <span class="pre">(#26766)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Improve</span> <span class="pre">task_id</span> <span class="pre">to</span> <span class="pre">pod</span> <span class="pre">name</span> <span class="pre">conversion</span> <span class="pre">(#27524)</span></code></p></li>
@@ -730,8 +730,18 @@ will use the <code class="docutils literal notranslate"><span class="pre">defaul
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Fix</span> <span class="pre">KubernetesHook</span> <span class="pre">fail</span> <span class="pre">on</span> <span class="pre">an</span> <span class="pre">attribute</span> <span class="pre">absence</span> <span class="pre">(#25787)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Fix</span> <span class="pre">log</span> <span class="pre">message</span> <span class="pre">for</span> <span class="pre">kubernetes</span> <span class="pre">hooks</span> <span class="pre">(#26999)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">extra__kubernetes__</span> <span class="pre">prefix</span> <span class="pre">from</span> <span class="pre">k8s</span> <span class="pre">hook</span> <span class="pre">extras</span> <span class="pre">(#27021)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">KPO</span> <span class="pre">should</span> <span class="pre">use</span> <span class="pre">hook's</span> <span class="pre">get</span> <span class="pre">namespace</span> <span class="pre">method</span> <span class="pre">to</span> <span class="pre">get</span> <span class="pre">namespace</span> <span class="pre">(#27516)</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="new-deprecations">
+<h4>New deprecations<a class="headerlink" href="#new-deprecations" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>In <code class="docutils literal notranslate"><span class="pre">KubernetesHook.get_namespace</span></code>, if a connection is defined but a namespace isn’t set, we</dt><dd><p>currently return ‘default’; this behavior is deprecated (#27202). In the next release, we’ll return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Deprecate</span> <span class="pre">use</span> <span class="pre">of</span> <span class="pre">core</span> <span class="pre">get_kube_client</span> <span class="pre">in</span> <span class="pre">PodManager</span> <span class="pre">(#26848)</span></code></p></li>
 </ul>
 </div>
 </div>
@@ -1283,6 +1293,7 @@ automatically and you will have to manually run <code class="docutils literal no
 <li><a class="reference internal" href="#misc">Misc</a></li>
 <li><a class="reference internal" href="#features">Features</a></li>
 <li><a class="reference internal" href="#bug-fixes">Bug Fixes</a></li>
+<li><a class="reference internal" href="#new-deprecations">New deprecations</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#id2">4.4.0</a><ul>
