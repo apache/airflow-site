@@ -48,7 +48,7 @@ In a similar vein to the improvments to the Dataset (UI), we have continued to i
 
 ## Thanks to the contributors
 
-Thanks to everyone who contributed to this release, including Andrey Anshin, Ash Berlin-Taylor, Bartłomiej Hirsz, Brent Bovenzi, Chenglong Yan, D. Ferruzzi, Daniel Standish, Drew Hubl, Elad Kalif, Ephraim Anierobi, Jarek Potiuk, Jed Cunningham, Josh Fell, Mark Norman Francis, Niko, Tzu-ping Chung, Vincent, Wojciech Januszek, chethanuk-plutoflume, pierrejeambrun, and everyone else who committed, all 152 of you!
+ Andrey Anshin, Ash Berlin-Taylor, blag, Bolke de Bruin, Brent Bovenzi, Chenglong Yan, Daniel Standish, Dov Benyomin Sohacheski, Elad Kalif, Ephraim Anierobi, Jarek Potiuk, Jed Cunningham, Jorrick Sleijster, Michael Petro, Niko, Pierre Jeambrun, Tzu-ping Chung and many more, over 75 of you. Thank you!
 
 And especially thank you to Ephraim who tireleslly works behind the scenes as release manager!
 
