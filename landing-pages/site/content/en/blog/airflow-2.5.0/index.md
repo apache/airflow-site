@@ -7,7 +7,7 @@ twitter: "ashberlin"
 linkedin: "ashberlin-taylor"
 description: "We're proud to announce that Apache Airflow 2.5.0 has been released with many quality of life changes."
 tags: [Release]
-date: "2022-09-19"
+date: "2022-12-02"
 ---
 
 Apache Airfow 2.5 has just been released, barely two and a half months after 2.4!
