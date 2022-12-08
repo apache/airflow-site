@@ -5,15 +5,27 @@
  * This script contains the language-specific data used by searchtools.js,
  * namely the list of stopwords, stemmer, scorer and splitter.
  *
+<<<<<<< HEAD
  * :copyright: Copyright 2007-2020 by the Sphinx team, see AUTHORS.
+=======
+ * :copyright: Copyright 2007-2022 by the Sphinx team, see AUTHORS.
+>>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
  * :license: BSD, see LICENSE for details.
  *
  */
 
+<<<<<<< HEAD
 var stopwords = ["a","and","are","as","at","be","but","by","for","if","in","into","is","it","near","no","not","of","on","or","such","that","the","their","then","there","these","they","this","to","was","will","with"];
 
 
 /* Non-minified version JS is _stemmer.js if file is provided */ 
+=======
+var stopwords = ["a", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "near", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this", "to", "was", "will", "with"];
+
+
+/* Non-minified version is copied as a separate JS file, is available */
+
+>>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
 /**
  * Porter Stemmer
  */
@@ -196,6 +208,7 @@ var Stemmer = function() {
   }
 }
 
+<<<<<<< HEAD
 
 
 
@@ -295,3 +308,5 @@ function splitQuery(query) {
 }
 
 
+=======
+>>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
