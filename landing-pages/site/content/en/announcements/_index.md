@@ -22,16 +22,6 @@ We’ve just released Apache **Airflow 2.5.0**. You can read all about it in our
 🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/.5.0/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.5.0/installation/installing-from-sources.html
 
-
-# December 2, 2022
-
-We’ve just released Apache **Airflow 2.5.0**.
-
-📦 PyPI: https://pypi.org/project/apache-airflow/2.5.0/ \
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.5.0 \
-🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.5.0/release_notes.html \
-🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.5.0/installation/installing-from-sources.html
-
 # November 14, 2022
 
 We’ve just released Apache **Airflow 2.4.3**.
