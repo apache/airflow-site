@@ -20,7 +20,7 @@
 set -euox pipefail
 
 MY_DIR="$(cd "$(dirname "$0")" && pwd)"
-pushd "${MY_DIR}" &>/dev/null || exit 1
+pushd "${MY_DIR}" >/dev/null || exit 1
 
 SOURCE_DIR="."
 BUILD_DIR="${MY_DIR}/_build"
