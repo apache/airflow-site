@@ -89,6 +89,3 @@ else
     usage
     exit 0
 fi
-
-
-popd >/dev/null || exit 1
