@@ -91,4 +91,4 @@ else
 fi
 
 
-popd &>/dev/null || exit 1
+popd >/dev/null || exit 1
