@@ -13,6 +13,12 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# December 19, 2022
+
+Airflow PMC welcomes new Airflow Committer:
+
+* **Niko Oliveira** ([@o-nikolas](https://github.com/o-nikolas)
+
 # December 2, 2022
 
 We’ve just released Apache **Airflow 2.5.0**. You can read all about it in our [what's new in Apache Airflow 2.5.0]({{< ref "blog/airflow-2.5.0/index.md" >}}) blog post.
@@ -25,12 +31,9 @@ We’ve just released Apache **Airflow 2.5.0**. You can read all about it in our
 
 # December 2, 2022
 
-We’ve just released Apache **Airflow 2.5.0**.
+Airflow PMC welcomes new Airflow Committer:
 
-📦 PyPI: https://pypi.org/project/apache-airflow/2.5.0/ \
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.5.0 \
-🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.5.0/release_notes.html \
-🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.5.0/installation/installing-from-sources.html
+* **Andrey Anshin** ([@Taragolis](https://https://github.com/Taragolis)
 
 # November 14, 2022
 
