@@ -17,7 +17,7 @@ menu:
 
 Airflow PMC welcomes new Airflow Committer:
 
-* **Niko Oliveira** ([@o-nikolas](https://github.com/o-nikolas)
+* **Niko Oliveira** ([@o-nikolas](https://github.com/o-nikolas))
 
 # December 2, 2022
 
@@ -25,7 +25,7 @@ We’ve just released Apache **Airflow 2.5.0**. You can read all about it in our
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.5.0/ \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.5.0 \
-🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/.5.0/release_notes.html \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.5.0/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.5.0/installation/installing-from-sources.html
 
 
@@ -33,7 +33,7 @@ We’ve just released Apache **Airflow 2.5.0**. You can read all about it in our
 
 Airflow PMC welcomes new Airflow Committer:
 
-* **Andrey Anshin** ([@Taragolis](https://https://github.com/Taragolis)
+* **Andrey Anshin** ([@Taragolis](https://https://github.com/Taragolis))
 
 # November 14, 2022
 
