@@ -17,7 +17,7 @@ menu:
 
 Airflow PMC welcomes new Airflow Committer:
 
-* **Niko Oliveira** ([@o-nikolas](https://github.com/o-nikolas)
+* **Niko Oliveira** ([@o-nikolas](https://github.com/o-nikolas))
 
 # December 2, 2022
 
@@ -33,7 +33,7 @@ We’ve just released Apache **Airflow 2.5.0**. You can read all about it in our
 
 Airflow PMC welcomes new Airflow Committer:
 
-* **Andrey Anshin** ([@Taragolis](https://https://github.com/Taragolis)
+* **Andrey Anshin** ([@Taragolis](https://https://github.com/Taragolis))
 
 # November 14, 2022
 
