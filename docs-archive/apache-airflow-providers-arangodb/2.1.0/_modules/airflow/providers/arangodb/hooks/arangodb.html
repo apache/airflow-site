@@ -615,17 +615,23 @@
 <span class="sd">&quot;&quot;&quot;This module allows connecting to a ArangoDB.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span> <span class="nn">arango</span> <span class="kn">import</span> <span class="n">AQLQueryExecuteError</span><span class="p">,</span> <span class="n">ArangoClient</span> <span class="k">as</span> <span class="n">ArangoDBClient</span>
-<span class="kn">from</span> <span class="nn">arango.result</span> <span class="kn">import</span> <span class="n">Result</span>
 
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">AirflowException</span>
+<span class="kn">from</span> <span class="nn">airflow.compat.functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">arango.cursor</span> <span class="kn">import</span> <span class="n">Cursor</span>
+    <span class="kn">from</span> <span class="nn">arango.database</span> <span class="kn">import</span> <span class="n">StandardDatabase</span>
+
+    <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">Connection</span>
 
 
 <div class="viewcode-block" id="ArangoDBHook"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook">[docs]</a><span class="k">class</span> <span class="nc">ArangoDBHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interact with ArangoDB.</span>
 
 <span class="sd">    Performs a connection to ArangoDB and retrieves client.</span>
@@ -640,41 +646,60 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arangodb_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">default_conn_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">db_conn</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">arangodb_conn_id</span> <span class="o">=</span> <span class="n">arangodb_conn_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">ArangoDBClient</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
+
+    <span class="nd">@cached_property</span>
+<div class="viewcode-block" id="ArangoDBHook.client"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.client">[docs]</a>    <span class="k">def</span> <span class="nf">client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArangoDBClient</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiates a new ArangoDB connection (cached).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ArangoDBClient</span><span class="p">(</span><span class="n">hosts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hosts</span><span class="p">)</span></div>
+
+    <span class="nd">@cached_property</span>
+<div class="viewcode-block" id="ArangoDBHook.db_conn"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.db_conn">[docs]</a>    <span class="k">def</span> <span class="nf">db_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StandardDatabase</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to an ArangoDB database and return the database API wrapper.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">db</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span></div>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Connection</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arangodb_conn_id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ArangoDBHook.hosts"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.hosts">[docs]</a>    <span class="k">def</span> <span class="nf">hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">host</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No ArangoDB Host(s) provided in connection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arangodb_conn_id</span><span class="si">!r}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">host</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ArangoDBHook.database"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.database">[docs]</a>    <span class="k">def</span> <span class="nf">database</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">schema</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No ArangoDB Database provided in connection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arangodb_conn_id</span><span class="si">!r}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">schema</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ArangoDBHook.username"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.username">[docs]</a>    <span class="k">def</span> <span class="nf">username</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">login</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No ArangoDB Username provided in connection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arangodb_conn_id</span><span class="si">!r}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">login</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ArangoDBHook.password"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.password">[docs]</a>    <span class="k">def</span> <span class="nf">password</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conn</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span></div>
 
 <div class="viewcode-block" id="ArangoDBHook.get_conn"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArangoDBClient</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Function that initiates a new ArangoDB connection&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span>
-
-        <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arangodb_conn_id</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">login</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">password</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">ArangoDBClient</span><span class="p">(</span><span class="n">hosts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hosts</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">db_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">db</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Function that initiates a new ArangoDB connection (cached).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span></div>
 
-<div class="viewcode-block" id="ArangoDBHook.query"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Function to create a arangodb session</span>
+<div class="viewcode-block" id="ArangoDBHook.query"><a class="viewcode-back" href="../../../../../_api/airflow/providers/arangodb/hooks/arangodb/index.html#airflow.providers.arangodb.hooks.arangodb.ArangoDBHook.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cursor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to create an ArangoDB session</span>
 <span class="sd">        and execute the AQL query in the session.</span>
 
 <span class="sd">        :param query: AQL query</span>
-<span class="sd">        :return: Result</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_conn</span><span class="p">:</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_conn</span><span class="o">.</span><span class="n">aql</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">result</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
