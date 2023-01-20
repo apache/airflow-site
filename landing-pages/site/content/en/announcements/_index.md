@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# January 20, 2023
+
+We’ve just released Apache **Airflow 2.5.1**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.5.1/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.5.1 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.5.1/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.5.1/installation/installing-from-sources.html
+
 # December 19, 2022
 
 Airflow PMC welcomes new Airflow Committer:
