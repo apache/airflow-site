@@ -557,12 +557,12 @@ image.</p>
 Every time a new version of Airflow is released, the images are prepared in the
 <a class="reference external" href="https://hub.docker.com/r/apache/airflow">apache/airflow DockerHub</a>
 for all the supported Python versions.</p>
-<p>You can find the following images there (Assuming Airflow version <code class="code docutils literal notranslate"><span class="pre">2.5.0</span></code>):</p>
+<p>You can find the following images there (Assuming Airflow version <code class="code docutils literal notranslate"><span class="pre">2.5.1</span></code>):</p>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:latest</span></code>              - the latest released Airflow image with default Python version (3.7 currently)</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:latest-pythonX.Y</span></code>    - the latest released Airflow image with specific Python version</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:2.5.0</span></code>           - the versioned Airflow image with default Python version (3.7 currently)</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:2.5.0-pythonX.Y</span></code> - the versioned Airflow image with specific Python version</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:2.5.1</span></code>           - the versioned Airflow image with default Python version (3.7 currently)</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:2.5.1-pythonX.Y</span></code> - the versioned Airflow image with specific Python version</p></li>
 </ul>
 <p>Those are “reference” regular images. They contain the most common set of extras, dependencies and providers that are
 often used by the users and they are good to “try-things-out” when you want to just take Airflow for a spin,</p>
@@ -572,8 +572,8 @@ via <a class="reference internal" href="build.html#build-build-image"><span clas
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:slim-latest</span></code>              - the latest released Airflow image with default Python version (3.7 currently)</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:slim-latest-pythonX.Y</span></code>    - the latest released Airflow image with specific Python version</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:slim-2.5.0</span></code>           - the versioned Airflow image with default Python version (3.7 currently)</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:slim-2.5.0-pythonX.Y</span></code> - the versioned Airflow image with specific Python version</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:slim-2.5.1</span></code>           - the versioned Airflow image with default Python version (3.7 currently)</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">apache/airflow:slim-2.5.1-pythonX.Y</span></code> - the versioned Airflow image with specific Python version</p></li>
 </ul>
 <p>The Apache Airflow image provided as convenience package is optimized for size, and
 it provides just a bare minimal set of the extras and dependencies installed and in most cases
@@ -588,6 +588,49 @@ packages or even custom providers. You can learn how to do it in <a class="refer
 are also images published from branches but they are used mainly for development and testing purpose.
 See <a class="reference external" href="https://github.com/apache/airflow/blob/main/CONTRIBUTING.rst#airflow-git-branches">Airflow Git Branching</a>
 for details.</p>
+</div>
+<div class="section" id="fixing-images-at-release-time">
+<h1>Fixing images at release time<a class="headerlink" href="#fixing-images-at-release-time" title="Permalink to this heading">¶</a></h1>
+<p>The released “versioned” reference images are mostly <code class="docutils literal notranslate"><span class="pre">fixed</span></code> when we release Airflow version and we only
+update them in exceptional circumstances. For example when we find out that there are dependency errors
+that might prevent important Airflow or embedded provider’s functionalities working. In normal circumstances,
+the images are not going to change after release, even if new version of Airflow dependencies are released -
+not even when those versions contain critical security fixes. The process of Airflow releases is designed
+around upgrading dependencies automatically where applicable but only when we release a new version of Airflow,
+not for already released versions.</p>
+<p>If you want to make sure that Airflow dependencies are upgraded to the latest released versions containing
+latest security fixes in the image you use, you should implement your own process to upgrade
+those yourself when you build custom image based on the Airflow reference one. Airflow usually does not
+upper-bound versions of its dependencies via requirements, so you should be able to upgrade them to the
+latest versions - usually without any problems. And you can follow the process described in
+<a class="reference internal" href="build.html#build-build-image"><span class="std std-ref">Building the image</span></a> to do it (even in automated way).</p>
+<p>Obviously - since we have no control over what gets released in new versions of the dependencies, we
+cannot give any guarantees that tests and functionality of those dependencies will be compatible with
+Airflow after you upgrade them - testing if Airflow still works with those is in your hands,
+and in case of any problems, you should raise issue with the authors of the dependencies that are problematic.
+You can also - in such cases - look at the <a class="reference external" href="https://github.com/apache/airflow/issues">Airflow issues</a>
+<a class="reference external" href="https://github.com/apache/airflow/pulls">Airflow Pull Requests</a> and
+<a class="reference external" href="https://github.com/apache/airflow/discussions">Airflow Discussions</a>, searching for similar
+problems to see if there are any fixes or workarounds found in the <code class="docutils literal notranslate"><span class="pre">main</span></code> version of Airflow and apply them
+to your custom image.</p>
+<p>The easiest way to keep-up with the latest released dependencies is however, to upgrade to the latest released
+Airflow version via switching to newly released images as base for your images, when a new version of
+Airflow is released. Whenever we release a new version of Airflow, we upgrade all dependencies to the latest
+applicable versions and test them together, so if you want to keep up with those tests - staying up-to-date
+with latest version of Airflow is the easiest way to update those dependencies.</p>
+</div>
+<div class="section" id="support">
+<h1>Support<a class="headerlink" href="#support" title="Permalink to this heading">¶</a></h1>
+<p>The reference Docker Image supports the following platforms and database:</p>
+<ul class="simple">
+<li><p>Intel platform (x86_64)
+* Postgres Client
+* MySQL Client
+* MSSQL Client</p></li>
+<li><p>ARM platform (aarch64) - experimental support, might change any time
+* Postgres Client
+* MSSQL Client</p></li>
+</ul>
 </div>
 <div class="section" id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h1>
@@ -677,6 +720,8 @@ in launching Airflow in the Docker Compose environment, see: <a class="reference
 <li><a class="reference internal" href="#">Docker Image for Apache Airflow</a><ul>
 </ul>
 </li>
+<li><a class="reference internal" href="#fixing-images-at-release-time">Fixing images at release time</a></li>
+<li><a class="reference internal" href="#support">Support</a></li>
 <li><a class="reference internal" href="#usage">Usage</a></li>
 </ul>
 
