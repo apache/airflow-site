@@ -160,3 +160,9 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 [ZenML](https://github.com/zenml-io/zenml) - Run your machine learning specific pipelines on Airflow, easily integrating with your existing data science tools and workflows.
 
 [Airflow Vscode Extension](https://github.com/necatiarslan/airflow-vscode-extension) This is a VSCode extension for Apache Airflow 2+. You can trigger your DAGs, pause/unpause DAGs, view execution logs, explore source code and do much more.
+
+&nbsp;
+
+## Airflow Provider System Test Dashboards
+
+[Amazon provider package health dashboard](https://aws-mwaa.github.io/open-source/system-tests/dashboard.html) - Dashboard listing all system tests within the Amazon provider package and their current health status: last execution status (succeeded/failed, average duration, ...).
