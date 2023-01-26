@@ -69,6 +69,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Grafana Loki Provider](https://github.com/snjypl/airflow-provider-grafana-loki) - Provides Hook and LogHandler that integrates with [Grafana Loki](https://grafana.com/oss/loki/). This provides a LogHandler for writing and reading Task Logs to and from Grafana Loki.
 
+[Airflow SAS Provider](https://github.com/sassoftware/sas-airflow-provider) - Provides Hook and Operators for creating Airflow tasks to execute [SAS](https://sas.com) Studio Flows and Jobs.
+
 &nbsp;
 
 ## Async Providers
