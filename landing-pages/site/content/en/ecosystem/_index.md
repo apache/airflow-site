@@ -71,6 +71,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow SAS Provider](https://github.com/sassoftware/sas-airflow-provider) - Provides Hook and Operators for creating Airflow tasks to execute [SAS](https://sas.com) Studio Flows and Jobs.
 
+[Airflow Cloudera Provider](https://github.com/cloudera/cloudera-airflow-plugins/tree/main/cloudera_airflow_provider) - Provides Hooks and Operators to interact and run your workloads onto Cloudera Data Platform Services
+
 &nbsp;
 
 ## Async Providers
