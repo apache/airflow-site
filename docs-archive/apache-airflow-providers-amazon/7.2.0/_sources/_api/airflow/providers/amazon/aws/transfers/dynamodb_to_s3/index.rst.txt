@@ -1,0 +1,85 @@
+:py:mod:`airflow.providers.amazon.aws.transfers.dynamodb_to_s3`
+===============================================================
+
+.. py:module:: airflow.providers.amazon.aws.transfers.dynamodb_to_s3
+
+.. autoapi-nested-parse::
+
+   This module contains operators to replicate records from
+   DynamoDB table to S3.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.transfers.dynamodb_to_s3.JSONEncoder
+   airflow.providers.amazon.aws.transfers.dynamodb_to_s3.DynamoDBToS3Operator
+
+
+
+
+.. py:class:: JSONEncoder(*, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, sort_keys=False, indent=None, separators=None, default=None)
+
+   Bases: :py:obj:`json.JSONEncoder`
+
+   Custom json encoder implementation
+
+   .. py:method:: default(obj)
+
+      Convert decimal objects in a json serializable format.
+
+
+
+.. py:class:: DynamoDBToS3Operator(*, dynamodb_table_name, s3_bucket_name, file_size, dynamodb_scan_kwargs = None, s3_key_prefix = '', process_func = _convert_item_to_json_bytes, aws_conn_id = 'aws_default', **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Replicates records from a DynamoDB table to S3.
+   It scans a DynamoDB table and writes the received records to a file
+   on the local filesystem. It flushes the file to S3 once the file size
+   exceeds the file size limit specified by the user.
+
+   Users can also specify a filtering criteria using dynamodb_scan_kwargs
+   to only replicate records that satisfy the criteria.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/transfer:DynamoDBToS3Operator`
+
+   :param dynamodb_table_name: Dynamodb table to replicate data from
+   :param s3_bucket_name: S3 bucket to replicate data to
+   :param file_size: Flush file to s3 if file size >= file_size
+   :param dynamodb_scan_kwargs: kwargs pass to <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb.html#DynamoDB.Table.scan>
+   :param s3_key_prefix: Prefix of s3 object key
+   :param process_func: How we transforms a dynamodb item to bytes. By default we dump the json
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is None or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('s3_bucket_name', 's3_key_prefix', 'dynamodb_table_name')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
