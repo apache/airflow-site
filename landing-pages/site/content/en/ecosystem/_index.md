@@ -147,11 +147,15 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [gusty](https://github.com/chriscardillo/gusty) - Create a DAG using any number of YAML, Python, Jupyter Notebook, or R Markdown files that represent individual tasks in the DAG. gusty also configures dependencies, DAGs, and TaskGroups, features support for your local operators, and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
 
+[Marquez](https://marquezproject.ai) - Marquez is an open source metadata service that maintains data provenance, shows how datasets are consumed and produced and centralizes dataset lifecycle management. Marquez can be used with Apache Airflow as an OpenLineage backend.
+
 [Meltano](https://www.meltano.com/) - Open source, self-hosted, CLI-first, debuggable, and extensible ELT tool that embraces [Singer](https://www.singer.io) for extraction and loading, leverages [dbt](https://www.getdbt.com) for transformation, and [integrates with Airflow for orchestration](https://meltano.com/#orchestration).
 
 [Nexla](https://www.nexla.com/) - Build, transform, and manage data flows to and from databases, APIs, streams, SaaS services, events, and even emails. Use Nexla's Airflow Operator to trigger flows to start in other Operators when your Nexla flow finishes running.
 
 [Oozie to Airflow](https://github.com/GoogleCloudPlatform/oozie-to-airflow) - A tool to easily convert between [Apache Oozie](http://oozie.apache.org/) workflows and Apache Airflow workflows.
+
+[OpenLineage](https://openlineage.io) - An open standard for the collection of data lineage, which can be used to trace the path of datasets as they traverse multiple systems including Apache Airflow.
 
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
