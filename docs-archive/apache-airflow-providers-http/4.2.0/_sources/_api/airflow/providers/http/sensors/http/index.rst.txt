@@ -1,0 +1,81 @@
+:py:mod:`airflow.providers.http.sensors.http`
+=============================================
+
+.. py:module:: airflow.providers.http.sensors.http
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.http.sensors.http.HttpSensor
+
+
+
+
+.. py:class:: HttpSensor(*, endpoint, http_conn_id = 'http_default', method = 'GET', request_params = None, headers = None, response_check = None, extra_options = None, tcp_keep_alive = True, tcp_keep_alive_idle = 120, tcp_keep_alive_count = 20, tcp_keep_alive_interval = 30, **kwargs)
+
+   Bases: :py:obj:`airflow.sensors.base.BaseSensorOperator`
+
+   Executes a HTTP GET statement and returns False on failure caused by
+   404 Not Found or `response_check` returning False.
+
+   HTTP Error codes other than 404 (like 403) or Connection Refused Error
+   would raise an exception and fail the sensor itself directly (no more poking).
+   To avoid failing the task for other codes than 404, the argument ``extra_option``
+   can be passed with the value ``{'check_response': False}``. It will make the ``response_check``
+   be execute for any http status code.
+
+   The response check can access the template context to the operator:
+
+   .. code-block:: python
+
+       def response_check(response, task_instance):
+           # The task_instance is injected, so you can pull data form xcom
+           # Other context variables such as dag, ds, execution_date are also available.
+           xcom_data = task_instance.xcom_pull(task_ids="pushing_task")
+           # In practice you would do something more sensible with this data..
+           print(xcom_data)
+           return True
+
+
+       HttpSensor(task_id="my_http_sensor", ..., response_check=response_check)
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:HttpSensor`
+
+   :param http_conn_id: The :ref:`http connection<howto/connection:http>` to run the
+       sensor against
+   :param method: The HTTP request method to use
+   :param endpoint: The relative part of the full url
+   :param request_params: The parameters to be added to the GET url
+   :param headers: The HTTP headers to be added to the GET request
+   :param response_check: A check against the 'requests' response object.
+       The callable takes the response object as the first positional argument
+       and optionally any number of keyword arguments available in the context dictionary.
+       It should return True for 'pass' and False otherwise.
+   :param extra_options: Extra options for the 'requests' library, see the
+       'requests' documentation (options to modify timeout, ssl, etc.)
+   :param tcp_keep_alive: Enable TCP Keep Alive for the connection.
+   :param tcp_keep_alive_idle: The TCP Keep Alive Idle parameter (corresponds to ``socket.TCP_KEEPIDLE``).
+   :param tcp_keep_alive_count: The TCP Keep Alive count parameter (corresponds to ``socket.TCP_KEEPCNT``)
+   :param tcp_keep_alive_interval: The TCP Keep Alive interval parameter (corresponds to
+       ``socket.TCP_KEEPINTVL``)
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('endpoint', 'request_params', 'headers')
+
+      
+
+   .. py:method:: poke(context)
+
+      Function defined by the sensors while deriving this class should override.
+
+
+
