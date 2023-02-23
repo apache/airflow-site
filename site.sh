@@ -212,7 +212,7 @@ function build_site {
     # Sanity checks
     assert_file_exists "${MY_DIR}"/dist/docs/index.html
     assert_file_exists "${MY_DIR}"/dist/docs/apache-airflow/index.html
-    assert_file_exists "${MY_DIR}"/dist/docs/apache-airflow/1.10.15/tutorial.html
+    assert_file_exists "${MY_DIR}"/dist/docs/apache-airflow/1.10.7/tutorial.html
     assert_file_exists "${MY_DIR}"/dist/docs/apache-airflow/stable/tutorial.html
     assert_file_exists "${MY_DIR}"/dist/_gen/packages-metadata.json
 }
