@@ -27,6 +27,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Based on https://github.com/actions/runner-images/issues/2840
+      - name: 🪓 Remove some stuff we don't need
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - name: 🗂 Checkout
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f  # v2.3.4
         with:
@@ -74,6 +81,10 @@ jobs:
           # The asf.yaml file must be in the branch from which the files are published.
           # Otherwise, ASF publising tools cannot detect it.
           cp .asf.yaml ./dist/
+      - name: 🪓 Remove node modules
+        run: |
+          rm -rf node_modules
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
       - name: 🚀 Deploy website on asf-site branch
         uses: apache/airflow-JamesIves-github-pages-deploy-action@132898c54c57c7cc6b80eb3a89968de8fc283505  # v3.7.1
         if: ${{ github.event_name == 'push' }}
