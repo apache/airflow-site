@@ -1,0 +1,194 @@
+:mod:`airflow.contrib.sensors.gcs_sensor`
+=========================================
+
+.. py:module:: airflow.contrib.sensors.gcs_sensor
+
+
+Module Contents
+---------------
+
+.. py:class:: GoogleCloudStorageObjectSensor(bucket, object, google_cloud_conn_id='google_cloud_default', delegate_to=None, *args, **kwargs)
+
+   Bases: :class:`airflow.sensors.base_sensor_operator.BaseSensorOperator`
+
+   Checks for the existence of a file in Google Cloud Storage.
+
+   :param bucket: The Google cloud storage bucket where the object is.
+   :type bucket: str
+   :param object: The name of the object to check in the Google cloud
+       storage bucket.
+   :type object: str
+   :param google_cloud_conn_id: The connection ID to use when
+       connecting to Google cloud storage.
+   :type google_cloud_conn_id: str
+   :param delegate_to: The account to impersonate, if any.
+       For this to work, the service account making the request must have
+       domain-wide delegation enabled.
+   :type delegate_to: str
+
+   .. attribute:: template_fields
+      :annotation: = ['bucket', 'object']
+
+      
+
+   .. attribute:: ui_color
+      :annotation: = #f0eee4
+
+      
+
+   
+   .. method:: poke(self, context)
+
+
+
+
+.. function:: ts_function(context)
+   Default callback for the GoogleCloudStorageObjectUpdatedSensor. The default
+   behaviour is check for the object being updated after execution_date +
+   schedule_interval.
+
+
+.. py:class:: GoogleCloudStorageObjectUpdatedSensor(bucket, object, ts_func=ts_function, google_cloud_conn_id='google_cloud_default', delegate_to=None, *args, **kwargs)
+
+   Bases: :class:`airflow.sensors.base_sensor_operator.BaseSensorOperator`
+
+   Checks if an object is updated in Google Cloud Storage.
+
+   :param bucket: The Google cloud storage bucket where the object is.
+   :type bucket: str
+   :param object: The name of the object to download in the Google cloud
+       storage bucket.
+   :type object: str
+   :param ts_func: Callback for defining the update condition. The default callback
+       returns execution_date + schedule_interval. The callback takes the context
+       as parameter.
+   :type ts_func: function
+   :param google_cloud_conn_id: The connection ID to use when
+       connecting to Google cloud storage.
+   :type google_cloud_conn_id: str
+   :param delegate_to: The account to impersonate, if any.
+       For this to work, the service account making the request must have domain-wide
+       delegation enabled.
+   :type delegate_to: str
+
+   .. attribute:: template_fields
+      :annotation: = ['bucket', 'object']
+
+      
+
+   .. attribute:: ui_color
+      :annotation: = #f0eee4
+
+      
+
+   
+   .. method:: poke(self, context)
+
+
+
+
+.. py:class:: GoogleCloudStoragePrefixSensor(bucket, prefix, google_cloud_conn_id='google_cloud_default', delegate_to=None, *args, **kwargs)
+
+   Bases: :class:`airflow.sensors.base_sensor_operator.BaseSensorOperator`
+
+   Checks for the existence of a objects at prefix in Google Cloud Storage bucket.
+
+   :param bucket: The Google cloud storage bucket where the object is.
+   :type bucket: str
+   :param prefix: The name of the prefix to check in the Google cloud
+       storage bucket.
+   :type prefix: str
+   :param google_cloud_conn_id: The connection ID to use when
+       connecting to Google cloud storage.
+   :type google_cloud_conn_id: str
+   :param delegate_to: The account to impersonate, if any.
+       For this to work, the service account making the request must have
+       domain-wide delegation enabled.
+   :type delegate_to: str
+
+   .. attribute:: template_fields
+      :annotation: = ['bucket', 'prefix']
+
+      
+
+   .. attribute:: ui_color
+      :annotation: = #f0eee4
+
+      
+
+   
+   .. method:: poke(self, context)
+
+
+
+
+.. function:: get_time()
+   This is just a wrapper of datetime.datetime.now to simplify mocking in the
+   unittests.
+
+
+.. py:class:: GoogleCloudStorageUploadSessionCompleteSensor(bucket, prefix, inactivity_period=60 * 60, min_objects=1, previous_num_objects=0, allow_delete=True, google_cloud_conn_id='google_cloud_default', delegate_to=None, *args, **kwargs)
+
+   Bases: :class:`airflow.sensors.base_sensor_operator.BaseSensorOperator`
+
+   Checks for changes in the number of objects at prefix in Google Cloud Storage
+   bucket and returns True if the inactivity period has passed with no
+   increase in the number of objects. Note, it is recommended to use reschedule
+   mode if you expect this sensor to run for hours.
+
+   :param bucket: The Google cloud storage bucket where the objects are.
+       expected.
+   :type bucket: str
+   :param prefix: The name of the prefix to check in the Google cloud
+       storage bucket.
+   :param inactivity_period: The total seconds of inactivity to designate
+       an upload session is over. Note, this mechanism is not real time and
+       this operator may not return until a poke_interval after this period
+       has passed with no additional objects sensed.
+   :type inactivity_period: int
+   :param min_objects: The minimum number of objects needed for upload session
+       to be considered valid.
+   :type min_objects: int
+   :param previous_num_objects: The number of objects found during the last poke.
+   :type previous_num_objects: int
+   :param inactivity_seconds: The current seconds of the inactivity period.
+   :type inactivity_seconds: int
+   :param allow_delete: Should this sensor consider objects being deleted
+       between pokes valid behavior. If true a warning message will be logged
+       when this happens. If false an error will be raised.
+   :type allow_delete: bool
+   :param google_cloud_conn_id: The connection ID to use when connecting
+       to Google cloud storage.
+   :type google_cloud_conn_id: str
+   :param delegate_to: The account to impersonate, if any. For this to work,
+       the service account making the request must have domain-wide
+       delegation enabled.
+   :type delegate_to: str
+
+   .. attribute:: template_fields
+      :annotation: = ['bucket', 'prefix']
+
+      
+
+   .. attribute:: ui_color
+      :annotation: = #f0eee4
+
+      
+
+   
+   .. method:: is_bucket_updated(self, current_num_objects)
+
+      Checks whether new objects have been uploaded and the inactivity_period
+      has passed and updates the state of the sensor accordingly.
+
+      :param current_num_objects: number of objects in bucket during last poke.
+      :type current_num_objects: int
+
+
+
+   
+   .. method:: poke(self, context)
+
+
+
+
