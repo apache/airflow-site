@@ -25,6 +25,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Awesome Apache Airflow](https://github.com/jghoman/awesome-apache-airflow) - Curated list of resources about Apache Airflow
 
+[Astronomer Academy](https://academy.astronomer.io/) - Full courses and certifications available by the Education team at Astronomer
+
 [The Complete Hands-On Introduction to Apache Airflow](https://www.udemy.com/course/the-complete-hands-on-course-to-master-apache-airflow) by Marc Lamberti on Udemy
 
 [Apache Airflow: Complete Hands-On Beginner to Advanced Class](https://www.udemy.com/course/apache-airflow-course) by Alexandra Abbas on Udemy
@@ -75,6 +77,11 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Cloudera Provider](https://github.com/cloudera/cloudera-airflow-plugins/tree/main/cloudera_airflow_provider) - Provides Hooks and Operators to interact and run your workloads onto Cloudera Data Platform Services
 
+[Airflow Alembic Provider](https://github.com/astronomer/airflow-provider-alembic) - Provides Hooks and Operators to run Database Migrations with Alembic
+
+[Airflow Pulumi Provider](https://github.com/astronomer/airflow-provider-pulumi) - Provides Hooks and Operators to manage Infrastructure-as-Code with Pulumi
+
+
 &nbsp;
 
 ## Async Providers
@@ -122,6 +129,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 [Amundsen](https://github.com/amundsen-io/amundsen) - Amundsen is a data discovery and metadata platform for improving the productivity of data analysts, data scientists and engineers when interacting with data. It can surface which Airflow task generates a given table.
 
 [Apache-Liminal-Incubating](https://github.com/apache/incubator-liminal) -  Liminal provides a domain-specific-language (DSL) to build ML/AI workflows on top of Apache Airflow. Its goal is to operationalise the machine learning process, allowing data scientists to quickly transition from a successful experiment to an automated pipeline of model training, validation, deployment and inference in production.
+
+[Astro CLI](https://docs.astronomer.io/astro/cli/overview) - The Astro CLI is the easiest way to get a local Airflow server for prototyping and development.
 
 [Astro SDK](https://github.com/astronomer/astro-sdk) - Astro SDK allows rapid and clean development of Extract, Load, Transform workflows using Python and SQL, powered by Apache Airflow and maintained by Astronomer.
 
