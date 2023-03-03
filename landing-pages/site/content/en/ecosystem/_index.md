@@ -180,8 +180,12 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Airflow Vscode Extension](https://github.com/necatiarslan/airflow-vscode-extension) This is a VSCode extension for Apache Airflow 2+. You can trigger your DAGs, pause/unpause DAGs, view execution logs, explore source code and do much more.
 
+[Airflow Provider Template](https://github.com/angreal/airflow-provider) - Template and commands for creating and testing airflow provider packages.
+
+[Airflow Template](https://github.com/angreal/airflow) - Template and commands for creating minimal airflow environments for rapid testing and prototyping. 
 &nbsp;
 
 ## Airflow Provider System Test Dashboards
 
 [Amazon provider package health dashboard](https://aws-mwaa.github.io/open-source/system-tests/dashboard.html) - Dashboard listing all system tests within the Amazon provider package and their current health status: last execution status (succeeded/failed, average duration, ...).
+
