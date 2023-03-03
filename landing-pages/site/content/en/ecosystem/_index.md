@@ -182,7 +182,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Airflow Provider Template](https://github.com/angreal/airflow-provider) - Template and commands for creating and testing airflow provider packages.
 
-[Airflow Template](https://github.com/angreal/airflow) - Template and commands for creating minimal airflow environments for rapid testing and prototyping. 
+[Airflow Template](https://github.com/angreal/airflow) - Template and commands for creating minimal airflow environments for rapid testing and prototyping.
+
 &nbsp;
 
 ## Airflow Provider System Test Dashboards
