@@ -189,4 +189,3 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 ## Airflow Provider System Test Dashboards
 
 [Amazon provider package health dashboard](https://aws-mwaa.github.io/open-source/system-tests/dashboard.html) - Dashboard listing all system tests within the Amazon provider package and their current health status: last execution status (succeeded/failed, average duration, ...).
-
