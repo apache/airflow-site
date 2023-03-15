@@ -22,6 +22,11 @@ We’ve just released Apache **Airflow 2.5.2**.
 🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.5.2/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.5.2/installation/installing-from-sources.html
 
+Airflow PMC welcomes new Airflow PMC Members:
+
+* **Brent Bovenzi** ([@bbovenzi](https://github.com/bbovenzi))
+* **Pierre Jeambrun** ([@pierrejeambrun](https://github.com/pierrejeambrun))
+
 # February 6, 2023
 
 We've just released Apache **Airflow Helm chart 1.8.0**.
