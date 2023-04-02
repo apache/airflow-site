@@ -662,10 +662,6 @@
 
     <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">DockerOperator</span><span class="o">.</span><span class="n">template_fields</span><span class="p">,</span> <span class="s2">&quot;op_args&quot;</span><span class="p">,</span> <span class="s2">&quot;op_kwargs&quot;</span><span class="p">)</span>
 
-    <span class="c1"># since we won&#39;t mutate the arguments, we should just do the shallow copy</span>
-    <span class="c1"># there are some cases we can&#39;t deepcopy the objects (e.g protobuf).</span>
-    <span class="n">shallow_copy_attrs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;python_callable&quot;</span><span class="p">,)</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">use_dill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -697,7 +693,7 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_args</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">pickling_library</span><span class="o">.</span><span class="n">dump</span><span class="p">({</span><span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_args</span><span class="p">,</span> <span class="s2">&quot;kwargs&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span><span class="p">},</span> <span class="n">file</span><span class="p">)</span>
-            <span class="n">py_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_python_source</span><span class="p">()</span>
+            <span class="n">py_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_python_source</span><span class="p">()</span>
             <span class="n">write_python_script</span><span class="p">(</span>
                 <span class="n">jinja_context</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                     <span class="n">op_args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">op_args</span><span class="p">,</span>
@@ -723,10 +719,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_command</span><span class="p">()</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_python_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># TODO: Remove me once this provider min supported Airflow version is 2.6</span>
+    <span class="k">def</span> <span class="nf">get_python_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">raw_source</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">python_callable</span><span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="n">raw_source</span><span class="p">)</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">remove_task_decorator</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;@task.docker&quot;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">remove_task_decorator</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_operator_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span>
 
 
