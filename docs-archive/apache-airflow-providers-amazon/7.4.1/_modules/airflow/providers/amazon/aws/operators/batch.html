@@ -628,6 +628,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">from</span> <span class="nn">airflow.compat.functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
@@ -657,7 +658,9 @@
 <span class="sd">    :param job_name: the name for the job that will run on AWS Batch (templated)</span>
 <span class="sd">    :param job_definition: the job definition name on AWS Batch</span>
 <span class="sd">    :param job_queue: the queue name on AWS Batch</span>
-<span class="sd">    :param overrides: the `containerOverrides` parameter for boto3 (templated)</span>
+<span class="sd">    :param overrides: DEPRECATED, use container_overrides instead with the same value.</span>
+<span class="sd">    :param container_overrides: the `containerOverrides` parameter for boto3 (templated)</span>
+<span class="sd">    :param node_overrides: the `nodeOverrides` parameter for boto3 (templated)</span>
 <span class="sd">    :param array_properties: the `arrayProperties` parameter for boto3</span>
 <span class="sd">    :param parameters: the `parameters` for boto3 (templated)</span>
 <span class="sd">    :param job_id: the job ID, usually unknown (None) until the</span>
@@ -691,14 +694,19 @@
         <span class="s2">&quot;job_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;job_definition&quot;</span><span class="p">,</span>
         <span class="s2">&quot;job_queue&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;overrides&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;container_overrides&quot;</span><span class="p">,</span>
         <span class="s2">&quot;array_properties&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;node_overrides&quot;</span><span class="p">,</span>
         <span class="s2">&quot;parameters&quot;</span><span class="p">,</span>
         <span class="s2">&quot;waiters&quot;</span><span class="p">,</span>
         <span class="s2">&quot;tags&quot;</span><span class="p">,</span>
         <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span></div>
     <span class="p">)</span>
-<div class="viewcode-block" id="BatchOperator.template_fields_renderers"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/batch/index.html#airflow.providers.amazon.aws.operators.batch.BatchOperator.template_fields_renderers">[docs]</a>    <span class="n">template_fields_renderers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;overrides&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">}</span></div>
+<div class="viewcode-block" id="BatchOperator.template_fields_renderers"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/batch/index.html#airflow.providers.amazon.aws.operators.batch.BatchOperator.template_fields_renderers">[docs]</a>    <span class="n">template_fields_renderers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;container_overrides&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;node_overrides&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span></div>
+    <span class="p">}</span>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="BatchOperator.operator_extra_links"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/batch/index.html#airflow.providers.amazon.aws.operators.batch.BatchOperator.operator_extra_links">[docs]</a>    <span class="k">def</span> <span class="nf">operator_extra_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -717,8 +725,10 @@
         <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">job_definition</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">job_queue</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">overrides</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># deprecated</span>
+        <span class="n">container_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">array_properties</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">node_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waiters</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -736,17 +746,43 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span> <span class="o">=</span> <span class="n">job_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span> <span class="o">=</span> <span class="n">job_definition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span> <span class="o">=</span> <span class="n">job_queue</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">overrides</span> <span class="o">=</span> <span class="n">overrides</span> <span class="ow">or</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">array_properties</span> <span class="o">=</span> <span class="n">array_properties</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">container_overrides</span> <span class="o">=</span> <span class="n">container_overrides</span>
+        <span class="c1"># handle `overrides` deprecation in favor of `container_overrides`</span>
+        <span class="k">if</span> <span class="n">overrides</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">container_overrides</span><span class="p">:</span>
+                <span class="c1"># disallow setting both old and new params</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                    <span class="s2">&quot;&#39;container_overrides&#39; replaces the &#39;overrides&#39; parameter. &quot;</span>
+                    <span class="s2">&quot;You cannot specify both. Please remove assignation to the deprecated &#39;overrides&#39;.&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container_overrides</span> <span class="o">=</span> <span class="n">overrides</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Parameter `overrides` is deprecated, Please use `container_overrides` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_overrides</span> <span class="o">=</span> <span class="n">node_overrides</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">array_properties</span> <span class="o">=</span> <span class="n">array_properties</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiters</span> <span class="o">=</span> <span class="n">waiters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">tags</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">BatchClientHook</span><span class="p">(</span>
-            <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-            <span class="n">status_retries</span><span class="o">=</span><span class="n">status_retries</span><span class="p">,</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">region_name</span><span class="p">,</span>
+
+        <span class="c1"># params for hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_retries</span> <span class="o">=</span> <span class="n">max_retries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_retries</span> <span class="o">=</span> <span class="n">status_retries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">region_name</span> <span class="o">=</span> <span class="n">region_name</span>
+
+    <span class="nd">@cached_property</span>
+<div class="viewcode-block" id="BatchOperator.hook"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/batch/index.html#airflow.providers.amazon.aws.operators.batch.BatchOperator.hook">[docs]</a>    <span class="k">def</span> <span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BatchClientHook</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">BatchClientHook</span><span class="p">(</span>
+            <span class="n">max_retries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_retries</span><span class="p">,</span>
+            <span class="n">status_retries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_retries</span><span class="p">,</span>
+            <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span></div>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="BatchOperator.execute"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/batch/index.html#airflow.providers.amazon.aws.operators.batch.BatchOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
@@ -777,18 +813,27 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AWS Batch job - container overrides: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">container_overrides</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AWS Batch job - container overrides: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">container_overrides</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AWS Batch job - array properties: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_properties</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_overrides</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AWS Batch job - node properties: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_overrides</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;jobName&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
+            <span class="s2">&quot;jobQueue&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="p">,</span>
+            <span class="s2">&quot;jobDefinition&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span>
+            <span class="s2">&quot;arrayProperties&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_properties</span><span class="p">,</span>
+            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
+            <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span>
+            <span class="s2">&quot;containerOverrides&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">container_overrides</span><span class="p">,</span>
+            <span class="s2">&quot;nodeOverrides&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_overrides</span><span class="p">,</span>
+        <span class="p">}</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">submit_job</span><span class="p">(</span>
-                <span class="n">jobName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
-                <span class="n">jobQueue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="p">,</span>
-                <span class="n">jobDefinition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_definition</span><span class="p">,</span>
-                <span class="n">arrayProperties</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">array_properties</span><span class="p">,</span>
-                <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
-                <span class="n">containerOverrides</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">overrides</span><span class="p">,</span>
-                <span class="n">tags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">submit_job</span><span class="p">(</span><span class="o">**</span><span class="n">trim_none_values</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="s2">&quot;AWS Batch job failed submission - job definition: </span><span class="si">%s</span><span class="s2"> - on queue </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -852,15 +897,24 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">wait_for_job</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>
 
-        <span class="n">awslogs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_job_awslogs_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>
+        <span class="n">awslogs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_job_all_awslogs_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">awslogs</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AWS Batch job (</span><span class="si">%s</span><span class="s2">) CloudWatch Events details found: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">,</span> <span class="n">awslogs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AWS Batch job (</span><span class="si">%s</span><span class="s2">) CloudWatch Events details found. Links to logs:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>
+            <span class="n">link_builder</span> <span class="o">=</span> <span class="n">CloudWatchEventsLink</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">awslogs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">link_builder</span><span class="o">.</span><span class="n">format_link</span><span class="p">(</span><span class="o">**</span><span class="n">log</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">awslogs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># there can be several log streams on multi-node jobs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;out of all those logs, we can only link to one in the UI. &quot;</span> <span class="s2">&quot;Using the first one.&quot;</span>
+                <span class="p">)</span>
+
             <span class="n">CloudWatchEventsLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
                 <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
                 <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
                 <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
-                <span class="o">**</span><span class="n">awslogs</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">awslogs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">check_job_success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_id</span><span class="p">)</span>

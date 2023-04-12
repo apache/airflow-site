@@ -593,11 +593,11 @@
 <div class="section" id="databrickssqloperator">
 <span id="howto-operator-databrickssqloperator"></span><h1>DatabricksSqlOperator<a class="headerlink" href="#databrickssqloperator" title="Permalink to this heading">¶</a></h1>
 <p>Use the <a class="reference internal" href="../_api/airflow/providers/databricks/operators/databricks_sql/index.html#airflow.providers.databricks.operators.databricks_sql.DatabricksSqlOperator" title="airflow.providers.databricks.operators.databricks_sql.DatabricksSqlOperator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatabricksSqlOperator</span></code></a> to execute SQL
-on a <a class="reference external" href="https://docs.databricks.com/sql/admin/sql-endpoints.html">Databricks SQL endpoint</a> or a
+on a <a class="reference external" href="https://docs.databricks.com/sql/admin/sql-endpoints.html">Databricks SQL warehouse</a> or a
 <a class="reference external" href="https://docs.databricks.com/clusters/index.html">Databricks cluster</a>.</p>
 <div class="section" id="using-the-operator">
 <h2>Using the Operator<a class="headerlink" href="#using-the-operator" title="Permalink to this heading">¶</a></h2>
-<p>Operator executes given SQL queries against configured endpoint. The only required parameters are:</p>
+<p>Operator executes given SQL queries against configured warehouse. The only required parameters are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sql</span></code> - SQL queries to execute. There are 3 ways of specifying SQL queries:</p>
 <ol class="arabic simple">
@@ -606,7 +606,7 @@ on a <a class="reference external" href="https://docs.databricks.com/sql/admin/s
 <li><p>Name of the file with SQL queries. File must have <code class="docutils literal notranslate"><span class="pre">.sql</span></code> extension. Each query should finish with <code class="docutils literal notranslate"><span class="pre">;&lt;new_line&gt;</span></code></p></li>
 </ol>
 </li>
-<li><p>One of <code class="docutils literal notranslate"><span class="pre">sql_endpoint_name</span></code> (name of Databricks SQL endpoint to use) or <code class="docutils literal notranslate"><span class="pre">http_path</span></code> (HTTP path for Databricks SQL endpoint or Databricks cluster).</p></li>
+<li><p>One of <code class="docutils literal notranslate"><span class="pre">sql_warehouse_name</span></code> (name of Databricks SQL warehouse to use) or <code class="docutils literal notranslate"><span class="pre">http_path</span></code> (HTTP path for Databricks SQL warehouse or Databricks cluster).</p></li>
 </ul>
 <p>Other parameters are optional and could be found in the class documentation.</p>
 </div>
@@ -681,6 +681,47 @@ on a <a class="reference external" href="https://docs.databricks.com/sql/admin/s
     <span class="p">)</span>
 </pre></div>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="databrickssqlsensor">
+<h1>DatabricksSqlSensor<a class="headerlink" href="#databrickssqlsensor" title="Permalink to this heading">¶</a></h1>
+<p>Use the <code class="xref py py-class docutils literal notranslate"><span class="pre">DatabricksSqlSensor</span></code> to run the sensor
+for a table accessible via a Databricks SQL warehouse or interactive cluster.</p>
+<div class="section" id="using-the-sensor">
+<h2>Using the Sensor<a class="headerlink" href="#using-the-sensor" title="Permalink to this heading">¶</a></h2>
+<p>The sensor executes the SQL statement supplied by the user. The only required parameters are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sql</span></code> - SQL query to execute for the sensor.</p></li>
+<li><p>One of <code class="docutils literal notranslate"><span class="pre">sql_warehouse_name</span></code> (name of Databricks SQL warehouse to use) or <code class="docutils literal notranslate"><span class="pre">http_path</span></code> (HTTP path for Databricks SQL warehouse or Databricks cluster).</p></li>
+</ul>
+<p>Other parameters are optional and could be found in the class documentation.</p>
+</div>
+<div class="section" id="id1">
+<h2>Examples<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<p>Configuring Databricks connection to be used with the Sensor.</p>
+<div class="example-block-wrapper compound">
+<p class="example-header example-header--with-button compound-first"><span class="example-title">tests/system/providers/databricks/example_databricks_sensors.py</span><a class="example-header-button viewcode-button reference internal" href="../_modules/tests/system/providers/databricks/example_databricks_sensors.html"><span class="viewcode-link">[source]</span></a></p>
+<div class="compound-last highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Connection string setup for Databricks workspace.</span>
+<span class="n">connection_id</span> <span class="o">=</span> <span class="s2">&quot;databricks_default&quot;</span>
+<span class="n">sql_warehouse_name</span> <span class="o">=</span> <span class="s2">&quot;Starter Warehouse&quot;</span>
+</pre></div>
+</div>
+</div>
+<p>Poking the specific table for existence of data/partition:</p>
+<div class="example-block-wrapper compound">
+<p class="example-header example-header--with-button compound-first"><span class="example-title">tests/system/providers/databricks/example_databricks_sensors.py</span><a class="example-header-button viewcode-button reference internal" href="../_modules/tests/system/providers/databricks/example_databricks_sensors.html"><span class="viewcode-link">[source]</span></a></p>
+<div class="compound-last highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of using the Databricks SQL Sensor to check existence of data in a table.</span>
+<span class="n">sql_sensor</span> <span class="o">=</span> <span class="n">DatabricksSqlSensor</span><span class="p">(</span>
+    <span class="n">databricks_conn_id</span><span class="o">=</span><span class="n">connection_id</span><span class="p">,</span>
+    <span class="n">sql_warehouse_name</span><span class="o">=</span><span class="n">sql_warehouse_name</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="o">=</span><span class="s2">&quot;hive_metastore&quot;</span><span class="p">,</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;sql_sensor_task&quot;</span><span class="p">,</span>
+    <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;select * from hive_metastore.temp.sample_table_3 limit 1&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -770,6 +811,11 @@ on a <a class="reference external" href="https://docs.databricks.com/sql/admin/s
 <li><a class="reference internal" href="#executing-multiple-statements-from-a-file">Executing multiple statements from a file</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a class="reference internal" href="#databrickssqlsensor">DatabricksSqlSensor</a><ul>
+<li><a class="reference internal" href="#using-the-sensor">Using the Sensor</a></li>
+<li><a class="reference internal" href="#id1">Examples</a></li>
 </ul>
 </li>
 </ul>

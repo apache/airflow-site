@@ -991,6 +991,10 @@
 <span class="sd">        AirflowException if an ECS task is stopped (to receive Airflow alerts with the logs of what</span>
 <span class="sd">        failed in the code running in ECS).</span>
 <span class="sd">    :param wait_for_completion: If True, waits for creation of the cluster to complete. (default: True)</span>
+<span class="sd">    :param waiter_delay: The amount of time in seconds to wait between attempts,</span>
+<span class="sd">        if not set then the default waiter value will be used.</span>
+<span class="sd">    :param waiter_max_attempts: The maximum number of attempts to be made,</span>
+<span class="sd">        if not set then the default waiter value will be used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EcsRunTaskOperator.ui_color"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/ecs/index.html#airflow.providers.amazon.aws.operators.ecs.EcsRunTaskOperator.ui_color">[docs]</a>    <span class="n">ui_color</span> <span class="o">=</span> <span class="s2">&quot;#f0ede4&quot;</span></div>
@@ -1046,6 +1050,8 @@
         <span class="n">reattach</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">number_logs_exception</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1077,6 +1083,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">retry_args</span> <span class="o">=</span> <span class="n">quota_retry</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_log_fetcher</span><span class="p">:</span> <span class="n">EcsTaskLogFetcher</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span> <span class="o">=</span> <span class="n">waiter_delay</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="n">waiter_max_attempts</span>
 
     <span class="nd">@provide_session</span>
 <div class="viewcode-block" id="EcsRunTaskOperator.execute"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/ecs/index.html#airflow.providers.amazon.aws.operators.ecs.EcsRunTaskOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1199,7 +1207,16 @@
 
         <span class="n">waiter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;tasks_stopped&quot;</span><span class="p">)</span>
         <span class="n">waiter</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_attempts</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span>  <span class="c1"># timeout is managed by airflow</span>
-        <span class="n">waiter</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">cluster</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">,</span> <span class="n">tasks</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">arn</span><span class="p">])</span>
+        <span class="n">waiter</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="n">cluster</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="p">,</span>
+            <span class="n">tasks</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">arn</span><span class="p">],</span>
+            <span class="n">WaiterConfig</span><span class="o">=</span><span class="n">prune_dict</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Delay&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
+                    <span class="s2">&quot;MaxAttempts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="k">return</span>
 
