@@ -606,6 +606,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">AirflowException</span>
@@ -628,6 +629,7 @@
 <span class="sd">    :param dbt_cloud_conn_id: The connection identifier for connecting to dbt Cloud.</span>
 <span class="sd">    :param run_id: The job run identifier.</span>
 <span class="sd">    :param account_id: The dbt Cloud account identifier.</span>
+<span class="sd">    :param deferrable: Run sensor in the deferrable mode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DbtCloudJobRunSensor.template_fields"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunSensor.template_fields">[docs]</a>    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;dbt_cloud_conn_id&quot;</span><span class="p">,</span> <span class="s2">&quot;run_id&quot;</span><span class="p">,</span> <span class="s2">&quot;account_id&quot;</span><span class="p">)</span></div>
@@ -638,12 +640,32 @@
         <span class="n">dbt_cloud_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DbtCloudHook</span><span class="o">.</span><span class="n">default_conn_name</span><span class="p">,</span>
         <span class="n">run_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">account_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">deferrable</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;poke_interval&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="c1"># TODO: Remove once deprecated</span>
+                <span class="k">if</span> <span class="s2">&quot;polling_interval&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;poke_interval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;polling_interval&quot;</span><span class="p">]</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;Argument `poll_interval` is deprecated and will be removed &quot;</span>
+                        <span class="s2">&quot;in a future release.  Please use `poke_interval` instead.&quot;</span><span class="p">,</span>
+                        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;poke_interval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+
+                <span class="k">if</span> <span class="s2">&quot;timeout&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;timeout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">7</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dbt_cloud_conn_id</span> <span class="o">=</span> <span class="n">dbt_cloud_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span> <span class="o">=</span> <span class="n">run_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">account_id</span> <span class="o">=</span> <span class="n">account_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span>
 
 <div class="viewcode-block" id="DbtCloudJobRunSensor.poke"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunSensor.poke">[docs]</a>    <span class="k">def</span> <span class="nf">poke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">hook</span> <span class="o">=</span> <span class="n">DbtCloudHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbt_cloud_conn_id</span><span class="p">)</span>
@@ -655,54 +677,30 @@
         <span class="k">if</span> <span class="n">job_run_status</span> <span class="o">==</span> <span class="n">DbtCloudJobRunStatus</span><span class="o">.</span><span class="n">CANCELLED</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DbtCloudJobRunException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job run </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> has been cancelled.&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">job_run_status</span> <span class="o">==</span> <span class="n">DbtCloudJobRunStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="o">.</span><span class="n">value</span></div></div>
+        <span class="k">return</span> <span class="n">job_run_status</span> <span class="o">==</span> <span class="n">DbtCloudJobRunStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="o">.</span><span class="n">value</span></div>
 
-
-<div class="viewcode-block" id="DbtCloudJobRunAsyncSensor"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunAsyncSensor">[docs]</a><span class="k">class</span> <span class="nc">DbtCloudJobRunAsyncSensor</span><span class="p">(</span><span class="n">DbtCloudJobRunSensor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks the status of a dbt Cloud job run asynchronously.</span>
-
-<span class="sd">    .. seealso::</span>
-<span class="sd">        For more information on the DbtCloudJobRunAsyncSensor, take a look at the guide::</span>
-<span class="sd">        :ref:`howto/operator:DbtCloudJobRunAsyncSensor`</span>
-
-<span class="sd">    :param dbt_cloud_conn_id: The connection identifier for connecting to dbt Cloud.</span>
-<span class="sd">    :param run_id: The job run identifier.</span>
-<span class="sd">    :param account_id: The dbt Cloud account identifier.</span>
-<span class="sd">    :param poll_interval: Periodic time interval for the sensor to check for job status.</span>
-<span class="sd">    :param timeout: Time in seconds to wait for a job run to reach a terminal status. Defaults to 7 days.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="o">*</span><span class="p">,</span>
-        <span class="n">poll_interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">7</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">poll_interval</span> <span class="o">=</span> <span class="n">poll_interval</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-<div class="viewcode-block" id="DbtCloudJobRunAsyncSensor.execute"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunAsyncSensor.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DbtCloudJobRunSensor.execute"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunSensor.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Defers to Trigger class to poll for state of the job run until</span>
 <span class="sd">        it reaches a failure state or success state</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
-            <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_timeout</span><span class="p">,</span>
-            <span class="n">trigger</span><span class="o">=</span><span class="n">DbtCloudRunJobTrigger</span><span class="p">(</span>
-                <span class="n">run_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>
-                <span class="n">conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dbt_cloud_conn_id</span><span class="p">,</span>
-                <span class="n">account_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">account_id</span><span class="p">,</span>
-                <span class="n">poll_interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">poll_interval</span><span class="p">,</span>
-                <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span></div>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_timeout</span><span class="p">,</span>
+                <span class="n">trigger</span><span class="o">=</span><span class="n">DbtCloudRunJobTrigger</span><span class="p">(</span>
+                    <span class="n">run_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>
+                    <span class="n">conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dbt_cloud_conn_id</span><span class="p">,</span>
+                    <span class="n">account_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">account_id</span><span class="p">,</span>
+                    <span class="n">poll_interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">poke_interval</span><span class="p">,</span>
+                    <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span></div>
+            <span class="p">)</span>
 
-<div class="viewcode-block" id="DbtCloudJobRunAsyncSensor.execute_complete"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunAsyncSensor.execute_complete">[docs]</a>    <span class="k">def</span> <span class="nf">execute_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="DbtCloudJobRunSensor.execute_complete"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunSensor.execute_complete">[docs]</a>    <span class="k">def</span> <span class="nf">execute_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Callback for when the trigger fires - returns immediately.</span>
 <span class="sd">        Relies on trigger to throw an exception, otherwise it assumes execution was</span>
@@ -712,6 +710,23 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Error in dbt: &quot;</span> <span class="o">+</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">])</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;run_id&quot;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="DbtCloudJobRunAsyncSensor"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/dbt/cloud/sensors/dbt/index.html#airflow.providers.dbt.cloud.sensors.dbt.DbtCloudJobRunAsyncSensor">[docs]</a><span class="k">class</span> <span class="nc">DbtCloudJobRunAsyncSensor</span><span class="p">(</span><span class="n">DbtCloudJobRunSensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is deprecated.</span>
+<span class="sd">    Please use</span>
+<span class="sd">    :class:`airflow.providers.dbt.cloud.sensor.dbt.DbtCloudJobRunSensor`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Class `DbtCloudJobRunAsyncSensor` is deprecated and will be removed in a future release. &quot;</span>
+            <span class="s2">&quot;Please use `DbtCloudJobRunSensor` and set `deferrable` attribute to `True` instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">deferrable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>
