@@ -607,6 +607,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">unquote</span>
 
 <span class="kn">from</span> <span class="nn">airflow.providers.common.sql.hooks.sql</span> <span class="kn">import</span> <span class="n">DbApiHook</span>
 
@@ -622,16 +623,26 @@
 
 <div class="viewcode-block" id="SqliteHook.get_conn"><a class="viewcode-back" href="../../../../../_api/airflow/providers/sqlite/hooks/sqlite/index.html#airflow.providers.sqlite.hooks.sqlite.SqliteHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">dbapi2</span><span class="o">.</span><span class="n">Connection</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a sqlite connection object&quot;&quot;&quot;</span>
-        <span class="n">conn_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_name_attr</span><span class="p">)</span>
-        <span class="n">airflow_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">conn_id</span><span class="p">)</span>
-        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">airflow_conn</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
+        <span class="n">sqlalchemy_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()</span>
+        <span class="c1"># The sqlite3 connection does not use the sqlite scheme.</span>
+        <span class="c1"># See https://docs.sqlalchemy.org/en/14/dialects/sqlite.html#uri-connections for details.</span>
+        <span class="n">sqlite_uri</span> <span class="o">=</span> <span class="n">sqlalchemy_uri</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;sqlite:///&quot;</span><span class="p">,</span> <span class="s2">&quot;file:&quot;</span><span class="p">)</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_uri</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">conn</span></div>
 
 <div class="viewcode-block" id="SqliteHook.get_uri"><a class="viewcode-back" href="../../../../../_api/airflow/providers/sqlite/hooks/sqlite/index.html#airflow.providers.sqlite.hooks.sqlite.SqliteHook.get_uri">[docs]</a>    <span class="k">def</span> <span class="nf">get_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Override DbApiHook get_uri method for get_sqlalchemy_engine()&quot;&quot;&quot;</span>
         <span class="n">conn_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_name_attr</span><span class="p">)</span>
         <span class="n">airflow_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">conn_id</span><span class="p">)</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;sqlite:///</span><span class="si">{</span><span class="n">airflow_conn</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">&quot;</span></div></div>
+        <span class="k">if</span> <span class="n">airflow_conn</span><span class="o">.</span><span class="n">conn_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">airflow_conn</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_type</span>
+        <span class="n">airflow_uri</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">airflow_conn</span><span class="o">.</span><span class="n">get_uri</span><span class="p">())</span>
+        <span class="c1"># For sqlite, there is no schema in the connection URI. So we need to drop the trailing slash.</span>
+        <span class="n">airflow_sqlite_uri</span> <span class="o">=</span> <span class="n">airflow_uri</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/?&quot;</span><span class="p">,</span> <span class="s2">&quot;?&quot;</span><span class="p">)</span>
+        <span class="c1"># The sqlite connection has one more slash for path specification.</span>
+        <span class="c1"># See https://docs.sqlalchemy.org/en/14/dialects/sqlite.html#connect-strings for details.</span>
+        <span class="n">sqlalchemy_uri</span> <span class="o">=</span> <span class="n">airflow_sqlite_uri</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;sqlite://&quot;</span><span class="p">,</span> <span class="s2">&quot;sqlite:///&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sqlalchemy_uri</span></div></div>
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>

@@ -1017,43 +1017,76 @@
         <span class="k">return</span> <span class="n">matching_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="BatchClientHook.get_job_awslogs_info"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/hooks/batch_client/index.html#airflow.providers.amazon.aws.hooks.batch_client.BatchClientHook.get_job_awslogs_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_awslogs_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">all_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_all_awslogs_info</span><span class="p">(</span><span class="n">job_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">all_info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;AWS Batch job (</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">) has more than one log stream, &quot;</span> <span class="sa">f</span><span class="s2">&quot;only returning the first one.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">all_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="BatchClientHook.get_job_all_awslogs_info"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/hooks/batch_client/index.html#airflow.providers.amazon.aws.hooks.batch_client.BatchClientHook.get_job_all_awslogs_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_all_awslogs_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parse job description to extract AWS CloudWatch information.</span>
 
 <span class="sd">        :param job_id: AWS Batch Job ID</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">job_container_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_description</span><span class="p">(</span><span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">log_configuration</span> <span class="o">=</span> <span class="n">job_container_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logConfiguration&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">job_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_description</span><span class="p">(</span><span class="n">job_id</span><span class="o">=</span><span class="n">job_id</span><span class="p">)</span>
 
-        <span class="c1"># In case if user select other &quot;logDriver&quot; rather than &quot;awslogs&quot;</span>
-        <span class="c1"># than CloudWatch logging should be disabled.</span>
-        <span class="c1"># If user not specify anything than expected that &quot;awslogs&quot; will use</span>
-        <span class="c1"># with default settings:</span>
-        <span class="c1">#   awslogs-group = /aws/batch/job</span>
-        <span class="c1">#   awslogs-region = `same as AWS Batch Job region`</span>
-        <span class="n">log_driver</span> <span class="o">=</span> <span class="n">log_configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logDriver&quot;</span><span class="p">,</span> <span class="s2">&quot;awslogs&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">log_driver</span> <span class="o">!=</span> <span class="s2">&quot;awslogs&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;AWS Batch job (</span><span class="si">%s</span><span class="s2">) uses logDriver (</span><span class="si">%s</span><span class="s2">). AWS CloudWatch logging disabled.&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">log_driver</span>
+        <span class="n">job_node_properties</span> <span class="o">=</span> <span class="n">job_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nodeProperties&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">job_container_desc</span> <span class="o">=</span> <span class="n">job_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">if</span> <span class="n">job_node_properties</span><span class="p">:</span>
+            <span class="c1"># one log config per node</span>
+            <span class="n">log_configs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logConfiguration&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">job_node_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nodeRangeProperties&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="p">]</span>
+            <span class="c1"># one stream name per attempt</span>
+            <span class="n">stream_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logStreamName&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">job_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attempts&quot;</span><span class="p">,</span> <span class="p">[])]</span>
+        <span class="k">elif</span> <span class="n">job_container_desc</span><span class="p">:</span>
+            <span class="n">log_configs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job_container_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logConfiguration&quot;</span><span class="p">,</span> <span class="p">{})]</span>
+            <span class="n">stream_name</span> <span class="o">=</span> <span class="n">job_container_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logStreamName&quot;</span><span class="p">)</span>
+            <span class="n">stream_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">stream_name</span><span class="p">]</span> <span class="k">if</span> <span class="n">stream_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;AWS Batch job (</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">) is not a supported job type. &quot;</span>
+                <span class="s2">&quot;Supported job types: container, array, multinode.&quot;</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">awslogs_stream_name</span> <span class="o">=</span> <span class="n">job_container_desc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logStreamName&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">awslogs_stream_name</span><span class="p">:</span>
-            <span class="c1"># In case of call this method on very early stage of running AWS Batch</span>
-            <span class="c1"># there is possibility than AWS CloudWatch Stream Name not exists yet.</span>
-            <span class="c1"># AWS CloudWatch Stream Name also not created in case of misconfiguration.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;AWS Batch job (</span><span class="si">%s</span><span class="s2">) doesn&#39;t create AWS CloudWatch Stream.&quot;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># If the user selected another logDriver than &quot;awslogs&quot;, then CloudWatch logging is disabled.</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logDriver&quot;</span><span class="p">,</span> <span class="s2">&quot;awslogs&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;awslogs&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">log_configs</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;AWS Batch job (</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">) uses non-aws log drivers. AWS CloudWatch logging disabled.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stream_names</span><span class="p">:</span>
+            <span class="c1"># If this method is called very early after starting the AWS Batch job,</span>
+            <span class="c1"># there is a possibility that the AWS CloudWatch Stream Name would not exist yet.</span>
+            <span class="c1"># This can also happen in case of misconfiguration.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AWS Batch job (</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">) doesn&#39;t have any AWS CloudWatch Stream.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
 
         <span class="c1"># Try to get user-defined log configuration options</span>
-        <span class="n">log_options</span> <span class="o">=</span> <span class="n">log_configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">log_options</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">log_configs</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;awslogs_stream_name&quot;</span><span class="p">:</span> <span class="n">awslogs_stream_name</span><span class="p">,</span>
-            <span class="s2">&quot;awslogs_group&quot;</span><span class="p">:</span> <span class="n">log_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;awslogs-group&quot;</span><span class="p">,</span> <span class="s2">&quot;/aws/batch/job&quot;</span><span class="p">),</span>
-            <span class="s2">&quot;awslogs_region&quot;</span><span class="p">:</span> <span class="n">log_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;awslogs-region&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">),</span></div>
-        <span class="p">}</span>
+        <span class="c1"># cross stream names with options (i.e. attempts X nodes) to generate all log infos</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">stream_names</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">log_options</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;awslogs_stream_name&quot;</span><span class="p">:</span> <span class="n">stream</span><span class="p">,</span>
+                        <span class="c1"># If the user did not specify anything, the default settings are:</span>
+                        <span class="c1">#   awslogs-group = /aws/batch/job</span>
+                        <span class="c1">#   awslogs-region = `same as AWS Batch Job region`</span>
+                        <span class="s2">&quot;awslogs_group&quot;</span><span class="p">:</span> <span class="n">option</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;awslogs-group&quot;</span><span class="p">,</span> <span class="s2">&quot;/aws/batch/job&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;awslogs_region&quot;</span><span class="p">:</span> <span class="n">option</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;awslogs-region&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">),</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="BatchClientHook.add_jitter"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/hooks/batch_client/index.html#airflow.providers.amazon.aws.hooks.batch_client.BatchClientHook.add_jitter">[docs]</a>    <span class="k">def</span> <span class="nf">add_jitter</span><span class="p">(</span><span class="n">delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">minima</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
