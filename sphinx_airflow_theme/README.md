@@ -46,6 +46,52 @@ In order to start working with the theme, please follow the instructions below.
     ./docs.sh build && ./docs.sh preview
     ```
 
+# Generate Airflow documentation with Sphinx theme changes
+
+If you made some modifications to Sphinx theme and want to generate Airflow documentation to check the end results,
+please follow these steps:
+
+1. In `airflow-site` repository, build Airflow website:
+    ```shell script
+    ./site.sh build-site
+    ```
+
+2. Package the Sphinx theme in a `whl` file:
+    ```shell script
+    cd ./sphinx_airflow_theme
+    python3 setup.py sdist bdist_wheel
+    ```
+
+3. (Optional) Double-check your modifications to the Sphinx theme are in the `whl` file:
+    ```shell script
+    pip install wheel
+    wheel unpack ./sphinx_airflow_theme-0.0.11-py3-none-any.whl
+    ```
+
+4. Copy the `whl` file to `files` directory in `airflow` repository:
+    ```shell script
+    cp ./sphinx_airflow_theme-0.0.11-py3-none-any.whl ${AIRFLOW_REPO}/files/
+    ```
+
+5. In `airflow` repository, initiate a new breeze environment:
+    ```shell script
+    breeze
+    ```
+
+6. In the breeze container, generate the documentation after installing the theme:
+    ```shell script
+    pip install /files/sphinx_airflow_theme-0.0.11-py3-none-any.whl --force-reinstall
+    # Generate Airflow documentation only. If you need to generate the whole documentation (all providers),
+    # you can do it using `/opt/airflow/scripts/in_container/run_docs_build.sh`. It takes longer to execute.
+    /opt/airflow/scripts/in_container/run_docs_build.sh --package-filter apache-airflow
+    ```
+
+7. Verify the documentation generated is correct and includes your modifications. The documentation is generated in
+`docs/_build/docs/`. If you generated Airflow documentation only, you can check the results in
+`docs/_build/docs/apache-airflow/latest/`.
+
+
+
 # Install developer version
 
 To install the latest development version of a theme, run:
