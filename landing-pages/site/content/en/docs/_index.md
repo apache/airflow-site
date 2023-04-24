@@ -43,6 +43,8 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-kafka/stable/index.html"><code>Apache Kafka</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Kylin</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-livy/stable/index.html"><code>Apache Livy</code></a></li>
