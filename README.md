@@ -51,7 +51,10 @@ git submodule update --init --recursive
 ```
 ---
 
-In order to build site, run script `<ROOT DIRECTORY>/site.sh build-site`.
+In order to build the site locally,
+1. Install [Node.js and NPM](https://nodejs.org/en/download)
+2. Make sure you have [HUGO](https://gohugo.io/installation/) installed. You're recommended to install the version that is being used in the [CI build](https://github.com/apache/airflow-site/blob/main/.github/workflows/build.yml#L53) job.
+3. Run script `<ROOT DIRECTORY>/site.sh build-site`.
 
 In order to preview landing pages, run script `<ROOT DIRECTORY>/site.sh preview-landing-pages`.
 
