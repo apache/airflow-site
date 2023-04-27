@@ -61,6 +61,8 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-asana/stable/index.html"><code>Asana</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-atlassian-jira/stable/index.html"><code>Atlassian Jira</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
@@ -104,8 +106,6 @@ Providers packages include integrations with third party projects. They are upda
   <li><a href="/docs/apache-airflow-providers-jdbc/stable/index.html"><code>Java Database Connectivity (JDBC)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html"><code>Jenkins</code></a></li>
-
-  <li><a href="/docs/apache-airflow-providers-atlassian-jira/stable/index.html"><code>Jira (Atlassian)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 
