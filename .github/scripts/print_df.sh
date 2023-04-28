@@ -18,14 +18,15 @@
 # under the License.
 
 
-# Create an expandable group in the logs for the bash command output using the syntax defined for GiHub Action runners:
+# Create an expandable group in the logs for the disk free (df -h) bash command output using the syntax defined for
+# GiHub Action runners:
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#grouping-log-lines.
 # With such expandable logs groupings we can avoid noisy outputs and at the same time have pointers for
 # debugging/analysis.
-function run_and_group_bash_logs {
-    echo "::group::Bash command logs group"
-    "$@"
+function group_df_logs {
+    echo "::group::df -h"
+    df -h
     echo "::endgroup::"
 }
 
-run_and_group_bash_logs "$@"
+group_df_logs
