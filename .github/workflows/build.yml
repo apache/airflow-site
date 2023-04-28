@@ -30,7 +30,6 @@ jobs:
       # Based on https://github.com/actions/runner-images/issues/2840
       - name: 🪓 Remove some stuff we don't need
         run: |
-          ./.github/scripts/group_bash_logs.sh df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
@@ -40,6 +39,8 @@ jobs:
         with:
           submodules: recursive
           lfs: true
+      - name: Display disk free
+        run: ./.github/scripts/group_bash_logs.sh df -h
       - name: 🐍 Setup Python
         uses: actions/setup-python@41b7212b1668f5de9d65e9c82aa777e6bbedb3a8  # v2.1.4
         with:
@@ -54,16 +55,23 @@ jobs:
           hugo-version: '0.91.2'
           extended: true
       - name: 🟢 Install node dependencies
-        run: ./site.sh install-node-deps
+        run: |
+          ./site.sh install-node-deps
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🐍 Install Python dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🔎 Lint
         uses: apache/airflow-pre-commit-action@0764670bf370aab253130d534e1eda7ff497dc60  # v2.0.0
       - name: 🔧 Build site
-        run: ./site.sh build-site
+        run: |
+          ./site.sh build-site
+          ./.github/scripts/group_bash_logs.sh df -h
       - run: |
           rm -rf ./docs-archive/*
           echo "docs-archive directory files are deleted as they are no longer needed after the site is built in the above step"
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🐅 Optimize artifacts
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -71,6 +79,7 @@ jobs:
           echo "These files have been deleted to optimize the size of the artifacts." > ./dist/docs/index.html
           echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
           find ./dist/
+          ./.github/scripts/group_bash_logs.sh df -h
       - uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
@@ -85,10 +94,12 @@ jobs:
           # The asf.yaml file must be in the branch from which the files are published.
           # Otherwise, ASF publising tools cannot detect it.
           cp .asf.yaml ./dist/
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🪓 Remove node and node modules
         run: |
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🚀 Deploy website on asf-site branch
         uses: apache/airflow-JamesIves-github-pages-deploy-action@132898c54c57c7cc6b80eb3a89968de8fc283505  # v3.7.1
         if: ${{ github.event_name == 'push' }}
@@ -98,12 +109,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLEAN: true  # Automatically remove deleted files from the deploy branch
       - name: 🔧 Copy files from site to theme️
-        run: ./site.sh prepare-theme
+        run: |
+          ./site.sh prepare-theme
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🔧 Prepare sphinx_airflow_theme package ️
         working-directory: sphinx_airflow_theme
         run: |
           python3 -m pip install --user --upgrade setuptools wheel
           python3 setup.py sdist bdist_wheel
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🚀 Upload sphinx_airflow_theme package as artifact
         uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
         with:
@@ -117,6 +131,7 @@ jobs:
           pip install ./dist/sphinx_airflow_theme-*.whl
           cd demo
           ./docs.sh build
+          ./.github/scripts/group_bash_logs.sh df -h
       - name: 🚀 Upload sphinx_airflow_theme demo as artifact
         uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
         with:
@@ -146,3 +161,4 @@ jobs:
             --title "${TITLE}" \
             --notes "${NOTES}" \
             ./dist/*
+          ./.github/scripts/group_bash_logs.sh df -h
