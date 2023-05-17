@@ -614,7 +614,7 @@ is sent in the API request to Google Cloud (via <code class="docutils literal no
 <h2>Context<a class="headerlink" href="#context" title="Permalink to this heading">¶</a></h2>
 <p>The specification mostly focuses on helping Airflow DAG developers in the development
 phase. You can build your own Google Cloud operator (such as GcfDeployOperator for example) which
-can have built-in validation specification for the particular API. It’s super helpful
+can have built-in validation specification for the particular API. It's super helpful
 when developer plays with different fields and their values at the initial phase of
 DAG development. Most of the Google Cloud APIs perform their own validation on the
 server side, but most of the requests are asynchronous and you need to wait for result
@@ -622,7 +622,7 @@ of the operation. This takes precious times and slows
 down iteration over the API. BodyFieldValidator is meant to be used on the client side
 and it should therefore provide an instant feedback to the developer on misspelled or
 wrong type of parameters.</p>
-<p>The validation should be performed in “execute()” method call in order to allow
+<p>The validation should be performed in &quot;execute()&quot; method call in order to allow
 template parameters to be expanded before validation is performed.</p>
 </div>
 <div class="section" id="types-of-fields">
@@ -645,57 +645,57 @@ specification might look as follows:</p>
 <span class="p">]</span>
 </pre></div>
 </div>
-<p>Each field should have key = “name” indicating field name. The field can be of one of the
+<p>Each field should have key = &quot;name&quot; indicating field name. The field can be of one of the
 following types:</p>
 <ul class="simple">
-<li><p>Dict fields: (key = “type”, value=”dict”):
+<li><p>Dict fields: (key = &quot;type&quot;, value=&quot;dict&quot;):
 Field of this type should contain nested fields in form of an array of dicts.
 Each of the fields in the array is then expected (unless marked as optional)
 and validated recursively. If an extra field is present in the dictionary, warning is
 printed in log file (but the validation succeeds - see the Forward-compatibility notes)</p></li>
-<li><p>List fields: (key = “type”, value=”list”):
+<li><p>List fields: (key = &quot;type&quot;, value=&quot;list&quot;):
 Field of this type should be a list. Only the type correctness is validated.
 The contents of a list are not subject to validation.</p></li>
-<li><p>Union fields (key = “type”, value=”union”): field of this type should contain nested
+<li><p>Union fields (key = &quot;type&quot;, value=&quot;union&quot;): field of this type should contain nested
 fields in form of an array of dicts. One of the fields (and only one) should be
 present (unless the union is marked as optional). If more than one union field is
 present, FieldValidationException is raised. If none of the union fields is
 present - warning is printed in the log (see below Forward-compatibility notes).</p></li>
-<li><p>Fields validated for non-emptiness: (key = “allow_empty”) - this applies only to
+<li><p>Fields validated for non-emptiness: (key = &quot;allow_empty&quot;) - this applies only to
 fields the value of which is a string, and it allows to check for non-emptiness of
 the field (allow_empty=False).</p></li>
-<li><p>Regexp-validated fields: (key = “regexp”) - fields of this type are assumed to be
+<li><p>Regexp-validated fields: (key = &quot;regexp&quot;) - fields of this type are assumed to be
 strings and they are validated with the regexp specified. Remember that the regexps
 should ideally contain ^ at the beginning and $ at the end to make sure that
 the whole field content is validated. Typically such regexp
 validations should be used carefully and sparingly (see Forward-compatibility
 notes below).</p></li>
-<li><p>Custom-validated fields: (key = “custom_validation”) - fields of this type are validated
+<li><p>Custom-validated fields: (key = &quot;custom_validation&quot;) - fields of this type are validated
 using method specified via custom_validation field. Any exception thrown in the custom
 validation will be turned into FieldValidationException and will cause validation to
 fail. Such custom validations might be used to check numeric fields (including
 ranges of values), booleans or any other types of fields.</p></li>
-<li><p>API version: (key=”api_version”) if API version is specified, then the field will only
+<li><p>API version: (key=&quot;api_version&quot;) if API version is specified, then the field will only
 be validated when api_version used at field validator initialization matches exactly the
 version specified. If you want to declare fields that are available in several
 versions of the APIs, you should specify the field as many times as many API versions
 should be supported (each time with different API version).</p></li>
-<li><p>if none of the keys (“type”, “regexp”, “custom_validation” - the field is not validated</p></li>
+<li><p>if none of the keys (&quot;type&quot;, &quot;regexp&quot;, &quot;custom_validation&quot; - the field is not validated</p></li>
 </ul>
 <p>You can see some of the field examples in EXAMPLE_VALIDATION_SPECIFICATION.</p>
 </div>
 <div class="section" id="forward-compatibility-notes">
 <h2>Forward-compatibility notes<a class="headerlink" href="#forward-compatibility-notes" title="Permalink to this heading">¶</a></h2>
 <p>Certain decisions are crucial to allow the client APIs to work also with future API
-versions. Since body attached is passed to the API’s call, this is entirely
+versions. Since body attached is passed to the API's call, this is entirely
 possible to pass-through any new fields in the body (for future API versions) -
 albeit without validation on the client side - they can and will still be validated
 on the server side usually.</p>
 <p>Here are the guidelines that you should follow to make validation forward-compatible:</p>
 <ul class="simple">
-<li><p>most of the fields are not validated for their content. It’s possible to use regexp
+<li><p>most of the fields are not validated for their content. It's possible to use regexp
 in some specific cases that are guaranteed not to change in the future, but for most
-fields regexp validation should be r’^.+$’ indicating check for non-emptiness</p></li>
+fields regexp validation should be r'^.+$' indicating check for non-emptiness</p></li>
 <li><p>api_version is not validated - user can pass any future version of the api here. The API
 version is only used to filter parameters that are marked as present in this api version
 any new (not present in the specification) fields in the body are allowed (not verified)
@@ -704,7 +704,7 @@ unknown field in dictionary is added, a warning is logged by the client (but val
 remains successful). This is very nice feature to protect against typos in names.</p></li>
 <li><p>For unions, newly added union variants can be added by future calls and they will
 pass validation, however the content or presence of those fields will not be validated.
-This means that it’s possible to send a new non-validated union field together with an
+This means that it's possible to send a new non-validated union field together with an
 old validated field and this problem will not be detected by the client. In such case
 warning will be printed.</p></li>
 <li><p>When you add validator to an operator, you should also add <code class="docutils literal notranslate"><span class="pre">validate_body</span></code> parameter
@@ -785,8 +785,8 @@ for some examples and explanations of how to create specification.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>validation_specs</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a><em>]</em>) – dictionary describing validation specification</p></li>
-<li><p><strong>api_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Version of the api used (for example v1)</p></li>
+<li><p><strong>validation_specs</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a><em>]</em>) -- dictionary describing validation specification</p></li>
+<li><p><strong>api_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) -- Version of the api used (for example v1)</p></li>
 </ul>
 </dd>
 </dl>
@@ -799,7 +799,7 @@ ValidationFieldException in case of problems with specification or the
 body not conforming to the specification respectively.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>body_to_validate</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – body that must follow the specification</p>
+<dd class="field-odd"><p><strong>body_to_validate</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) -- body that must follow the specification</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>None</p>
