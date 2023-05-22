@@ -1,0 +1,173 @@
+:py:mod:`airflow.providers.slack.transfers.sql_to_slack`
+========================================================
+
+.. py:module:: airflow.providers.slack.transfers.sql_to_slack
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.slack.transfers.sql_to_slack.BaseSqlToSlackOperator
+   airflow.providers.slack.transfers.sql_to_slack.SqlToSlackOperator
+   airflow.providers.slack.transfers.sql_to_slack.SqlToSlackApiFileOperator
+
+
+
+
+.. py:class:: BaseSqlToSlackOperator(*, sql, sql_conn_id, sql_hook_params = None, parameters = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Operator implements base sql methods for SQL to Slack Transfer operators.
+
+   :param sql: The SQL query to be executed
+   :param sql_conn_id: reference to a specific DB-API Connection.
+   :param sql_hook_params: Extra config params to be passed to the underlying hook.
+       Should match the desired hook constructor params.
+   :param parameters: The parameters to pass to the SQL query.
+
+
+.. py:class:: SqlToSlackOperator(*, sql, sql_conn_id, sql_hook_params = None, slack_conn_id = None, slack_webhook_token = None, slack_channel = None, slack_message, results_df_name = 'results_df', parameters = None, **kwargs)
+
+   Bases: :py:obj:`BaseSqlToSlackOperator`
+
+   Executes an SQL statement in a given SQL connection and sends the results to Slack. The results of the
+   query are rendered into the 'slack_message' parameter as a Pandas dataframe using a JINJA variable called
+   '{{ results_df }}'. The 'results_df' variable name can be changed by specifying a different
+   'results_df_name' parameter. The Tabulate library is added to the JINJA environment as a filter to
+   allow the dataframe to be rendered nicely. For example, set 'slack_message' to {{ results_df |
+   tabulate(tablefmt="pretty", headers="keys") }} to send the results to Slack as an ascii rendered table.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:SqlToSlackOperator`
+
+   :param sql: The SQL query to be executed (templated)
+   :param slack_message: The templated Slack message to send with the data returned from the SQL connection.
+       You can use the default JINJA variable {{ results_df }} to access the pandas dataframe containing the
+       SQL results
+   :param sql_conn_id: reference to a specific database.
+   :param sql_hook_params: Extra config params to be passed to the underlying hook.
+          Should match the desired hook constructor params.
+   :param slack_conn_id: The connection id for Slack.
+   :param slack_webhook_token: The token to use to authenticate to Slack. If this is not provided, the
+       'slack_conn_id' attribute needs to be specified in the 'password' field.
+   :param slack_channel: The channel to send message. Override default from Slack connection.
+   :param results_df_name: The name of the JINJA template's dataframe variable, default is 'results_df'
+   :param parameters: The parameters to pass to the SQL query
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'slack_message')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql', '.jinja', '.j2')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: times_rendered
+      :value: 0
+
+      
+
+   .. py:method:: render_template_fields(context, jinja_env=None)
+
+      Template all attributes listed in *self.template_fields*.
+
+      This mutates the attributes in-place and is irreversible.
+
+      :param context: Context dict with values to apply on content.
+      :param jinja_env: Jinja's environment to use for rendering.
+
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: SqlToSlackApiFileOperator(*, sql, sql_conn_id, sql_hook_params = None, parameters = None, slack_conn_id, slack_filename, slack_channels = None, slack_initial_comment = None, slack_title = None, df_kwargs = None, **kwargs)
+
+   Bases: :py:obj:`BaseSqlToSlackOperator`
+
+   Executes an SQL statement in a given SQL connection and sends the results to Slack API as file.
+
+   :param sql: The SQL query to be executed
+   :param sql_conn_id: reference to a specific DB-API Connection.
+   :param slack_conn_id: :ref:`Slack API Connection <howto/connection:slack>`.
+   :param slack_filename: Filename for display in slack.
+       Should contain supported extension which referenced to ``SUPPORTED_FILE_FORMATS``.
+       It is also possible to set compression in extension:
+       ``filename.csv.gzip``, ``filename.json.zip``, etc.
+   :param sql_hook_params: Extra config params to be passed to the underlying hook.
+       Should match the desired hook constructor params.
+   :param parameters: The parameters to pass to the SQL query.
+   :param slack_channels: Comma-separated list of channel names or IDs where the file will be shared.
+        If omitting this parameter, then file will send to workspace.
+   :param slack_initial_comment: The message text introducing the file in specified ``slack_channels``.
+   :param slack_title: Title of file.
+   :param df_kwargs: Keyword arguments forwarded to ``pandas.DataFrame.to_{format}()`` method.
+
+   Example:
+    .. code-block:: python
+
+       SqlToSlackApiFileOperator(
+           task_id="sql_to_slack",
+           sql="SELECT 1 a, 2 b, 3 c",
+           sql_conn_id="sql-connection",
+           slack_conn_id="slack-api-connection",
+           slack_filename="awesome.json.gz",
+           slack_channels="#random,#general",
+           slack_initial_comment="Awesome load to compressed multiline JSON.",
+           df_kwargs={
+               "orient": "records",
+               "lines": True,
+           },
+       )
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'slack_channels', 'slack_filename', 'slack_initial_comment', 'slack_title')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql', '.jinja', '.j2')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: SUPPORTED_FILE_FORMATS
+      :type: Sequence[str]
+      :value: ('csv', 'json', 'html')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
