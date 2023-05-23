@@ -674,10 +674,22 @@ switch to the <code class="docutils literal notranslate"><span class="pre">root<
 <p>The following example adds <code class="docutils literal notranslate"><span class="pre">lxml</span></code> python package from PyPI to the image. When adding packages via
 <code class="docutils literal notranslate"><span class="pre">pip</span></code> you need to use the <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user rather than <code class="docutils literal notranslate"><span class="pre">root</span></code>. Attempts to install <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages
 as <code class="docutils literal notranslate"><span class="pre">root</span></code> will fail with an appropriate error message.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the example below, we also add apache-airflow package to be installed - in the very same version
+that the image version you used it from. This is not strictly necessary, but it is a good practice
+to always install the same version of apache-airflow as the one you are using. This way you can
+be sure that the version you are using is the same as the one you are extending. In some cases where
+your new packages have conflicting dependencies, <code class="docutils literal notranslate"><span class="pre">pip</span></code> might decide to downgrade or upgrade
+apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+requirements, you will get an error message with conflict information, rather than a surprise
+downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+to match the new version of airflow.</p>
+</div>
 <div class="example-block-wrapper compound">
 <p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
 <div class="compound-last highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.6.1</span>
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>lxml
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>lxml
 </pre></div>
 </div>
 </div>
@@ -687,11 +699,30 @@ as <code class="docutils literal notranslate"><span class="pre">root</span></cod
 <p>The following example adds few python packages from <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> from PyPI to the image.
 Note that similarly when adding individual packages, you need to use the <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user rather than
 <code class="docutils literal notranslate"><span class="pre">root</span></code>. Attempts to install <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages as <code class="docutils literal notranslate"><span class="pre">root</span></code> will fail with an appropriate error message.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the example below, we also add apache-airflow package to be installed - in the very same version
+that the image version you used it from. This is not strictly necessary, but it is a good practice
+to always install the same version of apache-airflow as the one you are using. This way you can
+be sure that the version you are using is the same as the one you are extending. In some cases where
+your new packages have conflicting dependencies, <code class="docutils literal notranslate"><span class="pre">pip</span></code> might decide to downgrade or upgrade
+apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+requirements, you will get an error message with conflict information, rather than a surprise
+downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+to match the new version of airflow.</p>
+</div>
 <div class="example-block-wrapper compound">
 <p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/add-requirement-packages/Dockerfile</span></p>
 <div class="compound-last highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.6.1</span>
 <span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>/
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>/requirements.txt
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-r<span class="w"> </span>/requirements.txt
+</pre></div>
+</div>
+</div>
+<div class="example-block-wrapper compound">
+<p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/add-requirement-packages/requirements.txt</span></p>
+<div class="compound-last highlight-text notranslate"><div class="highlight"><pre><span></span>lxml
+beautifulsoup4
 </pre></div>
 </div>
 </div>
@@ -935,22 +966,25 @@ require different limits for the same dependencies.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Latest default
-Default
-Latest
-Specific</p></td>
-<td><p>3.7
-3.7
-3.7,3.8,3.9,3.10
-3.7,3.8,3.9,3.10</p></td>
-<td><p>apache/airflow:latest
-apache/airflow:X.Y.Z
-apache/airflow:latest-pythonN.M
-apache/airflow:X.Y.Z-pythonN.M</p></td>
-<td><p>apache/airflow:slim-latest
-apache/airflow:slim-X.Y.Z
-apache/airflow:slim-latest-pythonN.M
-apache/airflow:slim-X.Y.Z-pythonN.M</p></td>
+<tr class="row-even"><td><p>Latest default</p></td>
+<td><p>3.7</p></td>
+<td><p>apache/airflow:latest</p></td>
+<td><p>apache/airflow:slim-latest</p></td>
+</tr>
+<tr class="row-odd"><td><p>Default</p></td>
+<td><p>3.7</p></td>
+<td><p>apache/airflow:X.Y.Z</p></td>
+<td><p>apache/airflow:slim-X.Y.Z</p></td>
+</tr>
+<tr class="row-even"><td><p>Latest</p></td>
+<td><p>3.7,3.8,3.9,3.10</p></td>
+<td><p>apache/airflow:latest-pythonN.M</p></td>
+<td><p>apache/airflow:slim-latest-pythonN.M</p></td>
+</tr>
+<tr class="row-odd"><td><p>Specific</p></td>
+<td><p>3.7,3.8,3.9,3.10</p></td>
+<td><p>apache/airflow:X.Y.Z-pythonN.M</p></td>
+<td><p>apache/airflow:slim-X.Y.Z-pythonN.M</p></td>
 </tr>
 </tbody>
 </table>
@@ -1023,7 +1057,7 @@ use features available in that provider version. Here is an example of how you c
 <div class="example-block-wrapper compound">
 <p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/custom-providers/Dockerfile</span></p>
 <div class="compound-last highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.6.1</span>
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>apache-airflow-providers-docker<span class="o">==</span><span class="m">2</span>.5.1
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--no-cache-dir<span class="w"> </span>apache-airflow-providers-docker<span class="o">==</span><span class="m">2</span>.5.1
 </pre></div>
 </div>
 </div>
@@ -1044,7 +1078,7 @@ python package from PyPI.</p>
 <span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*
 <span class="k">USER</span><span class="w"> </span><span class="s">airflow</span>
 <span class="k">ENV</span><span class="w"> </span><span class="nv">JAVA_HOME</span><span class="o">=</span>/usr/lib/jvm/java-11-openjdk-amd64
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>apache-airflow-providers-apache-spark<span class="o">==</span><span class="m">2</span>.1.3
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>apache-airflow-providers-apache-spark<span class="o">==</span><span class="m">2</span>.1.3
 </pre></div>
 </div>
 </div>
@@ -1073,7 +1107,7 @@ python package from PyPI.</p>
 <div class="example-block-wrapper compound">
 <p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/add-pypi-packages/Dockerfile</span></p>
 <div class="compound-last highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.6.1</span>
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>lxml
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>lxml
 </pre></div>
 </div>
 </div>
@@ -1083,11 +1117,30 @@ python package from PyPI.</p>
 <p>The following example adds few python packages from <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> from PyPI to the image.
 Note that similarly when adding individual packages, you need to use the <code class="docutils literal notranslate"><span class="pre">airflow</span></code> user rather than
 <code class="docutils literal notranslate"><span class="pre">root</span></code>. Attempts to install <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages as <code class="docutils literal notranslate"><span class="pre">root</span></code> will fail with an appropriate error message.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the example below, we also add apache-airflow package to be installed - in the very same version
+that the image version you used it from. This is not strictly necessary, but it is a good practice
+to always install the same version of apache-airflow as the one you are using. This way you can
+be sure that the version you are using is the same as the one you are extending. In some cases where
+your new packages have conflicting dependencies, <code class="docutils literal notranslate"><span class="pre">pip</span></code> might decide to downgrade or upgrade
+apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+requirements, you will get an error message with conflict information, rather than a surprise
+downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+to match the new version of airflow.</p>
+</div>
 <div class="example-block-wrapper compound">
 <p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/add-requirement-packages/Dockerfile</span></p>
 <div class="compound-last highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">apache/airflow:2.6.1</span>
 <span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>/
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>/requirements.txt
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-r<span class="w"> </span>/requirements.txt
+</pre></div>
+</div>
+</div>
+<div class="example-block-wrapper compound">
+<p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/extending/add-requirement-packages/requirements.txt</span></p>
+<div class="compound-last highlight-text notranslate"><div class="highlight"><pre><span></span>lxml
+beautifulsoup4
 </pre></div>
 </div>
 </div>
@@ -1119,7 +1172,7 @@ running the container.</p>
 <span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>clean<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*
 <span class="k">USER</span><span class="w"> </span><span class="s">airflow</span>
-<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>mpi4py
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;apache-airflow==</span><span class="si">${</span><span class="nv">AIRFLOW_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>mpi4py
 </pre></div>
 </div>
 </div>
@@ -1281,12 +1334,25 @@ during the build.</p>
 <li><p>you can place <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and add any <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages you want to install in the
 <code class="docutils literal notranslate"><span class="pre">docker-context-file</span></code> folder. Those requirements will be automatically installed during the build.</p></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the example below, we also add apache-airflow package to be installed - in the very same version
+that the image version you used it from. This is not strictly necessary, but it is a good practice
+to always install the same version of apache-airflow as the one you are using. This way you can
+be sure that the version you are using is the same as the one you are extending. In some cases where
+your new packages have conflicting dependencies, <code class="docutils literal notranslate"><span class="pre">pip</span></code> might decide to downgrade or upgrade
+apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+requirements, you will get an error message with conflict information, rather than a surprise
+downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+to match the new version of airflow.</p>
+</div>
 <div class="example-block-wrapper compound">
 <p class="example-header compound-first"><span class="example-title">docs/docker-stack/docker-examples/customizing/own-requirements.sh</span></p>
 <div class="compound-last highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>docker-context-files
 
 cat<span class="w"> </span><span class="s">&lt;&lt;EOF &gt;./docker-context-files/requirements.txt</span>
 <span class="s">beautifulsoup4==4.10.0</span>
+<span class="s">apache-airflow==2.6.0.dev0</span>
 <span class="s">EOF</span>
 
 <span class="nb">export</span><span class="w"> </span><span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span><span class="m">1</span>
