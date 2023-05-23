@@ -18,9 +18,107 @@
 Building the image
 ==================
 
+<<<<<<< HEAD
 Before you dive-deeply in the way how the Airflow Image is build, named and why we are doing it the
 way we do, you might want to know very quickly how you can extend or customize the existing image
 for Apache Airflow. This chapter gives you a short answer to those questions.
+=======
+Before you dive-deeply in the way how the Airflow Image is built, let us first explain why you might need
+to build the custom container image and we show a few typical ways you can do it.
+
+Quick start scenarios of image extending
+----------------------------------------
+
+The most common scenarios where you want to build your own image are adding a new ``apt`` package,
+adding a new ``PyPI`` dependency (either individually or via requirements.txt) and embedding DAGs
+into the image.
+
+Example Dockerfiles for those scenarios are below, and you can read further
+for more complex cases which might involve either extending or customizing the image. You will find
+more information about more complex scenarios below, but if your goal is to quickly extend the Airflow
+image with new provider, package, etc. then here is a quick start for you.
+
+Adding new ``apt`` package
+..........................
+
+The following example adds ``vim`` to the Airflow image. When adding packages via ``apt`` you should
+switch to the ``root`` user when running the ``apt`` commands, but do not forget to switch back to the
+``airflow`` user after installation is complete.
+
+.. exampleinclude:: docker-examples/extending/add-apt-packages/Dockerfile
+    :language: Dockerfile
+    :start-after: [START Dockerfile]
+    :end-before: [END Dockerfile]
+
+
+Adding new ``PyPI`` packages individually
+.........................................
+
+The following example adds ``lxml`` python package from PyPI to the image. When adding packages via
+``pip`` you need to use the ``airflow`` user rather than ``root``. Attempts to install ``pip`` packages
+as ``root`` will fail with an appropriate error message.
+
+.. note::
+   In the example below, we also add apache-airflow package to be installed - in the very same version
+   that the image version you used it from. This is not strictly necessary, but it is a good practice
+   to always install the same version of apache-airflow as the one you are using. This way you can
+   be sure that the version you are using is the same as the one you are extending. In some cases where
+   your new packages have conflicting dependencies, ``pip`` might decide to downgrade or upgrade
+   apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+   requirements, you will get an error message with conflict information, rather than a surprise
+   downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+   to match the new version of airflow.
+
+.. exampleinclude:: docker-examples/extending/add-pypi-packages/Dockerfile
+    :language: Dockerfile
+    :start-after: [START Dockerfile]
+    :end-before: [END Dockerfile]
+
+Adding packages from requirements.txt
+.....................................
+
+The following example adds few python packages from ``requirements.txt`` from PyPI to the image.
+Note that similarly when adding individual packages, you need to use the ``airflow`` user rather than
+``root``. Attempts to install ``pip`` packages as ``root`` will fail with an appropriate error message.
+
+.. note::
+   In the example below, we also add apache-airflow package to be installed - in the very same version
+   that the image version you used it from. This is not strictly necessary, but it is a good practice
+   to always install the same version of apache-airflow as the one you are using. This way you can
+   be sure that the version you are using is the same as the one you are extending. In some cases where
+   your new packages have conflicting dependencies, ``pip`` might decide to downgrade or upgrade
+   apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+   requirements, you will get an error message with conflict information, rather than a surprise
+   downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+   to match the new version of airflow.
+
+
+.. exampleinclude:: docker-examples/extending/add-requirement-packages/Dockerfile
+    :language: Dockerfile
+    :start-after: [START Dockerfile]
+    :end-before: [END Dockerfile]
+
+.. exampleinclude:: docker-examples/extending/add-requirement-packages/requirements.txt
+    :language: text
+
+
+Embedding DAGs
+..............
+
+The following example adds ``test_dag.py`` to your image in the ``/opt/airflow/dags`` folder.
+
+.. exampleinclude:: docker-examples/extending/embedding-dags/Dockerfile
+    :language: Dockerfile
+    :start-after: [START Dockerfile]
+    :end-before: [END Dockerfile]
+
+
+.. exampleinclude:: docker-examples/extending/embedding-dags/test_dag.py
+    :language: Python
+    :start-after: [START dag]
+    :end-before: [END dag]
+
+>>>>>>> f29dc4f4b4 (Update docker documentation about installing dependencies (#789))
 
 Extending vs. customizing the image
 -----------------------------------
@@ -173,6 +271,55 @@ How to extend the image - it is something you are most likely familiar with - si
 build a new image using Dockerfile's ``FROM`` directive and add whatever you need. Then you can add your
 Debian dependencies with ``apt`` or PyPI dependencies with ``pip install`` or any other stuff you need.
 
+<<<<<<< HEAD
+=======
+Base images
+...........
+
+There are two types of images you can extend your image from:
+
+1) Regular Airflow image that contains the most common extras and providers, and all supported backend
+   database clients for AMD64 platform and Postgres for ARM64 platform.
+
+2) Slim Airflow image, which is a minimal image, contains all supported backends database clients installed
+   for AMD64 platform and Postgres for ARM64 platform, but contains no extras or providers, except
+   the 4 default providers.
+
+.. note:: Differences of slim image vs. regular image.
+
+    The slim image is small comparing to regular image (~500 MB vs ~1.1GB) and you might need to add a
+    lot more packages and providers in order to make it useful for your case (but if you use only a
+    small subset of providers, it might be a good starting point for you).
+
+    The slim images might have dependencies in different versions than those used when providers are
+    preinstalled, simply because core Airflow might have less limits on the versions on its own.
+    When you install some providers they might require downgrading some dependencies if the providers
+    require different limits for the same dependencies.
+
+Naming conventions for the images:
+
++----------------+------------------+---------------------------------+--------------------------------------+
+| Image          | Python           | Standard image                  | Slim image                           |
++================+==================+=================================+======================================+
+| Latest default | 3.7              | apache/airflow:latest           | apache/airflow:slim-latest           |
++----------------+------------------+---------------------------------+--------------------------------------+
+| Default        | 3.7              | apache/airflow:X.Y.Z            | apache/airflow:slim-X.Y.Z            |
++----------------+------------------+---------------------------------+--------------------------------------+
+| Latest         | 3.7,3.8,3.9,3.10 | apache/airflow:latest-pythonN.M | apache/airflow:slim-latest-pythonN.M |
++----------------+------------------+---------------------------------+--------------------------------------+
+| Specific       | 3.7,3.8,3.9,3.10 | apache/airflow:X.Y.Z-pythonN.M  | apache/airflow:slim-X.Y.Z-pythonN.M  |
++----------------+------------------+---------------------------------+--------------------------------------+
+
+* The "latest" image is always the latest released stable version available.
+
+.. spelling:word-list::
+
+     pythonN
+
+Important notes for the base images
+-----------------------------------
+
+>>>>>>> f29dc4f4b4 (Update docker documentation about installing dependencies (#789))
 You should be aware, about a few things:
 
 * The production image of airflow uses "airflow" user, so if you want to add some of the tools
@@ -244,8 +391,40 @@ The following example adds ``lxml`` python package from PyPI to the image.
     :start-after: [START Dockerfile]
     :end-before: [END Dockerfile]
 
+<<<<<<< HEAD
 A ``umask`` requiring example
 .............................
+=======
+Example of adding packages from requirements.txt
+................................................
+
+The following example adds few python packages from ``requirements.txt`` from PyPI to the image.
+Note that similarly when adding individual packages, you need to use the ``airflow`` user rather than
+``root``. Attempts to install ``pip`` packages as ``root`` will fail with an appropriate error message.
+
+.. note::
+   In the example below, we also add apache-airflow package to be installed - in the very same version
+   that the image version you used it from. This is not strictly necessary, but it is a good practice
+   to always install the same version of apache-airflow as the one you are using. This way you can
+   be sure that the version you are using is the same as the one you are extending. In some cases where
+   your new packages have conflicting dependencies, ``pip`` might decide to downgrade or upgrade
+   apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+   requirements, you will get an error message with conflict information, rather than a surprise
+   downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+   to match the new version of airflow.
+
+.. exampleinclude:: docker-examples/extending/add-requirement-packages/Dockerfile
+    :language: Dockerfile
+    :start-after: [START Dockerfile]
+    :end-before: [END Dockerfile]
+
+.. exampleinclude:: docker-examples/extending/add-requirement-packages/requirements.txt
+    :language: text
+
+
+Example when writable directory is needed
+.........................................
+>>>>>>> f29dc4f4b4 (Update docker documentation about installing dependencies (#789))
 
 The following example adds a new directory that is supposed to be writable for any arbitrary user
 running the container.
@@ -351,8 +530,90 @@ You can also download any version of Airflow constraints and adapt it with your 
 constraints and manually set your own versions of dependencies in your own constraints and use the version
 of constraints that you manually prepared.
 
+<<<<<<< HEAD
 You can read more about constraints in the documentation of the
 `Installation <http://airflow.apache.org/docs/apache-airflow/stable/installation.html#constraints-files>`_
+=======
+You can read more about constraints in :doc:`apache-airflow:installation/installing-from-pypi`
+
+Note that if you place ``requirements.txt`` in the ``docker-context-files`` folder, it will be
+used to install all requirements declared there. It is recommended that the file
+contains specified version of dependencies to add with ``==`` version specifier, to achieve
+stable set of requirements, independent if someone releases a newer version. However, you have
+to make sure to update those requirements and rebuild the images to account for latest security fixes.
+
+.. _using-docker-context-files:
+
+Using docker-context-files
+--------------------------
+
+When customizing the image, you can optionally make Airflow install custom binaries or provide custom
+configuration for your pip in ``docker-context-files``. In order to enable it, you need to add
+``--build-arg DOCKER_CONTEXT_FILES=docker-context-files`` build arg when you build the image.
+You can pass any subdirectory of your docker context, it will always be mapped to ``/docker-context-files``
+during the build.
+
+You can use ``docker-context-files`` for the following purposes:
+
+* you can place ``requirements.txt`` and add any ``pip`` packages you want to install in the
+  ``docker-context-file`` folder. Those requirements will be automatically installed during the build.
+
+.. note::
+   In the example below, we also add apache-airflow package to be installed - in the very same version
+   that the image version you used it from. This is not strictly necessary, but it is a good practice
+   to always install the same version of apache-airflow as the one you are using. This way you can
+   be sure that the version you are using is the same as the one you are extending. In some cases where
+   your new packages have conflicting dependencies, ``pip`` might decide to downgrade or upgrade
+   apache-airflow for you, so adding it explicitly is a good practice - this way if you have conflicting
+   requirements, you will get an error message with conflict information, rather than a surprise
+   downgrade or upgrade of airflow. If you upgrade airflow base image, you should also update the version
+   to match the new version of airflow.
+
+
+.. exampleinclude:: docker-examples/customizing/own-requirements.sh
+    :language: bash
+    :start-after: [START build]
+    :end-before: [END build]
+
+* you can place ``pip.conf`` (and legacy ``.piprc``) in the ``docker-context-files`` folder and they
+  will be used for all ``pip`` commands (for example you can configure your own sources
+  or authentication mechanisms)
+
+.. exampleinclude:: docker-examples/customizing/custom-pip.sh
+    :language: bash
+    :start-after: [START build]
+    :end-before: [END build]
+
+
+* you can place ``.whl`` packages that you downloaded and install them with
+  ``INSTALL_PACKAGES_FROM_CONTEXT`` set to ``true`` . It's useful if you build the image in
+  restricted security environments (see: :ref:`image-build-secure-environments` for details):
+
+.. exampleinclude:: docker-examples/restricted/restricted_environments.sh
+    :language: bash
+    :start-after: [START download]
+    :end-before: [END download]
+
+.. note::
+  You can also pass ``--build-arg DOCKER_CONTEXT_FILES=.`` if you want to place your ``requirements.txt``
+  in the main directory without creating a dedicated folder. However, it is a good practice to keep any files
+  that you copy to the image context in a sub-folder. This makes it easier to separate things that
+  are used on the host from those that are passed in Docker context. Of course, by default when you run
+  ``docker build .`` the whole folder is available as "Docker build context" and sent to the docker
+  engine, but the ``DOCKER_CONTEXT_FILES`` are always copied to the ``build`` segment of the image so
+  copying all your local folder might unnecessarily increase time needed to build the image and your
+  cache will be invalidated every time any of the files in your local folder change.
+
+.. warning::
+  BREAKING CHANGE! As of Airflow 2.3.0 you need to specify additional flag:
+  ``--build-arg DOCKER_CONTEXT_Files=docker-context-files`` in order to use the files placed
+  in ``docker-context-files``. Previously that switch was not needed. Unfortunately this change is needed
+  in order to enable ``Dockerfile`` as standalone Dockerfile without any extra files. As of Airflow 2.3.0
+  the ``Dockerfile`` that is released with Airflow does not need any extra folders or files and can
+  be copied and used from any folder. Previously you needed to copy Airflow sources together with the
+  Dockerfile as some scripts were needed to make it work. With Airflow 2.3.0, we are using ``Buildkit``
+  features that enable us to make the ``Dockerfile`` a completely standalone file that can be used "as-is".
+>>>>>>> f29dc4f4b4 (Update docker documentation about installing dependencies (#789))
 
 Examples of image customizing
 -----------------------------
