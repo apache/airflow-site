@@ -615,6 +615,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">closing</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Sequence</span>
 
@@ -727,28 +728,25 @@
 <div class="viewcode-block" id="MySqlToHiveOperator.execute"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/hive/transfers/mysql_to_hive/index.html#airflow.providers.apache.hive.transfers.mysql_to_hive.MySqlToHiveOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
         <span class="n">hive</span> <span class="o">=</span> <span class="n">HiveCliHook</span><span class="p">(</span><span class="n">hive_cli_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_cli_conn_id</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hive_auth</span><span class="p">)</span>
         <span class="n">mysql</span> <span class="o">=</span> <span class="n">MySqlHook</span><span class="p">(</span><span class="n">mysql_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql_conn_id</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dumping MySQL query results to local file&quot;</span><span class="p">)</span>
-        <span class="n">conn</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-        <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span>
-                <span class="n">f</span><span class="p">,</span>
-                <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">,</span>
-                <span class="n">quoting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quoting</span><span class="p">,</span>
-                <span class="n">quotechar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quotechar</span><span class="p">,</span>
-                <span class="n">escapechar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">escapechar</span><span class="p">,</span>
-                <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">field_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">:</span>
-                    <span class="n">field_dict</span><span class="p">[</span><span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_map</span><span class="p">(</span><span class="n">field</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">mysql</span><span class="o">.</span><span class="n">get_conn</span><span class="p">())</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">())</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">)</span>
+                    <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span>
+                        <span class="n">f</span><span class="p">,</span>
+                        <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">,</span>
+                        <span class="n">quoting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quoting</span><span class="p">,</span>
+                        <span class="n">quotechar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quotechar</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">quoting</span> <span class="o">!=</span> <span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">escapechar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">escapechar</span><span class="p">,</span>
+                        <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">field_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">:</span>
+                            <span class="n">field_dict</span><span class="p">[</span><span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_map</span><span class="p">(</span><span class="n">field</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-            <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading file into Hive&quot;</span><span class="p">)</span>
             <span class="n">hive</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
