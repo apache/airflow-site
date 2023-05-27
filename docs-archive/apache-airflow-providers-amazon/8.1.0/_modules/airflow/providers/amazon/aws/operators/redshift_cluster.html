@@ -627,6 +627,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
@@ -635,6 +636,7 @@
 <span class="kn">from</span> <span class="nn">airflow.providers.amazon.aws.triggers.redshift_cluster</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">RedshiftClusterTrigger</span><span class="p">,</span>
     <span class="n">RedshiftCreateClusterTrigger</span><span class="p">,</span>
+    <span class="n">RedshiftPauseClusterTrigger</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -1120,7 +1122,9 @@
 
 <span class="sd">    :param cluster_identifier: id of the AWS Redshift Cluster</span>
 <span class="sd">    :param aws_conn_id: aws connection to use</span>
-<span class="sd">    :param deferrable: Run operator in the deferrable mode. This mode requires an additional aiobotocore&gt;=</span>
+<span class="sd">    :param deferrable: Run operator in the deferrable mode</span>
+<span class="sd">    :param poll_interval: Time (in seconds) to wait between two consecutive calls to check cluster state</span>
+<span class="sd">    :param max_attempts: Maximum number of attempts to poll the cluster</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RedshiftPauseClusterOperator.template_fields"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/redshift_cluster/index.html#airflow.providers.amazon.aws.operators.redshift_cluster.RedshiftPauseClusterOperator.template_fields">[docs]</a>    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cluster_identifier&quot;</span><span class="p">,)</span></div>
@@ -1134,64 +1138,57 @@
         <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">poll_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cluster_identifier</span> <span class="o">=</span> <span class="n">cluster_identifier</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_attempts</span> <span class="o">=</span> <span class="n">max_attempts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">poll_interval</span> <span class="o">=</span> <span class="n">poll_interval</span>
-        <span class="c1"># These parameters are added to address an issue with the boto3 API where the API</span>
+        <span class="c1"># These parameters are used to address an issue with the boto3 API where the API</span>
         <span class="c1"># prematurely reports the cluster as available to receive requests. This causes the cluster</span>
         <span class="c1"># to reject initial attempts to pause the cluster despite reporting the correct state.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_attempts</span> <span class="o">=</span> <span class="mi">10</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_attempt_interval</span> <span class="o">=</span> <span class="mi">15</span>
 
 <div class="viewcode-block" id="RedshiftPauseClusterOperator.execute"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/redshift_cluster/index.html#airflow.providers.amazon.aws.operators.redshift_cluster.RedshiftPauseClusterOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
         <span class="n">redshift_hook</span> <span class="o">=</span> <span class="n">RedshiftHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_attempts</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">redshift_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">pause_cluster</span><span class="p">(</span><span class="n">ClusterIdentifier</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_identifier</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">except</span> <span class="n">redshift_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InvalidClusterStateFault</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_attempts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_attempts</span> <span class="o">-</span> <span class="mi">1</span>
 
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_attempts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Unable to pause cluster. </span><span class="si">%d</span><span class="s2"> attempts remaining.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remaining_attempts</span>
+                    <span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attempt_interval</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">error</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
-                <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execution_timeout</span><span class="p">,</span>
-                <span class="n">trigger</span><span class="o">=</span><span class="n">RedshiftClusterTrigger</span><span class="p">(</span>
-                    <span class="n">task_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span>
-                    <span class="n">poll_interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">poll_interval</span><span class="p">,</span>
-                    <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
+                <span class="n">trigger</span><span class="o">=</span><span class="n">RedshiftPauseClusterTrigger</span><span class="p">(</span>
                     <span class="n">cluster_identifier</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_identifier</span><span class="p">,</span>
-                    <span class="n">attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span><span class="p">,</span>
-                    <span class="n">operation_type</span><span class="o">=</span><span class="s2">&quot;pause_cluster&quot;</span><span class="p">,</span>
+                    <span class="n">poll_interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">poll_interval</span><span class="p">,</span>
+                    <span class="n">max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_attempts</span><span class="p">,</span>
+                    <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span>
+                <span class="c1"># timeout is set to ensure that if a trigger dies, the timeout does not restart</span>
+                <span class="c1"># 60 seconds is added to allow the trigger to exit gracefully (i.e. yield TriggerEvent)</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_attempts</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_interval</span> <span class="o">+</span> <span class="mi">60</span><span class="p">),</span></div>
             <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">redshift_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">pause_cluster</span><span class="p">(</span><span class="n">ClusterIdentifier</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_identifier</span><span class="p">)</span>
-                    <span class="k">return</span>
-                <span class="k">except</span> <span class="n">redshift_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InvalidClusterStateFault</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span> <span class="o">-</span> <span class="mi">1</span>
 
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unable to pause cluster. </span><span class="si">%d</span><span class="s2"> attempts remaining.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attempts</span><span class="p">)</span>
-                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attempt_interval</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="n">error</span></div>
-
-<div class="viewcode-block" id="RedshiftPauseClusterOperator.execute_complete"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/redshift_cluster/index.html#airflow.providers.amazon.aws.operators.redshift_cluster.RedshiftPauseClusterOperator.execute_complete">[docs]</a>    <span class="k">def</span> <span class="nf">execute_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Callback for when the trigger fires - returns immediately.</span>
-<span class="sd">        Relies on trigger to throw an exception, otherwise it assumes execution was</span>
-<span class="sd">        successful.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">event</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;status&quot;</span> <span class="ow">in</span> <span class="n">event</span> <span class="ow">and</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="s2">&quot;status&quot;</span> <span class="ow">in</span> <span class="n">event</span> <span class="ow">and</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;success&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> completed successfully.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Paused cluster successfully&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="RedshiftPauseClusterOperator.execute_complete"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/redshift_cluster/index.html#airflow.providers.amazon.aws.operators.redshift_cluster.RedshiftPauseClusterOperator.execute_complete">[docs]</a>    <span class="k">def</span> <span class="nf">execute_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;success&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error pausing cluster: </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;No event received from trigger&quot;</span><span class="p">)</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Paused cluster successfully&quot;</span><span class="p">)</span>
+        <span class="k">return</span></div></div>
 
 
 <div class="viewcode-block" id="RedshiftDeleteClusterOperator"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/redshift_cluster/index.html#airflow.providers.amazon.aws.operators.redshift_cluster.RedshiftDeleteClusterOperator">[docs]</a><span class="k">class</span> <span class="nc">RedshiftDeleteClusterOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
