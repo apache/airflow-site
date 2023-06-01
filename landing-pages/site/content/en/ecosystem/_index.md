@@ -21,7 +21,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache Airflow YouTube Channel](https://www.youtube.com/channel/UCSXwxpWZQ7XZ1WL3wqevChA) - Official YouTube Channel
 
-[Airflow Summit](https://airflowsummit.org/) - Online conference for Apache Airflow developers
+[Airflow Summit](https://airflowsummit.org/) - Conference for Apache Airflow developers
 
 [Awesome Apache Airflow](https://github.com/jghoman/awesome-apache-airflow) - Curated list of resources about Apache Airflow
 
