@@ -25,11 +25,6 @@ apache_airflow_path = docs_archive_path + "/apache-airflow"
 stable_version_path = apache_airflow_path + "/stable.txt"
 new_docs_version = "2.5.1"
 
-# back reference html template - we will replace 'dummy-url' at runtime
-template = """
-<html><head><meta http-equiv="refresh" content="0; url=dummy_url"/></head></html>
-"""
-
 
 def download_file(url):
     filedata = urlopen(url)
@@ -69,9 +64,12 @@ def version_is_less_than(a):
     return semver.compare(a, new_docs_version) == -1
 
 
+def get_redirect_content(url: str):
+    return f'<html><head><meta http-equiv="refresh" content="0; url={url}"/></head></html>'
+
+
 def create_back_reference_html(back_ref_url, path):
-    global template
-    content = template.replace('dummy_url', back_ref_url)
+    content = get_redirect_content(back_ref_url)
 
     # Creating an HTML file
     with open(path, "w") as f:
@@ -83,7 +81,6 @@ old_to_new = construct_mapping()
 
 versions = [f.path.split("/")[-1] for f in os.scandir(apache_airflow_path) if f.is_dir()]
 versions = [v for v in versions if version_is_less_than(v)]
-
 
 for version in versions:
     r = apache_airflow_path + "/" + version
