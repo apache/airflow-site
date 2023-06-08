@@ -21,11 +21,6 @@ import sys
 from urllib.request import urlopen
 import semver
 
-# types of generations supported
-airflow_type = "airflow"
-helm_type = "helm"
-provider_type = "providers"
-
 airflow_redirects_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/apache-airflow/redirects.txt"
 helm_redirects_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/helm-chart/redirects.txt"
 providers_redirect_link = "populate-this"
@@ -42,6 +37,7 @@ new_helm_docs_version = "1.6.0"
 new_providers_docs_version = "0.0.0"
 
 
+# types of generations supported
 class GenerationType(enum.Enum):
     airflow_type = 1
     helm_type = 2
