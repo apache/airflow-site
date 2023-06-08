@@ -14,16 +14,28 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
+import logging
 import os
+import sys
 from urllib.request import urlopen
 import semver
 
-docs_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/apache-airflow/redirects.txt"
+# types of generations supported
+airflow_type = "airflow"
+helm_type = "helm"
+provider_type = "providers"
+
+airflow_redirects_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/apache-airflow/redirects.txt"
+helm_redirects_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/helm-chart/redirects.txt"
+
+
 docs_archive_path = "../docs-archive"
-apache_airflow_path = docs_archive_path + "/apache-airflow"
-stable_version_path = apache_airflow_path + "/stable.txt"
-new_docs_version = "2.5.1"
+airflow_docs_path = docs_archive_path + "/apache-airflow"
+helm_docs_path = docs_archive_path + "/helm-chart"
+
+# version where changes were introduced in docs structure
+new_airflow_docs_version = "2.5.1"
+new_helm_docs_version = "1.6.0"
 
 
 def download_file(url):
@@ -60,8 +72,8 @@ def construct_mapping():
     return old_to_new_map
 
 
-def version_is_less_than(a):
-    return semver.compare(a, new_docs_version) == -1
+def version_is_less_than(a, baseline):
+    return semver.compare(a, baseline) == -1
 
 
 def get_redirect_content(url: str):
@@ -76,30 +88,49 @@ def create_back_reference_html(back_ref_url, path):
         f.write(content)
 
 
-download_file(docs_link)
-old_to_new = construct_mapping()
+def generate_back_references(link, base_path, change_version):
+    download_file(link)
+    old_to_new = construct_mapping()
 
-versions = [f.path.split("/")[-1] for f in os.scandir(apache_airflow_path) if f.is_dir()]
-versions = [v for v in versions if version_is_less_than(v)]
+    versions = [f.path.split("/")[-1] for f in os.scandir(base_path) if f.is_dir()]
+    versions = [v for v in versions if version_is_less_than(v, change_version)]
 
-for version in versions:
-    r = apache_airflow_path + "/" + version
+    for version in versions:
+        r = base_path + "/" + version
 
-    for p in old_to_new:
-        old = p
-        new = old_to_new[p]
+        for p in old_to_new:
+            old = p
+            new = old_to_new[p]
 
-        # only if old file exists, add the back reference
-        if os.path.exists(r + "/" + p):
-            d = old_to_new[p].split("/")
-            file_name = old_to_new[p].split("/")[-1]
-            dest_dir = r + "/" + "/".join(d[: len(d) - 1])
+            # only if old file exists, add the back reference
+            if os.path.exists(r + "/" + p):
+                d = old_to_new[p].split("/")
+                file_name = old_to_new[p].split("/")[-1]
+                dest_dir = r + "/" + "/".join(d[: len(d) - 1])
 
-            # finds relative path of old file wrt new, handles case of different file names too
-            relative_path = os.path.relpath(old, new)
-            # remove one directory level because file path was used above
-            relative_path = relative_path.replace("../", "", 1)
+                # finds relative path of old file wrt new, handles case of different file names too
+                relative_path = os.path.relpath(old, new)
+                # remove one directory level because file path was used above
+                relative_path = relative_path.replace("../", "", 1)
 
-            os.makedirs(dest_dir, exist_ok=True)
-            dest_file_path = dest_dir + "/" + file_name
-            create_back_reference_html(relative_path, dest_file_path)
+                os.makedirs(dest_dir, exist_ok=True)
+                dest_file_path = dest_dir + "/" + file_name
+                create_back_reference_html(relative_path, dest_file_path)
+
+
+# total arguments
+n = len(sys.argv)
+if n != 2:
+    logging.Logger.error("missing required arguments, syntax: python add-back-references.py [airflow | providers | "
+                         "helm]")
+
+type_generation = sys.argv[1]
+if type_generation == airflow_type:
+    generate_back_references(airflow_redirects_link, airflow_docs_path, new_airflow_docs_version)
+elif type_generation == helm_type:
+    generate_back_references(helm_redirects_link, helm_docs_path, new_helm_docs_version)
+elif type_generation == provider_type:
+    pass
+else:
+    logging.Logger.error("invalid type of doc generation required. Pass one of [airflow | providers | "
+                         "helm]")
