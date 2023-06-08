@@ -14,6 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+import enum
 import logging
 import os
 import sys
@@ -27,15 +28,24 @@ provider_type = "providers"
 
 airflow_redirects_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/apache-airflow/redirects.txt"
 helm_redirects_link = "https://raw.githubusercontent.com/apache/airflow/main/docs/helm-chart/redirects.txt"
-
+providers_redirect_link = "populate-this"
 
 docs_archive_path = "../docs-archive"
 airflow_docs_path = docs_archive_path + "/apache-airflow"
 helm_docs_path = docs_archive_path + "/helm-chart"
+providers_docs_path = docs_archive_path + "/apache-airflow-providers"
 
 # version where changes were introduced in docs structure
 new_airflow_docs_version = "2.5.1"
 new_helm_docs_version = "1.6.0"
+# change this correctly
+new_providers_docs_version = "0.0.0"
+
+
+class GenerationType(enum.Enum):
+    airflow_type = 1
+    helm_type = 2
+    provider_type = 3
 
 
 def download_file(url):
@@ -124,13 +134,14 @@ if n != 2:
     logging.Logger.error("missing required arguments, syntax: python add-back-references.py [airflow | providers | "
                          "helm]")
 
-type_generation = sys.argv[1]
-if type_generation == airflow_type:
+gen_type = GenerationType[sys.argv[1]]
+if gen_type == GenerationType.airflow_type:
     generate_back_references(airflow_redirects_link, airflow_docs_path, new_airflow_docs_version)
-elif type_generation == helm_type:
+elif gen_type == GenerationType.helm_type:
     generate_back_references(helm_redirects_link, helm_docs_path, new_helm_docs_version)
-elif type_generation == provider_type:
-    pass
+elif gen_type == GenerationType.provider_type:
+    # solve this properly for different providers
+    generate_back_references(providers_redirect_link, providers_docs_path, new_providers_docs_version)
 else:
     logging.Logger.error("invalid type of doc generation required. Pass one of [airflow | providers | "
                          "helm]")
