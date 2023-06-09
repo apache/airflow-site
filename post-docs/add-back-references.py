@@ -18,6 +18,7 @@ import enum
 import logging
 import os
 import sys
+from pathlib import Path
 from urllib.request import urlopen
 import semver
 
@@ -29,12 +30,6 @@ docs_archive_path = "../docs-archive"
 airflow_docs_path = docs_archive_path + "/apache-airflow"
 helm_docs_path = docs_archive_path + "/helm-chart"
 providers_docs_path = docs_archive_path + "/apache-airflow-providers"
-
-# version where changes were introduced in docs structure
-new_airflow_docs_version = "2.5.1"
-new_helm_docs_version = "1.6.0"
-# change this correctly
-new_providers_docs_version = "0.0.0"
 
 
 # types of generations supported
@@ -89,17 +84,20 @@ def get_redirect_content(url: str):
 def create_back_reference_html(back_ref_url, path):
     content = get_redirect_content(back_ref_url)
 
+    if Path(path).exists():
+        logging.error(f'skipping file:{path}, redirects already exist', path)
+        return
+
     # Creating an HTML file
     with open(path, "w") as f:
         f.write(content)
 
 
-def generate_back_references(link, base_path, change_version):
+def generate_back_references(link, base_path):
     download_file(link)
     old_to_new = construct_mapping()
 
     versions = [f.path.split("/")[-1] for f in os.scandir(base_path) if f.is_dir()]
-    versions = [v for v in versions if version_is_less_than(v, change_version)]
 
     for version in versions:
         r = base_path + "/" + version
@@ -132,12 +130,12 @@ if n != 2:
 
 gen_type = GenerationType[sys.argv[1]]
 if gen_type == GenerationType.airflow:
-    generate_back_references(airflow_redirects_link, airflow_docs_path, new_airflow_docs_version)
+    generate_back_references(airflow_redirects_link, airflow_docs_path)
 elif gen_type == GenerationType.helm:
-    generate_back_references(helm_redirects_link, helm_docs_path, new_helm_docs_version)
+    generate_back_references(helm_redirects_link, helm_docs_path)
 elif gen_type == GenerationType.providers:
     # solve this properly for different providers
-    generate_back_references(providers_redirect_link, providers_docs_path, new_providers_docs_version)
+    generate_back_references(providers_redirect_link, providers_docs_path)
 else:
     logging.Logger.error("invalid type of doc generation required. Pass one of [airflow | providers | "
                          "helm]")
