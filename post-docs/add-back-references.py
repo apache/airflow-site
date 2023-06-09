@@ -39,9 +39,9 @@ new_providers_docs_version = "0.0.0"
 
 # types of generations supported
 class GenerationType(enum.Enum):
-    airflow_type = 1
-    helm_type = 2
-    provider_type = 3
+    airflow = 1
+    helm = 2
+    providers = 3
 
 
 def download_file(url):
@@ -131,11 +131,11 @@ if n != 2:
                          "helm]")
 
 gen_type = GenerationType[sys.argv[1]]
-if gen_type == GenerationType.airflow_type:
+if gen_type == GenerationType.airflow:
     generate_back_references(airflow_redirects_link, airflow_docs_path, new_airflow_docs_version)
-elif gen_type == GenerationType.helm_type:
+elif gen_type == GenerationType.helm:
     generate_back_references(helm_redirects_link, helm_docs_path, new_helm_docs_version)
-elif gen_type == GenerationType.provider_type:
+elif gen_type == GenerationType.providers:
     # solve this properly for different providers
     generate_back_references(providers_redirect_link, providers_docs_path, new_providers_docs_version)
 else:
