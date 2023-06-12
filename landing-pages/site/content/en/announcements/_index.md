@@ -17,7 +17,7 @@ menu:
 
 Airflow PMC welcomes new Airflow Committer:
 
-* **Pankaj Singh** ([@o-nikolas](https://github.com/pankajastro)
+* **Pankaj Singh** ([@pankajastro](https://github.com/pankajastro)
 
 # May 16, 2023
 
