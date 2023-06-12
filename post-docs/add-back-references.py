@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from urllib.error import URLError
 from urllib.request import urlopen
 import semver
 
@@ -31,22 +32,6 @@ docs_archive_path = "../docs-archive"
 airflow_docs_path = docs_archive_path + "/apache-airflow"
 helm_docs_path = docs_archive_path + "/helm-chart"
 
-# if any new provider is added with redirects, add it to this list
-providers_with_redirects = ['apache-airflow-providers-grpc',
-                            'apache-airflow-providers-jdbc',
-                            'apache-airflow-providers-odbc',
-                            'apache-airflow-providers-mysql',
-                            'apache-airflow-providers-amazon',
-                            'apache-airflow-providers-google',
-                            'apache-airflow-providers-sqlite',
-                            'apache-airflow-providers-alibaba',
-                            'apache-airflow-providers-postgres',
-                            'apache-airflow-providers-hashicorp',
-                            'apache-airflow-providers-salesforce',
-                            'apache-airflow-providers-apache-spark',
-                            'apache-airflow-providers-elasticsearch',
-                            'apache-airflow-providers-cncf-kubernetes']
-
 
 # types of generations supported
 class GenerationType(enum.Enum):
@@ -56,11 +41,14 @@ class GenerationType(enum.Enum):
 
 
 def download_file(url):
-    filedata = urlopen(url)
-    datatowrite = filedata.read()
+    try:
+        filedata = urlopen(url)
+        datatowrite = filedata.read()
 
-    with open('redirects.txt', 'wb') as f:
-        f.write(datatowrite)
+        with open('redirects.txt', 'wb') as f:
+            f.write(datatowrite)
+    except URLError as e:
+        log.warning(e)
 
 
 def construct_mapping():
@@ -158,7 +146,9 @@ if gen_type == GenerationType.airflow:
 elif gen_type == GenerationType.helm:
     generate_back_references(helm_redirects_link, helm_docs_path)
 elif gen_type == GenerationType.providers:
-    for p in providers_with_redirects:
+    all_providers = [f.path.split("/")[-1] for f in os.scandir(docs_archive_path)
+                     if f.is_dir() and "providers" in f.name]
+    for p in all_providers:
         log.info("processing provider: %s", p)
         generate_back_references(get_github_redirects_url(p), get_provider_docs_path(p))
 else:
