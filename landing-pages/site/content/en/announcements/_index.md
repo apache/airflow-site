@@ -46,6 +46,12 @@ We've just released Apache **Airflow Helm chart 1.9.0**.
 🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.9.0/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.9.0/installing-helm-chart-from-sources.html
 
+# April 11, 2023
+
+Airflow PMC welcomes new Airflow Committer:
+
+* **Hussein Awala** ([@hussein-awala](https://github.com/hussein-awala))
+
 # April 1, 2023
 
 We’ve just released Apache **Airflow 2.5.3**.
