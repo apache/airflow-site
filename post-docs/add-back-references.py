@@ -158,7 +158,6 @@ if gen_type == GenerationType.airflow:
 elif gen_type == GenerationType.helm:
     generate_back_references(helm_redirects_link, helm_docs_path)
 elif gen_type == GenerationType.providers:
-    # solve this properly for different providers
     for p in providers_with_redirects:
         log.info("processing provider: %s", p)
         generate_back_references(get_github_redirects_url(p), get_provider_docs_path(p))
