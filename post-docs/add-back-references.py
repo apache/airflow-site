@@ -18,6 +18,7 @@ import enum
 import logging
 import os
 import sys
+import tempfile
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -41,14 +42,18 @@ class GenerationType(enum.Enum):
 
 
 def download_file(url):
-    try:
-        filedata = urlopen(url)
-        datatowrite = filedata.read()
-
-        with open('redirects.txt', 'wb') as f:
-            f.write(datatowrite)
-    except URLError as e:
-        log.warning(e)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        temp_dir = Path(tmpdir)
+        file_name = temp_dir / "redirects.txt"
+        try:
+            filedata = urlopen(url)
+            data = filedata.read()
+            with open(file_name, 'wb') as f:
+                f.write(data)
+            return True
+        except URLError as e:
+            log.warning(e)
+            return False
 
 
 def construct_mapping():
@@ -106,7 +111,10 @@ def create_back_reference_html(back_ref_url, path):
 
 
 def generate_back_references(link, base_path):
-    download_file(link)
+    is_downloaded = download_file(link)
+    if not is_downloaded:
+        log.warning('skipping generating back references')
+        return
     old_to_new = construct_mapping()
 
     versions = [f.path.split("/")[-1] for f in os.scandir(base_path) if f.is_dir()]
