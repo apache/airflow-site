@@ -42,23 +42,22 @@ class GenerationType(enum.Enum):
 
 
 def download_file(url):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        temp_dir = Path(tmpdir)
+    try:
+        temp_dir = Path(tempfile.mkdtemp(prefix="temp_dir", suffix=""))
         file_name = temp_dir / "redirects.txt"
-        try:
-            filedata = urlopen(url)
-            data = filedata.read()
-            with open(file_name, 'wb') as f:
-                f.write(data)
-            return True
-        except URLError as e:
-            log.warning(e)
-            return False
+        filedata = urlopen(url)
+        data = filedata.read()
+        with open(file_name, 'wb') as f:
+            f.write(data)
+        return True, file_name
+    except URLError as e:
+        log.warning(e)
+        return False, "no-file"
 
 
-def construct_mapping():
+def construct_mapping(file_name):
     old_to_new_map = dict()
-    with open('redirects.txt') as f:
+    with open(file_name) as f:
         file_content = []
         lines = f.readlines()
         # Skip empty line
@@ -102,7 +101,7 @@ def create_back_reference_html(back_ref_url, path):
     content = get_redirect_content(back_ref_url)
 
     if Path(path).exists():
-        logging.error(f'skipping file:{path}, redirects already exist', path)
+        logging.warning(f'skipping file:{path}, redirects already exist', path)
         return
 
     # Creating an HTML file
@@ -111,11 +110,11 @@ def create_back_reference_html(back_ref_url, path):
 
 
 def generate_back_references(link, base_path):
-    is_downloaded = download_file(link)
+    is_downloaded, file_name = download_file(link)
     if not is_downloaded:
         log.warning('skipping generating back references')
         return
-    old_to_new = construct_mapping()
+    old_to_new = construct_mapping(file_name)
 
     versions = [f.path.split("/")[-1] for f in os.scandir(base_path) if f.is_dir()]
 
