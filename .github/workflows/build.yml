@@ -64,6 +64,13 @@ jobs:
           ./.github/scripts/print_df.sh
       - name: 🔎 Lint
         uses: apache/airflow-pre-commit-action@0764670bf370aab253130d534e1eda7ff497dc60  # v2.0.0
+      - name: 🗂 Checkout gh-pages branch with minimum depth
+        uses: actions/checkout@v3
+        if: ${{ github.event_name == 'push' }}
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+          path: dist
       - name: 🔧 Build site
         run: |
           ./site.sh build-site
@@ -100,14 +107,13 @@ jobs:
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
           ./.github/scripts/print_df.sh
-      - name: 🚀 Deploy website on gh-pages branch
-        uses: apache/airflow-JamesIves-github-pages-deploy-action@132898c54c57c7cc6b80eb3a89968de8fc283505  # v3.7.1
+      - name: 🚀 Amend gh-pages branch and deploy it with force
         if: ${{ github.event_name == 'push' }}
-        with:
-          BRANCH: gh-pages  # The branch the action should deploy to.
-          FOLDER: dist  # The folder the action should deploy.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CLEAN: true  # Automatically remove deleted files from the deploy branch
+        working-directory: dist
+        run: |
+          git add .
+          git commit --amend --no-edit
+          git push origin gh-pages --force
       - name: 🔧 Copy files from site to theme️
         run: |
           ./site.sh prepare-theme
