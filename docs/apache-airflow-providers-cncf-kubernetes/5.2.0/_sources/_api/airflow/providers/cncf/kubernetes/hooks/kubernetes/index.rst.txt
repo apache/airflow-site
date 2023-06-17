@@ -1,0 +1,232 @@
+:py:mod:`airflow.providers.cncf.kubernetes.hooks.kubernetes`
+============================================================
+
+.. py:module:: airflow.providers.cncf.kubernetes.hooks.kubernetes
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.hooks.kubernetes.KubernetesHook
+   airflow.providers.cncf.kubernetes.hooks.kubernetes.AsyncKubernetesHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.hooks.kubernetes.LOADING_KUBE_CONFIG_FILE_RESOURCE
+
+
+.. py:data:: LOADING_KUBE_CONFIG_FILE_RESOURCE
+   :value: 'Loading Kubernetes configuration file kube_config from {}...'
+
+   
+
+.. py:class:: KubernetesHook(conn_id = default_conn_name, client_configuration = None, cluster_context = None, config_file = None, in_cluster = None, disable_verify_ssl = None, disable_tcp_keepalive = None)
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Creates Kubernetes API connection.
+
+   - use in cluster configuration by using extra field ``in_cluster`` in connection
+   - use custom config by providing path to the file using extra field ``kube_config_path`` in connection
+   - use custom configuration by providing content of kubeconfig file via
+       extra field ``kube_config`` in connection
+   - use default config by providing no extras
+
+   This hook check for configuration option in the above order. Once an option is present it will
+   use this configuration.
+
+   .. seealso::
+       For more information about Kubernetes connection:
+       :doc:`/connections/kubernetes`
+
+   :param conn_id: The :ref:`kubernetes connection <howto/connection:kubernetes>`
+       to Kubernetes cluster.
+   :param client_configuration: Optional dictionary of client configuration params.
+       Passed on to kubernetes client.
+   :param cluster_context: Optionally specify a context to use (e.g. if you have multiple
+       in your kubeconfig.
+   :param config_file: Path to kubeconfig file.
+   :param in_cluster: Set to ``True`` if running from within a kubernetes cluster.
+   :param disable_verify_ssl: Set to ``True`` if SSL verification should be disabled.
+   :param disable_tcp_keepalive: Set to ``True`` if you want to disable keepalive logic.
+
+   .. py:property:: is_in_cluster
+      :type: bool
+
+      Expose whether the hook is configured with ``load_incluster_config`` or not
+
+
+   .. py:attribute:: conn_name_attr
+      :value: 'kubernetes_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'kubernetes_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'kubernetes'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Kubernetes Cluster Connection'
+
+      
+
+   .. py:attribute:: DEFAULT_NAMESPACE
+      :value: 'default'
+
+      
+
+   .. py:method:: get_connection_form_widgets()
+      :staticmethod:
+
+      Returns connection widgets to add to connection form
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :staticmethod:
+
+      Returns custom field behaviour
+
+
+   .. py:method:: conn_extras()
+
+
+   .. py:method:: get_conn()
+
+      Returns kubernetes api session for use with requests
+
+
+   .. py:method:: api_client()
+
+      Cached Kubernetes API client
+
+
+   .. py:method:: core_v1_client()
+
+
+   .. py:method:: custom_object_client()
+
+
+   .. py:method:: create_custom_object(group, version, plural, body, namespace = None)
+
+      Creates custom resource definition object in Kubernetes
+      :param group: api group
+      :param version: api version
+      :param plural: api plural
+      :param body: crd object definition
+      :param namespace: kubernetes namespace
+
+
+   .. py:method:: get_custom_object(group, version, plural, name, namespace = None)
+
+      Get custom resource definition object from Kubernetes
+
+      :param group: api group
+      :param version: api version
+      :param plural: api plural
+      :param name: crd object name
+      :param namespace: kubernetes namespace
+
+
+   .. py:method:: get_namespace()
+
+      Returns the namespace defined in the connection or 'default'.
+
+      TODO: in provider version 6.0, return None when namespace not defined in connection
+
+
+   .. py:method:: get_xcom_sidecar_container_image()
+
+      Returns the xcom sidecar image that defined in the connection
+
+
+   .. py:method:: get_pod_log_stream(pod_name, container = '', namespace = None)
+
+      Retrieves a log stream for a container in a kubernetes pod.
+
+      :param pod_name: pod name
+      :param container: container name
+      :param namespace: kubernetes namespace
+
+
+   .. py:method:: get_pod_logs(pod_name, container = '', namespace = None)
+
+      Retrieves a container's log from the specified pod.
+
+      :param pod_name: pod name
+      :param container: container name
+      :param namespace: kubernetes namespace
+
+
+   .. py:method:: get_pod(name, namespace)
+
+
+   .. py:method:: get_namespaced_pod_list(label_selector = '', namespace = None, watch = False, **kwargs)
+
+      Retrieves a list of Kind pod which belong default kubernetes namespace
+      :param label_selector: A selector to restrict the list of returned objects by their labels
+      :param namespace: kubernetes namespace
+      :param watch: Watch for changes to the described resources and return them as a stream
+
+
+
+.. py:class:: AsyncKubernetesHook(config_dict = None, *args, **kwargs)
+
+   Bases: :py:obj:`KubernetesHook`
+
+   Hook to use Kubernetes SDK asynchronously.
+
+   .. py:method:: get_conn_extras()
+      :async:
+
+
+   .. py:method:: get_conn()
+      :async:
+
+
+   .. py:method:: get_pod(name, namespace)
+      :async:
+
+      Gets pod's object.
+
+      :param name: Name of the pod.
+      :param namespace: Name of the pod's namespace.
+
+
+   .. py:method:: delete_pod(name, namespace)
+      :async:
+
+      Deletes pod's object.
+
+      :param name: Name of the pod.
+      :param namespace: Name of the pod's namespace.
+
+
+   .. py:method:: read_logs(name, namespace)
+      :async:
+
+      Reads logs inside the pod while starting containers inside. All the logs will be outputted with its
+      timestamp to track the logs after the execution of the pod is completed. The method is used for async
+      output of the logs only in the pod failed it execution or the task was cancelled by the user.
+
+      :param name: Name of the pod.
+      :param namespace: Name of the pod's namespace.
+
+
+

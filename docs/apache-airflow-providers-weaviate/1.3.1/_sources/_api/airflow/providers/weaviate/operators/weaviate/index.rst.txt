@@ -1,0 +1,119 @@
+:py:mod:`airflow.providers.weaviate.operators.weaviate`
+=======================================================
+
+.. py:module:: airflow.providers.weaviate.operators.weaviate
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.weaviate.operators.weaviate.WeaviateIngestOperator
+   airflow.providers.weaviate.operators.weaviate.WeaviateDocumentIngestOperator
+
+
+
+
+.. py:class:: WeaviateIngestOperator(conn_id, class_name, input_json = None, input_data = None, vector_col = 'Vector', uuid_column = 'id', tenant = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Operator that store vector in the Weaviate class.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:WeaviateIngestOperator`
+
+   Operator that accepts input json or pandas dataframe to generate embeddings on or accepting provided
+   custom vectors and store them in the Weaviate class.
+
+   :param conn_id: The Weaviate connection.
+   :param class_name: The Weaviate class to be used for storing the data objects into.
+   :param input_data: The list of dicts or pandas dataframe representing Weaviate data objects to generate
+       embeddings on (or provides custom vectors) and store them in the Weaviate class.
+   :param input_json: (Deprecated) The JSON representing Weaviate data objects to generate embeddings on (or provides
+       custom vectors) and store them in the Weaviate class.
+   :param vector_col: key/column name in which the vectors are stored.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('input_json', 'input_data')
+
+      
+
+   .. py:method:: hook()
+
+      Return an instance of the WeaviateHook.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: WeaviateDocumentIngestOperator(conn_id, input_data, class_name, document_column, existing = 'skip', uuid_column = 'id', vector_col = 'Vector', batch_config_params = None, tenant = None, verbose = False, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Create or replace objects belonging to documents.
+
+   In real-world scenarios, information sources like Airflow docs, Stack Overflow, or other issues
+   are considered 'documents' here. It's crucial to keep the database objects in sync with these sources.
+   If any changes occur in these documents, this function aims to reflect those changes in the database.
+
+   .. note::
+
+       This function assumes responsibility for identifying changes in documents, dropping relevant
+       database objects, and recreating them based on updated information. It's crucial to handle this
+       process with care, ensuring backups and validation are in place to prevent data loss or
+       inconsistencies.
+
+   Provides users with multiple ways of dealing with existing values.
+   replace: replace the existing objects with new objects. This option requires to identify the
+   objects belonging to a document. which by default is done by using document_column field.
+   skip: skip the existing objects and only add the missing objects of a document.
+   error: raise an error if an object belonging to a existing document is tried to be created.
+
+   :param data: A single pandas DataFrame or a list of dicts to be ingested.
+   :param class_name: Name of the class in Weaviate schema where data is to be ingested.
+   :param existing: Strategy for handling existing data: 'skip', or 'replace'. Default is 'skip'.
+   :param document_column: Column in DataFrame that identifying source document.
+   :param uuid_column: Column with pre-generated UUIDs. If not provided, UUIDs will be generated.
+   :param vector_column: Column with embedding vectors for pre-embedded data.
+   :param batch_config_params: Additional parameters for Weaviate batch configuration.
+   :param tenant: The tenant to which the object will be added.
+   :param verbose: Flag to enable verbose output during the ingestion process.
+   :return: list of UUID which failed to create
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('input_data',)
+
+      
+
+   .. py:method:: hook()
+
+      Return an instance of the WeaviateHook.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
