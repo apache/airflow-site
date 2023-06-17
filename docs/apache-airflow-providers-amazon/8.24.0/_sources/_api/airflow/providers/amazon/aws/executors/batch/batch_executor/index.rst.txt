@@ -1,0 +1,133 @@
+:py:mod:`airflow.providers.amazon.aws.executors.batch.batch_executor`
+=====================================================================
+
+.. py:module:: airflow.providers.amazon.aws.executors.batch.batch_executor
+
+.. autoapi-nested-parse::
+
+   AWS Batch Executor. Each Airflow task gets delegated out to an AWS Batch Job.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.executors.batch.batch_executor.AwsBatchExecutor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.executors.batch.batch_executor.CommandType
+   airflow.providers.amazon.aws.executors.batch.batch_executor.ExecutorConfigType
+   airflow.providers.amazon.aws.executors.batch.batch_executor.INVALID_CREDENTIALS_EXCEPTIONS
+
+
+.. py:data:: CommandType
+
+   
+
+.. py:data:: ExecutorConfigType
+
+   
+
+.. py:data:: INVALID_CREDENTIALS_EXCEPTIONS
+   :value: ['ExpiredTokenException', 'InvalidClientTokenId', 'UnrecognizedClientException']
+
+   
+
+.. py:class:: AwsBatchExecutor(*args, **kwargs)
+
+
+   Bases: :py:obj:`airflow.executors.base_executor.BaseExecutor`
+
+   The Airflow Scheduler creates a shell command, and passes it to the executor.
+
+   This Batch Executor simply runs said airflow command in a resource provisioned and managed
+   by AWS Batch. It then periodically checks in with the launched jobs (via job-ids) to
+   determine the status.
+   The `submit_job_kwargs` is a dictionary that should match the kwargs for the
+   SubmitJob definition per AWS' documentation (see below).
+   For maximum flexibility, individual tasks can specify `executor_config` as a dictionary, with keys that
+   match the request syntax for the SubmitJob definition per AWS' documentation (see link below). The
+   `executor_config` will update the `submit_job_kwargs` dictionary when calling the task. This allows
+   individual jobs to specify CPU, memory, GPU, env variables, etc.
+   Prerequisite: proper configuration of Boto3 library
+   .. seealso:: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html for
+   authentication and access-key management. You can store an environmental variable, setup aws config from
+   console, or use IAM roles.
+   .. seealso:: https://docs.aws.amazon.com/batch/latest/APIReference/API_SubmitJob.html for an
+   Airflow TaskInstance's executor_config.
+
+   .. py:attribute:: MAX_SUBMIT_JOB_ATTEMPTS
+
+      
+
+   .. py:attribute:: DESCRIBE_JOBS_BATCH_SIZE
+      :value: 99
+
+      
+
+   .. py:method:: check_health()
+
+      Make a test API call to check the health of the Batch Executor.
+
+
+   .. py:method:: start()
+
+      Call this when the Executor is run for the first time by the scheduler.
+
+
+   .. py:method:: load_batch_connection(check_connection = True)
+
+
+   .. py:method:: sync()
+
+      Sync will get called periodically by the heartbeat method in the scheduler.
+
+
+   .. py:method:: sync_running_jobs()
+
+
+   .. py:method:: attempt_submit_jobs()
+
+      Attempt to submit all jobs submitted to the Executor.
+
+      For each iteration of the sync() method, every pending job is submitted to Batch.
+      If a job fails validation, it will be put at the back of the queue to be reattempted
+      in the next iteration of the sync() method, unless it has exceeded the maximum number of
+      attempts. If a job exceeds the maximum number of attempts, it is removed from the queue.
+
+
+   .. py:method:: execute_async(key, command, queue=None, executor_config=None)
+
+      Save the task to be executed in the next sync using Boto3's RunTask API.
+
+
+   .. py:method:: end(heartbeat_interval=10)
+
+      Wait for all currently running tasks to end and prevent any new jobs from running.
+
+
+   .. py:method:: terminate()
+
+      Kill all Batch Jobs by calling Boto3's TerminateJob API.
+
+
+   .. py:method:: try_adopt_task_instances(tis)
+
+      Adopt task instances which have an external_executor_id (the Batch job ID).
+
+      Anything that is not adopted will be cleared by the scheduler and becomes eligible for re-scheduling.
+
+
+

@@ -1,0 +1,163 @@
+:py:mod:`airflow.providers.oracle.hooks.oracle`
+===============================================
+
+.. py:module:: airflow.providers.oracle.hooks.oracle
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.oracle.hooks.oracle.OracleHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.oracle.hooks.oracle.numpy
+   airflow.providers.oracle.hooks.oracle.PARAM_TYPES
+
+
+.. py:data:: numpy
+   
+
+   
+
+.. py:data:: PARAM_TYPES
+   
+
+   
+
+.. py:class:: OracleHook(*args, schema = None, **kwargs)
+
+   Bases: :py:obj:`airflow.hooks.dbapi.DbApiHook`
+
+   Interact with Oracle SQL.
+
+   :param oracle_conn_id: The :ref:`Oracle connection id <howto/connection:oracle>`
+       used for Oracle credentials.
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = oracle_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = oracle_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = oracle
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = Oracle
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :annotation: = True
+
+      
+
+   .. py:method:: get_conn(self)
+
+      Returns a oracle connection object
+      Optional parameters for using a custom DSN connection
+      (instead of using a server alias from tnsnames.ora)
+      The dsn (data source name) is the TNS entry
+      (from the Oracle names server or tnsnames.ora file)
+      or is a string like the one returned from makedsn().
+
+      :param dsn: the data source name for the Oracle server
+      :param service_name: the db_unique_name of the database
+            that you are connecting to (CONNECT_DATA part of TNS)
+      :param sid: Oracle System ID that identifies a particular
+            database on a system
+
+      You can set these parameters in the extra fields of your connection
+      as in
+
+      .. code-block:: python
+
+         {
+             "dsn": (
+                 "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)"
+                 "(HOST=host)(PORT=1521))(CONNECT_DATA=(SID=sid)))"
+             )
+         }
+
+      see more param detail in `oracledb.connect
+      <https://python-oracledb.readthedocs.io/en/latest/api_manual/module.html#oracledb.connect>`_
+
+
+
+
+   .. py:method:: insert_rows(self, table, rows, target_fields=None, commit_every = 1000, replace = False, **kwargs)
+
+      A generic way to insert a set of tuples into a table,
+      the whole set of inserts is treated as one transaction
+      Changes from standard DbApiHook implementation:
+
+      - Oracle SQL queries in oracledb can not be terminated with a semicolon (`;`)
+      - Replace NaN values with NULL using `numpy.nan_to_num` (not using
+        `is_nan()` because of input types error for strings)
+      - Coerce datetime cells to Oracle DATETIME format during insert
+
+      :param table: target Oracle table, use dot notation to target a
+          specific database
+      :param rows: the rows to insert into the table
+      :param target_fields: the names of the columns to fill in the table
+      :param commit_every: the maximum number of rows to insert in one transaction
+          Default 1000, Set greater than 0.
+          Set 1 to insert each row in each single transaction
+      :param replace: Whether to replace instead of insert
+
+
+   .. py:method:: bulk_insert_rows(self, table, rows, target_fields = None, commit_every = 5000)
+
+      A performant bulk insert for oracledb
+      that uses prepared statements via `executemany()`.
+      For best performance, pass in `rows` as an iterator.
+
+      :param table: target Oracle table, use dot notation to target a
+          specific database
+      :param rows: the rows to insert into the table
+      :param target_fields: the names of the columns to fill in the table, default None.
+          If None, each rows should have some order as table columns name
+      :param commit_every: the maximum number of rows to insert in one transaction
+          Default 5000. Set greater than 0. Set 1 to insert each row in each transaction
+
+
+   .. py:method:: callproc(self, identifier, autocommit = False, parameters = None)
+
+      Call the stored procedure identified by the provided string.
+
+      Any 'OUT parameters' must be provided with a value of either the
+      expected Python type (e.g., `int`) or an instance of that type.
+
+      The return value is a list or mapping that includes parameters in
+      both directions; the actual return type depends on the type of the
+      provided `parameters` argument.
+
+      See
+      https://python-oracledb.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.var
+      for further reference.
+
+
+   .. py:method:: test_connection(self)
+
+      Tests the connection by executing a select 1 from dual query
+
+
+

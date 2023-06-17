@@ -1,0 +1,145 @@
+:py:mod:`airflow.timetables.interval`
+=====================================
+
+.. py:module:: airflow.timetables.interval
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.timetables.interval.CronDataIntervalTimetable
+   airflow.timetables.interval.DeltaDataIntervalTimetable
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.timetables.interval.Delta
+
+
+.. py:data:: Delta
+   
+
+   
+
+.. py:class:: CronDataIntervalTimetable(cron, timezone)
+
+   Bases: :py:obj:`airflow.timetables._cron.CronMixin`, :py:obj:`_DataIntervalTimetable`
+
+   Timetable that schedules data intervals with a cron expression.
+
+   This corresponds to ``schedule=<cron>``, where ``<cron>`` is either
+   a five/six-segment representation, or one of ``cron_presets``.
+
+   The implementation extends on croniter to add timezone awareness. This is
+   because croniter works only with naive timestamps, and cannot consider DST
+   when determining the next/previous time.
+
+   Don't pass ``@once`` in here; use ``OnceTimetable`` instead.
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+   .. py:method:: infer_manual_data_interval(*, run_after)
+
+      When a DAG run is manually triggered, infer a data interval for it.
+
+      This is used for e.g. manually-triggered runs, where ``run_after`` would
+      be when the user triggers the run. The default implementation raises
+      ``NotImplementedError``.
+
+
+
+.. py:class:: DeltaDataIntervalTimetable(delta)
+
+   Bases: :py:obj:`_DataIntervalTimetable`
+
+   Timetable that schedules data intervals with a time delta.
+
+   This corresponds to ``schedule=<delta>``, where ``<delta>`` is
+   either a ``datetime.timedelta`` or ``dateutil.relativedelta.relativedelta``
+   instance.
+
+   .. py:property:: summary
+      :type: str
+
+      A short summary for the timetable.
+
+      This is used to display the timetable in the web UI. A cron expression
+      timetable, for example, can use this to display the expression. The
+      default implementation returns the timetable's type name.
+
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+   .. py:method:: __eq__(other)
+
+      The offset should match.
+
+      This is only for testing purposes and should not be relied on otherwise.
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+   .. py:method:: validate()
+
+      Validate the timetable is correctly specified.
+
+      Override this method to provide run-time validation raised when a DAG
+      is put into a dagbag. The default implementation does nothing.
+
+      :raises: AirflowTimetableInvalid on validation failure.
+
+
+   .. py:method:: infer_manual_data_interval(run_after)
+
+      When a DAG run is manually triggered, infer a data interval for it.
+
+      This is used for e.g. manually-triggered runs, where ``run_after`` would
+      be when the user triggers the run. The default implementation raises
+      ``NotImplementedError``.
+
+
+

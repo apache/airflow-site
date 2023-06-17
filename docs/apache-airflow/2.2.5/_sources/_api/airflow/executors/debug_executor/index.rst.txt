@@ -1,0 +1,82 @@
+:py:mod:`airflow.executors.debug_executor`
+==========================================
+
+.. py:module:: airflow.executors.debug_executor
+
+.. autoapi-nested-parse::
+
+   DebugExecutor
+
+   .. seealso::
+       For more information on how the DebugExecutor works, take a look at the guide:
+       :ref:`executor:DebugExecutor`
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.debug_executor.DebugExecutor
+
+
+
+
+.. py:class:: DebugExecutor
+
+   Bases: :py:obj:`airflow.executors.base_executor.BaseExecutor`
+
+   This executor is meant for debugging purposes. It can be used with SQLite.
+
+   It executes one task instance at time. Additionally to support working
+   with sensors, all sensors ``mode`` will be automatically set to "reschedule".
+
+   .. py:method:: execute_async(self, *args, **kwargs) -> None
+
+      The method is replaced by custom trigger_task implementation.
+
+
+   .. py:method:: sync(self) -> None
+
+      Sync will get called periodically by the heartbeat method.
+      Executors should override this to perform gather statuses.
+
+
+   .. py:method:: queue_task_instance(self, task_instance: airflow.models.taskinstance.TaskInstance, mark_success: bool = False, pickle_id: Optional[str] = None, ignore_all_deps: bool = False, ignore_depends_on_past: bool = False, ignore_task_deps: bool = False, ignore_ti_state: bool = False, pool: Optional[str] = None, cfg_path: Optional[str] = None) -> None
+
+      Queues task instance with empty command because we do not need it.
+
+
+   .. py:method:: trigger_tasks(self, open_slots: int) -> None
+
+      Triggers tasks. Instead of calling exec_async we just
+      add task instance to tasks_to_run queue.
+
+      :param open_slots: Number of open slots
+
+
+   .. py:method:: end(self) -> None
+
+      When the method is called we just set states of queued tasks
+      to UPSTREAM_FAILED marking them as not executed.
+
+
+   .. py:method:: terminate(self) -> None
+
+      This method is called when the daemon receives a SIGTERM
+
+
+   .. py:method:: change_state(self, key: airflow.models.taskinstance.TaskInstanceKey, state: str, info=None) -> None
+
+      Changes state of the task.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+      :param state: State to set for the task.
+
+
+
