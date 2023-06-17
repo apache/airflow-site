@@ -1,0 +1,617 @@
+:py:mod:`airflow.providers.google.cloud.operators.cloud_storage_transfer_service`
+=================================================================================
+
+.. py:module:: airflow.providers.google.cloud.operators.cloud_storage_transfer_service
+
+.. autoapi-nested-parse::
+
+   This module contains Google Cloud Transfer operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.TransferJobPreprocessor
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.TransferJobValidator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceCreateJobOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceUpdateJobOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceDeleteJobOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceGetOperationOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceListOperationsOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServicePauseOperationOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceResumeOperationOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceCancelOperationOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceS3ToGCSOperator
+   airflow.providers.google.cloud.operators.cloud_storage_transfer_service.CloudDataTransferServiceGCSToGCSOperator
+
+
+
+
+.. py:class:: TransferJobPreprocessor(body, aws_conn_id = 'aws_default', default_schedule = False)
+
+
+   Helper class for preprocess of transfer job body.
+
+   .. py:method:: process_body()
+
+      Injects AWS credentials into body if needed and reformats schedule information.
+
+      :return: Preprocessed body
+
+
+
+.. py:class:: TransferJobValidator(body)
+
+
+   Helper class for validating transfer job body.
+
+   .. py:method:: validate_body()
+
+      Validate the body.
+
+      Checks if body specifies `transferSpec` if yes, then check if AWS credentials
+      are passed correctly and no more than 1 data source was selected.
+
+      :raises: AirflowException
+
+
+
+.. py:class:: CloudDataTransferServiceCreateJobOperator(*, body, aws_conn_id = 'aws_default', gcp_conn_id = 'google_cloud_default', api_version = 'v1', project_id = PROVIDE_PROJECT_ID, google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Creates a transfer job that runs periodically.
+
+   .. warning::
+
+       This operator is NOT idempotent in the following cases:
+
+       * `name` is not passed in body param
+       * transfer job `name` has been soft deleted. In this case,
+         each new task will receive a unique suffix
+
+       If you run it many times, many transfer jobs will be created in the Google Cloud.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceCreateJobOperator`
+
+   :param body: (Required) The request body, as described in
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/transferJobs#TransferJob
+       With three additional improvements:
+
+       * dates can be given in the form :class:`datetime.date`
+       * times can be given in the form :class:`datetime.time`
+       * credentials to Amazon Web Service should be stored in the connection and indicated by the
+         aws_conn_id parameter
+
+   :param aws_conn_id: The connection ID used to retrieve credentials to
+       Amazon Web Service.
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud.
+   :param api_version: API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('body', 'gcp_conn_id', 'aws_conn_id', 'google_impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceUpdateJobOperator(*, job_name, body, aws_conn_id = 'aws_default', gcp_conn_id = 'google_cloud_default', api_version = 'v1', project_id = PROVIDE_PROJECT_ID, google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Updates a transfer job that runs periodically.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceUpdateJobOperator`
+
+   :param job_name: (Required) Name of the job to be updated
+   :param body: (Required) The request body, as described in
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/transferJobs/patch#request-body
+       With three additional improvements:
+
+       * dates can be given in the form :class:`datetime.date`
+       * times can be given in the form :class:`datetime.time`
+       * credentials to Amazon Web Service should be stored in the connection and indicated by the
+         aws_conn_id parameter
+
+   :param aws_conn_id: The connection ID used to retrieve credentials to
+       Amazon Web Service.
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud.
+   :param api_version: API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('job_name', 'body', 'gcp_conn_id', 'aws_conn_id', 'google_impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceDeleteJobOperator(*, job_name, gcp_conn_id = 'google_cloud_default', api_version = 'v1', project_id = PROVIDE_PROJECT_ID, google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Delete a transfer job.
+
+   This is a soft delete. After a transfer job is deleted, the job and all the transfer
+   executions are subject to garbage collection. Transfer jobs become eligible for garbage
+   collection 30 days after soft delete.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceDeleteJobOperator`
+
+   :param job_name: (Required) Name of the TRANSFER operation
+   :param project_id: (Optional) the ID of the project that owns the Transfer
+       Job. If set to None or missing, the default project_id from the Google Cloud
+       connection is used.
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud.
+   :param api_version: API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('job_name', 'project_id', 'gcp_conn_id', 'api_version', 'google_impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceGetOperationOperator(*, project_id = PROVIDE_PROJECT_ID, operation_name, gcp_conn_id = 'google_cloud_default', api_version = 'v1', google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Gets the latest state of a long-running operation in Google Storage Transfer Service.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceGetOperationOperator`
+
+   :param operation_name: (Required) Name of the transfer operation.
+   :param gcp_conn_id: The connection ID used to connect to Google
+       Cloud Platform.
+   :param api_version: API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('operation_name', 'gcp_conn_id', 'google_impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceListOperationsOperator(request_filter, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', api_version = 'v1', google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Lists long-running operations in Google Storage Transfer Service that match the specified filter.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceListOperationsOperator`
+
+   :param request_filter: (Required) A request filter, as described in
+           https://cloud.google.com/storage-transfer/docs/reference/rest/v1/transferJobs/list#body.QUERY_PARAMETERS.filter
+   :param gcp_conn_id: The connection ID used to connect to Google
+       Cloud Platform.
+   :param api_version: API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:property:: filter
+      :type: dict | None
+
+      Alias for ``request_filter``, used for compatibility.
+
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('request_filter', 'gcp_conn_id', 'google_impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServicePauseOperationOperator(*, operation_name, gcp_conn_id = 'google_cloud_default', api_version = 'v1', google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Pauses a transfer operation in Google Storage Transfer Service.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServicePauseOperationOperator`
+
+   :param operation_name: (Required) Name of the transfer operation.
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud.
+   :param api_version:  API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('operation_name', 'gcp_conn_id', 'api_version', 'google_impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceResumeOperationOperator(*, operation_name, gcp_conn_id = 'google_cloud_default', api_version = 'v1', google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Resumes a transfer operation in Google Storage Transfer Service.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceResumeOperationOperator`
+
+   :param operation_name: (Required) Name of the transfer operation.
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud.
+   :param api_version: API version used (e.g. v1).
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('operation_name', 'gcp_conn_id', 'api_version', 'google_impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceCancelOperationOperator(*, operation_name, gcp_conn_id = 'google_cloud_default', api_version = 'v1', google_impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Cancels a transfer operation in Google Storage Transfer Service.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceCancelOperationOperator`
+
+   :param operation_name: (Required) Name of the transfer operation.
+   :param api_version: API version used (e.g. v1).
+   :param gcp_conn_id: The connection ID used to connect to Google
+       Cloud Platform.
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('operation_name', 'gcp_conn_id', 'api_version', 'google_impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceS3ToGCSOperator(*, s3_bucket, gcs_bucket, s3_path = None, gcs_path = None, project_id = PROVIDE_PROJECT_ID, aws_conn_id = 'aws_default', gcp_conn_id = 'google_cloud_default', description = None, schedule = None, object_conditions = None, transfer_options = None, wait = True, timeout = None, google_impersonation_chain = None, delete_job_after_completion = False, aws_role_arn = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Sync an S3 bucket with a Google Cloud Storage bucket using the Google Cloud Storage Transfer Service.
+
+   .. warning::
+
+       This operator is NOT idempotent. If you run it many times, many transfer
+       jobs will be created in the Google Cloud.
+
+   **Example**:
+
+   .. code-block:: python
+
+      s3_to_gcs_transfer_op = S3ToGoogleCloudStorageTransferOperator(
+          task_id="s3_to_gcs_transfer_example",
+          s3_bucket="my-s3-bucket",
+          project_id="my-gcp-project",
+          gcs_bucket="my-gcs-bucket",
+          dag=my_dag,
+      )
+
+   :param s3_bucket: The S3 bucket where to find the objects. (templated)
+   :param gcs_bucket: The destination Google Cloud Storage bucket
+       where you want to store the files. (templated)
+   :param s3_path: Optional root path where the source objects are. (templated)
+   :param gcs_path: Optional root path for transferred objects. (templated)
+   :param project_id: Optional ID of the Google Cloud Console project that
+       owns the job
+   :param aws_conn_id: The source S3 connection
+   :param gcp_conn_id: The destination connection ID to use
+       when connecting to Google Cloud Storage.
+   :param description: Optional transfer service job description
+   :param schedule: Optional transfer service schedule;
+       If not set, run transfer job once as soon as the operator runs
+       The format is described
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/transferJobs.
+       With two additional improvements:
+
+       * dates they can be passed as :class:`datetime.date`
+       * times they can be passed as :class:`datetime.time`
+
+   :param object_conditions: Optional transfer service object conditions; see
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec
+   :param transfer_options: Optional transfer service transfer options; see
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec
+   :param wait: Wait for transfer to finish. It must be set to True, if
+       'delete_job_after_completion' is set to True.
+   :param timeout: Time to wait for the operation to end in seconds. Defaults to 60 seconds if not specified.
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param delete_job_after_completion: If True, delete the job after complete.
+       If set to True, 'wait' must be set to True.
+   :param aws_role_arn: Optional AWS role ARN for workload identity federation. This will
+       override the `aws_conn_id` for authentication between GCP and AWS; see
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec#AwsS3Data
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('gcp_conn_id', 's3_bucket', 'gcs_bucket', 's3_path', 'gcs_path', 'description',...
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#e09411'
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudDataTransferServiceGCSToGCSOperator(*, source_bucket, destination_bucket, source_path = None, destination_path = None, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', description = None, schedule = None, object_conditions = None, transfer_options = None, wait = True, timeout = None, google_impersonation_chain = None, delete_job_after_completion = False, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Copies objects from a bucket to another using the Google Cloud Storage Transfer Service.
+
+   .. warning::
+
+       This operator is NOT idempotent. If you run it many times, many transfer
+       jobs will be created in the Google Cloud.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudDataTransferServiceGCSToGCSOperator`
+
+   **Example**:
+
+   .. code-block:: python
+
+      gcs_to_gcs_transfer_op = GoogleCloudStorageToGoogleCloudStorageTransferOperator(
+          task_id="gcs_to_gcs_transfer_example",
+          source_bucket="my-source-bucket",
+          destination_bucket="my-destination-bucket",
+          project_id="my-gcp-project",
+          dag=my_dag,
+      )
+
+   :param source_bucket: The source Google Cloud Storage bucket where the
+        object is. (templated)
+   :param destination_bucket: The destination Google Cloud Storage bucket
+       where the object should be. (templated)
+   :param source_path: Optional root path where the source objects are. (templated)
+   :param destination_path: Optional root path for transferred objects. (templated)
+   :param project_id: The ID of the Google Cloud Console project that
+       owns the job
+   :param gcp_conn_id: Optional connection ID to use when connecting to Google Cloud
+       Storage.
+   :param description: Optional transfer service job description
+   :param schedule: Optional transfer service schedule;
+       If not set, run transfer job once as soon as the operator runs
+       See:
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/transferJobs.
+       With two additional improvements:
+
+       * dates they can be passed as :class:`datetime.date`
+       * times they can be passed as :class:`datetime.time`
+
+   :param object_conditions: Optional transfer service object conditions; see
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec#ObjectConditions
+   :param transfer_options: Optional transfer service transfer options; see
+       https://cloud.google.com/storage-transfer/docs/reference/rest/v1/TransferSpec#TransferOptions
+   :param wait: Wait for transfer to finish. It must be set to True, if
+       'delete_job_after_completion' is set to True.
+   :param timeout: Time to wait for the operation to end in seconds. Defaults to 60 seconds if not specified.
+   :param google_impersonation_chain: Optional Google service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param delete_job_after_completion: If True, delete the job after complete.
+       If set to True, 'wait' must be set to True.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('gcp_conn_id', 'source_bucket', 'destination_bucket', 'source_path', 'destination_path',...
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#e09411'
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

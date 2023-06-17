@@ -1,0 +1,208 @@
+:py:mod:`airflow.providers.snowflake.hooks.snowflake`
+=====================================================
+
+.. py:module:: airflow.providers.snowflake.hooks.snowflake
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.snowflake.hooks.snowflake.SnowflakeHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.snowflake.hooks.snowflake.T
+
+
+.. py:data:: T
+
+   
+
+.. py:class:: SnowflakeHook(*args, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.common.sql.hooks.sql.DbApiHook`
+
+   A client to interact with Snowflake.
+
+   This hook requires the snowflake_conn_id connection. The snowflake account, login,
+   and, password field must be setup in the connection. Other inputs can be defined
+   in the connection or hook instantiation.
+
+   :param snowflake_conn_id: Reference to
+       :ref:`Snowflake connection id<howto/connection:snowflake>`
+   :param account: snowflake account name
+   :param authenticator: authenticator for Snowflake.
+       'snowflake' (default) to use the internal Snowflake authenticator
+       'externalbrowser' to authenticate using your web browser and
+       Okta, ADFS or any other SAML 2.0-compliant identify provider
+       (IdP) that has been defined for your account
+       ``https://<your_okta_account_name>.okta.com`` to authenticate
+       through native Okta.
+   :param warehouse: name of snowflake warehouse
+   :param database: name of snowflake database
+   :param region: name of snowflake region
+   :param role: name of snowflake role
+   :param schema: name of snowflake schema
+   :param session_parameters: You can set session-level parameters at
+       the time you connect to Snowflake
+   :param insecure_mode: Turns off OCSP certificate checks.
+       For details, see: `How To: Turn Off OCSP Checking in Snowflake Client Drivers - Snowflake Community
+       <https://community.snowflake.com/s/article/How-to-turn-off-OCSP-checking-in-Snowflake-client-drivers>`__
+
+   .. note::
+       ``get_sqlalchemy_engine()`` depends on ``snowflake-sqlalchemy``
+
+   .. seealso::
+       For more information on how to use this Snowflake connection, take a look at the guide:
+       :ref:`howto/operator:SnowflakeOperator`
+
+   .. py:attribute:: conn_name_attr
+      :value: 'snowflake_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'snowflake_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'snowflake'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Snowflake'
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :value: True
+
+      
+
+   .. py:method:: get_connection_form_widgets()
+      :classmethod:
+
+      Returns connection widgets to add to connection form.
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :classmethod:
+
+      Returns custom field behaviour.
+
+
+   .. py:method:: get_uri()
+
+      Override DbApiHook get_uri method for get_sqlalchemy_engine().
+
+
+   .. py:method:: get_conn()
+
+      Returns a snowflake.connection object.
+
+
+   .. py:method:: get_sqlalchemy_engine(engine_kwargs=None)
+
+      Get an sqlalchemy_engine object.
+
+      :param engine_kwargs: Kwargs used in :func:`~sqlalchemy.create_engine`.
+      :return: the created engine.
+
+
+   .. py:method:: set_autocommit(conn, autocommit)
+
+      Set the autocommit flag on the connection.
+
+
+   .. py:method:: get_autocommit(conn)
+
+      Get autocommit setting for the provided connection.
+
+      :param conn: Connection to get autocommit setting from.
+      :return: connection autocommit setting. True if ``autocommit`` is set
+          to True on the connection. False if it is either not set, set to
+          False, or the connection does not support auto-commit.
+
+
+   .. py:method:: run(sql: str | Iterable[str], autocommit: bool = ..., parameters: Iterable | Mapping[str, Any] | None = ..., handler: None = ..., split_statements: bool = ..., return_last: bool = ..., return_dictionaries: bool = ...) -> None
+                  run(sql: str | Iterable[str], autocommit: bool = ..., parameters: Iterable | Mapping[str, Any] | None = ..., handler: Callable[[Any], T] = ..., split_statements: bool = ..., return_last: bool = ..., return_dictionaries: bool = ...) -> tuple | list[tuple] | list[list[tuple] | tuple] | None
+
+      Runs a command or a list of commands.
+
+      Pass a list of SQL statements to the SQL parameter to get them to
+      execute sequentially. The variable ``execution_info`` is returned so
+      that it can be used in the Operators to modify the behavior depending on
+      the result of the query (i.e fail the operator if the copy has processed
+      0 files).
+
+      :param sql: The SQL string to be executed with possibly multiple
+          statements, or a list of sql statements to execute
+      :param autocommit: What to set the connection's autocommit setting to
+          before executing the query.
+      :param parameters: The parameters to render the SQL query with.
+      :param handler: The result handler which is called with the result of
+          each statement.
+      :param split_statements: Whether to split a single SQL string into
+          statements and run separately
+      :param return_last: Whether to return result for only last statement or
+          for all after split.
+      :param return_dictionaries: Whether to return dictionaries rather than
+          regular DBAPI sequences as rows in the result. The dictionaries are
+          of form ``{ 'column1_name': value1, 'column2_name': value2 ... }``.
+      :return: Result of the last SQL statement if *handler* is set.
+          *None* otherwise.
+
+
+   .. py:method:: get_openlineage_database_info(connection)
+
+      Return database specific information needed to generate and parse lineage metadata.
+
+      This includes information helpful for constructing information schema query
+      and creating correct namespace.
+
+      :param connection: Airflow connection to reduce calls of `get_connection` method
+
+
+   .. py:method:: get_openlineage_database_dialect(_)
+
+      Return database dialect used for SQL parsing.
+
+      For a list of supported dialects check: https://openlineage.io/docs/development/sql#sql-dialects
+
+
+   .. py:method:: get_openlineage_default_schema()
+
+      Attempts to get current schema.
+
+      Usually ``SELECT CURRENT_SCHEMA();`` should work.
+      However, apparently you may set ``database`` without ``schema``
+      and get results from ``SELECT CURRENT_SCHEMAS();`` but not
+      from ``SELECT CURRENT_SCHEMA();``.
+      It still may return nothing if no database is set in connection.
+
+
+   .. py:method:: get_openlineage_database_specific_lineage(_)
+
+      Return additional database specific lineage, e.g. query execution information.
+
+      This method is called only on completion of the task.
+
+      :param task_instance: this may be used to retrieve additional information
+          that is collected during runtime of the task
+
+
+

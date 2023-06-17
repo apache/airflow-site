@@ -1,0 +1,150 @@
+:py:mod:`airflow.providers.google.cloud.log.stackdriver_task_handler`
+=====================================================================
+
+.. py:module:: airflow.providers.google.cloud.log.stackdriver_task_handler
+
+.. autoapi-nested-parse::
+
+   Handler that integrates with Stackdriver
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.log.stackdriver_task_handler.StackdriverTaskHandler
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.log.stackdriver_task_handler.DEFAULT_LOGGER_NAME
+
+
+.. py:data:: DEFAULT_LOGGER_NAME
+   :annotation: = airflow
+
+   
+
+.. py:class:: StackdriverTaskHandler(gcp_key_path = None, scopes = _DEFAULT_SCOPESS, name = DEFAULT_LOGGER_NAME, transport = BackgroundThreadTransport, resource = _GLOBAL_RESOURCE, labels = None)
+
+   Bases: :py:obj:`logging.Handler`
+
+   Handler that directly makes Stackdriver logging API calls.
+
+   This is a Python standard ``logging`` handler using that can be used to
+   route Python standard logging messages directly to the Stackdriver
+   Logging API.
+
+   It can also be used to save logs for executing tasks. To do this, you should set as a handler with
+   the name "tasks". In this case, it will also be used to read the log for display in Web UI.
+
+   This handler supports both an asynchronous and synchronous transport.
+
+   :param gcp_key_path: Path to Google Cloud Credential JSON file.
+       If omitted, authorization based on `the Application Default Credentials
+       <https://cloud.google.com/docs/authentication/production#finding_credentials_automatically>`__ will
+       be used.
+   :param scopes: OAuth scopes for the credentials,
+   :param name: the name of the custom log in Stackdriver Logging. Defaults
+       to 'airflow'. The name of the Python logger will be represented
+       in the ``python_logger`` field.
+   :param transport: Class for creating new transport objects. It should
+       extend from the base :class:`google.cloud.logging.handlers.Transport` type and
+       implement :meth`google.cloud.logging.handlers.Transport.send`. Defaults to
+       :class:`google.cloud.logging.handlers.BackgroundThreadTransport`. The other
+       option is :class:`google.cloud.logging.handlers.SyncTransport`.
+   :param resource: (Optional) Monitored resource of the entry, defaults
+                    to the global resource type.
+   :param labels: (Optional) Mapping of labels for the entry.
+
+   .. py:property:: log_name
+
+      Return log name.
+
+
+   .. py:attribute:: LABEL_TASK_ID
+      :annotation: = task_id
+
+      
+
+   .. py:attribute:: LABEL_DAG_ID
+      :annotation: = dag_id
+
+      
+
+   .. py:attribute:: LABEL_EXECUTION_DATE
+      :annotation: = execution_date
+
+      
+
+   .. py:attribute:: LABEL_TRY_NUMBER
+      :annotation: = try_number
+
+      
+
+   .. py:attribute:: LOG_VIEWER_BASE_URL
+      :annotation: = https://console.cloud.google.com/logs/viewer
+
+      
+
+   .. py:attribute:: LOG_NAME
+      :annotation: = Google Stackdriver
+
+      
+
+   .. py:method:: emit(record)
+
+      Actually log the specified logging record.
+
+      :param record: The record to be logged.
+
+
+   .. py:method:: set_context(task_instance)
+
+      Configures the logger to add information with information about the current task
+
+      :param task_instance: Currently executed task
+
+
+   .. py:method:: read(task_instance, try_number = None, metadata = None)
+
+      Read logs of given task instance from Stackdriver logging.
+
+      :param task_instance: task instance object
+      :param try_number: task instance try_number to read logs from. If None
+         it returns all logs
+      :param metadata: log metadata. It is used for steaming log reading and auto-tailing.
+      :return: a tuple of (
+          list of (one element tuple with two element tuple - hostname and logs)
+          and list of metadata)
+
+
+   .. py:method:: get_external_log_url(task_instance, try_number)
+
+      Creates an address for an external log collecting service.
+      :param task_instance: task instance object
+      :param try_number: task instance try_number to read logs from.
+      :return: URL to the external log collection service
+
+
+   .. py:method:: close()
+
+      Tidy up any resources used by the handler.
+
+      This version removes the handler from an internal map of handlers,
+      _handlers, which is used for handler lookup by name. Subclasses
+      should ensure that this gets called from overridden close()
+      methods.
+
+
+

@@ -1,0 +1,185 @@
+:py:mod:`airflow.providers.google.cloud.transfers.gcs_to_bigquery`
+==================================================================
+
+.. py:module:: airflow.providers.google.cloud.transfers.gcs_to_bigquery
+
+.. autoapi-nested-parse::
+
+   This module contains a Google Cloud Storage to BigQuery operator.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.transfers.gcs_to_bigquery.GCSToBigQueryOperator
+
+
+
+
+.. py:class:: GCSToBigQueryOperator(*, bucket, source_objects, destination_project_dataset_table, schema_fields=None, schema_object=None, schema_object_bucket=None, source_format='CSV', compression='NONE', create_disposition='CREATE_IF_NEEDED', skip_leading_rows=None, write_disposition='WRITE_EMPTY', field_delimiter=',', max_bad_records=0, quote_character=None, ignore_unknown_values=False, allow_quoted_newlines=False, allow_jagged_rows=False, encoding='UTF-8', max_id_key=None, gcp_conn_id='google_cloud_default', delegate_to=None, schema_update_options=(), src_fmt_configs=None, external_table=False, time_partitioning=None, cluster_fields=None, autodetect=True, encryption_configuration=None, location=None, impersonation_chain = None, labels=None, description=None, deferrable = False, result_retry = DEFAULT_RETRY, result_timeout = None, cancel_on_kill = True, job_id = None, force_rerun = True, reattach_states = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Loads files from Google Cloud Storage into BigQuery.
+
+   The schema to be used for the BigQuery table may be specified in one of
+   two ways. You may either directly pass the schema fields in, or you may
+   point the operator to a Google Cloud Storage object name. The object in
+   Google Cloud Storage must be a JSON file with the schema fields in it.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GCSToBigQueryOperator`
+
+   :param bucket: The bucket to load from. (templated)
+   :param source_objects: String or List of Google Cloud Storage URIs to load from. (templated)
+       If source_format is 'DATASTORE_BACKUP', the list must only contain a single URI.
+   :param destination_project_dataset_table: The dotted
+       ``(<project>.|<project>:)<dataset>.<table>`` BigQuery table to load data into.
+       If ``<project>`` is not included, project will be the project defined in
+       the connection json. (templated)
+   :param schema_fields: If set, the schema field list as defined here:
+       https://cloud.google.com/bigquery/docs/reference/v2/jobs#configuration.load
+       Should not be set when source_format is 'DATASTORE_BACKUP'.
+       Parameter must be defined if 'schema_object' is null and autodetect is False.
+   :param schema_object: If set, a GCS object path pointing to a .json file that
+       contains the schema for the table. (templated)
+       Parameter must be defined if 'schema_fields' is null and autodetect is False.
+   :param schema_object_bucket: [Optional] If set, the GCS bucket where the schema object
+       template is stored. (templated) (Default: the value of ``bucket``)
+   :param source_format: File format to export.
+   :param compression: [Optional] The compression type of the data source.
+       Possible values include GZIP and NONE.
+       The default value is NONE.
+       This setting is ignored for Google Cloud Bigtable,
+       Google Cloud Datastore backups and Avro formats.
+   :param create_disposition: The create disposition if the table doesn't exist.
+   :param skip_leading_rows: The number of rows at the top of a CSV file that BigQuery
+       will skip when loading the data.
+       When autodetect is on, the behavior is the following:
+       skip_leading_rows unspecified - Autodetect tries to detect headers in the first row.
+       If they are not detected, the row is read as data. Otherwise, data is read starting
+       from the second row.
+       skip_leading_rows is 0 - Instructs autodetect that there are no headers and data
+       should be read starting from the first row.
+       skip_leading_rows = N > 0 - Autodetect skips N-1 rows and tries to detect headers
+       in row N. If headers are not detected, row N is just skipped. Otherwise, row N is
+       used to extract column names for the detected schema.
+       Default value set to None so that autodetect option can detect schema fields.
+   :param write_disposition: The write disposition if the table already exists.
+   :param field_delimiter: The delimiter to use when loading from a CSV.
+   :param max_bad_records: The maximum number of bad records that BigQuery can
+       ignore when running the job.
+   :param quote_character: The value that is used to quote data sections in a CSV file.
+   :param ignore_unknown_values: [Optional] Indicates if BigQuery should allow
+       extra values that are not represented in the table schema.
+       If true, the extra values are ignored. If false, records with extra columns
+       are treated as bad records, and if there are too many bad records, an
+       invalid error is returned in the job result.
+   :param allow_quoted_newlines: Whether to allow quoted newlines (true) or not (false).
+   :param allow_jagged_rows: Accept rows that are missing trailing optional columns.
+       The missing values are treated as nulls. If false, records with missing trailing
+       columns are treated as bad records, and if there are too many bad records, an
+       invalid error is returned in the job result. Only applicable to CSV, ignored
+       for other formats.
+   :param encoding: The character encoding of the data. See:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.query.tableDefinitions.(key).csvOptions.encoding
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#externalDataConfiguration.csvOptions.encoding
+   :param max_id_key: If set, the name of a column in the BigQuery table
+       that's to be loaded. This will be used to select the MAX value from
+       BigQuery after the load occurs. The results will be returned by the
+       execute() command, which in turn gets stored in XCom for future
+       operators to use. This can be helpful with incremental loads--during
+       future executions, you can pick up from the max ID.
+   :param delegate_to: The account to impersonate using domain-wide delegation of authority,
+       if any. For this to work, the service account making the request must have
+       domain-wide delegation enabled.
+   :param schema_update_options: Allows the schema of the destination
+       table to be updated as a side effect of the load job.
+   :param src_fmt_configs: configure optional fields specific to the source format
+   :param external_table: Flag to specify if the destination table should be
+       a BigQuery external table. Default Value is False.
+   :param time_partitioning: configure optional time partitioning fields i.e.
+       partition by field, type and  expiration as per API specifications.
+       Note that 'field' is not available in concurrency with
+       dataset.table$partition.
+   :param cluster_fields: Request that the result of this load be stored sorted
+       by one or more columns. BigQuery supports clustering for both partitioned and
+       non-partitioned tables. The order of columns given determines the sort order.
+       Not applicable for external tables.
+   :param autodetect: [Optional] Indicates if we should automatically infer the
+       options and schema for CSV and JSON sources. (Default: ``True``).
+       Parameter must be set to True if 'schema_fields' and 'schema_object' are undefined.
+       It is suggested to set to True if table are create outside of Airflow.
+   :param encryption_configuration: [Optional] Custom encryption configuration (e.g., Cloud KMS keys).
+       **Example**: ::
+
+           encryption_configuration = {
+               "kmsKeyName": "projects/testp/locations/us/keyRings/test-kr/cryptoKeys/test-key"
+           }
+   :param location: [Optional] The geographic location of the job. Required except for US and EU.
+       See details at https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param labels: [Optional] Labels for the BiqQuery table.
+   :param description: [Optional] Description for the BigQuery table. This will only be used if the
+       destination table is newly created. If the table already exists and a value different than the
+       current description is provided, the job will fail.
+   :param deferrable: Run operator in the deferrable mode
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['bucket', 'source_objects', 'schema_object', 'schema_object_bucket',...
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = ['.sql']
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #f0eee4
+
+      
+
+   .. py:attribute:: operator_extra_links
+      
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Callback for when the trigger fires - returns immediately.
+      Relies on trigger to throw an exception, otherwise it assumes execution was
+      successful.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to cleanup subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up or it will leave
+      ghost processes behind.
+
+
+

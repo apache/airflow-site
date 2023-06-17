@@ -1,0 +1,192 @@
+
+
+:mod:`airflow.contrib.hooks.salesforce_hook`
+============================================
+
+.. py:module:: airflow.contrib.hooks.salesforce_hook
+
+.. autoapi-nested-parse::
+
+   This module contains a Salesforce Hook
+   which allows you to connect to your Salesforce instance,
+   retrieve data from it, and write that data to a file
+   for other uses.
+
+   NOTE:   this hook also relies on the simple_salesforce package:
+           https://github.com/simple-salesforce/simple-salesforce
+
+
+
+
+
+
+
+
+
+
+Module Contents
+---------------
+
+
+
+
+
+
+.. py:class:: SalesforceHook(conn_id, *args, **kwargs)
+
+   Bases::class:`airflow.hooks.base_hook.BaseHook`
+
+   
+
+   
+
+   
+
+   .. method:: sign_in(self)
+
+      
+      Sign into Salesforce.
+
+      If we have already signed it, this will just return the original object
+
+      
+
+
+
+   
+
+   .. method:: make_query(self, query)
+
+      
+      Make a query to Salesforce.  Returns result in dictionary
+
+      :param query:    The query to make to Salesforce
+
+      
+
+
+
+   
+
+   .. method:: describe_object(self, obj)
+
+      
+      Get the description of an object from Salesforce.
+
+      This description is the object's schema
+      and some extra metadata that Salesforce stores for each object
+
+      :param obj:     Name of the Salesforce object
+                      that we are getting a description of.
+
+      
+
+
+
+   
+
+   .. method:: get_available_fields(self, obj)
+
+      
+      Get a list of all available fields for an object.
+
+      This only returns the names of the fields.
+
+      
+
+
+
+   
+
+   .. staticmethod:: _build_field_list(fields)
+
+      
+
+
+
+   
+
+   .. method:: get_object_from_salesforce(self, obj, fields)
+
+      
+      Get all instances of the `object` from Salesforce.
+      For each model, only get the fields specified in fields.
+
+      All we really do underneath the hood is run:
+          SELECT <fields> FROM <obj>;
+
+      
+
+
+
+   
+
+   .. classmethod:: _to_timestamp(cls, col)
+
+      
+      Convert a column of a dataframe to UNIX timestamps if applicable
+
+      :param col:     A Series object representing a column of a dataframe.
+
+      
+
+
+
+   
+
+   .. method:: write_object_to_file(self, query_results, filename, fmt='csv', coerce_to_timestamp=False, record_time_added=False)
+
+      
+      Write query results to file.
+
+      Acceptable formats are:
+          - csv:
+              comma-separated-values file.  This is the default format.
+          - json:
+              JSON array.  Each element in the array is a different row.
+          - ndjson:
+              JSON array but each element is new-line delimited
+              instead of comma delimited like in `json`
+
+      This requires a significant amount of cleanup.
+      Pandas doesn't handle output to CSV and json in a uniform way.
+      This is especially painful for datetime types.
+      Pandas wants to write them as strings in CSV,
+      but as millisecond Unix timestamps.
+
+      By default, this function will try and leave all values as
+      they are represented in Salesforce.
+      You use the `coerce_to_timestamp` flag to force all datetimes
+      to become Unix timestamps (UTC).
+      This is can be greatly beneficial as it will make all of your
+      datetime fields look the same,
+      and makes it easier to work with in other database environments
+
+      :param query_results:       the results from a SQL query
+      :param filename:            the name of the file where the data
+                                  should be dumped to
+      :param fmt:                 the format you want the output in.
+                                  *Default:* csv.
+      :param coerce_to_timestamp: True if you want all datetime fields to be
+                                  converted into Unix timestamps.
+                                  False if you want them to be left in the
+                                  same format as they were in Salesforce.
+                                  Leaving the value as False will result
+                                  in datetimes being strings.
+                                  *Defaults to False*
+      :param record_time_added:   *(optional)* True if you want to add a
+                                  Unix timestamp field to the resulting data
+                                  that marks when the data
+                                  was fetched from Salesforce.
+                                  *Default: False*.
+
+      
+
+
+
+
+
+
+
+
+

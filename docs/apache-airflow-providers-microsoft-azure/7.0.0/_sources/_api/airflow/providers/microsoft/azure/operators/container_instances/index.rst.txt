@@ -1,0 +1,154 @@
+:py:mod:`airflow.providers.microsoft.azure.operators.container_instances`
+=========================================================================
+
+.. py:module:: airflow.providers.microsoft.azure.operators.container_instances
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.operators.container_instances.AzureContainerInstancesOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.operators.container_instances.Volume
+   airflow.providers.microsoft.azure.operators.container_instances.DEFAULT_ENVIRONMENT_VARIABLES
+   airflow.providers.microsoft.azure.operators.container_instances.DEFAULT_SECURED_VARIABLES
+   airflow.providers.microsoft.azure.operators.container_instances.DEFAULT_VOLUMES
+   airflow.providers.microsoft.azure.operators.container_instances.DEFAULT_MEMORY_IN_GB
+   airflow.providers.microsoft.azure.operators.container_instances.DEFAULT_CPU
+
+
+.. py:data:: Volume
+
+   
+
+.. py:data:: DEFAULT_ENVIRONMENT_VARIABLES
+   :type: dict[str, str]
+
+   
+
+.. py:data:: DEFAULT_SECURED_VARIABLES
+   :type: Sequence[str]
+   :value: []
+
+   
+
+.. py:data:: DEFAULT_VOLUMES
+   :type: Sequence[Volume]
+   :value: []
+
+   
+
+.. py:data:: DEFAULT_MEMORY_IN_GB
+   :value: 2.0
+
+   
+
+.. py:data:: DEFAULT_CPU
+   :value: 1.0
+
+   
+
+.. py:class:: AzureContainerInstancesOperator(*, ci_conn_id, resource_group, name, image, region, registry_conn_id = None, environment_variables = None, secured_variables = None, volumes = None, memory_in_gb = None, cpu = None, gpu = None, command = None, remove_on_error = True, fail_if_exists = True, tags = None, os_type = 'Linux', restart_policy = 'Never', ip_address = None, ports = None, network_profile = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Start a container on Azure Container Instances.
+
+   :param ci_conn_id: connection id of a service principal which will be used
+       to start the container instance
+   :param registry_conn_id: connection id of a user which can login to a
+       private docker registry. For Azure use :ref:`Azure connection id<howto/connection:azure>`
+   :param resource_group: name of the resource group wherein this container
+       instance should be started
+   :param name: name of this container instance. Please note this name has
+       to be unique in order to run containers in parallel.
+   :param image: the docker image to be used
+   :param region: the region wherein this container instance should be started
+   :param environment_variables: key,value pairs containing environment
+       variables which will be passed to the running container
+   :param secured_variables: names of environmental variables that should not
+       be exposed outside the container (typically passwords).
+   :param volumes: list of ``Volume`` tuples to be mounted to the container.
+       Currently only Azure Fileshares are supported.
+   :param memory_in_gb: the amount of memory to allocate to this container
+   :param cpu: the number of cpus to allocate to this container
+   :param gpu: GPU Resource for the container.
+   :param command: the command to run inside the container
+   :param container_timeout: max time allowed for the execution of
+       the container instance.
+   :param tags: azure tags as dict of str:str
+   :param os_type: The operating system type required by the containers
+       in the container group. Possible values include: 'Windows', 'Linux'
+   :param restart_policy: Restart policy for all containers within the container group.
+       Possible values include: 'Always', 'OnFailure', 'Never'
+   :param ip_address: The IP address type of the container group.
+   :param network_profile: The network profile information for a container group.
+
+   **Example**::
+
+               AzureContainerInstancesOperator(
+                   ci_conn_id = "azure_service_principal",
+                   registry_conn_id = "azure_registry_user",
+                   resource_group = "my-resource-group",
+                   name = "my-container-name-{{ ds }}",
+                   image = "myprivateregistry.azurecr.io/my_container:latest",
+                   region = "westeurope",
+                   environment_variables = {"MODEL_PATH":  "my_value",
+                    "POSTGRES_LOGIN": "{{ macros.connection('postgres_default').login }}",
+                    "POSTGRES_PASSWORD": "{{ macros.connection('postgres_default').password }}",
+                    "JOB_GUID": "{{ ti.xcom_pull(task_ids='task1', key='guid') }}" },
+                   secured_variables = ['POSTGRES_PASSWORD'],
+                   volumes = [("azure_container_instance_conn_id",
+                           "my_storage_container",
+                           "my_fileshare",
+                           "/input-data",
+                       True),],
+                   memory_in_gb=14.0,
+                   cpu=4.0,
+                   gpu=GpuResource(count=1, sku='K80'),
+                   command=["/bin/echo", "world"],
+                   task_id="start_container"
+               )
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('name', 'image', 'command', 'environment_variables', 'volumes')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance gets killed.
+
+      Any use of the threading, subprocess or multiprocessing module within an
+      operator needs to be cleaned up, or it will leave ghost processes behind.
+
+
+

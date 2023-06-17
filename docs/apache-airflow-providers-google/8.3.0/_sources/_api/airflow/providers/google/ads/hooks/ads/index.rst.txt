@@ -1,0 +1,116 @@
+:py:mod:`airflow.providers.google.ads.hooks.ads`
+================================================
+
+.. py:module:: airflow.providers.google.ads.hooks.ads
+
+.. autoapi-nested-parse::
+
+   This module contains Google Ad hook.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.ads.hooks.ads.GoogleAdsHook
+
+
+
+
+.. py:class:: GoogleAdsHook(api_version, gcp_conn_id = 'google_cloud_default', google_ads_conn_id = 'google_ads_default')
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Hook for the Google Ads API.
+
+   This hook requires two connections:
+
+       - gcp_conn_id - provides service account details (like any other GCP connection)
+       - google_ads_conn_id - which contains information from Google Ads config.yaml file
+         in the ``extras``. Example of the ``extras``:
+
+       .. code-block:: json
+
+           {
+               "google_ads_client": {
+                   "developer_token": "{{ INSERT_TOKEN }}",
+                   "json_key_file_path": null,
+                   "impersonated_email": "{{ INSERT_IMPERSONATED_EMAIL }}"
+               }
+           }
+
+       The ``json_key_file_path`` is resolved by the hook using credentials from gcp_conn_id.
+       https://developers.google.com/google-ads/api/docs/client-libs/python/oauth-service
+
+   .. seealso::
+       For more information on how Google Ads authentication flow works take a look at:
+       https://developers.google.com/google-ads/api/docs/client-libs/python/oauth-service
+
+   .. seealso::
+       For more information on the Google Ads API, take a look at the API docs:
+       https://developers.google.com/google-ads/api/docs/start
+
+   :param gcp_conn_id: The connection ID with the service account details.
+   :param google_ads_conn_id: The connection ID with the details of Google Ads config.yaml file.
+   :param api_version: The Google Ads API version to use.
+
+   :return: list of Google Ads Row object(s)
+   :rtype: list[GoogleAdsRow]
+
+   .. py:attribute:: default_api_version
+      :annotation: = v10
+
+      
+
+   .. py:method:: search(client_ids, query, page_size = 10000, **kwargs)
+
+      Pulls data from the Google Ads API and returns it as native protobuf
+      message instances (those seen in versions prior to 10.0.0 of the
+      google-ads library).
+
+      This method is for backwards compatibility with older versions of the
+      google_ads_hook.
+
+      Check out the search_proto_plus method to get API results in the new
+      default format of the google-ads library since v10.0.0 that behave
+      more like conventional python object (using proto-plus-python).
+
+      :param client_ids: Google Ads client ID(s) to query the API for.
+      :param query: Google Ads Query Language query.
+      :param page_size: Number of results to return per page. Max 10000.
+      :return: Google Ads API response, converted to Google Ads Row objects
+      :rtype: list[GoogleAdsRow]
+
+
+   .. py:method:: search_proto_plus(client_ids, query, page_size = 10000, **kwargs)
+
+      Pulls data from the Google Ads API and returns it as proto-plus-python
+      message instances that behave more like conventional python objects.
+
+      :param client_ids: Google Ads client ID(s) to query the API for.
+      :param query: Google Ads Query Language query.
+      :param page_size: Number of results to return per page. Max 10000.
+      :return: Google Ads API response, converted to Google Ads Row objects
+      :rtype: list[GoogleAdsRow]
+
+
+   .. py:method:: list_accessible_customers()
+
+      Returns resource names of customers directly accessible by the user authenticating the call.
+      The resulting list of customers is based on your OAuth credentials. The request returns a list
+      of all accounts that you are able to act upon directly given your current credentials. This will
+      not necessarily include all accounts within the account hierarchy; rather, it will only include
+      accounts where your authenticated user has been added with admin or other rights in the account.
+
+      ..seealso::
+          https://developers.google.com/google-ads/api/reference/rpc
+
+      :return: List of names of customers
+
+
+

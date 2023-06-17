@@ -1,0 +1,103 @@
+:py:mod:`airflow.triggers.base`
+===============================
+
+.. py:module:: airflow.triggers.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.triggers.base.BaseTrigger
+   airflow.triggers.base.TriggerEvent
+
+
+
+
+.. py:class:: BaseTrigger(**kwargs)
+
+   Bases: :py:obj:`abc.ABC`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Base class for all triggers.
+
+   A trigger has two contexts it can exist in:
+
+    - Inside an Operator, when it's passed to TaskDeferred
+    - Actively running in a trigger worker
+
+   We use the same class for both situations, and rely on all Trigger classes
+   to be able to return the arguments (possible to encode with Airflow-JSON) that will
+   let them be re-instantiated elsewhere.
+
+   .. py:method:: serialize()
+      :abstractmethod:
+
+      Returns the information needed to reconstruct this Trigger.
+
+      :return: Tuple of (class path, keyword arguments needed to re-instantiate).
+
+
+   .. py:method:: run()
+      :abstractmethod:
+      :async:
+
+      Runs the trigger in an asynchronous context.
+
+      The trigger should yield an Event whenever it wants to fire off
+      an event, and return None if it is finished. Single-event triggers
+      should thus yield and then immediately return.
+
+      If it yields, it is likely that it will be resumed very quickly,
+      but it may not be (e.g. if the workload is being moved to another
+      triggerer process, or a multi-event trigger was being used for a
+      single-event task defer).
+
+      In either case, Trigger classes should assume they will be persisted,
+      and then rely on cleanup() being called when they are no longer needed.
+
+
+   .. py:method:: cleanup()
+      :async:
+
+      Cleanup the trigger.
+
+      Called when the trigger is no longer needed, and it's being removed
+      from the active triggerer process.
+
+      This method follows the async/await pattern to allow to run the cleanup
+      in triggerer main event loop. Exceptions raised by the cleanup method
+      are ignored, so if you would like to be able to debug them and be notified
+      that cleanup method failed, you should wrap your code with try/except block
+      and handle it appropriately (in async-compatible way).
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: TriggerEvent(payload)
+
+   Something that a trigger can fire when its conditions are met.
+
+   Events must have a uniquely identifying value that would be the same
+   wherever the trigger is run; this is to ensure that if the same trigger
+   is being run in two locations (for HA reasons) that we can deduplicate its
+   events.
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: __eq__(other)
+
+      Return self==value.
+
+
+

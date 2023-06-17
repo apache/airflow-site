@@ -1,0 +1,105 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Apache Airflow – REST API</title>
+    <link>/blog/tags/rest-api/</link>
+    <description>Recent content in REST API on Apache Airflow</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Sun, 19 Jul 2020 00:00:00 +0000</lastBuildDate>
+    
+	  <atom:link href="/blog/tags/rest-api/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Blog: Implementing Stable API for Apache Airflow</title>
+      <link>/blog/implementing-stable-api-for-apache-airflow/</link>
+      <pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/implementing-stable-api-for-apache-airflow/</guid>
+      <description>
+        
+        
+        &lt;p&gt;My &lt;a href=&#34;https://outreachy.org&#34;&gt;Outreachy internship&lt;/a&gt; is coming to its ends which is also the best time to look back and
+reflect on the progress so far.&lt;/p&gt;
+&lt;p&gt;The goal of my project is to Extend and Improve the Apache Airflow REST API. In this post,
+I will be sharing my progress so far.&lt;/p&gt;
+&lt;p&gt;We started a bit late implementing the REST API because it took time for the OpenAPI 3.0
+specification we were to use for the project to be merged. Thanks to &lt;a href=&#34;https://github.com/mik-laj&#34;&gt;Kamil&lt;/a&gt;,
+who paved the way for us to start implementing the REST API endpoints. Below are the endpoints I
+implemented and the challenges I encountered, including how I overcame them.&lt;/p&gt;
+&lt;h3 id=&#34;implementing-the-read-only-connection-endpoints&#34;&gt;Implementing The Read-Only Connection Endpoints&lt;/h3&gt;
+&lt;p&gt;The &lt;a href=&#34;https://github.com/apache/airflow/pull/9095&#34;&gt;read-only connection endpoints&lt;/a&gt; were the first endpoint I implemented. Looking back,
+I can see how much I have improved.&lt;/p&gt;
+&lt;p&gt;I started by implementing the database schema for the Connection table using &lt;a href=&#34;https://marshmallow.readthedocs.io/en/2.x-line/&#34;&gt;Marshmallow 2&lt;/a&gt;.
+We had to use Marshmallow 2 because Flask-AppBuilder was still using it and Flask-AppBuilder
+is deeply integrated to Apache Airflow. This meant I had to unlearn Marshmallow 3 that I had
+been studying before this realization, but thankfully, &lt;a href=&#34;https://marshmallow.readthedocs.io/en/stable/index.html&#34;&gt;Marshmallow 3&lt;/a&gt; isn&amp;rsquo;t too
+different, so I was able to start using Marshmallow 2 in no time.&lt;/p&gt;
+&lt;p&gt;This first PR would have been more difficult than it was unless there had been any reference
+endpoint to look at. &lt;a href=&#34;https://github.com/mik-laj&#34;&gt;Kamil&lt;/a&gt; implemented a &lt;a href=&#34;https://github.com/apache/airflow/pull/9045&#34;&gt;draft PR&lt;/a&gt; in which I took inspiration from.
+Thanks to this, It was easy for me to write the unit tests. It was also in this endpoint that
+I learned using &lt;a href=&#34;https://github.com/wolever/parameterized&#34;&gt;parameterized&lt;/a&gt; in unit tests :D.&lt;/p&gt;
+&lt;h3 id=&#34;implementing-the-read-only-dagruns-endpoints&#34;&gt;Implementing The Read-Only DagRuns Endpoints&lt;/h3&gt;
+&lt;p&gt;This &lt;a href=&#34;https://github.com/apache/airflow/pull/9153&#34;&gt;endpoint&lt;/a&gt; came with its many challenges, especially on filtering with &lt;code&gt;datetimes&lt;/code&gt;.
+This was because the &lt;code&gt;connexion&lt;/code&gt; library we were using to build the REST API was not validating
+date-time format in OpenAPI 3.0 specification, what I eventually found out, was intentional.
+Connexion dropped &lt;code&gt;strict-rfc3339&lt;/code&gt; because of the later license which is not compatible with
+Apache 2.0 license.&lt;/p&gt;
+&lt;p&gt;I implemented a workaround on this, by defining a function called &lt;code&gt;conn_parse_datetime&lt;/code&gt; in the
+API utils module. This was later refactored and thankfully, &lt;a href=&#34;https://github.com/mik-laj&#34;&gt;Kamil&lt;/a&gt;
+implemented a decorator that allowed us to have cleaner code on the views while using this function.&lt;/p&gt;
+&lt;p&gt;Then we tried using &lt;code&gt;rfc3339-validator&lt;/code&gt; whose license is compatible with Apache 2.0 licence but
+later discarded this because with our custom date parser we were able to use duration and
+not just date times.&lt;/p&gt;
+&lt;h3 id=&#34;other-endpoints&#34;&gt;Other Endpoints&lt;/h3&gt;
+&lt;p&gt;I implemented some different other endpoints. One peculiar issue I faced was because of Marshmallow 2
+not giving error when extra fields are in the request body. I implemented a &lt;code&gt;validate_unknown&lt;/code&gt;
+method on the schema to handle this. Thankfully, Flask-AppBuilder updated to using Marshmallow 3,
+we quickly updated Flask-AppBuilder in Apache Airflow and started using Marshmallow 3 too.&lt;/p&gt;
+&lt;p&gt;Here are some PRs I contributed that are related to the REST API:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/apache/airflow/pull/9227&#34;&gt;Add event log endpoints&lt;/a&gt;
+The event log would help users get information on operations performed at the UI&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/apache/airflow/pull/9266&#34;&gt;Add CRUD endpoints for connection&lt;/a&gt;
+This PR performs DELETE, PATCH and POST operations on &lt;code&gt;Connection&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/apache/airflow/pull/9331&#34;&gt;Add log endpoint&lt;/a&gt;
+This PR enables users to get Task Instances log entries&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/apache/airflow/pull/9431&#34;&gt;Move limit &amp;amp; offset to kwargs in views plus work on a configurable maximum limit&lt;/a&gt;
+This helped us in having a neat code on the views and added configurable maximum limit on query results.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/apache/airflow/pull/9648&#34;&gt;Update FlaskAppBuilder to v3&lt;/a&gt;
+This enabled Airflow to start using v3 of Flask App Builder and also made it possible for the API to use
+a modern database serializer/deserializer&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/apache/airflow/pull/9771&#34;&gt;Add migration guide from the experimental REST API to the stable REST API&lt;/a&gt;
+This would enable users to start using the stable REST API in less time.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;follow-ups&#34;&gt;Follow-Ups&lt;/h3&gt;
+&lt;p&gt;There is still lots of works to be done on the REST API including writing helpful documentation.
+I still follow up on these and hopefully, we will complete the REST API before the internship ends.&lt;/p&gt;
+&lt;p&gt;I am very grateful to my mentors, &lt;a href=&#34;https://github.com/potiuk&#34;&gt;Jarek&lt;/a&gt; and &lt;a href=&#34;https://github.com/kaxil&#34;&gt;Kaxil&lt;/a&gt; for their
+patience with me and for surviving my never-ending questions. &lt;a href=&#34;https://github.com/mik-laj&#34;&gt;Kamil&lt;/a&gt; and &lt;a href=&#34;https://github.com/turbaszek&#34;&gt;Tomek&lt;/a&gt;
+have been very supportive and I appreciate them for their support and amazing code reviews.&lt;/p&gt;
+&lt;p&gt;Thanks to &lt;a href=&#34;https://github.com/leahecole&#34;&gt;Leah E. Cole&lt;/a&gt; and &lt;a href=&#34;https://github.com/mschickensoup&#34;&gt;Karolina Rosół&lt;/a&gt;, for their
+wonderful reviews. I&amp;rsquo;m grateful.&lt;/p&gt;
+&lt;p&gt;Thanks for reading!&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

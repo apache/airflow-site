@@ -1,0 +1,152 @@
+:py:mod:`airflow.providers.slack.hooks.slack`
+=============================================
+
+.. py:module:: airflow.providers.slack.hooks.slack
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.slack.hooks.slack.SlackHook
+
+
+
+
+.. py:class:: SlackHook(token = None, slack_conn_id = None, base_url = None, timeout = None, proxy = None, retry_handlers = None, **extra_client_args)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Creates a Slack API Connection to be used for calls.
+
+   This class provide a thin wrapper around the ``slack_sdk.WebClient``.
+
+   .. seealso::
+       - :ref:`Slack API connection <howto/connection:slack>`
+       - https://api.slack.com/messaging
+       - https://slack.dev/python-slack-sdk/web/index.html
+
+   .. warning::
+       This hook intend to use `Slack API` connection
+       and might not work correctly with `Slack Incoming Webhook` and `HTTP` connections.
+
+   Takes both Slack API token directly and connection that has Slack API token. If both are
+   supplied, Slack API token will be used. Also exposes the rest of slack.WebClient args.
+
+   Examples:
+    .. code-block:: python
+
+       # Create hook
+       slack_hook = SlackHook(slack_conn_id="slack_api_default")
+
+       # Call generic API with parameters (errors are handled by hook)
+       #  For more details check https://api.slack.com/methods/chat.postMessage
+       slack_hook.call("chat.postMessage", json={"channel": "#random", "text": "Hello world!"})
+
+       # Call method from Slack SDK (you have to handle errors yourself)
+       #  For more details check https://slack.dev/python-slack-sdk/web/index.html#messaging
+       slack_hook.client.chat_postMessage(channel="#random", text="Hello world!")
+
+   :param slack_conn_id: :ref:`Slack connection id <howto/connection:slack>`
+       that has Slack API token in the password field.
+   :param timeout: The maximum number of seconds the client will wait to connect
+       and receive a response from Slack. If not set than default WebClient value will use.
+   :param base_url: A string representing the Slack API base URL.
+       If not set than default WebClient BASE_URL will use (``https://www.slack.com/api/``).
+   :param proxy: Proxy to make the Slack API call.
+   :param retry_handlers: List of handlers to customize retry logic in ``slack_sdk.WebClient``.
+   :param token: (deprecated) Slack API Token.
+
+   .. py:attribute:: conn_name_attr
+      :value: 'slack_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'slack_api_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'slack'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Slack API'
+
+      
+
+   .. py:method:: client()
+
+      Get the underlying slack_sdk.WebClient (cached).
+
+
+   .. py:method:: get_conn()
+
+      Get the underlying slack_sdk.WebClient (cached).
+
+
+   .. py:method:: token()
+
+
+   .. py:method:: call(api_method, **kwargs)
+
+      Calls Slack WebClient `WebClient.api_call` with given arguments.
+
+      :param api_method: The target Slack API method. e.g. 'chat.postMessage'. Required.
+      :param http_verb: HTTP Verb. Optional (defaults to 'POST')
+      :param files: Files to multipart upload. e.g. {imageORfile: file_objectORfile_path}
+      :param data: The body to attach to the request. If a dictionary is provided,
+          form-encoding will take place. Optional.
+      :param params: The URL parameters to append to the URL. Optional.
+      :param json: JSON for the body to attach to the request. Optional.
+      :return: The server's response to an HTTP request. Data from the response can be
+          accessed like a dict.  If the response included 'next_cursor' it can be
+          iterated on to execute subsequent requests.
+
+
+   .. py:method:: send_file(*, channels = None, file = None, content = None, filename = None, filetype = None, initial_comment = None, title = None)
+
+      Create or upload an existing file.
+
+      :param channels: Comma-separated list of channel names or IDs where the file will be shared.
+          If omitting this parameter, then file will send to workspace.
+      :param file: Path to file which need to be sent.
+      :param content: File contents. If omitting this parameter, you must provide a file.
+      :param filename: Displayed filename.
+      :param filetype: A file type identifier.
+      :param initial_comment: The message text introducing the file in specified ``channels``.
+      :param title: Title of file.
+
+      .. seealso::
+          - `Slack API files.upload method <https://api.slack.com/methods/files.upload>`_
+          - `File types <https://api.slack.com/types/file#file_types>`_
+
+
+   .. py:method:: test_connection()
+
+      Tests the Slack API connection.
+
+      .. seealso::
+          https://api.slack.com/methods/auth.test
+
+
+   .. py:method:: get_connection_form_widgets()
+      :classmethod:
+
+      Returns dictionary of widgets to be added for the hook to handle extra values.
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :classmethod:
+
+      Returns custom field behaviour.
+
+
+
