@@ -2,12 +2,6 @@ function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-<<<<<<< HEAD
-// Callback when a copy button is clicked. Will be passed the node that was clicked
-// should then grab the text and replace pieces of text that shouldn't be used in output
-export function formatCopyText(textContent, copybuttonPromptText, isRegexp = false, onlyCopyPromptLines = true, removePrompts = true, copyEmptyLines = true, lineContinuationChar = "", hereDocDelim = "") {
-
-=======
 /**
  * Removes excluded text from a Node.
  *
@@ -27,7 +21,6 @@ export function filterText(target, exclude) {
 // Callback when a copy button is clicked. Will be passed the node that was clicked
 // should then grab the text and replace pieces of text that shouldn't be used in output
 export function formatCopyText(textContent, copybuttonPromptText, isRegexp = false, onlyCopyPromptLines = true, removePrompts = true, copyEmptyLines = true, lineContinuationChar = "", hereDocDelim = "") {
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
     var regexp;
     var match;
 

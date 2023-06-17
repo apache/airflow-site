@@ -1,0 +1,122 @@
+:py:mod:`airflow.providers.google.cloud.log.gcs_task_handler`
+=============================================================
+
+.. py:module:: airflow.providers.google.cloud.log.gcs_task_handler
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.log.gcs_task_handler.GCSTaskHandler
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.log.gcs_task_handler.get_default_delete_local_copy
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.log.gcs_task_handler.logger
+
+
+.. py:data:: logger
+
+   
+
+.. py:function:: get_default_delete_local_copy()
+
+   Load delete_local_logs conf if Airflow version > 2.6 and return False if not
+   TODO: delete this function when min airflow version >= 2.6
+
+
+.. py:class:: GCSTaskHandler(*, base_log_folder, gcs_log_folder, filename_template = None, gcp_key_path = None, gcp_keyfile_dict = None, gcp_scopes = _DEFAULT_SCOPESS, project_id = None, **kwargs)
+
+   Bases: :py:obj:`airflow.utils.log.file_task_handler.FileTaskHandler`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   GCSTaskHandler is a python log handler that handles and reads
+   task instance logs. It extends airflow FileTaskHandler and
+   uploads to and reads from GCS remote storage. Upon log reading
+   failure, it reads from host machine's local disk.
+
+   :param base_log_folder: Base log folder to place logs.
+   :param gcs_log_folder: Path to a remote location where logs will be saved. It must have the prefix
+       ``gs://``. For example: ``gs://bucket/remote/log/location``
+   :param filename_template: template filename string
+   :param gcp_key_path: Path to Google Cloud Service Account file (JSON). Mutually exclusive with
+       gcp_keyfile_dict.
+       If omitted, authorization based on `the Application Default Credentials
+       <https://cloud.google.com/docs/authentication/production#finding_credentials_automatically>`__ will
+       be used.
+   :param gcp_keyfile_dict: Dictionary of keyfile parameters. Mutually exclusive with gcp_key_path.
+   :param gcp_scopes: Comma-separated string containing OAuth2 scopes
+   :param project_id: Project ID to read the secrets from. If not passed, the project ID from credentials
+       will be used.
+   :param delete_local_copy: Whether local log files should be deleted after they are downloaded when using
+       remote logging
+
+   .. py:attribute:: trigger_should_wrap
+      :value: True
+
+      
+
+   .. py:method:: hook()
+
+      Returns GCSHook if remote_log_conn_id configured.
+
+
+   .. py:method:: client()
+
+      Returns GCS Client.
+
+
+   .. py:method:: set_context(ti)
+
+      Provide task_instance context to airflow task handler.
+
+      Generally speaking returns None.  But if attr `maintain_propagate` has
+      been set to propagate, then returns sentinel MAINTAIN_PROPAGATE. This
+      has the effect of overriding the default behavior to set `propagate`
+      to False whenever set_context is called.  At time of writing, this
+      functionality is only used in unit testing.
+
+      :param ti: task instance object
+
+
+   .. py:method:: close()
+
+      Close and upload local log file to remote storage GCS.
+
+
+   .. py:method:: gcs_write(log, remote_log_location)
+
+      Writes the log to the remote_log_location and return `True` when done. Fails silently
+       and return `False` if no log was created.
+
+      :param log: the log to write to the remote_log_location
+      :param remote_log_location: the log's location in remote storage
+      :return: whether the log is successfully written to remote location or not.
+
+
+   .. py:method:: no_log_found(exc)
+      :staticmethod:
+
+      Given exception, determine whether it is result of log not found.
+
+      :meta private:
+
+
+

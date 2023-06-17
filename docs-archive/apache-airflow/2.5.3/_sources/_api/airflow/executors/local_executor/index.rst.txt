@@ -1,0 +1,210 @@
+:py:mod:`airflow.executors.local_executor`
+==========================================
+
+.. py:module:: airflow.executors.local_executor
+
+.. autoapi-nested-parse::
+
+   LocalExecutor
+
+   .. seealso::
+       For more information on how the LocalExecutor works, take a look at the guide:
+       :ref:`executor:LocalExecutor`
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.local_executor.LocalWorkerBase
+   airflow.executors.local_executor.LocalWorker
+   airflow.executors.local_executor.QueuedLocalWorker
+   airflow.executors.local_executor.LocalExecutor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.local_executor.ExecutorWorkType
+
+
+.. py:data:: ExecutorWorkType
+
+   
+
+.. py:class:: LocalWorkerBase(result_queue)
+
+   Bases: :py:obj:`multiprocessing.Process`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   LocalWorkerBase implementation to run airflow commands. Executes the given
+   command and puts the result into a result queue when done, terminating execution.
+
+   :param result_queue: the queue to store result state
+
+   .. py:method:: run()
+
+      Method to be run in sub-process; can be overridden in sub-class
+
+
+   .. py:method:: execute_work(key, command)
+
+      Executes command received and stores result state in queue.
+
+      :param key: the key to identify the task instance
+      :param command: the command to execute
+
+
+   .. py:method:: do_work()
+      :abstractmethod:
+
+      Called in the subprocess and should then execute tasks
+
+
+
+.. py:class:: LocalWorker(result_queue, key, command)
+
+   Bases: :py:obj:`LocalWorkerBase`
+
+   Local worker that executes the task.
+
+   :param result_queue: queue where results of the tasks are put.
+   :param key: key identifying task instance
+   :param command: Command to execute
+
+   .. py:method:: do_work()
+
+      Called in the subprocess and should then execute tasks
+
+
+
+.. py:class:: QueuedLocalWorker(task_queue, result_queue)
+
+   Bases: :py:obj:`LocalWorkerBase`
+
+   LocalWorker implementation that is waiting for tasks from a queue and will
+   continue executing commands as they become available in the queue.
+   It will terminate execution once the poison token is found.
+
+   :param task_queue: queue from which worker reads tasks
+   :param result_queue: queue where worker puts results after finishing tasks
+
+   .. py:method:: do_work()
+
+      Called in the subprocess and should then execute tasks
+
+
+
+.. py:class:: LocalExecutor(parallelism = PARALLELISM)
+
+   Bases: :py:obj:`airflow.executors.base_executor.BaseExecutor`
+
+   LocalExecutor executes tasks locally in parallel.
+   It uses the multiprocessing Python library and queues to parallelize the execution
+   of tasks.
+
+   :param parallelism: how many parallel processes are run in the executor
+
+   .. py:class:: UnlimitedParallelism(executor)
+
+      Implements LocalExecutor with unlimited parallelism, starting one process
+      per each command to execute.
+
+      :param executor: the executor instance to implement.
+
+      .. py:method:: start()
+
+         Starts the executor.
+
+
+      .. py:method:: execute_async(key, command, queue = None, executor_config = None)
+
+         Executes task asynchronously.
+
+         :param key: the key to identify the task instance
+         :param command: the command to execute
+         :param queue: Name of the queue
+         :param executor_config: configuration for the executor
+
+
+      .. py:method:: sync()
+
+         Sync will get called periodically by the heartbeat method.
+
+
+      .. py:method:: end()
+
+         This method is called when the caller is done submitting job and
+         wants to wait synchronously for the job submitted previously to be
+         all done.
+
+
+
+   .. py:class:: LimitedParallelism(executor)
+
+      Implements LocalExecutor with limited parallelism using a task queue to
+      coordinate work distribution.
+
+      :param executor: the executor instance to implement.
+
+      .. py:method:: start()
+
+         Starts limited parallelism implementation.
+
+
+      .. py:method:: execute_async(key, command, queue = None, executor_config = None)
+
+         Executes task asynchronously.
+
+         :param key: the key to identify the task instance
+         :param command: the command to execute
+         :param queue: name of the queue
+         :param executor_config: configuration for the executor
+
+
+      .. py:method:: sync()
+
+         Sync will get called periodically by the heartbeat method.
+
+
+      .. py:method:: end()
+
+         Ends the executor. Sends the poison pill to all workers.
+
+
+
+   .. py:method:: start()
+
+      Starts the executor
+
+
+   .. py:method:: execute_async(key, command, queue = None, executor_config = None)
+
+      Execute asynchronously.
+
+
+   .. py:method:: sync()
+
+      Sync will get called periodically by the heartbeat method.
+
+
+   .. py:method:: end()
+
+      Ends the executor.
+      :return:
+
+
+   .. py:method:: terminate()
+
+      Terminate the executor is not doing anything.
+
+
+

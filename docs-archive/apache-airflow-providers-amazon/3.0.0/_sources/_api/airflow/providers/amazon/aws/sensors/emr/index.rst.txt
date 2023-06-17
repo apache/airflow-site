@@ -1,0 +1,259 @@
+:py:mod:`airflow.providers.amazon.aws.sensors.emr`
+==================================================
+
+.. py:module:: airflow.providers.amazon.aws.sensors.emr
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.sensors.emr.EmrBaseSensor
+   airflow.providers.amazon.aws.sensors.emr.EmrContainerSensor
+   airflow.providers.amazon.aws.sensors.emr.EmrJobFlowSensor
+   airflow.providers.amazon.aws.sensors.emr.EmrStepSensor
+
+
+
+
+.. py:class:: EmrBaseSensor(*, aws_conn_id = 'aws_default', **kwargs)
+
+   Bases: :py:obj:`airflow.sensors.base.BaseSensorOperator`
+
+   Contains general sensor behavior for EMR.
+
+   Subclasses should implement following methods:
+       - ``get_emr_response()``
+       - ``state_from_response()``
+       - ``failure_message_from_response()``
+
+   Subclasses should set ``target_states`` and ``failed_states`` fields.
+
+   :param aws_conn_id: aws connection to uses
+
+   .. py:attribute:: ui_color
+      :annotation: = #66c3ff
+
+      
+
+   .. py:method:: get_hook(self)
+
+      Get EmrHook
+
+
+   .. py:method:: poke(self, context)
+
+      Function that the sensors defined while deriving this class should
+      override.
+
+
+   .. py:method:: get_emr_response(self)
+      :abstractmethod:
+
+      Make an API call with boto3 and get response.
+
+      :return: response
+      :rtype: dict[str, Any]
+
+
+   .. py:method:: state_from_response(response)
+      :staticmethod:
+      :abstractmethod:
+
+      Get state from response dictionary.
+
+      :param response: response from AWS API
+      :return: state
+      :rtype: str
+
+
+   .. py:method:: failure_message_from_response(response)
+      :staticmethod:
+      :abstractmethod:
+
+      Get failure message from response dictionary.
+
+      :param response: response from AWS API
+      :return: failure message
+      :rtype: Optional[str]
+
+
+
+.. py:class:: EmrContainerSensor(*, virtual_cluster_id, job_id, max_retries = None, aws_conn_id = 'aws_default', poll_interval = 10, **kwargs)
+
+   Bases: :py:obj:`airflow.sensors.base.BaseSensorOperator`
+
+   Asks for the state of the job run until it reaches a failure state or success state.
+   If the job run fails, the task will fail.
+
+   :param job_id: job_id to check the state of
+   :param max_retries: Number of times to poll for query state before
+       returning the current state, defaults to None
+   :param aws_conn_id: aws connection to use, defaults to 'aws_default'
+   :param poll_interval: Time in seconds to wait between two consecutive call to
+       check query status on athena, defaults to 10
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :annotation: = ['PENDING', 'SUBMITTED', 'RUNNING']
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :annotation: = ['FAILED', 'CANCELLED', 'CANCEL_PENDING']
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :annotation: = ['COMPLETED']
+
+      
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['virtual_cluster_id', 'job_id']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = []
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #66c3ff
+
+      
+
+   .. py:method:: poke(self, context)
+
+      Function that the sensors defined while deriving this class should
+      override.
+
+
+   .. py:method:: hook(self)
+
+      Create and return an EmrContainerHook
+
+
+
+.. py:class:: EmrJobFlowSensor(*, job_flow_id, target_states = None, failed_states = None, **kwargs)
+
+   Bases: :py:obj:`EmrBaseSensor`
+
+   Asks for the state of the EMR JobFlow (Cluster) until it reaches
+   any of the target states.
+   If it fails the sensor errors, failing the task.
+
+   With the default target states, sensor waits cluster to be terminated.
+   When target_states is set to ['RUNNING', 'WAITING'] sensor waits
+   until job flow to be ready (after 'STARTING' and 'BOOTSTRAPPING' states)
+
+   :param job_flow_id: job_flow_id to check the state of
+   :param target_states: the target states, sensor waits until
+       job flow reaches any of these states
+   :param failed_states: the failure states, sensor fails when
+       job flow reaches any of these states
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['job_flow_id', 'target_states', 'failed_states']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = []
+
+      
+
+   .. py:method:: get_emr_response(self)
+
+      Make an API call with boto3 and get cluster-level details.
+
+      .. seealso::
+          https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr.html#EMR.Client.describe_cluster
+
+      :return: response
+      :rtype: dict[str, Any]
+
+
+   .. py:method:: state_from_response(response)
+      :staticmethod:
+
+      Get state from response dictionary.
+
+      :param response: response from AWS API
+      :return: current state of the cluster
+      :rtype: str
+
+
+   .. py:method:: failure_message_from_response(response)
+      :staticmethod:
+
+      Get failure message from response dictionary.
+
+      :param response: response from AWS API
+      :return: failure message
+      :rtype: Optional[str]
+
+
+
+.. py:class:: EmrStepSensor(*, job_flow_id, step_id, target_states = None, failed_states = None, **kwargs)
+
+   Bases: :py:obj:`EmrBaseSensor`
+
+   Asks for the state of the step until it reaches any of the target states.
+   If it fails the sensor errors, failing the task.
+
+   With the default target states, sensor waits step to be completed.
+
+   :param job_flow_id: job_flow_id which contains the step check the state of
+   :param step_id: step to check the state of
+   :param target_states: the target states, sensor waits until
+       step reaches any of these states
+   :param failed_states: the failure states, sensor fails when
+       step reaches any of these states
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['job_flow_id', 'step_id', 'target_states', 'failed_states']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = []
+
+      
+
+   .. py:method:: get_emr_response(self)
+
+      Make an API call with boto3 and get details about the cluster step.
+
+      .. seealso::
+          https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr.html#EMR.Client.describe_step
+
+      :return: response
+      :rtype: dict[str, Any]
+
+
+   .. py:method:: state_from_response(response)
+      :staticmethod:
+
+      Get state from response dictionary.
+
+      :param response: response from AWS API
+      :return: execution state of the cluster step
+      :rtype: str
+
+
+   .. py:method:: failure_message_from_response(response)
+      :staticmethod:
+
+      Get failure message from response dictionary.
+
+      :param response: response from AWS API
+      :return: failure message
+      :rtype: Optional[str]
+
+
+

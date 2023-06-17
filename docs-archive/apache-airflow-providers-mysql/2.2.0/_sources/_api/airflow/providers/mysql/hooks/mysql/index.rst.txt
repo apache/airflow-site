@@ -1,0 +1,158 @@
+:py:mod:`airflow.providers.mysql.hooks.mysql`
+=============================================
+
+.. py:module:: airflow.providers.mysql.hooks.mysql
+
+.. autoapi-nested-parse::
+
+   This module allows to connect to a MySQL database.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.mysql.hooks.mysql.MySqlHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.mysql.hooks.mysql.MySQLConnectionTypes
+
+
+.. py:data:: MySQLConnectionTypes
+   
+
+   
+
+.. py:class:: MySqlHook(*args, **kwargs)
+
+   Bases: :py:obj:`airflow.hooks.dbapi.DbApiHook`
+
+   Interact with MySQL.
+
+   You can specify charset in the extra field of your connection
+   as ``{"charset": "utf8"}``. Also you can choose cursor as
+   ``{"cursor": "SSCursor"}``. Refer to the MySQLdb.cursors for more details.
+
+   Note: For AWS IAM authentication, use iam in the extra connection parameters
+   and set it to true. Leave the password field empty. This will use the
+   "aws_default" connection to get the temporary token unless you override
+   in extras.
+   extras example: ``{"iam":true, "aws_conn_id":"my_aws_conn"}``
+
+   :param schema: The MySQL database schema to connect to.
+   :param connection: The :ref:`MySQL connection id <howto/connection:mysql>` used for MySQL credentials.
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = mysql_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = mysql_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = mysql
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = MySQL
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :annotation: = True
+
+      
+
+   .. py:method:: set_autocommit(self, conn, autocommit)
+
+      The MySQLdb (mysqlclient) client uses an `autocommit` method rather
+      than an `autocommit` property to set the autocommit setting
+
+      :param conn: connection to set autocommit setting
+      :param autocommit: autocommit setting
+      :rtype: None
+
+
+   .. py:method:: get_autocommit(self, conn)
+
+      The MySQLdb (mysqlclient) client uses a `get_autocommit` method
+      rather than an `autocommit` property to get the autocommit setting
+
+      :param conn: connection to get autocommit setting from.
+      :return: connection autocommit setting
+      :rtype: bool
+
+
+   .. py:method:: get_conn(self)
+
+      Establishes a connection to a mysql database
+      by extracting the connection configuration from the Airflow connection.
+
+      .. note:: By default it connects to the database via the mysqlclient library.
+          But you can also choose the mysql-connector-python library which lets you connect through ssl
+          without any further ssl parameters required.
+
+      :return: a mysql connection object
+
+
+   .. py:method:: get_uri(self)
+
+      Extract the URI from the connection.
+
+      :return: the extracted uri.
+
+
+   .. py:method:: bulk_load(self, table, tmp_file)
+
+      Loads a tab-delimited file into a database table
+
+
+   .. py:method:: bulk_dump(self, table, tmp_file)
+
+      Dumps a database table into a tab-delimited file
+
+
+   .. py:method:: get_iam_token(self, conn)
+
+      Uses AWSHook to retrieve a temporary password to connect to MySQL
+      Port is required. If none is provided, default 3306 is used
+
+
+   .. py:method:: bulk_load_custom(self, table, tmp_file, duplicate_key_handling = 'IGNORE', extra_options = '')
+
+      A more configurable way to load local data from a file into the database.
+
+      .. warning:: According to the mysql docs using this function is a
+          `security risk <https://dev.mysql.com/doc/refman/8.0/en/load-data-local.html>`_.
+          If you want to use it anyway you can do so by setting a client-side + server-side option.
+          This depends on the mysql client library used.
+
+      :param table: The table were the file will be loaded into.
+      :param tmp_file: The file (name) that contains the data.
+      :param duplicate_key_handling: Specify what should happen to duplicate data.
+          You can choose either `IGNORE` or `REPLACE`.
+
+          .. seealso::
+              https://dev.mysql.com/doc/refman/8.0/en/load-data.html#load-data-duplicate-key-handling
+      :param extra_options: More sql options to specify exactly how to load the data.
+
+          .. seealso:: https://dev.mysql.com/doc/refman/8.0/en/load-data.html
+
+
+

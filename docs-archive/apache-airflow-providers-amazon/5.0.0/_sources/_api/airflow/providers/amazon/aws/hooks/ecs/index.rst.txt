@@ -1,0 +1,247 @@
+:py:mod:`airflow.providers.amazon.aws.hooks.ecs`
+================================================
+
+.. py:module:: airflow.providers.amazon.aws.hooks.ecs
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.ecs.EcsClusterStates
+   airflow.providers.amazon.aws.hooks.ecs.EcsTaskDefinitionStates
+   airflow.providers.amazon.aws.hooks.ecs.EcsTaskStates
+   airflow.providers.amazon.aws.hooks.ecs.EcsHook
+   airflow.providers.amazon.aws.hooks.ecs.EcsTaskLogFetcher
+   airflow.providers.amazon.aws.hooks.ecs.EcsProtocol
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.ecs.should_retry
+   airflow.providers.amazon.aws.hooks.ecs.should_retry_eni
+
+
+
+.. py:function:: should_retry(exception)
+
+   Check if exception is related to ECS resource quota (CPU, MEM).
+
+
+.. py:function:: should_retry_eni(exception)
+
+   Check if exception is related to ENI (Elastic Network Interfaces).
+
+
+.. py:class:: EcsClusterStates
+
+   Bases: :py:obj:`enum.Enum`
+
+   Contains the possible State values of an ECS Cluster.
+
+   .. py:attribute:: ACTIVE
+      :annotation: = ACTIVE
+
+      
+
+   .. py:attribute:: PROVISIONING
+      :annotation: = PROVISIONING
+
+      
+
+   .. py:attribute:: DEPROVISIONING
+      :annotation: = DEPROVISIONING
+
+      
+
+   .. py:attribute:: FAILED
+      :annotation: = FAILED
+
+      
+
+   .. py:attribute:: INACTIVE
+      :annotation: = INACTIVE
+
+      
+
+
+.. py:class:: EcsTaskDefinitionStates
+
+   Bases: :py:obj:`enum.Enum`
+
+   Contains the possible State values of an ECS Task Definition.
+
+   .. py:attribute:: ACTIVE
+      :annotation: = ACTIVE
+
+      
+
+   .. py:attribute:: INACTIVE
+      :annotation: = INACTIVE
+
+      
+
+
+.. py:class:: EcsTaskStates
+
+   Bases: :py:obj:`enum.Enum`
+
+   Contains the possible State values of an ECS Task.
+
+   .. py:attribute:: PROVISIONING
+      :annotation: = PROVISIONING
+
+      
+
+   .. py:attribute:: PENDING
+      :annotation: = PENDING
+
+      
+
+   .. py:attribute:: ACTIVATING
+      :annotation: = ACTIVATING
+
+      
+
+   .. py:attribute:: RUNNING
+      :annotation: = RUNNING
+
+      
+
+   .. py:attribute:: DEACTIVATING
+      :annotation: = DEACTIVATING
+
+      
+
+   .. py:attribute:: STOPPING
+      :annotation: = STOPPING
+
+      
+
+   .. py:attribute:: DEPROVISIONING
+      :annotation: = DEPROVISIONING
+
+      
+
+   .. py:attribute:: STOPPED
+      :annotation: = STOPPED
+
+      
+
+   .. py:attribute:: NONE
+      :annotation: = NONE
+
+      
+
+
+.. py:class:: EcsHook(*args, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.base_aws.AwsGenericHook`
+
+   Interact with AWS Elastic Container Service, using the boto3 library
+   Hook attribute `conn` has all methods that listed in documentation
+
+   .. seealso::
+       - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html
+       - https://docs.aws.amazon.com/AmazonECS/latest/APIReference/Welcome.html
+
+   Additional arguments (such as ``aws_conn_id`` or ``region_name``) may be specified and
+       are passed down to the underlying AwsBaseHook.
+
+   .. seealso::
+       :class:`~airflow.providers.amazon.aws.hooks.base_aws.AwsGenericHook`
+
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+
+   .. py:method:: get_cluster_state(cluster_name)
+
+
+   .. py:method:: get_task_definition_state(task_definition)
+
+
+   .. py:method:: get_task_state(cluster, task)
+
+
+
+.. py:class:: EcsTaskLogFetcher(*, log_group, log_stream_name, fetch_interval, logger, aws_conn_id = 'aws_default', region_name = None)
+
+   Bases: :py:obj:`threading.Thread`
+
+   Fetches Cloudwatch log events with specific interval as a thread
+   and sends the log events to the info channel of the provided logger.
+
+   .. py:method:: run()
+
+      Method representing the thread's activity.
+
+      You may override this method in a subclass. The standard run() method
+      invokes the callable object passed to the object's constructor as the
+      target argument, if any, with sequential and keyword arguments taken
+      from the args and kwargs arguments, respectively.
+
+
+
+   .. py:method:: get_last_log_messages(number_messages)
+
+
+   .. py:method:: get_last_log_message()
+
+
+   .. py:method:: is_stopped()
+
+
+   .. py:method:: stop()
+
+
+
+.. py:class:: EcsProtocol
+
+   Bases: :py:obj:`airflow.typing_compat.Protocol`
+
+   A structured Protocol for ``boto3.client('ecs')``. This is used for type hints on
+   :py:meth:`.EcsOperator.client`.
+
+   .. seealso::
+
+       - https://mypy.readthedocs.io/en/latest/protocols.html
+       - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html
+
+   .. py:method:: run_task(**kwargs)
+
+      https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.run_task
+
+
+   .. py:method:: get_waiter(x)
+
+      https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.get_waiter
+
+
+   .. py:method:: describe_tasks(cluster, tasks)
+
+      https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.describe_tasks
+
+
+   .. py:method:: stop_task(cluster, task, reason)
+
+      https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.stop_task
+
+
+   .. py:method:: describe_task_definition(taskDefinition)
+
+      https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.describe_task_definition
+
+
+   .. py:method:: list_tasks(cluster, launchType, desiredStatus, family)
+
+      https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.list_tasks
+
+
+

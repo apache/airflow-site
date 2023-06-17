@@ -20,7 +20,7 @@ const messages = {
   },
   'fr' : {
     'copy': 'Copier',
-    'copy_to_clipboard': 'Copié dans le presse-papier',
+    'copy_to_clipboard': 'Copier dans le presse-papier',
     'copy_success': 'Copié !',
     'copy_failure': 'Échec de la copie',
   },
@@ -35,15 +35,12 @@ const messages = {
     'copy_to_clipboard': '复制到剪贴板',
     'copy_success': '复制成功!',
     'copy_failure': '复制失败',
-<<<<<<< HEAD
-=======
   },
   'it' : {
     'copy': 'Copiare',
     'copy_to_clipboard': 'Copiato negli appunti',
     'copy_success': 'Copiato!',
     'copy_failure': 'Errore durante la copia',
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
   }
 }
 
@@ -58,9 +55,6 @@ if (doc_url_root == '#') {
     doc_url_root = '';
 }
 
-<<<<<<< HEAD
-const path_static = `${doc_url_root}_static/`;
-=======
 /**
  * SVG files for our copy buttons
  */
@@ -80,7 +74,6 @@ if (!iconCopy) {
   <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2" />
 </svg>`
 }
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
 
 /**
  * Set up copy/paste for code blocks
@@ -109,14 +102,6 @@ const clearSelection = () => {
   }
 }
 
-<<<<<<< HEAD
-// Changes tooltip text for two seconds, then changes it back
-const temporarilyChangeTooltip = (el, oldText, newText) => {
-  el.setAttribute('data-tooltip', newText)
-  el.classList.add('success')
-  setTimeout(() => el.setAttribute('data-tooltip', oldText), 2000)
-  setTimeout(() => el.classList.remove('success'), 2000)
-=======
 // Changes tooltip text for a moment, then changes it back
 // We want the timeout of our `success` class to be a bit shorter than the
 // tooltip and icon change, so that we can hide the icon before changing back.
@@ -130,19 +115,12 @@ const temporarilyChangeTooltip = (el, oldText, newText) => {
   // So that we can use CSS to hide the copybutton first
   setTimeout(() => el.classList.remove('success'), timeoutSuccessClass)
   setTimeout(() => el.setAttribute('data-tooltip', oldText), timeoutIcon)
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
 }
 
 // Changes the copy button icon for two seconds, then changes it back
 const temporarilyChangeIcon = (el) => {
-<<<<<<< HEAD
-  img = el.querySelector("img");
-  img.setAttribute('src', `${path_static}check-solid.svg`)
-  setTimeout(() => img.setAttribute('src', `${path_static}copy-button.svg`), 2000)
-=======
   el.innerHTML = iconCheck;
   setTimeout(() => {el.innerHTML = iconCopy}, timeoutIcon)
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
 }
 
 const addCopyButtonToCodeCells = () => {
@@ -154,23 +132,15 @@ const addCopyButtonToCodeCells = () => {
   }
 
   // Add copybuttons to all of our code cells
-<<<<<<< HEAD
-  const codeCells = document.querySelectorAll('div.highlight pre')
-=======
   const COPYBUTTON_SELECTOR = 'div.highlight pre';
   const codeCells = document.querySelectorAll(COPYBUTTON_SELECTOR)
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
   codeCells.forEach((codeCell, index) => {
     const id = codeCellId(index)
     codeCell.setAttribute('id', id)
 
     const clipboardButton = id =>
     `<button class="copybtn o-tooltip--left" data-tooltip="${messages[locale]['copy']}" data-clipboard-target="#${id}">
-<<<<<<< HEAD
-      <img src="${path_static}copy-button.svg" alt="${messages[locale]['copy_to_clipboard']}">
-=======
       ${iconCopy}
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
     </button>`
     codeCell.insertAdjacentHTML('afterend', clipboardButton(id))
   })
@@ -179,12 +149,6 @@ function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-<<<<<<< HEAD
-// Callback when a copy button is clicked. Will be passed the node that was clicked
-// should then grab the text and replace pieces of text that shouldn't be used in output
-function formatCopyText(textContent, copybuttonPromptText, isRegexp = false, onlyCopyPromptLines = true, removePrompts = true, copyEmptyLines = true, lineContinuationChar = "", hereDocDelim = "") {
-
-=======
 /**
  * Removes excluded text from a Node.
  *
@@ -204,7 +168,6 @@ function filterText(target, exclude) {
 // Callback when a copy button is clicked. Will be passed the node that was clicked
 // should then grab the text and replace pieces of text that shouldn't be used in output
 function formatCopyText(textContent, copybuttonPromptText, isRegexp = false, onlyCopyPromptLines = true, removePrompts = true, copyEmptyLines = true, lineContinuationChar = "", hereDocDelim = "") {
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
     var regexp;
     var match;
 
@@ -259,16 +222,12 @@ function formatCopyText(textContent, copybuttonPromptText, isRegexp = false, onl
 
 var copyTargetText = (trigger) => {
   var target = document.querySelector(trigger.attributes['data-clipboard-target'].value);
-<<<<<<< HEAD
-  return formatCopyText(target.innerText, '', false, true, true, true, '', '')
-=======
 
   // get filtered text
-  let exclude = '.linenos, .gp';
+  let exclude = '.linenos';
 
   let text = filterText(target, exclude);
   return formatCopyText(text, '', false, true, true, true, '', '')
->>>>>>> bb99927dd4 (Provider docs were mistakenly removed in latest ad-hoc release (#709))
 }
 
   // Initialize with a callback so we can modify the text before copy

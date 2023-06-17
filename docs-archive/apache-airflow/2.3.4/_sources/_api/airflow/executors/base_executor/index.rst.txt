@@ -1,0 +1,244 @@
+:py:mod:`airflow.executors.base_executor`
+=========================================
+
+.. py:module:: airflow.executors.base_executor
+
+.. autoapi-nested-parse::
+
+   Base executor - this is the base class for all the implemented executors.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.base_executor.BaseExecutor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.base_executor.PARALLELISM
+   airflow.executors.base_executor.NOT_STARTED_MESSAGE
+   airflow.executors.base_executor.QUEUEING_ATTEMPTS
+   airflow.executors.base_executor.CommandType
+   airflow.executors.base_executor.QueuedTaskInstanceType
+   airflow.executors.base_executor.EventBufferValueType
+   airflow.executors.base_executor.TaskTuple
+
+
+.. py:data:: PARALLELISM
+   :annotation: :int
+
+   
+
+.. py:data:: NOT_STARTED_MESSAGE
+   :annotation: = The executor should be started first!
+
+   
+
+.. py:data:: QUEUEING_ATTEMPTS
+   :annotation: = 5
+
+   
+
+.. py:data:: CommandType
+   
+
+   
+
+.. py:data:: QueuedTaskInstanceType
+   
+
+   
+
+.. py:data:: EventBufferValueType
+   
+
+   
+
+.. py:data:: TaskTuple
+   
+
+   
+
+.. py:class:: BaseExecutor(parallelism = PARALLELISM)
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Class to derive in order to interface with executor-type systems
+   like Celery, Kubernetes, Local, Sequential and the likes.
+
+   :param parallelism: how many jobs should run at one time. Set to
+       ``0`` for infinity
+
+   .. py:attribute:: job_id
+      :annotation: :Union[None, int, str]
+
+      
+
+   .. py:attribute:: callback_sink
+      :annotation: :Optional[airflow.callbacks.base_callback_sink.BaseCallbackSink]
+
+      
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: start()
+
+      Executors may need to get things started.
+
+
+   .. py:method:: queue_command(task_instance, command, priority = 1, queue = None)
+
+      Queues command to task
+
+
+   .. py:method:: queue_task_instance(task_instance, mark_success = False, pickle_id = None, ignore_all_deps = False, ignore_depends_on_past = False, ignore_task_deps = False, ignore_ti_state = False, pool = None, cfg_path = None)
+
+      Queues task instance.
+
+
+   .. py:method:: has_task(task_instance)
+
+      Checks if a task is either queued or running in this executor.
+
+      :param task_instance: TaskInstance
+      :return: True if the task is known to this executor
+
+
+   .. py:method:: sync()
+
+      Sync will get called periodically by the heartbeat method.
+      Executors should override this to perform gather statuses.
+
+
+   .. py:method:: heartbeat()
+
+      Heartbeat sent to trigger new jobs.
+
+
+   .. py:method:: order_queued_tasks_by_priority()
+
+      Orders the queued tasks by priority.
+
+      :return: List of tuples from the queued_tasks according to the priority.
+
+
+   .. py:method:: trigger_tasks(open_slots)
+
+      Initiates async execution of the queued tasks, up to the number of available slots.
+
+      :param open_slots: Number of open slots
+
+
+   .. py:method:: change_state(key, state, info=None)
+
+      Changes state of the task.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+      :param state: State to set for the task.
+
+
+   .. py:method:: fail(key, info=None)
+
+      Set fail state for the event.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+
+
+   .. py:method:: success(key, info=None)
+
+      Set success state for the event.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+
+
+   .. py:method:: get_event_buffer(dag_ids=None)
+
+      Returns and flush the event buffer. In case dag_ids is specified
+      it will only return and flush events for the given dag_ids. Otherwise
+      it returns and flushes all events.
+
+      :param dag_ids: the dag_ids to return events for; returns all if given ``None``.
+      :return: a dict of events
+
+
+   .. py:method:: execute_async(key, command, queue = None, executor_config = None)
+      :abstractmethod:
+
+      This method will execute the command asynchronously.
+
+      :param key: Unique key for the task instance
+      :param command: Command to run
+      :param queue: name of the queue
+      :param executor_config: Configuration passed to the executor.
+
+
+   .. py:method:: end()
+      :abstractmethod:
+
+      This method is called when the caller is done submitting job and
+      wants to wait synchronously for the job submitted previously to be
+      all done.
+
+
+   .. py:method:: terminate()
+      :abstractmethod:
+
+      This method is called when the daemon receives a SIGTERM
+
+
+   .. py:method:: try_adopt_task_instances(tis)
+
+      Try to adopt running task instances that have been abandoned by a SchedulerJob dying.
+
+      Anything that is not adopted will be cleared by the scheduler (and then become eligible for
+      re-scheduling)
+
+      :return: any TaskInstances that were unable to be adopted
+      :rtype: list[airflow.models.TaskInstance]
+
+
+   .. py:method:: slots_available()
+      :property:
+
+      Number of new tasks this executor instance can accept
+
+
+   .. py:method:: validate_command(command)
+      :staticmethod:
+
+      Check if the command to execute is airflow command
+
+
+   .. py:method:: debug_dump()
+
+      Called in response to SIGUSR2 by the scheduler
+
+
+   .. py:method:: send_callback(request)
+
+      Sends callback for execution.
+
+      Provides a default implementation which sends the callback to the `callback_sink` object.
+
+      :param request: Callback request to be executed.
+
+
+

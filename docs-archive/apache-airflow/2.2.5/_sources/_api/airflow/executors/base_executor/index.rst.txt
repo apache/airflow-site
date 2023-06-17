@@ -1,0 +1,224 @@
+:py:mod:`airflow.executors.base_executor`
+=========================================
+
+.. py:module:: airflow.executors.base_executor
+
+.. autoapi-nested-parse::
+
+   Base executor - this is the base class for all the implemented executors.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.base_executor.BaseExecutor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.base_executor.PARALLELISM
+   airflow.executors.base_executor.NOT_STARTED_MESSAGE
+   airflow.executors.base_executor.QUEUEING_ATTEMPTS
+   airflow.executors.base_executor.CommandType
+   airflow.executors.base_executor.QueuedTaskInstanceType
+   airflow.executors.base_executor.EventBufferValueType
+
+
+.. py:data:: PARALLELISM
+   :annotation: :int
+
+   
+
+.. py:data:: NOT_STARTED_MESSAGE
+   :annotation: = The executor should be started first!
+
+   
+
+.. py:data:: QUEUEING_ATTEMPTS
+   :annotation: = 5
+
+   
+
+.. py:data:: CommandType
+   
+
+   
+
+.. py:data:: QueuedTaskInstanceType
+   
+
+   
+
+.. py:data:: EventBufferValueType
+   
+
+   
+
+.. py:class:: BaseExecutor(parallelism: int = PARALLELISM)
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Class to derive in order to interface with executor-type systems
+   like Celery, Kubernetes, Local, Sequential and the likes.
+
+   :param parallelism: how many jobs should run at one time. Set to
+       ``0`` for infinity
+
+   .. py:attribute:: job_id
+      :annotation: :Optional[str]
+
+      
+
+   .. py:method:: __repr__(self)
+
+      Return repr(self).
+
+
+   .. py:method:: start(self)
+
+      Executors may need to get things started.
+
+
+   .. py:method:: queue_command(self, task_instance: airflow.models.taskinstance.TaskInstance, command: CommandType, priority: int = 1, queue: Optional[str] = None)
+
+      Queues command to task
+
+
+   .. py:method:: queue_task_instance(self, task_instance: airflow.models.taskinstance.TaskInstance, mark_success: bool = False, pickle_id: Optional[str] = None, ignore_all_deps: bool = False, ignore_depends_on_past: bool = False, ignore_task_deps: bool = False, ignore_ti_state: bool = False, pool: Optional[str] = None, cfg_path: Optional[str] = None) -> None
+
+      Queues task instance.
+
+
+   .. py:method:: has_task(self, task_instance: airflow.models.taskinstance.TaskInstance) -> bool
+
+      Checks if a task is either queued or running in this executor.
+
+      :param task_instance: TaskInstance
+      :return: True if the task is known to this executor
+
+
+   .. py:method:: sync(self) -> None
+
+      Sync will get called periodically by the heartbeat method.
+      Executors should override this to perform gather statuses.
+
+
+   .. py:method:: heartbeat(self) -> None
+
+      Heartbeat sent to trigger new jobs.
+
+
+   .. py:method:: order_queued_tasks_by_priority(self) -> List[Tuple[airflow.models.taskinstance.TaskInstanceKey, QueuedTaskInstanceType]]
+
+      Orders the queued tasks by priority.
+
+      :return: List of tuples from the queued_tasks according to the priority.
+
+
+   .. py:method:: trigger_tasks(self, open_slots: int) -> None
+
+      Triggers tasks
+
+      :param open_slots: Number of open slots
+
+
+   .. py:method:: change_state(self, key: airflow.models.taskinstance.TaskInstanceKey, state: str, info=None) -> None
+
+      Changes state of the task.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+      :param state: State to set for the task.
+
+
+   .. py:method:: fail(self, key: airflow.models.taskinstance.TaskInstanceKey, info=None) -> None
+
+      Set fail state for the event.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+
+
+   .. py:method:: success(self, key: airflow.models.taskinstance.TaskInstanceKey, info=None) -> None
+
+      Set success state for the event.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+
+
+   .. py:method:: get_event_buffer(self, dag_ids=None) -> Dict[airflow.models.taskinstance.TaskInstanceKey, EventBufferValueType]
+
+      Returns and flush the event buffer. In case dag_ids is specified
+      it will only return and flush events for the given dag_ids. Otherwise
+      it returns and flushes all events.
+
+      :param dag_ids: to dag_ids to return events for, if None returns all
+      :return: a dict of events
+
+
+   .. py:method:: execute_async(self, key: airflow.models.taskinstance.TaskInstanceKey, command: CommandType, queue: Optional[str] = None, executor_config: Optional[Any] = None) -> None
+      :abstractmethod:
+
+      This method will execute the command asynchronously.
+
+      :param key: Unique key for the task instance
+      :param command: Command to run
+      :param queue: name of the queue
+      :param executor_config: Configuration passed to the executor.
+
+
+   .. py:method:: end(self) -> None
+      :abstractmethod:
+
+      This method is called when the caller is done submitting job and
+      wants to wait synchronously for the job submitted previously to be
+      all done.
+
+
+   .. py:method:: terminate(self)
+      :abstractmethod:
+
+      This method is called when the daemon receives a SIGTERM
+
+
+   .. py:method:: try_adopt_task_instances(self, tis: List[airflow.models.taskinstance.TaskInstance]) -> List[airflow.models.taskinstance.TaskInstance]
+
+      Try to adopt running task instances that have been abandoned by a SchedulerJob dying.
+
+      Anything that is not adopted will be cleared by the scheduler (and then become eligible for
+      re-scheduling)
+
+      :return: any TaskInstances that were unable to be adopted
+      :rtype: list[airflow.models.TaskInstance]
+
+
+   .. py:method:: slots_available(self)
+      :property:
+
+      Number of new tasks this executor instance can accept
+
+
+   .. py:method:: validate_command(command: List[str]) -> None
+      :staticmethod:
+
+      Check if the command to execute is airflow command
+
+
+   .. py:method:: debug_dump(self)
+
+      Called in response to SIGUSR2 by the scheduler
+
+
+

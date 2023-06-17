@@ -1,0 +1,262 @@
+:py:mod:`airflow.providers.microsoft.azure.hooks.wasb`
+======================================================
+
+.. py:module:: airflow.providers.microsoft.azure.hooks.wasb
+
+.. autoapi-nested-parse::
+
+   This module contains integration with Azure Blob Storage.
+
+   It communicate via the Window Azure Storage Blob protocol. Make sure that a
+   Airflow connection of type `wasb` exists. Authorization can be done by supplying a
+   login (=Storage account name) and password (=KEY), or login and SAS token in the extra
+   field (see connection `wasb_default` for an example).
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.hooks.wasb.WasbHook
+
+
+
+
+.. py:class:: WasbHook(wasb_conn_id: str = default_conn_name, public_read: bool = False)
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Interacts with Azure Blob Storage through the ``wasb://`` protocol.
+
+   These parameters have to be passed in Airflow Data Base: account_name and account_key.
+
+   Additional options passed in the 'extra' field of the connection will be
+   passed to the `BlockBlockService()` constructor. For example, authenticate
+   using a SAS token by adding {"sas_token": "YOUR_TOKEN"}.
+
+   If no authentication configuration is provided, managed identity will be used (applicable
+   when using Azure compute infrastructure).
+
+   :param wasb_conn_id: Reference to the :ref:`wasb connection <howto/connection:wasb>`.
+   :type wasb_conn_id: str
+   :param public_read: Whether an anonymous public read access should be used. default is False
+   :type public_read: bool
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = wasb_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = wasb_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = wasb
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = Azure Blob Storage
+
+      
+
+   .. py:method:: get_connection_form_widgets() -> Dict[str, Any]
+      :staticmethod:
+
+      Returns connection widgets to add to connection form
+
+
+   .. py:method:: get_ui_field_behaviour() -> Dict
+      :staticmethod:
+
+      Returns custom field behaviour
+
+
+   .. py:method:: get_conn(self) -> azure.storage.blob.BlobServiceClient
+
+      Return the BlobServiceClient object.
+
+
+   .. py:method:: check_for_blob(self, container_name: str, blob_name: str, **kwargs) -> bool
+
+      Check if a blob exists on Azure Blob Storage.
+
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param blob_name: Name of the blob.
+      :type blob_name: str
+      :param kwargs: Optional keyword arguments for ``BlobClient.get_blob_properties`` takes.
+      :type kwargs: object
+      :return: True if the blob exists, False otherwise.
+      :rtype: bool
+
+
+   .. py:method:: check_for_prefix(self, container_name: str, prefix: str, **kwargs)
+
+      Check if a prefix exists on Azure Blob storage.
+
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param prefix: Prefix of the blob.
+      :type prefix: str
+      :param kwargs: Optional keyword arguments that ``ContainerClient.walk_blobs`` takes
+      :type kwargs: object
+      :return: True if blobs matching the prefix exist, False otherwise.
+      :rtype: bool
+
+
+   .. py:method:: get_blobs_list(self, container_name: str, prefix: Optional[str] = None, include: Optional[List[str]] = None, delimiter: Optional[str] = '/', **kwargs) -> List
+
+      List blobs in a given container
+
+      :param container_name: The name of the container
+      :type container_name: str
+      :param prefix: Filters the results to return only blobs whose names
+          begin with the specified prefix.
+      :type prefix: str
+      :param include: Specifies one or more additional datasets to include in the
+          response. Options include: ``snapshots``, ``metadata``, ``uncommittedblobs``,
+          ``copy`, ``deleted``.
+      :type include: List[str]
+      :param delimiter: filters objects based on the delimiter (for e.g '.csv')
+      :type delimiter: str
+
+
+   .. py:method:: load_file(self, file_path: str, container_name: str, blob_name: str, **kwargs) -> None
+
+      Upload a file to Azure Blob Storage.
+
+      :param file_path: Path to the file to load.
+      :type file_path: str
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param blob_name: Name of the blob.
+      :type blob_name: str
+      :param kwargs: Optional keyword arguments that ``BlobClient.upload_blob()`` takes.
+      :type kwargs: object
+
+
+   .. py:method:: load_string(self, string_data: str, container_name: str, blob_name: str, **kwargs) -> None
+
+      Upload a string to Azure Blob Storage.
+
+      :param string_data: String to load.
+      :type string_data: str
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param blob_name: Name of the blob.
+      :type blob_name: str
+      :param kwargs: Optional keyword arguments that ``BlobClient.upload()`` takes.
+      :type kwargs: object
+
+
+   .. py:method:: get_file(self, file_path: str, container_name: str, blob_name: str, **kwargs)
+
+      Download a file from Azure Blob Storage.
+
+      :param file_path: Path to the file to download.
+      :type file_path: str
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param blob_name: Name of the blob.
+      :type blob_name: str
+      :param kwargs: Optional keyword arguments that `BlobClient.download_blob()` takes.
+      :type kwargs: object
+
+
+   .. py:method:: read_file(self, container_name: str, blob_name: str, **kwargs)
+
+      Read a file from Azure Blob Storage and return as a string.
+
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param blob_name: Name of the blob.
+      :type blob_name: str
+      :param kwargs: Optional keyword arguments that `BlobClient.download_blob` takes.
+      :type kwargs: object
+
+
+   .. py:method:: upload(self, container_name, blob_name, data, blob_type: str = 'BlockBlob', length: Optional[int] = None, **kwargs) -> Dict[str, Any]
+
+      Creates a new blob from a data source with automatic chunking.
+
+      :param container_name: The name of the container to upload data
+      :type container_name: str
+      :param blob_name: The name of the blob to upload. This need not exist in the container
+      :type blob_name: str
+      :param data: The blob data to upload
+      :param blob_type: The type of the blob. This can be either ``BlockBlob``,
+          ``PageBlob`` or ``AppendBlob``. The default value is ``BlockBlob``.
+      :type blob_type: storage.BlobType
+      :param length: Number of bytes to read from the stream. This is optional,
+          but should be supplied for optimal performance.
+      :type length: int
+
+
+   .. py:method:: download(self, container_name, blob_name, offset: Optional[int] = None, length: Optional[int] = None, **kwargs) -> azure.storage.blob.StorageStreamDownloader
+
+      Downloads a blob to the StorageStreamDownloader
+
+      :param container_name: The name of the container containing the blob
+      :type container_name: str
+      :param blob_name: The name of the blob to download
+      :type blob_name: str
+      :param offset: Start of byte range to use for downloading a section of the blob.
+          Must be set if length is provided.
+      :type offset: int
+      :param length: Number of bytes to read from the stream.
+      :type length: int
+
+
+   .. py:method:: create_container(self, container_name: str) -> azure.storage.blob.ContainerClient
+
+      Create container object if not already existing
+
+      :param container_name: The name of the container to create
+      :type container_name: str
+
+
+   .. py:method:: delete_container(self, container_name: str) -> None
+
+      Delete a container object
+
+      :param container_name: The name of the container
+      :type container_name: str
+
+
+   .. py:method:: delete_blobs(self, container_name: str, *blobs, **kwargs) -> None
+
+      Marks the specified blobs or snapshots for deletion.
+
+      :param container_name: The name of the container containing the blobs
+      :type container_name: str
+      :param blobs: The blobs to delete. This can be a single blob, or multiple values
+          can be supplied, where each value is either the name of the blob (str) or BlobProperties.
+      :type blobs: Union[str, BlobProperties]
+
+
+   .. py:method:: delete_file(self, container_name: str, blob_name: str, is_prefix: bool = False, ignore_if_missing: bool = False, delimiter: str = '', **kwargs) -> None
+
+      Delete a file from Azure Blob Storage.
+
+      :param container_name: Name of the container.
+      :type container_name: str
+      :param blob_name: Name of the blob.
+      :type blob_name: str
+      :param is_prefix: If blob_name is a prefix, delete all matching files
+      :type is_prefix: bool
+      :param ignore_if_missing: if True, then return success even if the
+          blob does not exist.
+      :type ignore_if_missing: bool
+      :param kwargs: Optional keyword arguments that ``ContainerClient.delete_blobs()`` takes.
+      :type kwargs: object
+
+
+

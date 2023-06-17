@@ -19,21 +19,23 @@
             <link rel="shortcut icon" href="../../../../../_static/pin_32.png"/>
             <link rel="index" title="Index" href="../../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../../search.html" />
-<!-- Matomo -->
-<script>
-  var _paq = window._paq = window._paq || [];
-  _paq.push(['disableCookies']);
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="https://analytics.apache.org/";
-    _paq.push(['setTrackerUrl', u+'matomo.php']);
-    _paq.push(['setSiteId', '13']);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<!-- End Matomo -->
+    <!-- Matomo -->
+    <script>
+        var _paq = window._paq = window._paq || [];
+        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        /* We explicitly disable cookie tracking to avoid privacy issues */
+        _paq.push(['disableCookies']);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+        var u="https://analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '13']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+        })();
+    </script>
+    <!-- End Matomo Code -->
 
     
 </head><body class="td-section">
@@ -738,9 +740,18 @@
         <span class="c1"># once it will be available in python-jenkins (v &gt; 0.4.15)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Polling jenkins queue at the url </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">location</span><span class="p">)</span>
         <span class="k">while</span> <span class="n">try_count</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_try_before_job_appears</span><span class="p">:</span>
-            <span class="n">location_answer</span> <span class="o">=</span> <span class="n">jenkins_request_with_headers</span><span class="p">(</span>
-                <span class="n">jenkins_server</span><span class="p">,</span> <span class="n">Request</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">location_answer</span> <span class="o">=</span> <span class="n">jenkins_request_with_headers</span><span class="p">(</span>
+                    <span class="n">jenkins_server</span><span class="p">,</span> <span class="n">Request</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="c1"># we don&#39;t want to fail the operator, this will continue to poll</span>
+            <span class="c1"># until max_try_before_job_appears reached</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">HTTPError</span><span class="p">,</span> <span class="n">JenkinsException</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;polling failed, retrying&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">try_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
+                <span class="k">continue</span>
+
             <span class="k">if</span> <span class="n">location_answer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">json_response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">location_answer</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="p">(</span>
@@ -753,8 +764,9 @@
                     <span class="k">return</span> <span class="n">build_number</span>
             <span class="n">try_count</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
+
         <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
-            <span class="s2">&quot;The job hasn&#39;t been executed after polling &quot;</span> <span class="sa">f</span><span class="s2">&quot;the queue </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_try_before_job_appears</span><span class="si">}</span><span class="s2"> times&quot;</span></div>
+            <span class="sa">f</span><span class="s2">&quot;The job hasn&#39;t been executed after polling the queue </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_try_before_job_appears</span><span class="si">}</span><span class="s2"> times&quot;</span></div>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="JenkinsJobTriggerOperator.get_hook"><a class="viewcode-back" href="../../../../../_api/airflow/providers/jenkins/operators/jenkins_job_trigger/index.html#airflow.providers.jenkins.operators.jenkins_job_trigger.JenkinsJobTriggerOperator.get_hook">[docs]</a>    <span class="k">def</span> <span class="nf">get_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JenkinsHook</span><span class="p">:</span>
