@@ -1,0 +1,106 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Apache Airflow – Vulnerabilities</title>
+    <link>/blog/tags/vulnerabilities/</link>
+    <description>Recent content in Vulnerabilities on Apache Airflow</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Mon, 26 Feb 2024 00:00:00 +0000</lastBuildDate>
+    
+	  <atom:link href="/blog/tags/vulnerabilities/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Blog: Vulnerability in long deprecated OpenID authentication method in Flask AppBuilder</title>
+      <link>/blog/fab-oid-vulnerability/</link>
+      <pubDate>Mon, 26 Feb 2024 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/fab-oid-vulnerability/</guid>
+      <description>
+        
+        
+        &lt;h1 id=&#34;vulnerability-in-long-deprecated-openid-authentication-method-in-flask-appbuilder&#34;&gt;Vulnerability in long deprecated OpenID authentication method in Flask AppBuilder&lt;/h1&gt;
+&lt;p&gt;Recently &lt;a href=&#34;https://www.linkedin.com/in/islam-rzayev&#34;&gt;Islam Rzayev&lt;/a&gt; made us aware of a vulnerability in the
+long deprecated OpenID authentication method in Flask AppBuilder. This vulnerability allowed a malicious user
+to take over the identity of any Airflow UI user by forging a specially crafted request and implementing
+their own OpenID service. While this is an old, deprecated and almost not used authentication method, we still
+took the issue seriously.&lt;/p&gt;
+&lt;p&gt;This issue ONLY affects users who have &lt;code&gt;AUTH_OID&lt;/code&gt; set in their &lt;code&gt;webserver_config.py&lt;/code&gt; file as
+&lt;code&gt;AUTH_TYPE&lt;/code&gt;. This is a very old and deprecated authentication method that is unlikely to be used by anyone.&lt;/p&gt;
+&lt;p&gt;We would like to advise even the small number of our users that still use this
+authentication method to take an immediate action and either upgrade to Apache Airflow 2.8.2 or switch to
+another authentication method (or apply a workaround we provide if they cannot do either of the above
+immediately).&lt;/p&gt;
+&lt;p&gt;Important to stress, because many of the users might get confused by the name, OpenID is NOT the same as
+OpenID Connect. Those are completely different protocols and while OpenID Connect (also known as OIDC) is
+a modern, widely used  protocol, OpenID is a legacy protocol that has been deprecated more than 10 years
+ago and since then has been abandoned by almost everyone in the community, including all services in
+Flask AppBuilder example services that supported it, so it is highly unlikely someone is still using it.&lt;/p&gt;
+&lt;p&gt;Due to this highly unlikely configuration the &lt;a href=&#34;https://www.cve.org/CVERecord?id=CVE-2024-25128&#34;&gt;Flask AppBuilder CVE&lt;/a&gt;
+is just &amp;ldquo;Moderate&amp;rdquo; not &amp;ldquo;Critical&amp;rdquo;. It affects a very small (if any) number of users and it&amp;rsquo;s not likely
+to be a target for an attack. However, we still advise our users who still use AUTH_OID to apply remediation.&lt;/p&gt;
+&lt;p&gt;This vulnerability is fixed in Flask Appbuilder 4.3.11 and Apache Airflow 2.8.2 uses that version of Flask
+Application Builder. We advise users who still use this authentication method to either switch to another
+authentication method or upgrade to Apache Airflow 2.8.2. If they cannot do either
+of these solutions quickly, they should apply the workaround provided below.&lt;/p&gt;
+&lt;h2 id=&#34;impact&#34;&gt;Impact&lt;/h2&gt;
+&lt;p&gt;When Flask-AppBuilder is set to &lt;code&gt;AUTH_TYPE&lt;/code&gt; set to &lt;code&gt;AUTH_OID&lt;/code&gt;, it allows an attacker to forge an HTTP
+request that could deceive the backend into using any requested OpenID service. This vulnerability
+could grant an attacker unauthorised privilege access if a custom OpenID service is deployed
+by the attacker and accessible by the backend.&lt;/p&gt;
+&lt;p&gt;This vulnerability is only exploitable when the application is using OpenID (not OpenID Connect also known
+as OIDC). Currently, this protocol is regarded as legacy, with significantly reduced usage.&lt;/p&gt;
+&lt;h2 id=&#34;possible-remediation&#34;&gt;Possible remediation&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Change your authentication method - if you are using &lt;code&gt;AUTH_OID&lt;/code&gt;, there are almost no commercial services
+supporting it, it was deprecated 10 years ago and abandoned by nearly everyone in the community 4 years
+ago. Your best choice is to choose a different authentication method.&lt;/li&gt;
+&lt;li&gt;Upgrade to Apache Airflow 2.8.2 (which also upgrades to Flask-AppBuilder 4.3.11 that contains a fix)&lt;/li&gt;
+&lt;li&gt;If upgrade is not possible, apply the workaround below&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;workarounds&#34;&gt;Workarounds&lt;/h2&gt;
+&lt;p&gt;If upgrade or changing authentication method is not possible add the following to
+your &lt;code&gt;webserver_config.py&lt;/code&gt; file to fix the issue:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;os&lt;/span&gt;
+
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;flask&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;flash&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;redirect&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;flask_appbuilder.security.forms&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;LoginForm_oid&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;flask_appbuilder.security.views&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;AuthOIDView&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;flask_appbuilder.views&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;expose&lt;/span&gt;
+
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;airflow.www.security&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;AirflowSecurityManager&lt;/span&gt;
+
+&lt;span class=&#34;n&#34;&gt;basedir&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;os&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;path&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;abspath&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;os&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;path&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;dirname&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;vm&#34;&gt;__file__&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;FixedOIDView&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;AuthOIDView&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+    &lt;span class=&#34;nd&#34;&gt;@expose&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;/login/&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;methods&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;GET&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;POST&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;login&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;flag&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;True&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;form&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;LoginForm_oid&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;form&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;validate_on_submit&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+            &lt;span class=&#34;n&#34;&gt;identity_url&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;None&lt;/span&gt;
+            &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;provider&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;appbuilder&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sm&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;openid_providers&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+                &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;provider&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;get&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;url&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;form&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;openid&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;data&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+                    &lt;span class=&#34;n&#34;&gt;identity_url&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;form&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;openid&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;data&lt;/span&gt;
+            &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;identity_url&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;is&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;None&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+                &lt;span class=&#34;n&#34;&gt;flash&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;invalid_login_message&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;warning&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+                &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;redirect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;appbuilder&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;get_url_for_login&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;super&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;login&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;flag&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;flag&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;FixedAirflowSecurityManager&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;AirflowSecurityManager&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;authoidview&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;FixedOIDView&lt;/span&gt;
+
+&lt;span class=&#34;n&#34;&gt;SECURITY_MANAGER_CLASS&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;FixedAirflowSecurityManager&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;credits&#34;&gt;Credits&lt;/h2&gt;
+&lt;p&gt;Big thanks to &lt;a href=&#34;https://www.linkedin.com/in/islam-rzayev&#34;&gt;Islam Rzayev&lt;/a&gt; for finding out and reporting the issue responsibly and to &lt;a href=&#34;https://github.com/dpgaspar&#34;&gt;Daniel Gaspar&lt;/a&gt; for
+very close cooperation on this one and coordinating the disclosure together with the &lt;a href=&#34;https://superset.apache.org/&#34;&gt;Apache Superset&lt;/a&gt;
+where Flask AppBuilder is also used.&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>
