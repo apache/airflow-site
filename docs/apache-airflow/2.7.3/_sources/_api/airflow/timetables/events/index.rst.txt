@@ -1,0 +1,99 @@
+:py:mod:`airflow.timetables.events`
+===================================
+
+.. py:module:: airflow.timetables.events
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.timetables.events.EventsTimetable
+
+
+
+
+.. py:class:: EventsTimetable(event_dates, restrict_to_events = False, presorted = False, description = None)
+
+
+   Bases: :py:obj:`airflow.timetables.base.Timetable`
+
+   Timetable that schedules DAG runs at specific listed datetimes.
+
+   Suitable for predictable but truly irregular scheduling such as sporting events.
+
+   :param event_dates: List of datetimes for the DAG to run at. Duplicates will be ignored. Must be finite
+                       and of reasonable size as it will be loaded in its entirety.
+   :param restrict_to_events: Whether manual runs should use the most recent event or
+       the current time
+   :param presorted: if True, event_dates will be assumed to be in ascending order. Provides modest
+       performance improvement for larger lists of event_dates.
+   :param description: A name for the timetable to display in the UI. Default None will be shown as
+                       "X Events" where X is the len of event_dates
+
+   .. py:property:: summary
+      :type: str
+
+      A short summary for the timetable.
+
+      This is used to display the timetable in the web UI. A cron expression
+      timetable, for example, can use this to display the expression. The
+      default implementation returns the timetable's type name.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: next_dagrun_info(*, last_automated_data_interval, restriction)
+
+      Provide information to schedule the next DagRun.
+
+      The default implementation raises ``NotImplementedError``.
+
+      :param last_automated_data_interval: The data interval of the associated
+          DAG's last scheduled or backfilled run (manual runs not considered).
+      :param restriction: Restriction to apply when scheduling the DAG run.
+          See documentation of :class:`TimeRestriction` for details.
+
+      :return: Information on when the next DagRun can be scheduled. None
+          means a DagRun will not happen. This does not mean no more runs
+          will be scheduled even again for this DAG; the timetable can return
+          a DagRunInfo object when asked at another time.
+
+
+   .. py:method:: infer_manual_data_interval(*, run_after)
+
+      When a DAG run is manually triggered, infer a data interval for it.
+
+      This is used for e.g. manually-triggered runs, where ``run_after`` would
+      be when the user triggers the run. The default implementation raises
+      ``NotImplementedError``.
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+

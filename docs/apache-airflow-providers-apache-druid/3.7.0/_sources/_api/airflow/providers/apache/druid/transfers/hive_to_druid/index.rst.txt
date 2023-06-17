@@ -1,0 +1,113 @@
+:py:mod:`airflow.providers.apache.druid.transfers.hive_to_druid`
+================================================================
+
+.. py:module:: airflow.providers.apache.druid.transfers.hive_to_druid
+
+.. autoapi-nested-parse::
+
+   This module contains operator to move data from Hive to Druid.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.apache.druid.transfers.hive_to_druid.HiveToDruidOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.apache.druid.transfers.hive_to_druid.LOAD_CHECK_INTERVAL
+   airflow.providers.apache.druid.transfers.hive_to_druid.DEFAULT_TARGET_PARTITION_SIZE
+
+
+.. py:data:: LOAD_CHECK_INTERVAL
+   :value: 5
+
+   
+
+.. py:data:: DEFAULT_TARGET_PARTITION_SIZE
+   :value: 5000000
+
+   
+
+.. py:class:: HiveToDruidOperator(*, sql, druid_datasource, ts_dim, metric_spec = None, hive_cli_conn_id = 'hive_cli_default', druid_ingest_conn_id = 'druid_ingest_default', metastore_conn_id = 'metastore_default', hadoop_dependency_coordinates = None, intervals = None, num_shards = -1, target_partition_size = -1, query_granularity = 'NONE', segment_granularity = 'DAY', hive_tblproperties = None, job_properties = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Moves data from Hive to Druid.
+
+   [del]note that for now the data is loaded into memory before being pushed to
+   Druid, so this operator should be used for smallish amount of data.[/del]
+
+   :param sql: SQL query to execute against the Druid database. (templated)
+   :param druid_datasource: the datasource you want to ingest into in druid
+   :param ts_dim: the timestamp dimension
+   :param metric_spec: the metrics you want to define for your data
+   :param hive_cli_conn_id: the hive connection id
+   :param druid_ingest_conn_id: the druid ingest connection id
+   :param metastore_conn_id: the metastore connection id
+   :param hadoop_dependency_coordinates: list of coordinates to squeeze
+       int the ingest json
+   :param intervals: list of time intervals that defines segments,
+       this is passed as is to the json object. (templated)
+   :param num_shards: Directly specify the number of shards to create.
+   :param target_partition_size: Target number of rows to include in a partition,
+   :param query_granularity: The minimum granularity to be able to query results at and the granularity of
+       the data inside the segment. E.g. a value of "minute" will mean that data is aggregated at minutely
+       granularity. That is, if there are collisions in the tuple (minute(timestamp), dimensions), then it
+       will aggregate values together using the aggregators instead of storing individual rows.
+       A granularity of 'NONE' means millisecond granularity.
+   :param segment_granularity: The granularity to create time chunks at. Multiple segments can be created per
+       time chunk. For example, with 'DAY' segmentGranularity, the events of the same day fall into the
+       same time chunk which can be optionally further partitioned into multiple segments based on other
+       configurations and input size.
+   :param hive_tblproperties: additional properties for tblproperties in
+       hive for the staging table
+   :param job_properties: additional properties for job
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'intervals')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql',)
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: construct_ingest_query(static_path, columns)
+
+      Build an ingest query for an HDFS TSV load.
+
+      :param static_path: The path on hdfs where the data is
+      :param columns: List of all the columns that are available
+
+
+

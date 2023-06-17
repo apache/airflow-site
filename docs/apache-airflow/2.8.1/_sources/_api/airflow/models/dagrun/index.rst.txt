@@ -1,0 +1,432 @@
+:py:mod:`airflow.models.dagrun`
+===============================
+
+.. py:module:: airflow.models.dagrun
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.dagrun.TISchedulingDecision
+   airflow.models.dagrun.DagRun
+   airflow.models.dagrun.DagRunNote
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.dagrun.CreatedTasks
+   airflow.models.dagrun.RUN_ID_REGEX
+
+
+.. py:data:: CreatedTasks
+
+   
+
+.. py:data:: RUN_ID_REGEX
+   :value: '^(?:manual|scheduled|dataset_triggered)__(?:\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+00:00)$'
+
+   
+
+.. py:class:: TISchedulingDecision
+
+
+   Bases: :py:obj:`NamedTuple`
+
+   Type of return for DagRun.task_instance_scheduling_decisions.
+
+   .. py:attribute:: tis
+      :type: list[airflow.models.taskinstance.TaskInstance]
+
+      
+
+   .. py:attribute:: schedulable_tis
+      :type: list[airflow.models.taskinstance.TaskInstance]
+
+      
+
+   .. py:attribute:: changed_tis
+      :type: bool
+
+      
+
+   .. py:attribute:: unfinished_tis
+      :type: list[airflow.models.taskinstance.TaskInstance]
+
+      
+
+   .. py:attribute:: finished_tis
+      :type: list[airflow.models.taskinstance.TaskInstance]
+
+      
+
+
+.. py:class:: DagRun(dag_id = None, run_id = None, queued_at = NOTSET, execution_date = None, start_date = None, external_trigger = None, conf = None, state = None, run_type = None, dag_hash = None, creating_job_id = None, data_interval = None)
+
+
+   Bases: :py:obj:`airflow.models.base.Base`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Invocation instance of a DAG.
+
+   A DAG run can be created by the scheduler (i.e. scheduled runs), or by an
+   external trigger (i.e. manual runs).
+
+   .. py:property:: stats_tags
+      :type: dict[str, str]
+
+
+   .. py:property:: logical_date
+      :type: datetime.datetime
+
+
+   .. py:property:: state
+
+
+   .. py:property:: is_backfill
+      :type: bool
+
+
+   .. py:attribute:: __tablename__
+      :value: 'dag_run'
+
+      
+
+   .. py:attribute:: id
+
+      
+
+   .. py:attribute:: dag_id
+
+      
+
+   .. py:attribute:: queued_at
+
+      
+
+   .. py:attribute:: execution_date
+
+      
+
+   .. py:attribute:: start_date
+
+      
+
+   .. py:attribute:: end_date
+
+      
+
+   .. py:attribute:: run_id
+
+      
+
+   .. py:attribute:: creating_job_id
+
+      
+
+   .. py:attribute:: external_trigger
+
+      
+
+   .. py:attribute:: run_type
+
+      
+
+   .. py:attribute:: conf
+
+      
+
+   .. py:attribute:: data_interval_start
+
+      
+
+   .. py:attribute:: data_interval_end
+
+      
+
+   .. py:attribute:: last_scheduling_decision
+
+      
+
+   .. py:attribute:: dag_hash
+
+      
+
+   .. py:attribute:: log_template_id
+
+      
+
+   .. py:attribute:: updated_at
+
+      
+
+   .. py:attribute:: clear_number
+
+      
+
+   .. py:attribute:: __table_args__
+      :value: ()
+
+      
+
+   .. py:attribute:: task_instances
+
+      
+
+   .. py:attribute:: dag_model
+
+      
+
+   .. py:attribute:: dag_run_note
+
+      
+
+   .. py:attribute:: note
+
+      
+
+   .. py:attribute:: DEFAULT_DAGRUNS_TO_EXAMINE
+
+      
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: validate_run_id(key, run_id)
+
+
+   .. py:method:: get_state()
+
+
+   .. py:method:: set_state(state)
+
+
+   .. py:method:: refresh_from_db(session = NEW_SESSION)
+
+      Reload the current dagrun from the database.
+
+      :param session: database session
+
+
+   .. py:method:: active_runs_of_dags(dag_ids = None, only_running = False, session = NEW_SESSION)
+      :classmethod:
+
+      Get the number of active dag runs for each dag.
+
+
+   .. py:method:: next_dagruns_to_examine(state, session, max_number = None)
+      :classmethod:
+
+      Return the next DagRuns that the scheduler should attempt to schedule.
+
+      This will return zero or more DagRun rows that are row-level-locked with a "SELECT ... FOR UPDATE"
+      query, you should ensure that any scheduling decisions are made in a single transaction -- as soon as
+      the transaction is committed it will be unlocked.
+
+
+
+   .. py:method:: find(dag_id = None, run_id = None, execution_date = None, state = None, external_trigger = None, no_backfills = False, run_type = None, session = NEW_SESSION, execution_start_date = None, execution_end_date = None)
+      :classmethod:
+
+      Return a set of dag runs for the given search criteria.
+
+      :param dag_id: the dag_id or list of dag_id to find dag runs for
+      :param run_id: defines the run id for this dag run
+      :param run_type: type of DagRun
+      :param execution_date: the execution date
+      :param state: the state of the dag run
+      :param external_trigger: whether this dag run is externally triggered
+      :param no_backfills: return no backfills (True), return all (False).
+          Defaults to False
+      :param session: database session
+      :param execution_start_date: dag run that was executed from this date
+      :param execution_end_date: dag run that was executed until this date
+
+
+   .. py:method:: find_duplicate(dag_id, run_id, execution_date, session = NEW_SESSION)
+      :classmethod:
+
+      Return an existing run for the DAG with a specific run_id or execution_date.
+
+      *None* is returned if no such DAG run is found.
+
+      :param dag_id: the dag_id to find duplicates for
+      :param run_id: defines the run id for this dag run
+      :param execution_date: the execution date
+      :param session: database session
+
+
+   .. py:method:: generate_run_id(run_type, execution_date)
+      :staticmethod:
+
+      Generate Run ID based on Run Type and Execution Date.
+
+
+   .. py:method:: fetch_task_instances(dag_id = None, run_id = None, task_ids = None, state = None, session = NEW_SESSION)
+      :staticmethod:
+
+      Return the task instances for this dag run.
+
+
+   .. py:method:: get_task_instances(state = None, session = NEW_SESSION)
+
+      Returns the task instances for this dag run.
+
+      Redirect to DagRun.fetch_task_instances method.
+      Keep this method because it is widely used across the code.
+
+
+   .. py:method:: get_task_instance(task_id, session = NEW_SESSION, *, map_index = -1)
+
+      Return the task instance specified by task_id for this dag run.
+
+      :param task_id: the task id
+      :param session: Sqlalchemy ORM Session
+
+
+   .. py:method:: fetch_task_instance(dag_id, dag_run_id, task_id, session = NEW_SESSION, map_index = -1)
+      :staticmethod:
+
+      Returns the task instance specified by task_id for this dag run.
+
+      :param dag_id: the DAG id
+      :param dag_run_id: the DAG run id
+      :param task_id: the task id
+      :param session: Sqlalchemy ORM Session
+
+
+   .. py:method:: get_dag()
+
+      Return the Dag associated with this DagRun.
+
+      :return: DAG
+
+
+   .. py:method:: get_previous_dagrun(dag_run, state = None, session = NEW_SESSION)
+      :staticmethod:
+
+      Return the previous DagRun, if there is one.
+
+      :param dag_run: the dag run
+      :param session: SQLAlchemy ORM Session
+      :param state: the dag run state
+
+
+   .. py:method:: get_previous_scheduled_dagrun(dag_run_id, session = NEW_SESSION)
+      :staticmethod:
+
+      Return the previous SCHEDULED DagRun, if there is one.
+
+      :param dag_run_id: the DAG run ID
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: update_state(session = NEW_SESSION, execute_callbacks = True)
+
+      Determine the overall state of the DagRun based on the state of its TaskInstances.
+
+      :param session: Sqlalchemy ORM Session
+      :param execute_callbacks: Should dag callbacks (success/failure, SLA etc.) be invoked
+          directly (default: true) or recorded as a pending request in the ``returned_callback`` property
+      :return: Tuple containing tis that can be scheduled in the current loop & `returned_callback` that
+          needs to be executed
+
+
+   .. py:method:: task_instance_scheduling_decisions(session = NEW_SESSION)
+
+
+   .. py:method:: notify_dagrun_state_changed(msg = '')
+
+
+   .. py:method:: verify_integrity(*, session = NEW_SESSION)
+
+      Verify the DagRun by checking for removed tasks or tasks that are not in the database yet.
+
+      It will set state to removed or add the task if required.
+
+      :missing_indexes: A dictionary of task vs indexes that are missing.
+      :param session: Sqlalchemy ORM Session
+
+
+   .. py:method:: get_latest_runs(session = NEW_SESSION)
+      :classmethod:
+
+      Return the latest DagRun for each DAG.
+
+
+   .. py:method:: schedule_tis(schedulable_tis, session = NEW_SESSION, max_tis_per_query = None)
+
+      Set the given task instances in to the scheduled state.
+
+      Each element of ``schedulable_tis`` should have its ``task`` attribute already set.
+
+      Any EmptyOperator without callbacks or outlets is instead set straight to the success state.
+
+      All the TIs should belong to this DagRun, but this code is in the hot-path, this is not checked -- it
+      is the caller's responsibility to call this function only with TIs from a single dag run.
+
+
+   .. py:method:: get_log_template(*, session = NEW_SESSION)
+
+
+   .. py:method:: get_log_filename_template(*, session = NEW_SESSION)
+
+
+
+.. py:class:: DagRunNote(content, user_id=None)
+
+
+   Bases: :py:obj:`airflow.models.base.Base`
+
+   For storage of arbitrary notes concerning the dagrun instance.
+
+   .. py:attribute:: __tablename__
+      :value: 'dag_run_note'
+
+      
+
+   .. py:attribute:: user_id
+
+      
+
+   .. py:attribute:: dag_run_id
+
+      
+
+   .. py:attribute:: content
+
+      
+
+   .. py:attribute:: created_at
+
+      
+
+   .. py:attribute:: updated_at
+
+      
+
+   .. py:attribute:: dag_run
+
+      
+
+   .. py:attribute:: __table_args__
+      :value: ()
+
+      
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+

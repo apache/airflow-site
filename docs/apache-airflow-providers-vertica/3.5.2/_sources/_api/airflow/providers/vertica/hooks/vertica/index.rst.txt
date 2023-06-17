@@ -1,0 +1,91 @@
+:py:mod:`airflow.providers.vertica.hooks.vertica`
+=================================================
+
+.. py:module:: airflow.providers.vertica.hooks.vertica
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.vertica.hooks.vertica.VerticaHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.vertica.hooks.vertica.vertica_fetch_all_handler
+
+
+
+.. py:function:: vertica_fetch_all_handler(cursor)
+
+   Replace the default DbApiHook fetch_all_handler in order to fix this issue https://github.com/apache/airflow/issues/32993.
+
+   Returned value will not change after the initial call of fetch_all_handler, all the remaining code is here
+   only to make vertica client throws error.
+   With Vertica, if you run the following sql (with split_statements set to false):
+
+   INSERT INTO MyTable (Key, Label) values (1, 'test 1');
+   INSERT INTO MyTable (Key, Label) values (1, 'test 2');
+   INSERT INTO MyTable (Key, Label) values (3, 'test 3');
+
+   each insert will have its own result set and if you don't try to fetch data of those result sets
+   you won't detect error on the second insert.
+
+
+.. py:class:: VerticaHook(*args, schema = None, log_sql = True, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.common.sql.hooks.sql.DbApiHook`
+
+   Interact with Vertica.
+
+   This hook use a customized version of default fetch_all_handler named vertica_fetch_all_handler.
+
+   .. py:attribute:: conn_name_attr
+      :value: 'vertica_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'vertica_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'vertica'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Vertica'
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :value: True
+
+      
+
+   .. py:method:: get_conn()
+
+      Return vertica connection object.
+
+
+   .. py:method:: run(sql: str | Iterable[str], autocommit: bool = ..., parameters: Iterable | Mapping[str, Any] | None = ..., handler: None = ..., split_statements: bool = ..., return_last: bool = ...) -> None
+                  run(sql: str | Iterable[str], autocommit: bool = ..., parameters: Iterable | Mapping[str, Any] | None = ..., handler: Callable[[Any], Any] = ..., split_statements: bool = ..., return_last: bool = ...) -> Any | list[Any]
+
+      Overwrite the common sql run.
+
+      Will automatically replace fetch_all_handler by vertica_fetch_all_handler.
+
+
+

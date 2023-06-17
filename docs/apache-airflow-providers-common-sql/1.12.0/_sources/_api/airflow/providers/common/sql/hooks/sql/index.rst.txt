@@ -1,0 +1,375 @@
+:py:mod:`airflow.providers.common.sql.hooks.sql`
+================================================
+
+.. py:module:: airflow.providers.common.sql.hooks.sql
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.common.sql.hooks.sql.ConnectorProtocol
+   airflow.providers.common.sql.hooks.sql.DbApiHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.common.sql.hooks.sql.return_single_query_results
+   airflow.providers.common.sql.hooks.sql.fetch_all_handler
+   airflow.providers.common.sql.hooks.sql.fetch_one_handler
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.common.sql.hooks.sql.T
+   airflow.providers.common.sql.hooks.sql.SQL_PLACEHOLDERS
+
+
+.. py:data:: T
+
+   
+
+.. py:data:: SQL_PLACEHOLDERS
+
+   
+
+.. py:function:: return_single_query_results(sql, return_last, split_statements)
+
+   Determine when results of single query only should be returned.
+
+   For compatibility reasons, the behaviour of the DBAPIHook is somewhat confusing.
+   In some cases, when multiple queries are run, the return value will be an iterable (list) of results
+   -- one for each query. However, in other cases, when single query is run, the return value will be just
+   the result of that single query without wrapping the results in a list.
+
+   The cases when single query results are returned without wrapping them in a list are as follows:
+
+   a) sql is string and ``return_last`` is True (regardless what ``split_statements`` value is)
+   b) sql is string and ``split_statements`` is False
+
+   In all other cases, the results are wrapped in a list, even if there is only one statement to process.
+   In particular, the return value will be a list of query results in the following circumstances:
+
+   a) when ``sql`` is an iterable of string statements (regardless what ``return_last`` value is)
+   b) when ``sql`` is string, ``split_statements`` is True and ``return_last`` is False
+
+   :param sql: sql to run (either string or list of strings)
+   :param return_last: whether last statement output should only be returned
+   :param split_statements: whether to split string statements.
+   :return: True if the hook should return single query results
+
+
+.. py:function:: fetch_all_handler(cursor)
+
+   Return results for DbApiHook.run().
+
+
+.. py:function:: fetch_one_handler(cursor)
+
+   Return first result for DbApiHook.run().
+
+
+.. py:class:: ConnectorProtocol
+
+
+   Bases: :py:obj:`Protocol`
+
+   Database connection protocol.
+
+   .. py:method:: connect(host, port, username, schema)
+
+      Connect to a database.
+
+      :param host: The database host to connect to.
+      :param port: The database port to connect to.
+      :param username: The database username used for the authentication.
+      :param schema: The database schema to connect to.
+      :return: the authorized connection object.
+
+
+
+.. py:class:: DbApiHook(*args, schema = None, log_sql = True, **kwargs)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Abstract base class for sql hooks.
+
+   When subclassing, maintainers can override the `_make_common_data_structure` method:
+   This method transforms the result of the handler method (typically `cursor.fetchall()`) into
+   objects common across all Hooks derived from this class (tuples). Most of the time, the underlying SQL
+   library already returns tuples from its cursor, and the `_make_common_data_structure` method can be ignored.
+
+   :param schema: Optional DB schema that overrides the schema specified in the connection. Make sure that
+       if you change the schema parameter value in the constructor of the derived Hook, such change
+       should be done before calling the ``DBApiHook.__init__()``.
+   :param log_sql: Whether to log SQL query when it's executed. Defaults to *True*.
+
+   .. py:property:: placeholder
+
+
+   .. py:property:: last_description
+      :type: Sequence[Sequence] | None
+
+
+   .. py:attribute:: conn_name_attr
+      :type: str
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'default_conn_id'
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :value: False
+
+      
+
+   .. py:attribute:: connector
+      :type: ConnectorProtocol | None
+
+      
+
+   .. py:method:: get_conn()
+
+      Return a connection object.
+
+
+   .. py:method:: get_uri()
+
+      Extract the URI from the connection.
+
+      :return: the extracted uri.
+
+
+   .. py:method:: get_sqlalchemy_engine(engine_kwargs=None)
+
+      Get an sqlalchemy_engine object.
+
+      :param engine_kwargs: Kwargs used in :func:`~sqlalchemy.create_engine`.
+      :return: the created engine.
+
+
+   .. py:method:: get_pandas_df(sql, parameters = None, **kwargs)
+
+      Execute the sql and returns a pandas dataframe.
+
+      :param sql: the sql statement to be executed (str) or a list of sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+      :param kwargs: (optional) passed into pandas.io.sql.read_sql method
+
+
+   .. py:method:: get_pandas_df_by_chunks(sql, parameters = None, *, chunksize, **kwargs)
+
+      Execute the sql and return a generator.
+
+      :param sql: the sql statement to be executed (str) or a list of sql statements to execute
+      :param parameters: The parameters to render the SQL query with
+      :param chunksize: number of rows to include in each chunk
+      :param kwargs: (optional) passed into pandas.io.sql.read_sql method
+
+
+   .. py:method:: get_records(sql, parameters = None)
+
+      Execute the sql and return a set of records.
+
+      :param sql: the sql statement to be executed (str) or a list of sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+
+
+   .. py:method:: get_first(sql, parameters = None)
+
+      Execute the sql and return the first resulting row.
+
+      :param sql: the sql statement to be executed (str) or a list of sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+
+
+   .. py:method:: strip_sql_string(sql)
+      :staticmethod:
+
+
+   .. py:method:: split_sql_string(sql)
+      :staticmethod:
+
+      Split string into multiple SQL expressions.
+
+      :param sql: SQL string potentially consisting of multiple expressions
+      :return: list of individual expressions
+
+
+   .. py:method:: run(sql: str | Iterable[str], autocommit: bool = ..., parameters: Iterable | Mapping[str, Any] | None = ..., handler: None = ..., split_statements: bool = ..., return_last: bool = ...) -> None
+                  run(sql: str | Iterable[str], autocommit: bool = ..., parameters: Iterable | Mapping[str, Any] | None = ..., handler: Callable[[Any], T] = ..., split_statements: bool = ..., return_last: bool = ...) -> tuple | list[tuple] | list[list[tuple] | tuple] | None
+
+      Run a command or a list of commands.
+
+      Pass a list of SQL statements to the sql parameter to get them to
+      execute sequentially.
+
+      The method will return either single query results (typically list of rows) or list of those results
+      where each element in the list are results of one of the queries (typically list of list of rows :D)
+
+      For compatibility reasons, the behaviour of the DBAPIHook is somewhat confusing.
+      In some cases, when multiple queries are run, the return value will be an iterable (list) of results
+      -- one for each query. However, in other cases, when single query is run, the return value will
+      be the result of that single query without wrapping the results in a list.
+
+      The cases when single query results are returned without wrapping them in a list are as follows:
+
+      a) sql is string and ``return_last`` is True (regardless what ``split_statements`` value is)
+      b) sql is string and ``split_statements`` is False
+
+      In all other cases, the results are wrapped in a list, even if there is only one statement to process.
+      In particular, the return value will be a list of query results in the following circumstances:
+
+      a) when ``sql`` is an iterable of string statements (regardless what ``return_last`` value is)
+      b) when ``sql`` is string, ``split_statements`` is True and ``return_last`` is False
+
+      After ``run`` is called, you may access the following properties on the hook object:
+
+      * ``descriptions``: an array of cursor descriptions. If ``return_last`` is True, this will be
+        a one-element array containing the cursor ``description`` for the last statement.
+        Otherwise, it will contain the cursor description for each statement executed.
+      * ``last_description``: the description for the last statement executed
+
+      Note that query result will ONLY be actually returned when a handler is provided; if
+      ``handler`` is None, this method will return None.
+
+      Handler is a way to process the rows from cursor (Iterator) into a value that is suitable to be
+      returned to XCom and generally fit in memory.
+
+      You can use pre-defined handles (``fetch_all_handler``, ``fetch_one_handler``) or implement your
+      own handler.
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param autocommit: What to set the connection's autocommit setting to
+          before executing the query.
+      :param parameters: The parameters to render the SQL query with.
+      :param handler: The result handler which is called with the result of each statement.
+      :param split_statements: Whether to split a single SQL string into statements and run separately
+      :param return_last: Whether to return result for only last statement or for all after split
+      :return: if handler provided, returns query results (may be list of results depending on params)
+
+
+   .. py:method:: set_autocommit(conn, autocommit)
+
+      Set the autocommit flag on the connection.
+
+
+   .. py:method:: get_autocommit(conn)
+
+      Get autocommit setting for the provided connection.
+
+      :param conn: Connection to get autocommit setting from.
+      :return: connection autocommit setting. True if ``autocommit`` is set
+          to True on the connection. False if it is either not set, set to
+          False, or the connection does not support auto-commit.
+
+
+   .. py:method:: get_cursor()
+
+      Return a cursor.
+
+
+   .. py:method:: insert_rows(table, rows, target_fields=None, commit_every=1000, replace=False, *, executemany=False, **kwargs)
+
+      Insert a collection of tuples into a table.
+
+      Rows are inserted in chunks, each chunk (of size ``commit_every``) is
+      done in a new transaction.
+
+      :param table: Name of the target table
+      :param rows: The rows to insert into the table
+      :param target_fields: The names of the columns to fill in the table
+      :param commit_every: The maximum number of rows to insert in one
+          transaction. Set to 0 to insert all rows in one transaction.
+      :param replace: Whether to replace instead of insert
+      :param executemany: Insert all rows at once in chunks defined by the commit_every parameter, only
+          works if all rows have same number of column names but leads to better performance
+
+
+   .. py:method:: bulk_dump(table, tmp_file)
+      :abstractmethod:
+
+      Dump a database table into a tab-delimited file.
+
+      :param table: The name of the source table
+      :param tmp_file: The path of the target file
+
+
+   .. py:method:: bulk_load(table, tmp_file)
+      :abstractmethod:
+
+      Load a tab-delimited file into a database table.
+
+      :param table: The name of the target table
+      :param tmp_file: The path of the file to load into the table
+
+
+   .. py:method:: test_connection()
+
+      Tests the connection using db-specific query.
+
+
+   .. py:method:: get_openlineage_database_info(connection)
+
+      Return database specific information needed to generate and parse lineage metadata.
+
+      This includes information helpful for constructing information schema query
+      and creating correct namespace.
+
+      :param connection: Airflow connection to reduce calls of `get_connection` method
+
+
+   .. py:method:: get_openlineage_database_dialect(connection)
+
+      Return database dialect used for SQL parsing.
+
+      For a list of supported dialects check: https://openlineage.io/docs/development/sql#sql-dialects
+
+
+   .. py:method:: get_openlineage_default_schema()
+
+      Return default schema specific to database.
+
+      .. seealso::
+          - :class:`airflow.providers.openlineage.sqlparser.SQLParser`
+
+
+   .. py:method:: get_openlineage_database_specific_lineage(task_instance)
+
+      Return additional database specific lineage, e.g. query execution information.
+
+      This method is called only on completion of the task.
+
+      :param task_instance: this may be used to retrieve additional information
+          that is collected during runtime of the task
+
+
+   .. py:method:: get_openlineage_authority_part(connection, default_port = None)
+      :staticmethod:
+
+      Get authority part from Airflow Connection.
+
+      The authority represents the hostname and port of the connection
+      and conforms OpenLineage naming convention for a number of databases (e.g. MySQL, Postgres, Trino).
+
+      :param default_port: (optional) used if no port parsed from connection URI
+
+
+
