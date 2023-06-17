@@ -1,0 +1,947 @@
+:orphan:
+
+:py:mod:`airflow.models.baseoperator`
+=====================================
+
+.. py:module:: airflow.models.baseoperator
+
+.. autoapi-nested-parse::
+
+   Base operator for all operators.
+
+   :sphinx-autoapi-skip:
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.baseoperator.ExecutorSafeguard
+   airflow.models.baseoperator.BaseOperatorMeta
+   airflow.models.baseoperator.BaseOperator
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.baseoperator.parse_retries
+   airflow.models.baseoperator.coerce_timedelta
+   airflow.models.baseoperator.coerce_resources
+   airflow.models.baseoperator.get_merged_defaults
+   airflow.models.baseoperator.partial
+   airflow.models.baseoperator.chain
+   airflow.models.baseoperator.cross_downstream
+   airflow.models.baseoperator.chain_linear
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.baseoperator.ScheduleInterval
+   airflow.models.baseoperator.TaskPreExecuteHook
+   airflow.models.baseoperator.TaskPostExecuteHook
+   airflow.models.baseoperator.T
+   airflow.models.baseoperator.logger
+   airflow.models.baseoperator.BASEOPERATOR_ARGS_EXPECTED_TYPES
+   airflow.models.baseoperator.Chainable
+
+
+.. py:data:: ScheduleInterval
+
+   
+
+.. py:data:: TaskPreExecuteHook
+
+   
+
+.. py:data:: TaskPostExecuteHook
+
+   
+
+.. py:data:: T
+
+   
+
+.. py:data:: logger
+
+   
+
+.. py:function:: parse_retries(retries)
+
+
+.. py:function:: coerce_timedelta(value, *, key)
+
+
+.. py:function:: coerce_resources(resources)
+
+
+.. py:function:: get_merged_defaults(dag, task_group, task_params, task_default_args)
+
+
+.. py:function:: partial(operator_class, *, task_id, dag = None, task_group = None, start_date = NOTSET, end_date = NOTSET, owner = NOTSET, email = NOTSET, params = None, resources = NOTSET, trigger_rule = NOTSET, depends_on_past = NOTSET, ignore_first_depends_on_past = NOTSET, wait_for_past_depends_before_skipping = NOTSET, wait_for_downstream = NOTSET, retries = NOTSET, queue = NOTSET, pool = NOTSET, pool_slots = NOTSET, execution_timeout = NOTSET, max_retry_delay = NOTSET, retry_delay = NOTSET, retry_exponential_backoff = NOTSET, priority_weight = NOTSET, weight_rule = NOTSET, sla = NOTSET, map_index_template = NOTSET, max_active_tis_per_dag = NOTSET, max_active_tis_per_dagrun = NOTSET, on_execute_callback = NOTSET, on_failure_callback = NOTSET, on_success_callback = NOTSET, on_retry_callback = NOTSET, on_skipped_callback = NOTSET, run_as_user = NOTSET, executor = NOTSET, executor_config = NOTSET, inlets = NOTSET, outlets = NOTSET, doc = NOTSET, doc_md = NOTSET, doc_json = NOTSET, doc_yaml = NOTSET, doc_rst = NOTSET, task_display_name = NOTSET, logger_name = NOTSET, allow_nested_operators = True, **kwargs)
+
+
+.. py:class:: ExecutorSafeguard
+
+
+   The ExecutorSafeguard decorator.
+
+   Checks if the execute method of an operator isn't manually called outside
+   the TaskInstance as we want to avoid bad mixing between decorated and
+   classic operators.
+
+   .. py:attribute:: test_mode
+
+      
+
+   .. py:method:: decorator(func)
+      :classmethod:
+
+
+
+.. py:class:: BaseOperatorMeta
+
+
+   Bases: :py:obj:`abc.ABCMeta`
+
+   Metaclass of BaseOperator.
+
+
+.. py:data:: BASEOPERATOR_ARGS_EXPECTED_TYPES
+
+   
+
+.. py:class:: BaseOperator(task_id, owner = DEFAULT_OWNER, email = None, email_on_retry = conf.getboolean('email', 'default_email_on_retry', fallback=True), email_on_failure = conf.getboolean('email', 'default_email_on_failure', fallback=True), retries = DEFAULT_RETRIES, retry_delay = DEFAULT_RETRY_DELAY, retry_exponential_backoff = False, max_retry_delay = None, start_date = None, end_date = None, depends_on_past = False, ignore_first_depends_on_past = DEFAULT_IGNORE_FIRST_DEPENDS_ON_PAST, wait_for_past_depends_before_skipping = DEFAULT_WAIT_FOR_PAST_DEPENDS_BEFORE_SKIPPING, wait_for_downstream = False, dag = None, params = None, default_args = None, priority_weight = DEFAULT_PRIORITY_WEIGHT, weight_rule = DEFAULT_WEIGHT_RULE, queue = DEFAULT_QUEUE, pool = None, pool_slots = DEFAULT_POOL_SLOTS, sla = None, execution_timeout = DEFAULT_TASK_EXECUTION_TIMEOUT, on_execute_callback = None, on_failure_callback = None, on_success_callback = None, on_retry_callback = None, on_skipped_callback = None, pre_execute = None, post_execute = None, trigger_rule = DEFAULT_TRIGGER_RULE, resources = None, run_as_user = None, task_concurrency = None, map_index_template = None, max_active_tis_per_dag = None, max_active_tis_per_dagrun = None, executor = None, executor_config = None, do_xcom_push = True, multiple_outputs = False, inlets = None, outlets = None, task_group = None, doc = None, doc_md = None, doc_json = None, doc_yaml = None, doc_rst = None, task_display_name = None, logger_name = None, allow_nested_operators = True, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.abstractoperator.AbstractOperator`
+
+   Abstract base class for all operators.
+
+   Since operators create objects that become nodes in the DAG, BaseOperator
+   contains many recursive methods for DAG crawling behavior. To derive from
+   this class, you are expected to override the constructor and the 'execute'
+   method.
+
+   Operators derived from this class should perform or trigger certain tasks
+   synchronously (wait for completion). Example of operators could be an
+   operator that runs a Pig job (PigOperator), a sensor operator that
+   waits for a partition to land in Hive (HiveSensorOperator), or one that
+   moves data from Hive to MySQL (Hive2MySqlOperator). Instances of these
+   operators (tasks) target specific operations, running specific scripts,
+   functions or data transfers.
+
+   This class is abstract and shouldn't be instantiated. Instantiating a
+   class derived from this one results in the creation of a task object,
+   which ultimately becomes a node in DAG objects. Task dependencies should
+   be set by using the set_upstream and/or set_downstream methods.
+
+   :param task_id: a unique, meaningful id for the task
+   :param owner: the owner of the task. Using a meaningful description
+       (e.g. user/person/team/role name) to clarify ownership is recommended.
+   :param email: the 'to' email address(es) used in email alerts. This can be a
+       single email or multiple ones. Multiple addresses can be specified as a
+       comma or semicolon separated string or by passing a list of strings.
+   :param email_on_retry: Indicates whether email alerts should be sent when a
+       task is retried
+   :param email_on_failure: Indicates whether email alerts should be sent when
+       a task failed
+   :param retries: the number of retries that should be performed before
+       failing the task
+   :param retry_delay: delay between retries, can be set as ``timedelta`` or
+       ``float`` seconds, which will be converted into ``timedelta``,
+       the default is ``timedelta(seconds=300)``.
+   :param retry_exponential_backoff: allow progressively longer waits between
+       retries by using exponential backoff algorithm on retry delay (delay
+       will be converted into seconds)
+   :param max_retry_delay: maximum delay interval between retries, can be set as
+       ``timedelta`` or ``float`` seconds, which will be converted into ``timedelta``.
+   :param start_date: The ``start_date`` for the task, determines
+       the ``execution_date`` for the first task instance. The best practice
+       is to have the start_date rounded
+       to your DAG's ``schedule_interval``. Daily jobs have their start_date
+       some day at 00:00:00, hourly jobs have their start_date at 00:00
+       of a specific hour. Note that Airflow simply looks at the latest
+       ``execution_date`` and adds the ``schedule_interval`` to determine
+       the next ``execution_date``. It is also very important
+       to note that different tasks' dependencies
+       need to line up in time. If task A depends on task B and their
+       start_date are offset in a way that their execution_date don't line
+       up, A's dependencies will never be met. If you are looking to delay
+       a task, for example running a daily task at 2AM, look into the
+       ``TimeSensor`` and ``TimeDeltaSensor``. We advise against using
+       dynamic ``start_date`` and recommend using fixed ones. Read the
+       FAQ entry about start_date for more information.
+   :param end_date: if specified, the scheduler won't go beyond this date
+   :param depends_on_past: when set to true, task instances will run
+       sequentially and only if the previous instance has succeeded or has been skipped.
+       The task instance for the start_date is allowed to run.
+   :param wait_for_past_depends_before_skipping: when set to true, if the task instance
+       should be marked as skipped, and depends_on_past is true, the ti will stay on None state
+       waiting the task of the previous run
+   :param wait_for_downstream: when set to true, an instance of task
+       X will wait for tasks immediately downstream of the previous instance
+       of task X to finish successfully or be skipped before it runs. This is useful if the
+       different instances of a task X alter the same asset, and this asset
+       is used by tasks downstream of task X. Note that depends_on_past
+       is forced to True wherever wait_for_downstream is used. Also note that
+       only tasks *immediately* downstream of the previous task instance are waited
+       for; the statuses of any tasks further downstream are ignored.
+   :param dag: a reference to the dag the task is attached to (if any)
+   :param priority_weight: priority weight of this task against other task.
+       This allows the executor to trigger higher priority tasks before
+       others when things get backed up. Set priority_weight as a higher
+       number for more important tasks.
+   :param weight_rule: weighting method used for the effective total
+       priority weight of the task. Options are:
+       ``{ downstream | upstream | absolute }`` default is ``downstream``
+       When set to ``downstream`` the effective weight of the task is the
+       aggregate sum of all downstream descendants. As a result, upstream
+       tasks will have higher weight and will be scheduled more aggressively
+       when using positive weight values. This is useful when you have
+       multiple dag run instances and desire to have all upstream tasks to
+       complete for all runs before each dag can continue processing
+       downstream tasks. When set to ``upstream`` the effective weight is the
+       aggregate sum of all upstream ancestors. This is the opposite where
+       downstream tasks have higher weight and will be scheduled more
+       aggressively when using positive weight values. This is useful when you
+       have multiple dag run instances and prefer to have each dag complete
+       before starting upstream tasks of other dags.  When set to
+       ``absolute``, the effective weight is the exact ``priority_weight``
+       specified without additional weighting. You may want to do this when
+       you know exactly what priority weight each task should have.
+       Additionally, when set to ``absolute``, there is bonus effect of
+       significantly speeding up the task creation process as for very large
+       DAGs. Options can be set as string or using the constants defined in
+       the static class ``airflow.utils.WeightRule``
+       |experimental|
+       Since 2.9.0, Airflow allows to define custom priority weight strategy,
+       by creating a subclass of
+       ``airflow.task.priority_strategy.PriorityWeightStrategy`` and registering
+       in a plugin, then providing the class path or the class instance via
+       ``weight_rule`` parameter. The custom priority weight strategy will be
+       used to calculate the effective total priority weight of the task instance.
+   :param queue: which queue to target when running this job. Not
+       all executors implement queue management, the CeleryExecutor
+       does support targeting specific queues.
+   :param pool: the slot pool this task should run in, slot pools are a
+       way to limit concurrency for certain tasks
+   :param pool_slots: the number of pool slots this task should use (>= 1)
+       Values less than 1 are not allowed.
+   :param sla: time by which the job is expected to succeed. Note that
+       this represents the ``timedelta`` after the period is closed. For
+       example if you set an SLA of 1 hour, the scheduler would send an email
+       soon after 1:00AM on the ``2016-01-02`` if the ``2016-01-01`` instance
+       has not succeeded yet.
+       The scheduler pays special attention for jobs with an SLA and
+       sends alert
+       emails for SLA misses. SLA misses are also recorded in the database
+       for future reference. All tasks that share the same SLA time
+       get bundled in a single email, sent soon after that time. SLA
+       notification are sent once and only once for each task instance.
+   :param execution_timeout: max time allowed for the execution of
+       this task instance, if it goes beyond it will raise and fail.
+   :param on_failure_callback: a function or list of functions to be called when a task instance
+       of this task fails. a context dictionary is passed as a single
+       parameter to this function. Context contains references to related
+       objects to the task instance and is documented under the macros
+       section of the API.
+   :param on_execute_callback: much like the ``on_failure_callback`` except
+       that it is executed right before the task is executed.
+   :param on_retry_callback: much like the ``on_failure_callback`` except
+       that it is executed when retries occur.
+   :param on_success_callback: much like the ``on_failure_callback`` except
+       that it is executed when the task succeeds.
+   :param on_skipped_callback: much like the ``on_failure_callback`` except
+       that it is executed when skipped occur; this callback will be called only if AirflowSkipException get raised.
+       Explicitly it is NOT called if a task is not started to be executed because of a preceding branching
+       decision in the DAG or a trigger rule which causes execution to skip so that the task execution
+       is never scheduled.
+   :param pre_execute: a function to be called immediately before task
+       execution, receiving a context dictionary; raising an exception will
+       prevent the task from being executed.
+
+       |experimental|
+   :param post_execute: a function to be called immediately after task
+       execution, receiving a context dictionary and task result; raising an
+       exception will prevent the task from succeeding.
+
+       |experimental|
+   :param trigger_rule: defines the rule by which dependencies are applied
+       for the task to get triggered. Options are:
+       ``{ all_success | all_failed | all_done | all_skipped | one_success | one_done |
+       one_failed | none_failed | none_failed_min_one_success | none_skipped | always}``
+       default is ``all_success``. Options can be set as string or
+       using the constants defined in the static class
+       ``airflow.utils.TriggerRule``
+   :param resources: A map of resource parameter names (the argument names of the
+       Resources constructor) to their values.
+   :param run_as_user: unix username to impersonate while running the task
+   :param max_active_tis_per_dag: When set, a task will be able to limit the concurrent
+       runs across execution_dates.
+   :param max_active_tis_per_dagrun: When set, a task will be able to limit the concurrent
+       task instances per DAG run.
+   :param executor: Which executor to target when running this task. NOT YET SUPPORTED
+   :param executor_config: Additional task-level configuration parameters that are
+       interpreted by a specific executor. Parameters are namespaced by the name of
+       executor.
+
+       **Example**: to run this task in a specific docker container through
+       the KubernetesExecutor ::
+
+           MyOperator(..., executor_config={"KubernetesExecutor": {"image": "myCustomDockerImage"}})
+
+   :param do_xcom_push: if True, an XCom is pushed containing the Operator's
+       result
+   :param multiple_outputs: if True and do_xcom_push is True, pushes multiple XComs, one for each
+       key in the returned dictionary result. If False and do_xcom_push is True, pushes a single XCom.
+   :param task_group: The TaskGroup to which the task should belong. This is typically provided when not
+       using a TaskGroup as a context manager.
+   :param doc: Add documentation or notes to your Task objects that is visible in
+       Task Instance details View in the Webserver
+   :param doc_md: Add documentation (in Markdown format) or notes to your Task objects
+       that is visible in Task Instance details View in the Webserver
+   :param doc_rst: Add documentation (in RST format) or notes to your Task objects
+       that is visible in Task Instance details View in the Webserver
+   :param doc_json: Add documentation (in JSON format) or notes to your Task objects
+       that is visible in Task Instance details View in the Webserver
+   :param doc_yaml: Add documentation (in YAML format) or notes to your Task objects
+       that is visible in Task Instance details View in the Webserver
+   :param task_display_name: The display name of the task which appears on the UI.
+   :param logger_name: Name of the logger used by the Operator to emit logs.
+       If set to `None` (default), the logger name will fall back to
+       `airflow.task.operators.{class.__module__}.{class.__name__}` (e.g. SimpleHttpOperator will have
+       *airflow.task.operators.airflow.providers.http.operators.http.SimpleHttpOperator* as logger).
+   :param allow_nested_operators: if True, when an operator is executed within another one a warning message
+       will be logged. If False, then an exception will be raised if the operator is badly used (e.g. nested
+       within another one). In future releases of Airflow this parameter will be removed and an exception
+       will always be thrown when operators are nested within each other (default is True).
+
+       **Example**: example of a bad operator mixin usage::
+
+           @task(provide_context=True)
+           def say_hello_world(**context):
+               hello_world_task = BashOperator(
+                   task_id="hello_world_task",
+                   bash_command="python -c \"print('Hello, world!')\"",
+                   dag=dag,
+               )
+               hello_world_task.execute(context)
+
+   .. py:property:: dag
+      :type: airflow.models.dag.DAG
+
+      Returns the Operator's DAG if set, otherwise raises an error.
+
+
+   .. py:property:: task_display_name
+      :type: str
+
+
+   .. py:property:: operator_class
+      :type: type[BaseOperator]
+
+
+   .. py:property:: task_type
+      :type: str
+
+      @property: type of the task.
+
+
+   .. py:property:: operator_name
+      :type: str
+
+      @property: use a more friendly display name for the operator, if set.
+
+
+   .. py:property:: roots
+      :type: list[BaseOperator]
+
+      Required by DAGNode.
+
+
+   .. py:property:: leaves
+      :type: list[BaseOperator]
+
+      Required by DAGNode.
+
+
+   .. py:property:: output
+      :type: airflow.models.xcom_arg.XComArg
+
+      Returns reference to XCom pushed by current operator.
+
+
+   .. py:property:: inherits_from_empty_operator
+
+      Used to determine if an Operator is inherited from EmptyOperator.
+
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ()
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields_renderers
+      :type: dict[str, str]
+
+      
+
+   .. py:attribute:: ui_color
+      :type: str
+      :value: '#fff'
+
+      
+
+   .. py:attribute:: ui_fgcolor
+      :type: str
+      :value: '#000'
+
+      
+
+   .. py:attribute:: pool
+      :type: str
+      :value: ''
+
+      
+
+   .. py:attribute:: shallow_copy_attrs
+      :type: Sequence[str]
+      :value: ()
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :type: Collection[airflow.models.baseoperatorlink.BaseOperatorLink]
+      :value: ()
+
+      
+
+   .. py:attribute:: partial
+      :type: Callable[Ellipsis, airflow.models.mappedoperator.OperatorPartial]
+
+      
+
+   .. py:attribute:: supports_lineage
+      :value: False
+
+      
+
+   .. py:attribute:: task_group
+      :type: airflow.utils.task_group.TaskGroup | None
+
+      
+
+   .. py:attribute:: subdag
+      :type: airflow.models.dag.DAG | None
+
+      
+
+   .. py:attribute:: start_date
+      :type: pendulum.DateTime | None
+
+      
+
+   .. py:attribute:: end_date
+      :type: pendulum.DateTime | None
+
+      
+
+   .. py:attribute:: start_trigger_args
+      :type: airflow.triggers.base.StartTriggerArgs | None
+
+      
+
+   .. py:attribute:: start_from_trigger
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: deps
+      :type: frozenset[airflow.ti_deps.deps.base_ti_dep.BaseTIDep]
+
+      Returns the set of dependencies for the operator. These differ from execution
+      context dependencies in that they are specific to tasks and can be
+      extended/overridden by subclasses.
+
+
+   .. py:method:: __eq__(other)
+
+      Return self==value.
+
+
+   .. py:method:: __ne__(other)
+
+      Return self!=value.
+
+
+   .. py:method:: __hash__()
+
+      Return hash(self).
+
+
+   .. py:method:: __or__(other)
+
+      Return [This Operator] | [Operator].
+
+      The inlets of other will be set to pick up the outlets from this operator.
+      Other will be set as a downstream task of this operator.
+
+
+   .. py:method:: __gt__(other)
+
+      Return [Operator] > [Outlet].
+
+      If other is an attr annotated object it is set as an outlet of this Operator.
+
+
+   .. py:method:: __lt__(other)
+
+      Return [Inlet] > [Operator] or [Operator] < [Inlet].
+
+      If other is an attr annotated object it is set as an inlet to this operator.
+
+
+   .. py:method:: __setattr__(key, value)
+
+      Implement setattr(self, name, value).
+
+
+   .. py:method:: add_inlets(inlets)
+
+      Set inlets to this operator.
+
+
+   .. py:method:: add_outlets(outlets)
+
+      Define the outlets of this operator.
+
+
+   .. py:method:: get_dag()
+
+
+   .. py:method:: has_dag()
+
+      Return True if the Operator has been assigned to a DAG.
+
+
+   .. py:method:: prepare_for_execution()
+
+      Lock task for execution to disable custom action in ``__setattr__`` and return a copy.
+
+
+   .. py:method:: set_xcomargs_dependencies()
+
+      Resolve upstream dependencies of a task.
+
+      In this way passing an ``XComArg`` as value for a template field
+      will result in creating upstream relation between two tasks.
+
+      **Example**: ::
+
+          with DAG(...):
+              generate_content = GenerateContentOperator(task_id="generate_content")
+              send_email = EmailOperator(..., html_content=generate_content.output)
+
+          # This is equivalent to
+          with DAG(...):
+              generate_content = GenerateContentOperator(task_id="generate_content")
+              send_email = EmailOperator(..., html_content="{{ task_instance.xcom_pull('generate_content') }}")
+              generate_content >> send_email
+
+
+
+   .. py:method:: pre_execute(context)
+
+      Execute right before self.execute() is called.
+
+
+   .. py:method:: execute(context)
+      :abstractmethod:
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: post_execute(context, result = None)
+
+      Execute right after self.execute() is called.
+
+      It is passed the execution context and any results returned by the operator.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance gets killed.
+
+      Any use of the threading, subprocess or multiprocessing module within an
+      operator needs to be cleaned up, or it will leave ghost processes behind.
+
+
+   .. py:method:: __deepcopy__(memo)
+
+
+   .. py:method:: __getstate__()
+
+
+   .. py:method:: __setstate__(state)
+
+
+   .. py:method:: render_template_fields(context, jinja_env = None)
+
+      Template all attributes listed in *self.template_fields*.
+
+      This mutates the attributes in-place and is irreversible.
+
+      :param context: Context dict with values to apply on content.
+      :param jinja_env: Jinja's environment to use for rendering.
+
+
+   .. py:method:: clear(start_date = None, end_date = None, upstream = False, downstream = False, session = NEW_SESSION)
+
+      Clear the state of task instances associated with the task, following the parameters specified.
+
+
+   .. py:method:: get_task_instances(start_date = None, end_date = None, session = NEW_SESSION)
+
+      Get task instances related to this task for a specific date range.
+
+
+   .. py:method:: run(start_date = None, end_date = None, ignore_first_depends_on_past = True, wait_for_past_depends_before_skipping = False, ignore_ti_state = False, mark_success = False, test_mode = False, session = NEW_SESSION)
+
+      Run a set of task instances for a date range.
+
+
+   .. py:method:: dry_run()
+
+      Perform dry run for the operator - just render template fields.
+
+
+   .. py:method:: get_direct_relatives(upstream = False)
+
+      Get list of the direct relatives to the current task, upstream or downstream.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: xcom_push(context, key, value, execution_date = None)
+      :staticmethod:
+
+      Make an XCom available for tasks to pull.
+
+      :param context: Execution Context Dictionary
+      :param key: A key for the XCom
+      :param value: A value for the XCom. The value is pickled and stored
+          in the database.
+      :param execution_date: if provided, the XCom will not be visible until
+          this date. This can be used, for example, to send a message to a
+          task on a future date without it being immediately visible.
+
+
+   .. py:method:: xcom_pull(context, task_ids = None, dag_id = None, key = XCOM_RETURN_KEY, include_prior_dates = None, session = NEW_SESSION)
+      :staticmethod:
+
+      Pull XComs that optionally meet certain criteria.
+
+      The default value for `key` limits the search to XComs
+      that were returned by other tasks (as opposed to those that were pushed
+      manually). To remove this filter, pass key=None (or any desired value).
+
+      If a single task_id string is provided, the result is the value of the
+      most recent matching XCom from that task_id. If multiple task_ids are
+      provided, a tuple of matching values is returned. None is returned
+      whenever no matches are found.
+
+      :param context: Execution Context Dictionary
+      :param key: A key for the XCom. If provided, only XComs with matching
+          keys will be returned. The default key is 'return_value', also
+          available as a constant XCOM_RETURN_KEY. This key is automatically
+          given to XComs returned by tasks (as opposed to being pushed
+          manually). To remove the filter, pass key=None.
+      :param task_ids: Only XComs from tasks with matching ids will be
+          pulled. Can pass None to remove the filter.
+      :param dag_id: If provided, only pulls XComs from this DAG.
+          If None (default), the DAG of the calling task is used.
+      :param include_prior_dates: If False, only XComs from the current
+          execution_date are returned. If True, XComs from previous dates
+          are returned as well.
+
+
+   .. py:method:: get_serialized_fields()
+      :classmethod:
+
+      Stringified DAGs and operators contain exactly these fields.
+
+
+   .. py:method:: serialize_for_task_group()
+
+      Serialize; required by DAGNode.
+
+
+   .. py:method:: defer(*, trigger, method_name, kwargs = None, timeout = None)
+
+      Mark this Operator "deferred", suspending its execution until the provided trigger fires an event.
+
+      This is achieved by raising a special exception (TaskDeferred)
+      which is caught in the main _execute_task wrapper. Triggers can send execution back to task or end
+      the task instance directly. If the trigger will end the task instance itself, ``method_name`` should
+      be None; otherwise, provide the name of the method that should be used when resuming execution in
+      the task.
+
+
+   .. py:method:: resume_execution(next_method, next_kwargs, context)
+
+      Call this method when a deferred task is resumed.
+
+
+
+.. py:data:: Chainable
+
+   
+
+.. py:function:: chain(*tasks)
+
+   Given a number of tasks, builds a dependency chain.
+
+   This function accepts values of BaseOperator (aka tasks), EdgeModifiers (aka Labels), XComArg, TaskGroups,
+   or lists containing any mix of these types (or a mix in the same list). If you want to chain between two
+   lists you must ensure they have the same length.
+
+   Using classic operators/sensors:
+
+   .. code-block:: python
+
+       chain(t1, [t2, t3], [t4, t5], t6)
+
+   is equivalent to::
+
+         / -> t2 -> t4 \
+       t1               -> t6
+         \ -> t3 -> t5 /
+
+   .. code-block:: python
+
+       t1.set_downstream(t2)
+       t1.set_downstream(t3)
+       t2.set_downstream(t4)
+       t3.set_downstream(t5)
+       t4.set_downstream(t6)
+       t5.set_downstream(t6)
+
+   Using task-decorated functions aka XComArgs:
+
+   .. code-block:: python
+
+       chain(x1(), [x2(), x3()], [x4(), x5()], x6())
+
+   is equivalent to::
+
+         / -> x2 -> x4 \
+       x1               -> x6
+         \ -> x3 -> x5 /
+
+   .. code-block:: python
+
+       x1 = x1()
+       x2 = x2()
+       x3 = x3()
+       x4 = x4()
+       x5 = x5()
+       x6 = x6()
+       x1.set_downstream(x2)
+       x1.set_downstream(x3)
+       x2.set_downstream(x4)
+       x3.set_downstream(x5)
+       x4.set_downstream(x6)
+       x5.set_downstream(x6)
+
+   Using TaskGroups:
+
+   .. code-block:: python
+
+       chain(t1, task_group1, task_group2, t2)
+
+       t1.set_downstream(task_group1)
+       task_group1.set_downstream(task_group2)
+       task_group2.set_downstream(t2)
+
+
+   It is also possible to mix between classic operator/sensor, EdgeModifiers, XComArg, and TaskGroups:
+
+   .. code-block:: python
+
+       chain(t1, [Label("branch one"), Label("branch two")], [x1(), x2()], task_group1, x3())
+
+   is equivalent to::
+
+         / "branch one" -> x1 \
+       t1                      -> task_group1 -> x3
+         \ "branch two" -> x2 /
+
+   .. code-block:: python
+
+       x1 = x1()
+       x2 = x2()
+       x3 = x3()
+       label1 = Label("branch one")
+       label2 = Label("branch two")
+       t1.set_downstream(label1)
+       label1.set_downstream(x1)
+       t2.set_downstream(label2)
+       label2.set_downstream(x2)
+       x1.set_downstream(task_group1)
+       x2.set_downstream(task_group1)
+       task_group1.set_downstream(x3)
+
+       # or
+
+       x1 = x1()
+       x2 = x2()
+       x3 = x3()
+       t1.set_downstream(x1, edge_modifier=Label("branch one"))
+       t1.set_downstream(x2, edge_modifier=Label("branch two"))
+       x1.set_downstream(task_group1)
+       x2.set_downstream(task_group1)
+       task_group1.set_downstream(x3)
+
+
+   :param tasks: Individual and/or list of tasks, EdgeModifiers, XComArgs, or TaskGroups to set dependencies
+
+
+.. py:function:: cross_downstream(from_tasks, to_tasks)
+
+   Set downstream dependencies for all tasks in from_tasks to all tasks in to_tasks.
+
+   Using classic operators/sensors:
+
+   .. code-block:: python
+
+       cross_downstream(from_tasks=[t1, t2, t3], to_tasks=[t4, t5, t6])
+
+   is equivalent to::
+
+       t1 ---> t4
+          \ /
+       t2 -X -> t5
+          / \
+       t3 ---> t6
+
+   .. code-block:: python
+
+       t1.set_downstream(t4)
+       t1.set_downstream(t5)
+       t1.set_downstream(t6)
+       t2.set_downstream(t4)
+       t2.set_downstream(t5)
+       t2.set_downstream(t6)
+       t3.set_downstream(t4)
+       t3.set_downstream(t5)
+       t3.set_downstream(t6)
+
+   Using task-decorated functions aka XComArgs:
+
+   .. code-block:: python
+
+       cross_downstream(from_tasks=[x1(), x2(), x3()], to_tasks=[x4(), x5(), x6()])
+
+   is equivalent to::
+
+       x1 ---> x4
+          \ /
+       x2 -X -> x5
+          / \
+       x3 ---> x6
+
+   .. code-block:: python
+
+       x1 = x1()
+       x2 = x2()
+       x3 = x3()
+       x4 = x4()
+       x5 = x5()
+       x6 = x6()
+       x1.set_downstream(x4)
+       x1.set_downstream(x5)
+       x1.set_downstream(x6)
+       x2.set_downstream(x4)
+       x2.set_downstream(x5)
+       x2.set_downstream(x6)
+       x3.set_downstream(x4)
+       x3.set_downstream(x5)
+       x3.set_downstream(x6)
+
+   It is also possible to mix between classic operator/sensor and XComArg tasks:
+
+   .. code-block:: python
+
+       cross_downstream(from_tasks=[t1, x2(), t3], to_tasks=[x1(), t2, x3()])
+
+   is equivalent to::
+
+       t1 ---> x1
+          \ /
+       x2 -X -> t2
+          / \
+       t3 ---> x3
+
+   .. code-block:: python
+
+       x1 = x1()
+       x2 = x2()
+       x3 = x3()
+       t1.set_downstream(x1)
+       t1.set_downstream(t2)
+       t1.set_downstream(x3)
+       x2.set_downstream(x1)
+       x2.set_downstream(t2)
+       x2.set_downstream(x3)
+       t3.set_downstream(x1)
+       t3.set_downstream(t2)
+       t3.set_downstream(x3)
+
+   :param from_tasks: List of tasks or XComArgs to start from.
+   :param to_tasks: List of tasks or XComArgs to set as downstream dependencies.
+
+
+.. py:function:: chain_linear(*elements)
+
+   Simplify task dependency definition.
+
+   E.g.: suppose you want precedence like so::
+
+           ╭─op2─╮ ╭─op4─╮
+       op1─┤     ├─├─op5─┤─op7
+           ╰-op3─╯ ╰-op6─╯
+
+   Then you can accomplish like so::
+
+       chain_linear(op1, [op2, op3], [op4, op5, op6], op7)
+
+   :param elements: a list of operators / lists of operators
+
+

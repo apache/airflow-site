@@ -1,0 +1,139 @@
+:py:mod:`airflow.providers.google.cloud.openlineage.utils`
+==========================================================
+
+.. py:module:: airflow.providers.google.cloud.openlineage.utils
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.openlineage.utils.BigQueryJobRunFacet
+   airflow.providers.google.cloud.openlineage.utils.BigQueryErrorRunFacet
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.openlineage.utils.get_facets_from_bq_table
+   airflow.providers.google.cloud.openlineage.utils.get_identity_column_lineage_facet
+   airflow.providers.google.cloud.openlineage.utils.get_from_nullable_chain
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.openlineage.utils.BIGQUERY_NAMESPACE
+   airflow.providers.google.cloud.openlineage.utils.BIGQUERY_URI
+
+
+.. py:data:: BIGQUERY_NAMESPACE
+   :value: 'bigquery'
+
+   
+
+.. py:data:: BIGQUERY_URI
+   :value: 'bigquery'
+
+   
+
+.. py:function:: get_facets_from_bq_table(table)
+
+   Get facets from BigQuery table object.
+
+
+.. py:function:: get_identity_column_lineage_facet(field_names, input_datasets)
+
+   Get column lineage facet.
+
+   Simple lineage will be created, where each source column corresponds to single destination column
+   in each input dataset and there are no transformations made.
+
+
+.. py:class:: BigQueryJobRunFacet
+
+
+   Bases: :py:obj:`openlineage.client.facet.BaseFacet`
+
+   Facet that represents relevant statistics of bigquery run.
+
+   This facet is used to provide statistics about bigquery run.
+
+   :param cached: BigQuery caches query results. Rest of the statistics will not be provided for cached queries.
+   :param billedBytes: How many bytes BigQuery bills for.
+   :param properties: Full property tree of BigQUery run.
+
+   .. py:attribute:: cached
+      :type: bool
+
+      
+
+   .. py:attribute:: billedBytes
+      :type: int | None
+
+      
+
+   .. py:attribute:: properties
+      :type: str | None
+
+      
+
+
+.. py:class:: BigQueryErrorRunFacet
+
+
+   Bases: :py:obj:`openlineage.client.facet.BaseFacet`
+
+   Represents errors that can happen during execution of BigqueryExtractor.
+
+   :param clientError: represents errors originating in bigquery client
+   :param parserError: represents errors that happened during parsing SQL provided to bigquery
+
+   .. py:attribute:: clientError
+      :type: str | None
+
+      
+
+   .. py:attribute:: parserError
+      :type: str | None
+
+      
+
+
+.. py:function:: get_from_nullable_chain(source, chain)
+
+   Get object from nested structure of objects, where it's not guaranteed that all keys in the nested structure exist.
+
+   Intended to replace chain of `dict.get()` statements.
+
+   Example usage:
+
+   .. code-block:: python
+
+       if (
+           not job._properties.get("statistics")
+           or not job._properties.get("statistics").get("query")
+           or not job._properties.get("statistics").get("query").get("referencedTables")
+       ):
+           return None
+       result = job._properties.get("statistics").get("query").get("referencedTables")
+
+   becomes:
+
+   .. code-block:: python
+
+       result = get_from_nullable_chain(properties, ["statistics", "query", "queryPlan"])
+       if not result:
+           return None
+
+

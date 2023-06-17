@@ -1,0 +1,137 @@
+:py:mod:`airflow.providers.microsoft.azure.transfers.sftp_to_wasb`
+==================================================================
+
+.. py:module:: airflow.providers.microsoft.azure.transfers.sftp_to_wasb
+
+.. autoapi-nested-parse::
+
+   This module contains SFTP to Azure Blob Storage operator.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.transfers.sftp_to_wasb.SFTPToWasbOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.transfers.sftp_to_wasb.WILDCARD
+   airflow.providers.microsoft.azure.transfers.sftp_to_wasb.SftpFile
+
+
+.. py:data:: WILDCARD
+   :annotation: = *
+
+   
+
+.. py:data:: SftpFile
+   
+
+   
+
+.. py:class:: SFTPToWasbOperator(*, sftp_source_path: str, container_name: str, blob_prefix: str = '', sftp_conn_id: str = 'sftp_default', wasb_conn_id: str = 'wasb_default', load_options: Optional[Dict] = None, move_object: bool = False, wasb_overwrite_object: bool = False, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Transfer files to Azure Blob Storage from SFTP server.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:SFTPToWasbOperator`
+
+   :param sftp_source_path: The sftp remote path. This is the specified file path
+       for downloading the single file or multiple files from the SFTP server.
+       You can use only one wildcard within your path. The wildcard can appear
+       inside the path or at the end of the path.
+   :type sftp_source_path: str
+   :param container_name: Name of the container.
+   :type container_name: str
+   :param blob_prefix: Prefix to name a blob.
+   :type blob_prefix: str
+   :param sftp_conn_id: The sftp connection id. The name or identifier for
+       establishing a connection to the SFTP server.
+   :type sftp_conn_id: str
+   :param wasb_conn_id: Reference to the wasb connection.
+   :type wasb_conn_id: str
+   :param load_options: Optional keyword arguments that
+       ``WasbHook.load_file()`` takes.
+   :type load_options: dict
+   :param move_object: When move object is True, the object is moved instead
+       of copied to the new location. This is the equivalent of a mv command
+       as opposed to a cp command.
+   :param wasb_overwrite_object: Whether the blob to be uploaded
+       should overwrite the current data.
+       When wasb_overwrite_object is True, it will overwrite the existing data.
+       If set to False, the operation might fail with
+       ResourceExistsError in case a blob object already exists.
+   :type move_object: bool
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['sftp_source_path', 'container_name', 'blob_prefix']
+
+      
+
+   .. py:method:: dry_run(self) -> None
+
+      Performs dry run for the operator - just render template fields.
+
+
+   .. py:method:: execute(self, context: airflow.utils.context.Context) -> None
+
+      Upload a file from SFTP to Azure Blob Storage.
+
+
+   .. py:method:: get_sftp_files_map(self) -> List[SftpFile]
+
+      Get SFTP files from the source path, it may use a WILDCARD to this end.
+
+
+   .. py:method:: get_tree_behavior(self) -> Tuple[str, Optional[str], Optional[str]]
+
+      Extracts from source path the tree behavior to interact with the remote folder
+
+
+   .. py:method:: check_wildcards_limit(self) -> None
+
+      Check if there are multiple wildcards used in the SFTP source path.
+
+
+   .. py:method:: source_path_contains_wildcard(self) -> bool
+      :property:
+
+      Checks if the SFTP source path contains a wildcard.
+
+
+   .. py:method:: sftp_hook(self) -> airflow.providers.sftp.hooks.sftp.SFTPHook
+
+      Property of sftp hook to be re-used.
+
+
+   .. py:method:: get_full_path_blob(self, file: str) -> str
+
+      Get a blob name based on the previous name and a blob_prefix variable
+
+
+   .. py:method:: copy_files_to_wasb(self, sftp_files: List[SftpFile]) -> List[str]
+
+      Upload a list of files from sftp_files to Azure Blob Storage with a new Blob Name.
+
+
+   .. py:method:: delete_files(self, uploaded_files: List[str]) -> None
+
+      Delete files at SFTP which have been moved to Azure Blob Storage.
+
+
+
