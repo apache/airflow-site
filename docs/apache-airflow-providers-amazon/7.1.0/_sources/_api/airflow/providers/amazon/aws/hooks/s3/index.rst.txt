@@ -1,0 +1,464 @@
+:py:mod:`airflow.providers.amazon.aws.hooks.s3`
+===============================================
+
+.. py:module:: airflow.providers.amazon.aws.hooks.s3
+
+.. autoapi-nested-parse::
+
+   Interact with AWS S3, using the boto3 library.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.s3.S3Hook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.s3.provide_bucket_name
+   airflow.providers.amazon.aws.hooks.s3.unify_bucket_name_and_key
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.s3.T
+   airflow.providers.amazon.aws.hooks.s3.logger
+
+
+.. py:data:: T
+   
+
+   
+
+.. py:data:: logger
+   
+
+   
+
+.. py:function:: provide_bucket_name(func)
+
+   Function decorator that provides a bucket name taken from the connection
+   in case no bucket name has been passed to the function.
+
+
+.. py:function:: unify_bucket_name_and_key(func)
+
+   Function decorator that unifies bucket name and key taken from the key
+   in case no bucket name and at least a key has been passed to the function.
+
+
+.. py:class:: S3Hook(aws_conn_id = AwsBaseHook.default_conn_name, transfer_config_args = None, extra_args = None, *args, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   Interact with AWS S3, using the boto3 library.
+
+   :param transfer_config_args: Configuration object for managed S3 transfers.
+   :param extra_args: Extra arguments that may be passed to the download/upload operations.
+
+   .. seealso::
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#s3-transfers
+
+       - For allowed upload extra arguments see ``boto3.s3.transfer.S3Transfer.ALLOWED_UPLOAD_ARGS``.
+       - For allowed download extra arguments see ``boto3.s3.transfer.S3Transfer.ALLOWED_DOWNLOAD_ARGS``.
+
+   Additional arguments (such as ``aws_conn_id``) may be specified and
+   are passed down to the underlying AwsBaseHook.
+
+   .. seealso::
+       :class:`~airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   .. py:property:: extra_args
+
+      Return hook's extra arguments (immutable).
+
+
+   .. py:method:: parse_s3_url(s3url)
+      :staticmethod:
+
+      Parses the S3 Url into a bucket name and key.
+          See https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html
+          for valid url formats
+
+      :param s3url: The S3 Url to parse.
+      :return: the parsed bucket name and key
+
+
+   .. py:method:: get_s3_bucket_key(bucket, key, bucket_param_name, key_param_name)
+      :staticmethod:
+
+      Get the S3 bucket name and key from either:
+          - bucket name and key. Return the info as it is after checking `key` is a relative path
+          - key. Must be a full s3:// url
+
+      :param bucket: The S3 bucket name
+      :param key: The S3 key
+      :param bucket_param_name: The parameter name containing the bucket name
+      :param key_param_name: The parameter name containing the key name
+      :return: the parsed bucket name and key
+
+
+   .. py:method:: check_for_bucket(bucket_name = None)
+
+      Check if bucket_name exists.
+
+      :param bucket_name: the name of the bucket
+      :return: True if it exists and False if not.
+
+
+   .. py:method:: get_bucket(bucket_name = None)
+
+      Returns a boto3.S3.Bucket object
+
+      :param bucket_name: the name of the bucket
+      :return: the bucket object to the bucket name.
+
+
+   .. py:method:: create_bucket(bucket_name = None, region_name = None)
+
+      Creates an Amazon S3 bucket.
+
+      :param bucket_name: The name of the bucket
+      :param region_name: The name of the aws region in which to create the bucket.
+
+
+   .. py:method:: check_for_prefix(prefix, delimiter, bucket_name = None)
+
+      Checks that a prefix exists in a bucket
+
+      :param bucket_name: the name of the bucket
+      :param prefix: a key prefix
+      :param delimiter: the delimiter marks key hierarchy.
+      :return: False if the prefix does not exist in the bucket and True if it does.
+
+
+   .. py:method:: list_prefixes(bucket_name = None, prefix = None, delimiter = None, page_size = None, max_items = None)
+
+      Lists prefixes in a bucket under prefix
+
+      :param bucket_name: the name of the bucket
+      :param prefix: a key prefix
+      :param delimiter: the delimiter marks key hierarchy.
+      :param page_size: pagination size
+      :param max_items: maximum items to return
+      :return: a list of matched prefixes
+
+
+   .. py:method:: list_keys(bucket_name = None, prefix = None, delimiter = None, page_size = None, max_items = None, start_after_key = None, from_datetime = None, to_datetime = None, object_filter = None)
+
+      Lists keys in a bucket under prefix and not containing delimiter
+
+      :param bucket_name: the name of the bucket
+      :param prefix: a key prefix
+      :param delimiter: the delimiter marks key hierarchy.
+      :param page_size: pagination size
+      :param max_items: maximum items to return
+      :param start_after_key: should return only keys greater than this key
+      :param from_datetime: should return only keys with LastModified attr greater than this equal
+          from_datetime
+      :param to_datetime: should return only keys with LastModified attr less than this to_datetime
+      :param object_filter: Function that receives the list of the S3 objects, from_datetime and
+          to_datetime and returns the List of matched key.
+
+      **Example**: Returns the list of S3 object with LastModified attr greater than from_datetime
+           and less than to_datetime:
+
+      .. code-block:: python
+
+          def object_filter(
+              keys: list,
+              from_datetime: datetime | None = None,
+              to_datetime: datetime | None = None,
+          ) -> list:
+              def _is_in_period(input_date: datetime) -> bool:
+                  if from_datetime is not None and input_date < from_datetime:
+                      return False
+
+                  if to_datetime is not None and input_date > to_datetime:
+                      return False
+                  return True
+
+              return [k["Key"] for k in keys if _is_in_period(k["LastModified"])]
+
+      :return: a list of matched keys
+
+
+   .. py:method:: get_file_metadata(prefix, bucket_name = None, page_size = None, max_items = None)
+
+      Lists metadata objects in a bucket under prefix
+
+      :param prefix: a key prefix
+      :param bucket_name: the name of the bucket
+      :param page_size: pagination size
+      :param max_items: maximum items to return
+      :return: a list of metadata of objects
+
+
+   .. py:method:: head_object(key, bucket_name = None)
+
+      Retrieves metadata of an object
+
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which the file is stored
+      :return: metadata of an object
+
+
+   .. py:method:: check_for_key(key, bucket_name = None)
+
+      Checks if a key exists in a bucket
+
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which the file is stored
+      :return: True if the key exists and False if not.
+
+
+   .. py:method:: get_key(key, bucket_name = None)
+
+      Returns a boto3.s3.Object
+
+      :param key: the path to the key
+      :param bucket_name: the name of the bucket
+      :return: the key object from the bucket
+
+
+   .. py:method:: read_key(key, bucket_name = None)
+
+      Reads a key from S3
+
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which the file is stored
+      :return: the content of the key
+
+
+   .. py:method:: select_key(key, bucket_name = None, expression = None, expression_type = None, input_serialization = None, output_serialization = None)
+
+      Reads a key with S3 Select.
+
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which the file is stored
+      :param expression: S3 Select expression
+      :param expression_type: S3 Select expression type
+      :param input_serialization: S3 Select input data serialization format
+      :param output_serialization: S3 Select output data serialization format
+      :return: retrieved subset of original data by S3 Select
+
+      .. seealso::
+          For more details about S3 Select parameters:
+          https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.select_object_content
+
+
+   .. py:method:: check_for_wildcard_key(wildcard_key, bucket_name = None, delimiter = '')
+
+      Checks that a key matching a wildcard expression exists in a bucket
+
+      :param wildcard_key: the path to the key
+      :param bucket_name: the name of the bucket
+      :param delimiter: the delimiter marks key hierarchy
+      :return: True if a key exists and False if not.
+
+
+   .. py:method:: get_wildcard_key(wildcard_key, bucket_name = None, delimiter = '')
+
+      Returns a boto3.s3.Object object matching the wildcard expression
+
+      :param wildcard_key: the path to the key
+      :param bucket_name: the name of the bucket
+      :param delimiter: the delimiter marks key hierarchy
+      :return: the key object from the bucket or None if none has been found.
+
+
+   .. py:method:: load_file(filename, key, bucket_name = None, replace = False, encrypt = False, gzip = False, acl_policy = None)
+
+      Loads a local file to S3
+
+      :param filename: path to the file to load.
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which to store the file
+      :param replace: A flag to decide whether or not to overwrite the key
+          if it already exists. If replace is False and the key exists, an
+          error will be raised.
+      :param encrypt: If True, the file will be encrypted on the server-side
+          by S3 and will be stored in an encrypted form while at rest in S3.
+      :param gzip: If True, the file will be compressed locally
+      :param acl_policy: String specifying the canned ACL policy for the file being
+          uploaded to the S3 bucket.
+
+
+   .. py:method:: load_string(string_data, key, bucket_name = None, replace = False, encrypt = False, encoding = None, acl_policy = None, compression = None)
+
+      Loads a string to S3
+
+      This is provided as a convenience to drop a string in S3. It uses the
+      boto infrastructure to ship a file to s3.
+
+      :param string_data: str to set as content for the key.
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which to store the file
+      :param replace: A flag to decide whether or not to overwrite the key
+          if it already exists
+      :param encrypt: If True, the file will be encrypted on the server-side
+          by S3 and will be stored in an encrypted form while at rest in S3.
+      :param encoding: The string to byte encoding
+      :param acl_policy: The string to specify the canned ACL policy for the
+          object to be uploaded
+      :param compression: Type of compression to use, currently only gzip is supported.
+
+
+   .. py:method:: load_bytes(bytes_data, key, bucket_name = None, replace = False, encrypt = False, acl_policy = None)
+
+      Loads bytes to S3
+
+      This is provided as a convenience to drop bytes data into S3. It uses the
+      boto infrastructure to ship a file to s3.
+
+      :param bytes_data: bytes to set as content for the key.
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which to store the file
+      :param replace: A flag to decide whether or not to overwrite the key
+          if it already exists
+      :param encrypt: If True, the file will be encrypted on the server-side
+          by S3 and will be stored in an encrypted form while at rest in S3.
+      :param acl_policy: The string to specify the canned ACL policy for the
+          object to be uploaded
+
+
+   .. py:method:: load_file_obj(file_obj, key, bucket_name = None, replace = False, encrypt = False, acl_policy = None)
+
+      Loads a file object to S3
+
+      :param file_obj: The file-like object to set as the content for the S3 key.
+      :param key: S3 key that will point to the file
+      :param bucket_name: Name of the bucket in which to store the file
+      :param replace: A flag that indicates whether to overwrite the key
+          if it already exists.
+      :param encrypt: If True, S3 encrypts the file on the server,
+          and the file is stored in encrypted form at rest in S3.
+      :param acl_policy: The string to specify the canned ACL policy for the
+          object to be uploaded
+
+
+   .. py:method:: copy_object(source_bucket_key, dest_bucket_key, source_bucket_name = None, dest_bucket_name = None, source_version_id = None, acl_policy = None)
+
+      Creates a copy of an object that is already stored in S3.
+
+      Note: the S3 connection used here needs to have access to both
+      source and destination bucket/key.
+
+      :param source_bucket_key: The key of the source object.
+
+          It can be either full s3:// style url or relative path from root level.
+
+          When it's specified as a full s3:// url, please omit source_bucket_name.
+      :param dest_bucket_key: The key of the object to copy to.
+
+          The convention to specify `dest_bucket_key` is the same
+          as `source_bucket_key`.
+      :param source_bucket_name: Name of the S3 bucket where the source object is in.
+
+          It should be omitted when `source_bucket_key` is provided as a full s3:// url.
+      :param dest_bucket_name: Name of the S3 bucket to where the object is copied.
+
+          It should be omitted when `dest_bucket_key` is provided as a full s3:// url.
+      :param source_version_id: Version ID of the source object (OPTIONAL)
+      :param acl_policy: The string to specify the canned ACL policy for the
+          object to be copied which is private by default.
+
+
+   .. py:method:: delete_bucket(bucket_name, force_delete = False)
+
+      To delete s3 bucket, delete all s3 bucket objects and then delete the bucket.
+
+      :param bucket_name: Bucket name
+      :param force_delete: Enable this to delete bucket even if not empty
+      :return: None
+
+
+   .. py:method:: delete_objects(bucket, keys)
+
+      Delete keys from the bucket.
+
+      :param bucket: Name of the bucket in which you are going to delete object(s)
+      :param keys: The key(s) to delete from S3 bucket.
+
+          When ``keys`` is a string, it's supposed to be the key name of
+          the single object to delete.
+
+          When ``keys`` is a list, it's supposed to be the list of the
+          keys to delete.
+
+
+   .. py:method:: download_file(key, bucket_name = None, local_path = None, preserve_file_name = False, use_autogenerated_subdir = True)
+
+      Downloads a file from the S3 location to the local file system.
+
+      :param key: The key path in S3.
+      :param bucket_name: The specific bucket to use.
+      :param local_path: The local path to the downloaded file. If no path is provided it will use the
+          system's temporary directory.
+      :param preserve_file_name: If you want the downloaded file name to be the same name as it is in S3,
+          set this parameter to True. When set to False, a random filename will be generated.
+          Default: False.
+      :param use_autogenerated_subdir: Pairs with 'preserve_file_name = True' to download the file into a
+          random generated folder inside the 'local_path', useful to avoid collisions between various tasks
+          that might download the same file name. Set it to 'False' if you don't want it, and you want a
+          predictable path.
+          Default: True.
+      :return: the file name.
+
+
+   .. py:method:: generate_presigned_url(client_method, params = None, expires_in = 3600, http_method = None)
+
+      Generate a presigned url given a client, its method, and arguments
+
+      :param client_method: The client method to presign for.
+      :param params: The parameters normally passed to ClientMethod.
+      :param expires_in: The number of seconds the presigned url is valid for.
+          By default it expires in an hour (3600 seconds).
+      :param http_method: The http method to use on the generated url.
+          By default, the http method is whatever is used in the method's model.
+      :return: The presigned url.
+
+
+   .. py:method:: get_bucket_tagging(bucket_name = None)
+
+      Gets a List of tags from a bucket.
+
+      :param bucket_name: The name of the bucket.
+      :return: A List containing the key/value pairs for the tags
+
+
+   .. py:method:: put_bucket_tagging(tag_set = None, key = None, value = None, bucket_name = None)
+
+      Overwrites the existing TagSet with provided tags.  Must provide either a TagSet or a key/value pair.
+
+      :param tag_set: A List containing the key/value pairs for the tags.
+      :param key: The Key for the new TagSet entry.
+      :param value: The Value for the new TagSet entry.
+      :param bucket_name: The name of the bucket.
+      :return: None
+
+
+   .. py:method:: delete_bucket_tagging(bucket_name = None)
+
+      Deletes all tags from a bucket.
+
+      :param bucket_name: The name of the bucket.
+      :return: None
+
+
+

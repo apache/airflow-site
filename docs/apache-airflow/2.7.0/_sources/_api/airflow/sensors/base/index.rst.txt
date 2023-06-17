@@ -1,0 +1,146 @@
+:py:mod:`airflow.sensors.base`
+==============================
+
+.. py:module:: airflow.sensors.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.sensors.base.PokeReturnValue
+   airflow.sensors.base.BaseSensorOperator
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.sensors.base.poke_mode_only
+
+
+
+.. py:class:: PokeReturnValue(is_done, xcom_value = None)
+
+
+   Optional return value for poke methods.
+
+   Sensors can optionally return an instance of the PokeReturnValue class in the poke method.
+   If an XCom value is supplied when the sensor is done, then the XCom value will be
+   pushed through the operator return value.
+   :param is_done: Set to true to indicate the sensor can stop poking.
+   :param xcom_value: An optional XCOM value to be returned by the operator.
+
+   .. py:method:: __bool__()
+
+
+
+.. py:class:: BaseSensorOperator(*, poke_interval = 60, timeout = conf.getfloat('sensors', 'default_timeout'), soft_fail = False, mode = 'poke', exponential_backoff = False, max_wait = None, silent_fail = False, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.baseoperator.BaseOperator`, :py:obj:`airflow.models.skipmixin.SkipMixin`
+
+   Sensor operators are derived from this class and inherit these attributes.
+
+   Sensor operators keep executing at a time interval and succeed when
+   a criteria is met and fail if and when they time out.
+
+   :param soft_fail: Set to true to mark the task as SKIPPED on failure
+   :param poke_interval: Time that the job should wait in between each try.
+       Can be ``timedelta`` or ``float`` seconds.
+   :param timeout: Time elapsed before the task times out and fails.
+       Can be ``timedelta`` or ``float`` seconds.
+       This should not be confused with ``execution_timeout`` of the
+       ``BaseOperator`` class. ``timeout`` measures the time elapsed between the
+       first poke and the current time (taking into account any
+       reschedule delay between each poke), while ``execution_timeout``
+       checks the **running** time of the task (leaving out any reschedule
+       delay). In case that the ``mode`` is ``poke`` (see below), both of
+       them are equivalent (as the sensor is never rescheduled), which is not
+       the case in ``reschedule`` mode.
+   :param mode: How the sensor operates.
+       Options are: ``{ poke | reschedule }``, default is ``poke``.
+       When set to ``poke`` the sensor is taking up a worker slot for its
+       whole execution time and sleeps between pokes. Use this mode if the
+       expected runtime of the sensor is short or if a short poke interval
+       is required. Note that the sensor will hold onto a worker slot and
+       a pool slot for the duration of the sensor's runtime in this mode.
+       When set to ``reschedule`` the sensor task frees the worker slot when
+       the criteria is not yet met and it's rescheduled at a later time. Use
+       this mode if the time before the criteria is met is expected to be
+       quite long. The poke interval should be more than one minute to
+       prevent too much load on the scheduler.
+   :param exponential_backoff: allow progressive longer waits between
+       pokes by using exponential backoff algorithm
+   :param max_wait: maximum wait interval between pokes, can be ``timedelta`` or ``float`` seconds
+   :param silent_fail: If true, and poke method raises an exception different from
+       AirflowSensorTimeout, AirflowTaskTimeout, AirflowSkipException
+       and AirflowFailException, the sensor will log the error and continue
+       its execution. Otherwise, the sensor task fails, and it can be retried
+       based on the provided `retries` parameter.
+
+   .. py:property:: reschedule
+
+      Define mode rescheduled sensors.
+
+
+   .. py:attribute:: ui_color
+      :type: str
+      :value: '#e6f1f2'
+
+      
+
+   .. py:attribute:: valid_modes
+      :type: Iterable[str]
+      :value: ['poke', 'reschedule']
+
+      
+
+   .. py:attribute:: deps
+
+      
+
+   .. py:method:: poke(context)
+
+      Function defined by the sensors while deriving this class should override.
+
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: prepare_for_execution()
+
+      Lock task for execution to disable custom action in ``__setattr__`` and return a copy.
+
+
+   .. py:method:: get_serialized_fields()
+      :classmethod:
+
+      Stringified DAGs and operators contain exactly these fields.
+
+
+
+.. py:function:: poke_mode_only(cls)
+
+   Decorate a subclass of BaseSensorOperator with poke.
+
+   Indicate that instances of this class are only safe to use poke mode.
+
+   Will decorate all methods in the class to assert they did not change
+   the mode from 'poke'.
+
+   :param cls: BaseSensor class to enforce methods only use 'poke' mode.
+
+

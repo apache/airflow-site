@@ -1,0 +1,420 @@
+:mod:`airflow.providers.amazon.aws.hooks.eks`
+=============================================
+
+.. py:module:: airflow.providers.amazon.aws.hooks.eks
+
+.. autoapi-nested-parse::
+
+   Interact with Amazon EKS, using the boto3 library.
+
+
+
+Module Contents
+---------------
+
+.. data:: DEFAULT_PAGINATION_TOKEN
+   :annotation: = 
+
+   
+
+.. data:: STS_TOKEN_EXPIRES_IN
+   :annotation: = 60
+
+   
+
+.. data:: AUTHENTICATION_API_VERSION
+   :annotation: = client.authentication.k8s.io/v1alpha1
+
+   
+
+.. py:class:: ClusterStates
+
+   Bases: :class:`enum.Enum`
+
+   Contains the possible State values of an EKS Cluster.
+
+   .. attribute:: CREATING
+      :annotation: = CREATING
+
+      
+
+   .. attribute:: ACTIVE
+      :annotation: = ACTIVE
+
+      
+
+   .. attribute:: DELETING
+      :annotation: = DELETING
+
+      
+
+   .. attribute:: FAILED
+      :annotation: = FAILED
+
+      
+
+   .. attribute:: UPDATING
+      :annotation: = UPDATING
+
+      
+
+   .. attribute:: NONEXISTENT
+      :annotation: = NONEXISTENT
+
+      
+
+
+.. py:class:: FargateProfileStates
+
+   Bases: :class:`enum.Enum`
+
+   Contains the possible State values of an AWS Fargate profile.
+
+   .. attribute:: CREATING
+      :annotation: = CREATING
+
+      
+
+   .. attribute:: ACTIVE
+      :annotation: = ACTIVE
+
+      
+
+   .. attribute:: DELETING
+      :annotation: = DELETING
+
+      
+
+   .. attribute:: CREATE_FAILED
+      :annotation: = CREATE_FAILED
+
+      
+
+   .. attribute:: DELETE_FAILED
+      :annotation: = DELETE_FAILED
+
+      
+
+   .. attribute:: NONEXISTENT
+      :annotation: = NONEXISTENT
+
+      
+
+
+.. py:class:: NodegroupStates
+
+   Bases: :class:`enum.Enum`
+
+   Contains the possible State values of an EKS Managed Nodegroup.
+
+   .. attribute:: CREATING
+      :annotation: = CREATING
+
+      
+
+   .. attribute:: ACTIVE
+      :annotation: = ACTIVE
+
+      
+
+   .. attribute:: UPDATING
+      :annotation: = UPDATING
+
+      
+
+   .. attribute:: DELETING
+      :annotation: = DELETING
+
+      
+
+   .. attribute:: CREATE_FAILED
+      :annotation: = CREATE_FAILED
+
+      
+
+   .. attribute:: DELETE_FAILED
+      :annotation: = DELETE_FAILED
+
+      
+
+   .. attribute:: DEGRADED
+      :annotation: = DEGRADED
+
+      
+
+   .. attribute:: NONEXISTENT
+      :annotation: = NONEXISTENT
+
+      
+
+
+.. py:class:: EKSHook(*args, **kwargs)
+
+   Bases: :class:`airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   Interact with Amazon EKS, using the boto3 library.
+
+   Additional arguments (such as ``aws_conn_id``) may be specified and
+   are passed down to the underlying AwsBaseHook.
+
+   .. seealso::
+       :class:`~airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   .. attribute:: client_type
+      :annotation: = eks
+
+      
+
+   
+   .. method:: create_cluster(self, name: str, roleArn: str, resourcesVpcConfig: Dict, **kwargs)
+
+      Creates an Amazon EKS control plane.
+
+      :param name: The unique name to give to your Amazon EKS Cluster.
+      :type name: str
+      :param roleArn: The Amazon Resource Name (ARN) of the IAM role that provides permissions
+        for the Kubernetes control plane to make calls to AWS API operations on your behalf.
+      :type roleArn: str
+      :param resourcesVpcConfig: The VPC configuration used by the cluster control plane.
+      :type resourcesVpcConfig: Dict
+
+      :return: Returns descriptive information about the created EKS Cluster.
+      :rtype: Dict
+
+
+
+   
+   .. method:: create_nodegroup(self, clusterName: str, nodegroupName: str, subnets: List[str], nodeRole: str, **kwargs)
+
+      Creates an Amazon EKS managed node group for an Amazon EKS Cluster.
+
+      :param clusterName: The name of the Amazon EKS cluster to create the EKS Managed Nodegroup in.
+      :type clusterName: str
+      :param nodegroupName: The unique name to give your managed nodegroup.
+      :type nodegroupName: str
+      :param subnets: The subnets to use for the Auto Scaling group that is created for your nodegroup.
+      :type subnets: List[str]
+      :param nodeRole: The Amazon Resource Name (ARN) of the IAM role to associate with your nodegroup.
+      :type nodeRole: str
+
+      :return: Returns descriptive information about the created EKS Managed Nodegroup.
+      :rtype: Dict
+
+
+
+   
+   .. method:: create_fargate_profile(self, clusterName: str, fargateProfileName: str, podExecutionRoleArn: str, selectors: List, **kwargs)
+
+      Creates an AWS Fargate profile for an Amazon EKS cluster.
+
+      :param clusterName: The name of the Amazon EKS cluster to apply the Fargate profile to.
+      :type clusterName: str
+      :param fargateProfileName: The name of the Fargate profile.
+      :type fargateProfileName: str
+      :param podExecutionRoleArn: The Amazon Resource Name (ARN) of the pod execution role to
+          use for pods that match the selectors in the Fargate profile.
+      :type podExecutionRoleArn: str
+      :param selectors: The selectors to match for pods to use this Fargate profile.
+      :type selectors: List
+
+      :return: Returns descriptive information about the created Fargate profile.
+      :rtype: Dict
+
+
+
+   
+   .. method:: delete_cluster(self, name: str)
+
+      Deletes the Amazon EKS Cluster control plane.
+
+      :param name: The name of the cluster to delete.
+      :type name: str
+
+      :return: Returns descriptive information about the deleted EKS Cluster.
+      :rtype: Dict
+
+
+
+   
+   .. method:: delete_nodegroup(self, clusterName: str, nodegroupName: str)
+
+      Deletes an Amazon EKS managed node group from a specified cluster.
+
+      :param clusterName: The name of the Amazon EKS Cluster that is associated with your nodegroup.
+      :type clusterName: str
+      :param nodegroupName: The name of the nodegroup to delete.
+      :type nodegroupName: str
+
+      :return: Returns descriptive information about the deleted EKS Managed Nodegroup.
+      :rtype: Dict
+
+
+
+   
+   .. method:: delete_fargate_profile(self, clusterName: str, fargateProfileName: str)
+
+      Deletes an AWS Fargate profile from a specified Amazon EKS cluster.
+
+      :param clusterName: The name of the Amazon EKS cluster associated with the Fargate profile to delete.
+      :type clusterName: str
+      :param fargateProfileName: The name of the Fargate profile to delete.
+      :type fargateProfileName: str
+
+      :return: Returns descriptive information about the deleted Fargate profile.
+      :rtype: Dict
+
+
+
+   
+   .. method:: describe_cluster(self, name: str, verbose: bool = False)
+
+      Returns descriptive information about an Amazon EKS Cluster.
+
+      :param name: The name of the cluster to describe.
+      :type name: str
+      :param verbose: Provides additional logging if set to True.  Defaults to False.
+      :type verbose: bool
+
+      :return: Returns descriptive information about a specific EKS Cluster.
+      :rtype: Dict
+
+
+
+   
+   .. method:: describe_nodegroup(self, clusterName: str, nodegroupName: str, verbose: bool = False)
+
+      Returns descriptive information about an Amazon EKS managed node group.
+
+      :param clusterName: The name of the Amazon EKS Cluster associated with the nodegroup.
+      :type clusterName: str
+      :param nodegroupName: The name of the nodegroup to describe.
+      :type nodegroupName: str
+      :param verbose: Provides additional logging if set to True.  Defaults to False.
+      :type verbose: bool
+
+      :return: Returns descriptive information about a specific EKS Nodegroup.
+      :rtype: Dict
+
+
+
+   
+   .. method:: describe_fargate_profile(self, clusterName: str, fargateProfileName: str, verbose: bool = False)
+
+      Returns descriptive information about an AWS Fargate profile.
+
+      :param clusterName: The name of the Amazon EKS Cluster associated with the Fargate profile.
+      :type clusterName: str
+      :param fargateProfileName: The name of the Fargate profile to describe.
+      :type fargateProfileName: str
+      :param verbose: Provides additional logging if set to True.  Defaults to False.
+      :type verbose: bool
+
+      :return: Returns descriptive information about an AWS Fargate profile.
+      :rtype: Dict
+
+
+
+   
+   .. method:: get_cluster_state(self, clusterName: str)
+
+      Returns the current status of a given Amazon EKS Cluster.
+
+      :param clusterName: The name of the cluster to check.
+      :type clusterName: str
+
+      :return: Returns the current status of a given Amazon EKS Cluster.
+      :rtype: ClusterStates
+
+
+
+   
+   .. method:: get_fargate_profile_state(self, clusterName: str, fargateProfileName: str)
+
+      Returns the current status of a given AWS Fargate profile.
+
+      :param clusterName: The name of the Amazon EKS Cluster associated with the Fargate profile.
+      :type clusterName: str
+      :param fargateProfileName: The name of the Fargate profile to check.
+      :type fargateProfileName: str
+
+      :return: Returns the current status of a given AWS Fargate profile.
+      :rtype: AWS FargateProfileStates
+
+
+
+   
+   .. method:: get_nodegroup_state(self, clusterName: str, nodegroupName: str)
+
+      Returns the current status of a given Amazon EKS managed node group.
+
+      :param clusterName: The name of the Amazon EKS Cluster associated with the nodegroup.
+      :type clusterName: str
+      :param nodegroupName: The name of the nodegroup to check.
+      :type nodegroupName: str
+
+      :return: Returns the current status of a given Amazon EKS Nodegroup.
+      :rtype: NodegroupStates
+
+
+
+   
+   .. method:: list_clusters(self, verbose: bool = False)
+
+      Lists all Amazon EKS Clusters in your AWS account.
+
+      :param verbose: Provides additional logging if set to True.  Defaults to False.
+      :type verbose: bool
+
+      :return: A List containing the cluster names.
+      :rtype: List
+
+
+
+   
+   .. method:: list_nodegroups(self, clusterName: str, verbose: bool = False)
+
+      Lists all Amazon EKS managed node groups associated with the specified cluster.
+
+      :param clusterName: The name of the Amazon EKS Cluster containing nodegroups to list.
+      :type clusterName: str
+      :param verbose: Provides additional logging if set to True.  Defaults to False.
+      :type verbose: bool
+
+      :return: A List of nodegroup names within the given cluster.
+      :rtype: List
+
+
+
+   
+   .. method:: list_fargate_profiles(self, clusterName: str, verbose: bool = False)
+
+      Lists all AWS Fargate profiles associated with the specified cluster.
+
+      :param clusterName: The name of the Amazon EKS Cluster containing Fargate profiles to list.
+      :type clusterName: str
+      :param verbose: Provides additional logging if set to True.  Defaults to False.
+      :type verbose: bool
+
+      :return: A list of Fargate profile names within a given cluster.
+      :rtype: List
+
+
+
+   
+   .. method:: generate_config_file(self, eks_cluster_name: str, pod_namespace: str, pod_username: Optional[str] = None, pod_context: Optional[str] = None)
+
+      Writes the kubeconfig file given an EKS Cluster.
+
+      :param eks_cluster_name: The name of the cluster to generate kubeconfig file for.
+      :type eks_cluster_name: str
+      :param pod_namespace: The namespace to run within kubernetes.
+      :type pod_namespace: str
+
+
+
+   
+   .. method:: fetch_access_token_for_cluster(self, eks_cluster_name: str)
+
+
+
+

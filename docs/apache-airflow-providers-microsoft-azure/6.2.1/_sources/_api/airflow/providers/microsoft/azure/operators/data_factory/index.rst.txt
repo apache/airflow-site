@@ -1,0 +1,128 @@
+:py:mod:`airflow.providers.microsoft.azure.operators.data_factory`
+==================================================================
+
+.. py:module:: airflow.providers.microsoft.azure.operators.data_factory
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.operators.data_factory.AzureDataFactoryPipelineRunLink
+   airflow.providers.microsoft.azure.operators.data_factory.AzureDataFactoryRunPipelineOperator
+
+
+
+
+.. py:class:: AzureDataFactoryPipelineRunLink(context=None)
+
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`, :py:obj:`airflow.models.BaseOperatorLink`
+
+   Constructs a link to monitor a pipeline run in Azure Data Factory.
+
+   .. py:attribute:: name
+      :value: 'Monitor Pipeline Run'
+
+      
+
+   .. py:method:: get_link(operator, *, ti_key)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: AzureDataFactoryRunPipelineOperator(*, pipeline_name, azure_data_factory_conn_id = AzureDataFactoryHook.default_conn_name, wait_for_termination = True, resource_group_name = None, factory_name = None, reference_pipeline_run_id = None, is_recovery = None, start_activity_name = None, start_from_failure = None, parameters = None, timeout = 60 * 60 * 24 * 7, check_interval = 60, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Executes a data factory pipeline.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:AzureDataFactoryRunPipelineOperator`
+
+   :param azure_data_factory_conn_id: The connection identifier for connecting to Azure Data Factory.
+   :param pipeline_name: The name of the pipeline to execute.
+   :param wait_for_termination: Flag to wait on a pipeline run's termination.  By default, this feature is
+       enabled but could be disabled to perform an asynchronous wait for a long-running pipeline execution
+       using the ``AzureDataFactoryPipelineRunSensor``.
+   :param resource_group_name: The resource group name. If a value is not passed in to the operator, the
+       ``AzureDataFactoryHook`` will attempt to use the resource group name provided in the corresponding
+       connection.
+   :param factory_name: The data factory name. If a value is not passed in to the operator, the
+       ``AzureDataFactoryHook`` will attempt to use the factory name name provided in the corresponding
+       connection.
+   :param reference_pipeline_run_id: The pipeline run identifier. If this run ID is specified the parameters
+       of the specified run will be used to create a new run.
+   :param is_recovery: Recovery mode flag. If recovery mode is set to `True`, the specified referenced
+       pipeline run and the new run will be grouped under the same ``groupId``.
+   :param start_activity_name: In recovery mode, the rerun will start from this activity. If not specified,
+       all activities will run.
+   :param start_from_failure: In recovery mode, if set to true, the rerun will start from failed activities.
+       The property will be used only if ``start_activity_name`` is not specified.
+   :param parameters: Parameters of the pipeline run. These parameters are referenced in a pipeline via
+       ``@pipeline().parameters.parameterName`` and will be used only if the ``reference_pipeline_run_id`` is
+       not specified.
+   :param timeout: Time in seconds to wait for a pipeline to reach a terminal status for non-asynchronous
+       waits. Used only if ``wait_for_termination`` is True.
+   :param check_interval: Time in seconds to check on a pipeline run's status for non-asynchronous waits.
+       Used only if ``wait_for_termination`` is True.
+   :param deferrable: Run operator in deferrable mode.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('azure_data_factory_conn_id', 'resource_group_name', 'factory_name', 'pipeline_name',...
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#0678d4'
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Callback for when the trigger fires - returns immediately.
+
+      Relies on trigger to throw an exception, otherwise it assumes execution was successful.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up, or it will leave
+      ghost processes behind.
+
+
+

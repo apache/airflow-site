@@ -1,0 +1,185 @@
+:py:mod:`airflow.providers.http.hooks.http`
+===========================================
+
+.. py:module:: airflow.providers.http.hooks.http
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.http.hooks.http.HttpHook
+   airflow.providers.http.hooks.http.HttpAsyncHook
+
+
+
+
+.. py:class:: HttpHook(method = 'POST', http_conn_id = default_conn_name, auth_type = None, tcp_keep_alive = True, tcp_keep_alive_idle = 120, tcp_keep_alive_count = 20, tcp_keep_alive_interval = 30)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Interact with HTTP servers.
+
+   :param method: the API method to be called
+   :param http_conn_id: :ref:`http connection<howto/connection:http>` that has the base
+       API url i.e https://www.google.com/ and optional authentication credentials. Default
+       headers can also be specified in the Extra field in json format.
+   :param auth_type: The auth type for the service
+   :param tcp_keep_alive: Enable TCP Keep Alive for the connection.
+   :param tcp_keep_alive_idle: The TCP Keep Alive Idle parameter (corresponds to ``socket.TCP_KEEPIDLE``).
+   :param tcp_keep_alive_count: The TCP Keep Alive count parameter (corresponds to ``socket.TCP_KEEPCNT``)
+   :param tcp_keep_alive_interval: The TCP Keep Alive interval parameter (corresponds to
+       ``socket.TCP_KEEPINTVL``)
+   :param auth_args: extra arguments used to initialize the auth_type if different than default HTTPBasicAuth
+
+   .. py:property:: auth_type
+
+
+   .. py:attribute:: conn_name_attr
+      :value: 'http_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'http_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'http'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'HTTP'
+
+      
+
+   .. py:method:: get_conn(headers = None)
+
+      Create a Requests HTTP session.
+
+      :param headers: additional headers to be passed through as a dictionary
+
+
+   .. py:method:: run(endpoint = None, data = None, headers = None, extra_options = None, **request_kwargs)
+
+      Perform the request.
+
+      :param endpoint: the endpoint to be called i.e. resource/v1/query?
+      :param data: payload to be uploaded or request parameters
+      :param headers: additional headers to be passed through as a dictionary
+      :param extra_options: additional options to be used when executing the request
+          i.e. {'check_response': False} to avoid checking raising exceptions on non
+          2XX or 3XX status codes
+      :param request_kwargs: Additional kwargs to pass when creating a request.
+          For example, ``run(json=obj)`` is passed as ``requests.Request(json=obj)``
+
+
+   .. py:method:: check_response(response)
+
+      Check the status code and raise on failure.
+
+      :param response: A requests response object.
+      :raise AirflowException: If the response contains a status code not
+          in the 2xx and 3xx range.
+
+
+   .. py:method:: run_and_check(session, prepped_request, extra_options)
+
+      Grab extra options, actually run the request, and check the result.
+
+      :param session: the session to be used to execute the request
+      :param prepped_request: the prepared request generated in run()
+      :param extra_options: additional options to be used when executing the request
+          i.e. ``{'check_response': False}`` to avoid checking raising exceptions on non 2XX
+          or 3XX status codes
+
+
+   .. py:method:: run_with_advanced_retry(_retry_args, *args, **kwargs)
+
+      Run the hook with retry.
+
+      This is useful for connectors which might be disturbed by intermittent
+      issues and should not instantly fail.
+
+      :param _retry_args: Arguments which define the retry behaviour.
+          See Tenacity documentation at https://github.com/jd/tenacity
+
+
+      .. code-block:: python
+
+          hook = HttpHook(http_conn_id="my_conn", method="GET")
+          retry_args = dict(
+              wait=tenacity.wait_exponential(),
+              stop=tenacity.stop_after_attempt(10),
+              retry=tenacity.retry_if_exception_type(Exception),
+          )
+          hook.run_with_advanced_retry(endpoint="v1/test", _retry_args=retry_args)
+
+
+
+   .. py:method:: url_from_endpoint(endpoint)
+
+      Combine base url with endpoint.
+
+
+   .. py:method:: test_connection()
+
+      Test HTTP Connection.
+
+
+
+.. py:class:: HttpAsyncHook(method = 'POST', http_conn_id = default_conn_name, auth_type = aiohttp.BasicAuth, retry_limit = 3, retry_delay = 1.0)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Interact with HTTP servers asynchronously.
+
+   :param method: the API method to be called
+   :param http_conn_id: http connection id that has the base
+       API url i.e https://www.google.com/ and optional authentication credentials. Default
+       headers can also be specified in the Extra field in json format.
+   :param auth_type: The auth type for the service
+
+   .. py:attribute:: conn_name_attr
+      :value: 'http_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'http_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'http'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'HTTP'
+
+      
+
+   .. py:method:: run(endpoint = None, data = None, json = None, headers = None, extra_options = None)
+      :async:
+
+      Perform an asynchronous HTTP request call.
+
+      :param endpoint: Endpoint to be called, i.e. ``resource/v1/query?``.
+      :param data: Payload to be uploaded or request parameters.
+      :param json: Payload to be uploaded as JSON.
+      :param headers: Additional headers to be passed through as a dict.
+      :param extra_options: Additional kwargs to pass when creating a request.
+          For example, ``run(json=obj)`` is passed as
+          ``aiohttp.ClientSession().get(json=obj)``.
+
+
+

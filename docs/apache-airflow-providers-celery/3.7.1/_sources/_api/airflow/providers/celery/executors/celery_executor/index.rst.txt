@@ -1,0 +1,243 @@
+:py:mod:`airflow.providers.celery.executors.celery_executor`
+============================================================
+
+.. py:module:: airflow.providers.celery.executors.celery_executor
+
+.. autoapi-nested-parse::
+
+   CeleryExecutor.
+
+   .. seealso::
+       For more information on how the CeleryExecutor works, take a look at the guide:
+       :doc:`/celery_executor`
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.celery.executors.celery_executor.CeleryExecutor
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.celery.executors.celery_executor.__getattr__
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.celery.executors.celery_executor.log
+   airflow.providers.celery.executors.celery_executor.CELERY_SEND_ERR_MSG_HEADER
+   airflow.providers.celery.executors.celery_executor.TaskInstanceInCelery
+   airflow.providers.celery.executors.celery_executor.ARG_BROKER_API
+   airflow.providers.celery.executors.celery_executor.ARG_FLOWER_HOSTNAME
+   airflow.providers.celery.executors.celery_executor.ARG_FLOWER_PORT
+   airflow.providers.celery.executors.celery_executor.ARG_FLOWER_CONF
+   airflow.providers.celery.executors.celery_executor.ARG_FLOWER_URL_PREFIX
+   airflow.providers.celery.executors.celery_executor.ARG_FLOWER_BASIC_AUTH
+   airflow.providers.celery.executors.celery_executor.ARG_AUTOSCALE
+   airflow.providers.celery.executors.celery_executor.ARG_QUEUES
+   airflow.providers.celery.executors.celery_executor.ARG_CONCURRENCY
+   airflow.providers.celery.executors.celery_executor.ARG_CELERY_HOSTNAME
+   airflow.providers.celery.executors.celery_executor.ARG_UMASK
+   airflow.providers.celery.executors.celery_executor.ARG_WITHOUT_MINGLE
+   airflow.providers.celery.executors.celery_executor.ARG_WITHOUT_GOSSIP
+   airflow.providers.celery.executors.celery_executor.CELERY_CLI_COMMAND_PATH
+   airflow.providers.celery.executors.celery_executor.CELERY_COMMANDS
+
+
+.. py:data:: log
+
+   
+
+.. py:data:: CELERY_SEND_ERR_MSG_HEADER
+   :value: 'Error sending Celery task'
+
+   
+
+.. py:data:: TaskInstanceInCelery
+
+   
+
+.. py:function:: __getattr__(name)
+
+
+.. py:data:: ARG_BROKER_API
+
+   
+
+.. py:data:: ARG_FLOWER_HOSTNAME
+
+   
+
+.. py:data:: ARG_FLOWER_PORT
+
+   
+
+.. py:data:: ARG_FLOWER_CONF
+
+   
+
+.. py:data:: ARG_FLOWER_URL_PREFIX
+
+   
+
+.. py:data:: ARG_FLOWER_BASIC_AUTH
+
+   
+
+.. py:data:: ARG_AUTOSCALE
+
+   
+
+.. py:data:: ARG_QUEUES
+
+   
+
+.. py:data:: ARG_CONCURRENCY
+
+   
+
+.. py:data:: ARG_CELERY_HOSTNAME
+
+   
+
+.. py:data:: ARG_UMASK
+
+   
+
+.. py:data:: ARG_WITHOUT_MINGLE
+
+   
+
+.. py:data:: ARG_WITHOUT_GOSSIP
+
+   
+
+.. py:data:: CELERY_CLI_COMMAND_PATH
+
+   
+
+.. py:data:: CELERY_COMMANDS
+   :value: ()
+
+   
+
+.. py:class:: CeleryExecutor
+
+
+   Bases: :py:obj:`airflow.executors.base_executor.BaseExecutor`
+
+   CeleryExecutor is recommended for production use of Airflow.
+
+   It allows distributing the execution of task instances to multiple worker nodes.
+
+   Celery is a simple, flexible and reliable distributed system to process
+   vast amounts of messages, while providing operations with the tools
+   required to maintain such a system.
+
+   .. py:attribute:: supports_ad_hoc_ti_run
+      :type: bool
+      :value: True
+
+      
+
+   .. py:attribute:: supports_sentry
+      :type: bool
+      :value: True
+
+      
+
+   .. py:method:: start()
+
+      Executors may need to get things started.
+
+
+   .. py:method:: sync()
+
+      Sync will get called periodically by the heartbeat method.
+
+      Executors should override this to perform gather statuses.
+
+
+   .. py:method:: debug_dump()
+
+      Debug dump; called in response to SIGUSR2 by the scheduler.
+
+
+   .. py:method:: update_all_task_states()
+
+      Update states of the tasks.
+
+
+   .. py:method:: change_state(key, state, info=None, remove_running=True)
+
+      Change state of the task.
+
+      :param key: Unique key for the task instance
+      :param state: State to set for the task.
+      :param info: Executor information for the task instance
+      :param remove_running: Whether or not to remove the TI key from running set
+
+
+   .. py:method:: update_task_state(key, state, info)
+
+      Update state of a single task.
+
+
+   .. py:method:: end(synchronous = False)
+
+      Wait synchronously for the previously submitted job to complete.
+
+
+   .. py:method:: terminate()
+
+      Get called when the daemon receives a SIGTERM.
+
+
+   .. py:method:: try_adopt_task_instances(tis)
+
+      Try to adopt running task instances that have been abandoned by a SchedulerJob dying.
+
+      Anything that is not adopted will be cleared by the scheduler (and then become eligible for
+      re-scheduling)
+
+      :return: any TaskInstances that were unable to be adopted
+
+
+   .. py:method:: cleanup_stuck_queued_tasks(tis)
+
+      Handle remnants of tasks that were failed because they were stuck in queued.
+
+      Tasks can get stuck in queued. If such a task is detected, it will be marked
+      as `UP_FOR_RETRY` if the task instance has remaining retries or marked as `FAILED`
+      if it doesn't.
+
+      :param tis: List of Task Instances to clean up
+      :return: List of readable task instances for a warning message
+
+
+   .. py:method:: get_cli_commands()
+      :staticmethod:
+
+      Vends CLI commands to be included in Airflow CLI.
+
+      Override this method to expose commands via Airflow CLI to manage this executor. This can
+      be commands to setup/teardown the executor, inspect state, etc.
+      Make sure to choose unique names for those commands, to avoid collisions.
+
+
+

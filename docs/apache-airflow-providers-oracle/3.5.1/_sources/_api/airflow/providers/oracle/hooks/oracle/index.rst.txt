@@ -1,0 +1,177 @@
+:py:mod:`airflow.providers.oracle.hooks.oracle`
+===============================================
+
+.. py:module:: airflow.providers.oracle.hooks.oracle
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.oracle.hooks.oracle.OracleHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.oracle.hooks.oracle.numpy
+   airflow.providers.oracle.hooks.oracle.PARAM_TYPES
+
+
+.. py:data:: numpy
+   
+
+   
+
+.. py:data:: PARAM_TYPES
+   
+
+   
+
+.. py:class:: OracleHook(*args, thick_mode = None, thick_mode_lib_dir = None, thick_mode_config_dir = None, fetch_decimals = None, fetch_lobs = None, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.common.sql.hooks.sql.DbApiHook`
+
+   Interact with Oracle SQL.
+
+   :param oracle_conn_id: The :ref:`Oracle connection id <howto/connection:oracle>`
+       used for Oracle credentials.
+   :param thick_mode: Specify whether to use python-oracledb in thick mode. Defaults to False.
+       If set to True, you must have the Oracle Client libraries installed.
+       See `oracledb docs<https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html>`
+       for more info.
+   :param thick_mode_lib_dir: Path to use to find the Oracle Client libraries when using thick mode.
+       If not specified, defaults to the standard way of locating the Oracle Client library on the OS.
+       See `oracledb docs
+       <https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#setting-the-oracle-client-library-directory>`
+       for more info.
+   :param thick_mode_config_dir: Path to use to find the Oracle Client library
+       configuration files when using thick mode.
+       If not specified, defaults to the standard way of locating the Oracle Client
+       library configuration files on the OS.
+       See `oracledb docs
+       <https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#optional-oracle-net-configuration-files>`
+       for more info.
+   :param fetch_decimals: Specify whether numbers should be fetched as ``decimal.Decimal`` values.
+       See `defaults.fetch_decimals
+       <https://python-oracledb.readthedocs.io/en/latest/api_manual/defaults.html#defaults.fetch_decimals>`
+       for more info.
+   :param fetch_lobs: Specify whether to fetch strings/bytes for CLOBs or BLOBs instead of locators.
+       See `defaults.fetch_lobs
+       <https://python-oracledb.readthedocs.io/en/latest/api_manual/defaults.html#defaults.fetch_decimals>`
+       for more info.
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = oracle_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = oracle_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = oracle
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = Oracle
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :annotation: = True
+
+      
+
+   .. py:method:: get_conn()
+
+      Returns a oracle connection object
+      Optional parameters for using a custom DSN connection
+      (instead of using a server alias from tnsnames.ora)
+      The dsn (data source name) is the TNS entry
+      (from the Oracle names server or tnsnames.ora file)
+      or is a string like the one returned from makedsn().
+
+      :param dsn: the data source name for the Oracle server
+      :param service_name: the db_unique_name of the database
+            that you are connecting to (CONNECT_DATA part of TNS)
+      :param sid: Oracle System ID that identifies a particular
+            database on a system
+
+      You can set these parameters in the extra fields of your connection
+      as in
+
+      .. code-block:: python
+
+         {"dsn": ("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=host)(PORT=1521))(CONNECT_DATA=(SID=sid)))")}
+
+      see more param detail in `oracledb.connect
+      <https://python-oracledb.readthedocs.io/en/latest/api_manual/module.html#oracledb.connect>`_
+
+
+
+
+   .. py:method:: insert_rows(table, rows, target_fields=None, commit_every = 1000, replace = False, **kwargs)
+
+      A generic way to insert a set of tuples into a table,
+      the whole set of inserts is treated as one transaction
+      Changes from standard DbApiHook implementation:
+
+      - Oracle SQL queries in oracledb can not be terminated with a semicolon (`;`)
+      - Replace NaN values with NULL using `numpy.nan_to_num` (not using
+        `is_nan()` because of input types error for strings)
+      - Coerce datetime cells to Oracle DATETIME format during insert
+
+      :param table: target Oracle table, use dot notation to target a
+          specific database
+      :param rows: the rows to insert into the table
+      :param target_fields: the names of the columns to fill in the table
+      :param commit_every: the maximum number of rows to insert in one transaction
+          Default 1000, Set greater than 0.
+          Set 1 to insert each row in each single transaction
+      :param replace: Whether to replace instead of insert
+
+
+   .. py:method:: bulk_insert_rows(table, rows, target_fields = None, commit_every = 5000)
+
+      A performant bulk insert for oracledb
+      that uses prepared statements via `executemany()`.
+      For best performance, pass in `rows` as an iterator.
+
+      :param table: target Oracle table, use dot notation to target a
+          specific database
+      :param rows: the rows to insert into the table
+      :param target_fields: the names of the columns to fill in the table, default None.
+          If None, each rows should have some order as table columns name
+      :param commit_every: the maximum number of rows to insert in one transaction
+          Default 5000. Set greater than 0. Set 1 to insert each row in each transaction
+
+
+   .. py:method:: callproc(identifier, autocommit = False, parameters = None)
+
+      Call the stored procedure identified by the provided string.
+
+      Any 'OUT parameters' must be provided with a value of either the
+      expected Python type (e.g., `int`) or an instance of that type.
+
+      The return value is a list or mapping that includes parameters in
+      both directions; the actual return type depends on the type of the
+      provided `parameters` argument.
+
+      See
+      https://python-oracledb.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.var
+      for further reference.
+
+
+

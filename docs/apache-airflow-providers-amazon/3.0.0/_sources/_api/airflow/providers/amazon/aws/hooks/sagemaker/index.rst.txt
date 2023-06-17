@@ -1,0 +1,429 @@
+:py:mod:`airflow.providers.amazon.aws.hooks.sagemaker`
+======================================================
+
+.. py:module:: airflow.providers.amazon.aws.hooks.sagemaker
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.sagemaker.LogState
+   airflow.providers.amazon.aws.hooks.sagemaker.SageMakerHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.sagemaker.argmin
+   airflow.providers.amazon.aws.hooks.sagemaker.secondary_training_status_changed
+   airflow.providers.amazon.aws.hooks.sagemaker.secondary_training_status_message
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.sagemaker.Position
+
+
+.. py:class:: LogState
+
+   Enum-style class holding all possible states of CloudWatch log streams.
+   https://sagemaker.readthedocs.io/en/stable/session.html#sagemaker.session.LogState
+
+   .. py:attribute:: STARTING
+      :annotation: = 1
+
+      
+
+   .. py:attribute:: WAIT_IN_PROGRESS
+      :annotation: = 2
+
+      
+
+   .. py:attribute:: TAILING
+      :annotation: = 3
+
+      
+
+   .. py:attribute:: JOB_COMPLETE
+      :annotation: = 4
+
+      
+
+   .. py:attribute:: COMPLETE
+      :annotation: = 5
+
+      
+
+
+.. py:data:: Position
+   
+
+   
+
+.. py:function:: argmin(arr, f)
+
+   Return the index, i, in arr that minimizes f(arr[i])
+
+
+.. py:function:: secondary_training_status_changed(current_job_description, prev_job_description)
+
+   Returns true if training job's secondary status message has changed.
+
+   :param current_job_description: Current job description, returned from DescribeTrainingJob call.
+   :param prev_job_description: Previous job description, returned from DescribeTrainingJob call.
+
+   :return: Whether the secondary status message of a training job changed or not.
+
+
+.. py:function:: secondary_training_status_message(job_description, prev_description)
+
+   Returns a string contains start time and the secondary training job status message.
+
+   :param job_description: Returned response from DescribeTrainingJob call
+   :param prev_description: Previous job description from DescribeTrainingJob call
+
+   :return: Job status string to be printed.
+
+
+.. py:class:: SageMakerHook(*args, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   Interact with Amazon SageMaker.
+
+   Additional arguments (such as ``aws_conn_id``) may be specified and
+   are passed down to the underlying AwsBaseHook.
+
+   .. seealso::
+       :class:`~airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   .. py:attribute:: non_terminal_states
+      
+
+      
+
+   .. py:attribute:: endpoint_non_terminal_states
+      
+
+      
+
+   .. py:attribute:: failed_states
+      
+
+      
+
+   .. py:method:: tar_and_s3_upload(self, path, key, bucket)
+
+      Tar the local file or directory and upload to s3
+
+      :param path: local file or directory
+      :param key: s3 key
+      :param bucket: s3 bucket
+      :return: None
+
+
+   .. py:method:: configure_s3_resources(self, config)
+
+      Extract the S3 operations from the configuration and execute them.
+
+      :param config: config of SageMaker operation
+      :rtype: dict
+
+
+   .. py:method:: check_s3_url(self, s3url)
+
+      Check if an S3 URL exists
+
+      :param s3url: S3 url
+      :rtype: bool
+
+
+   .. py:method:: check_training_config(self, training_config)
+
+      Check if a training configuration is valid
+
+      :param training_config: training_config
+      :return: None
+
+
+   .. py:method:: check_tuning_config(self, tuning_config)
+
+      Check if a tuning configuration is valid
+
+      :param tuning_config: tuning_config
+      :return: None
+
+
+   .. py:method:: get_log_conn(self)
+
+      This method is deprecated.
+      Please use :py:meth:`airflow.providers.amazon.aws.hooks.logs.AwsLogsHook.get_conn` instead.
+
+
+   .. py:method:: log_stream(self, log_group, stream_name, start_time=0, skip=0)
+
+      This method is deprecated.
+      Please use
+      :py:meth:`airflow.providers.amazon.aws.hooks.logs.AwsLogsHook.get_log_events` instead.
+
+
+   .. py:method:: multi_stream_iter(self, log_group, streams, positions=None)
+
+      Iterate over the available events coming from a set of log streams in a single log group
+      interleaving the events from each stream so they're yielded in timestamp order.
+
+      :param log_group: The name of the log group.
+      :param streams: A list of the log stream names. The position of the stream in this list is
+          the stream number.
+      :param positions: A list of pairs of (timestamp, skip) which represents the last record
+          read from each stream.
+      :return: A tuple of (stream number, cloudwatch log event).
+
+
+   .. py:method:: create_training_job(self, config, wait_for_completion = True, print_log = True, check_interval = 30, max_ingestion_time = None)
+
+      Create a training job
+
+      :param config: the config for training
+      :param wait_for_completion: if the program should keep running until job finishes
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: A response to training job creation
+
+
+   .. py:method:: create_tuning_job(self, config, wait_for_completion = True, check_interval = 30, max_ingestion_time = None)
+
+      Create a tuning job
+
+      :param config: the config for tuning
+      :param wait_for_completion: if the program should keep running until job finishes
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: A response to tuning job creation
+
+
+   .. py:method:: create_transform_job(self, config, wait_for_completion = True, check_interval = 30, max_ingestion_time = None)
+
+      Create a transform job
+
+      :param config: the config for transform job
+      :param wait_for_completion: if the program should keep running until job finishes
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: A response to transform job creation
+
+
+   .. py:method:: create_processing_job(self, config, wait_for_completion = True, check_interval = 30, max_ingestion_time = None)
+
+      Create a processing job
+
+      :param config: the config for processing job
+      :param wait_for_completion: if the program should keep running until job finishes
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: A response to transform job creation
+
+
+   .. py:method:: create_model(self, config)
+
+      Create a model job
+
+      :param config: the config for model
+      :return: A response to model creation
+
+
+   .. py:method:: create_endpoint_config(self, config)
+
+      Create an endpoint config
+
+      :param config: the config for endpoint-config
+      :return: A response to endpoint config creation
+
+
+   .. py:method:: create_endpoint(self, config, wait_for_completion = True, check_interval = 30, max_ingestion_time = None)
+
+      Create an endpoint
+
+      :param config: the config for endpoint
+      :param wait_for_completion: if the program should keep running until job finishes
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: A response to endpoint creation
+
+
+   .. py:method:: update_endpoint(self, config, wait_for_completion = True, check_interval = 30, max_ingestion_time = None)
+
+      Update an endpoint
+
+      :param config: the config for endpoint
+      :param wait_for_completion: if the program should keep running until job finishes
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: A response to endpoint update
+
+
+   .. py:method:: describe_training_job(self, name)
+
+      Return the training job info associated with the name
+
+      :param name: the name of the training job
+      :return: A dict contains all the training job info
+
+
+   .. py:method:: describe_training_job_with_log(self, job_name, positions, stream_names, instance_count, state, last_description, last_describe_job_call)
+
+      Return the training job info associated with job_name and print CloudWatch logs
+
+
+   .. py:method:: describe_tuning_job(self, name)
+
+      Return the tuning job info associated with the name
+
+      :param name: the name of the tuning job
+      :return: A dict contains all the tuning job info
+
+
+   .. py:method:: describe_model(self, name)
+
+      Return the SageMaker model info associated with the name
+
+      :param name: the name of the SageMaker model
+      :return: A dict contains all the model info
+
+
+   .. py:method:: describe_transform_job(self, name)
+
+      Return the transform job info associated with the name
+
+      :param name: the name of the transform job
+      :return: A dict contains all the transform job info
+
+
+   .. py:method:: describe_processing_job(self, name)
+
+      Return the processing job info associated with the name
+
+      :param name: the name of the processing job
+      :return: A dict contains all the processing job info
+
+
+   .. py:method:: describe_endpoint_config(self, name)
+
+      Return the endpoint config info associated with the name
+
+      :param name: the name of the endpoint config
+      :return: A dict contains all the endpoint config info
+
+
+   .. py:method:: describe_endpoint(self, name)
+
+      :param name: the name of the endpoint
+      :return: A dict contains all the endpoint info
+
+
+   .. py:method:: check_status(self, job_name, key, describe_function, check_interval, max_ingestion_time = None, non_terminal_states = None)
+
+      Check status of a SageMaker job
+
+      :param job_name: name of the job to check status
+      :param key: the key of the response dict
+          that points to the state
+      :param describe_function: the function used to retrieve the status
+      :param args: the arguments for the function
+      :param check_interval: the time interval in seconds which the operator
+          will check the status of any SageMaker job
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :param non_terminal_states: the set of nonterminal states
+      :return: response of describe call after job is done
+
+
+   .. py:method:: check_training_status_with_log(self, job_name, non_terminal_states, failed_states, wait_for_completion, check_interval, max_ingestion_time = None)
+
+      Display the logs for a given training job, optionally tailing them until the
+      job is complete.
+
+      :param job_name: name of the training job to check status and display logs for
+      :param non_terminal_states: the set of non_terminal states
+      :param failed_states: the set of failed states
+      :param wait_for_completion: Whether to keep looking for new log entries
+          until the job completes
+      :param check_interval: The interval in seconds between polling for new log entries and job completion
+      :param max_ingestion_time: the maximum ingestion time in seconds. Any
+          SageMaker jobs that run longer than this will fail. Setting this to
+          None implies no timeout for any SageMaker job.
+      :return: None
+
+
+   .. py:method:: list_training_jobs(self, name_contains = None, max_results = None, **kwargs)
+
+      This method wraps boto3's `list_training_jobs`. The training job name and max results are configurable
+      via arguments. Other arguments are not, and should be provided via kwargs. Note boto3 expects these in
+      CamelCase format, for example:
+
+      .. code-block:: python
+
+          list_training_jobs(name_contains="myjob", StatusEquals="Failed")
+
+      .. seealso::
+          https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker.html#SageMaker.Client.list_training_jobs
+
+      :param name_contains: (optional) partial name to match
+      :param max_results: (optional) maximum number of results to return. None returns infinite results
+      :param kwargs: (optional) kwargs to boto3's list_training_jobs method
+      :return: results of the list_training_jobs request
+
+
+   .. py:method:: list_processing_jobs(self, **kwargs)
+
+      This method wraps boto3's `list_processing_jobs`. All arguments should be provided via kwargs.
+      Note boto3 expects these in CamelCase format, for example:
+
+      .. code-block:: python
+
+          list_processing_jobs(NameContains="myjob", StatusEquals="Failed")
+
+      .. seealso::
+          https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker.html#SageMaker.Client.list_processing_jobs
+
+      :param kwargs: (optional) kwargs to boto3's list_training_jobs method
+      :return: results of the list_processing_jobs request
+
+
+   .. py:method:: find_processing_job_by_name(self, processing_job_name)
+
+      Query processing job by name
+
+
+

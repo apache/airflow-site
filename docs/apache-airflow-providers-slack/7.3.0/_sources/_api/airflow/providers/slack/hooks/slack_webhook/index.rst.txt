@@ -1,0 +1,192 @@
+:py:mod:`airflow.providers.slack.hooks.slack_webhook`
+=====================================================
+
+.. py:module:: airflow.providers.slack.hooks.slack_webhook
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.slack.hooks.slack_webhook.SlackWebhookHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.slack.hooks.slack_webhook.check_webhook_response
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.slack.hooks.slack_webhook.DEFAULT_SLACK_WEBHOOK_ENDPOINT
+   airflow.providers.slack.hooks.slack_webhook.LEGACY_INTEGRATION_PARAMS
+
+
+.. py:data:: DEFAULT_SLACK_WEBHOOK_ENDPOINT
+   :value: 'https://hooks.slack.com/services'
+
+   
+
+.. py:data:: LEGACY_INTEGRATION_PARAMS
+   :value: ('channel', 'username', 'icon_emoji', 'icon_url')
+
+   
+
+.. py:function:: check_webhook_response(func)
+
+   Function decorator that check WebhookResponse and raise an error if status code != 200.
+
+
+.. py:class:: SlackWebhookHook(slack_webhook_conn_id = None, webhook_token = None, timeout = None, proxy = None, retry_handlers = None, **kwargs)
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   This class provide a thin wrapper around the ``slack_sdk.WebhookClient``.
+   This hook allows you to post messages to Slack by using Incoming Webhooks.
+
+   .. seealso::
+       - :ref:`Slack Incoming Webhook connection <howto/connection:slack-incoming-webhook>`
+       - https://api.slack.com/messaging/webhooks
+       - https://slack.dev/python-slack-sdk/webhook/index.html
+
+   .. note::
+       You cannot override the default channel (chosen by the user who installed your app),
+       username, or icon when you're using Incoming Webhooks to post messages.
+       Instead, these values will always inherit from the associated Slack App configuration
+       (`link <https://api.slack.com/messaging/webhooks#advanced_message_formatting>`_).
+       It is possible to change this values only in `Legacy Slack Integration Incoming Webhook
+       <https://api.slack.com/legacy/custom-integrations/messaging/webhooks#legacy-customizations>`_.
+
+   .. warning::
+       This hook intend to use `Slack Incoming Webhook` connection
+       and might not work correctly with `Slack API` connection.
+
+   Examples:
+    .. code-block:: python
+
+       # Create hook
+       hook = SlackWebhookHook(slack_webhook_conn_id="slack_default")
+
+       # Post message in Slack channel by JSON formatted message
+       # See: https://api.slack.com/messaging/webhooks#posting_with_webhooks
+       hook.send_dict({"text": "Hello world!"})
+
+       # Post simple message in Slack channel
+       hook.send_text("Hello world!")
+
+       # Use ``slack_sdk.WebhookClient``
+       hook.client.send(text="Hello world!")
+
+   :param slack_webhook_conn_id: Slack Incoming Webhook connection id
+       that has Incoming Webhook token in the password field.
+   :param timeout: The maximum number of seconds the client will wait to connect
+       and receive a response from Slack. If not set than default WebhookClient value will use.
+   :param proxy: Proxy to make the Slack Incoming Webhook call.
+   :param retry_handlers: List of handlers to customize retry logic in ``slack_sdk.WebhookClient``.
+   :param webhook_token: (deprecated) Slack Incoming Webhook token.
+       Use instead Slack Incoming Webhook connection password field.
+
+   .. py:attribute:: conn_name_attr
+      :value: 'slack_webhook_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'slack_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'slackwebhook'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Slack Incoming Webhook'
+
+      
+
+   .. py:method:: client()
+
+      Get the underlying slack_sdk.webhook.WebhookClient (cached).
+
+
+   .. py:method:: get_conn()
+
+      Get the underlying slack_sdk.webhook.WebhookClient (cached).
+
+
+   .. py:method:: webhook_token()
+
+      Return Slack Webhook Token URL.
+
+
+   .. py:method:: send_dict(body, *, headers = None)
+
+      Performs a Slack Incoming Webhook request with given JSON data block.
+
+      :param body: JSON data structure, expected dict or JSON-string.
+      :param headers: Request headers for this request.
+
+
+   .. py:method:: send(*, text = None, attachments = None, blocks = None, response_type = None, replace_original = None, delete_original = None, unfurl_links = None, unfurl_media = None, headers = None, **kwargs)
+
+      Performs a Slack Incoming Webhook request with given arguments.
+
+      :param text: The text message
+          (even when having blocks, setting this as well is recommended as it works as fallback).
+      :param attachments: A collection of attachments.
+      :param blocks: A collection of Block Kit UI components.
+      :param response_type: The type of message (either 'in_channel' or 'ephemeral').
+      :param replace_original: True if you use this option for response_url requests.
+      :param delete_original: True if you use this option for response_url requests.
+      :param unfurl_links: Option to indicate whether text url should unfurl.
+      :param unfurl_media: Option to indicate whether media url should unfurl.
+      :param headers: Request headers for this request.
+
+
+   .. py:method:: send_text(text, *, unfurl_links = None, unfurl_media = None, headers = None)
+
+      Performs a Slack Incoming Webhook request with given text.
+
+      :param text: The text message.
+      :param unfurl_links: Option to indicate whether text url should unfurl.
+      :param unfurl_media: Option to indicate whether media url should unfurl.
+      :param headers: Request headers for this request.
+
+
+   .. py:method:: get_connection_form_widgets()
+      :classmethod:
+
+      Returns dictionary of widgets to be added for the hook to handle extra values.
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :classmethod:
+
+      Returns custom field behaviour.
+
+
+   .. py:method:: execute()
+
+      Remote Popen (actually execute the slack webhook call).
+
+      .. note::
+          This method exist for compatibility with previous version of operator
+          and expected that Slack Incoming Webhook message constructing from class attributes rather than
+          pass as method arguments.
+
+
+

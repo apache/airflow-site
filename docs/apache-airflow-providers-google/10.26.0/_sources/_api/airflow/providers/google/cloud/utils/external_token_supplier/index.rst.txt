@@ -1,0 +1,90 @@
+:py:mod:`airflow.providers.google.cloud.utils.external_token_supplier`
+======================================================================
+
+.. py:module:: airflow.providers.google.cloud.utils.external_token_supplier
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.utils.external_token_supplier.CacheTokenSupplier
+   airflow.providers.google.cloud.utils.external_token_supplier.ClientCredentialsGrantFlowTokenSupplier
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.utils.external_token_supplier.cache_token_decorator
+
+
+
+.. py:function:: cache_token_decorator(get_subject_token_method)
+
+   Cache calls to ``SubjectTokenSupplier`` instances' ``get_token_supplier`` methods.
+
+   Different instances of a same SubjectTokenSupplier class with the same attributes
+   share the OIDC token cache.
+
+   :param get_subject_token_method: A method that returns both a token and an integer specifying
+       the time in seconds until the token expires
+
+   See also:
+       https://googleapis.dev/python/google-auth/latest/reference/google.auth.identity_pool.html#google.auth.identity_pool.SubjectTokenSupplier.get_subject_token
+
+
+.. py:class:: CacheTokenSupplier
+
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`, :py:obj:`google.auth.identity_pool.SubjectTokenSupplier`
+
+   A superclass for all Subject Token Supplier classes that wish to implement a caching mechanism.
+
+   Child classes must implement the ``get_subject_key`` method to generate a string that serves as the cache key,
+   ensuring that tokens are shared appropriately among instances.
+
+   Methods:
+       get_subject_key: Abstract method to be implemented by child classes. It should return a string that serves as the cache key.
+
+   .. py:method:: get_subject_key()
+      :abstractmethod:
+
+
+
+.. py:class:: ClientCredentialsGrantFlowTokenSupplier(oidc_issuer_url, client_id, client_secret, **extra_params_kwargs)
+
+
+   Bases: :py:obj:`CacheTokenSupplier`
+
+   Class that retrieves an OIDC token from an external IdP using OAuth2.0 Client Credentials Grant flow.
+
+   This class implements the ``SubjectTokenSupplier`` interface class used by ``google.auth.identity_pool.Credentials``
+
+   :params oidc_issuer_url: URL of the IdP that performs OAuth2.0 Client Credentials Grant flow and returns an OIDC token.
+   :params client_id: Client ID of the application requesting the token
+   :params client_secret: Client secret of the application requesting the token
+   :params extra_params_kwargs: Extra parameters to be passed in the payload of the POST request to the `oidc_issuer_url`
+
+   See also:
+       https://googleapis.dev/python/google-auth/latest/reference/google.auth.identity_pool.html#google.auth.identity_pool.SubjectTokenSupplier
+
+   .. py:method:: get_subject_token(context, request)
+
+      Perform Client Credentials Grant flow with IdP and retrieves an OIDC token and expiration time.
+
+
+   .. py:method:: get_subject_key()
+
+      Create a cache key using the OIDC issuer URL, client ID, client secret and additional parameters.
+
+      Instances with the same credentials will share tokens.
+
+
+
