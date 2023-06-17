@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# June 17, 2023
+
+We’ve just released Apache **Airflow 2.6.2**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.6.2/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.6.2 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.6.2/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.6.2/installation/installing-from-sources.html
+
 # June 12, 2023
 
 Airflow PMC welcomes new Airflow Committer:
