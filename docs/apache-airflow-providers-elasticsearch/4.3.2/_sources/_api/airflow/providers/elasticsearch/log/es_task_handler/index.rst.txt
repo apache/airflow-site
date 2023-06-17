@@ -1,0 +1,134 @@
+:py:mod:`airflow.providers.elasticsearch.log.es_task_handler`
+=============================================================
+
+.. py:module:: airflow.providers.elasticsearch.log.es_task_handler
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.elasticsearch.log.es_task_handler.ElasticsearchTaskHandler
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.elasticsearch.log.es_task_handler.LOG_LINE_DEFAULTS
+   airflow.providers.elasticsearch.log.es_task_handler.EsLogMsgType
+   airflow.providers.elasticsearch.log.es_task_handler.USE_PER_RUN_LOG_ID
+
+
+.. py:data:: LOG_LINE_DEFAULTS
+   
+
+   
+
+.. py:data:: EsLogMsgType
+   
+
+   
+
+.. py:data:: USE_PER_RUN_LOG_ID
+   
+
+   
+
+.. py:class:: ElasticsearchTaskHandler(base_log_folder, end_of_log_mark, write_stdout, json_format, json_fields, host_field = 'host', offset_field = 'offset', host = 'localhost:9200', frontend = 'localhost:5601', index_patterns = conf.get('elasticsearch', 'index_patterns', fallback='_all'), es_kwargs = conf.getsection('elasticsearch_configs'), *, filename_template = None, log_id_template = None)
+
+   Bases: :py:obj:`airflow.utils.log.file_task_handler.FileTaskHandler`, :py:obj:`airflow.utils.log.logging_mixin.ExternalLoggingMixin`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   ElasticsearchTaskHandler is a python log handler that
+   reads logs from Elasticsearch. Note that Airflow does not handle the indexing
+   of logs into Elasticsearch. Instead, Airflow flushes logs
+   into local files. Additional software setup is required
+   to index the logs into Elasticsearch, such as using
+   Filebeat and Logstash.
+   To efficiently query and sort Elasticsearch results, this handler assumes each
+   log message has a field `log_id` consists of ti primary keys:
+   `log_id = {dag_id}-{task_id}-{execution_date}-{try_number}`
+   Log messages with specific log_id are sorted based on `offset`,
+   which is a unique integer indicates log message's order.
+   Timestamps here are unreliable because multiple log messages
+   might have the same timestamp.
+
+   .. py:property:: log_name
+      :type: str
+
+      The log name
+
+
+   .. py:property:: supports_external_link
+      :type: bool
+
+      Whether we can support external links
+
+
+   .. py:attribute:: PAGE
+      :annotation: = 0
+
+      
+
+   .. py:attribute:: MAX_LINE_PER_PAGE
+      :annotation: = 1000
+
+      
+
+   .. py:attribute:: LOG_NAME
+      :annotation: = Elasticsearch
+
+      
+
+   .. py:method:: es_read(log_id, offset, metadata)
+
+      Returns the logs matching log_id in Elasticsearch and next offset.
+      Returns '' if no log is found or there was an error.
+
+      :param log_id: the log_id of the log to read.
+      :param offset: the offset start to read log from.
+      :param metadata: log metadata, used for steaming log download.
+
+
+   .. py:method:: emit(record)
+
+      Do whatever it takes to actually log the specified logging record.
+
+      This version is intended to be implemented by subclasses and so
+      raises a NotImplementedError.
+
+
+   .. py:method:: set_context(ti)
+
+      Provide task_instance context to airflow task handler.
+
+      :param ti: task instance object
+
+
+   .. py:method:: close()
+
+      Tidy up any resources used by the handler.
+
+      This version removes the handler from an internal map of handlers,
+      _handlers, which is used for handler lookup by name. Subclasses
+      should ensure that this gets called from overridden close()
+      methods.
+
+
+   .. py:method:: get_external_log_url(task_instance, try_number)
+
+      Creates an address for an external log collecting service.
+
+      :param task_instance: task instance object
+      :param try_number: task instance try_number to read logs from.
+      :return: URL to the external log collection service
+
+
+

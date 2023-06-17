@@ -1,0 +1,261 @@
+:py:mod:`airflow.providers.google.cloud.triggers.bigquery`
+==========================================================
+
+.. py:module:: airflow.providers.google.cloud.triggers.bigquery
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryInsertJobTrigger
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryCheckTrigger
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryGetDataTrigger
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryIntervalCheckTrigger
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryValueCheckTrigger
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryTableExistenceTrigger
+   airflow.providers.google.cloud.triggers.bigquery.BigQueryTablePartitionExistenceTrigger
+
+
+
+
+.. py:class:: BigQueryInsertJobTrigger(conn_id, job_id, project_id, location, dataset_id = None, table_id = None, poll_interval = 4.0, impersonation_chain = None, cancel_on_kill = True)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   BigQueryInsertJobTrigger run on the trigger worker to perform insert operation.
+
+   :param conn_id: Reference to google cloud connection id
+   :param job_id:  The ID of the job. It will be suffixed with hash of job configuration
+   :param project_id: Google Cloud Project where the job is running
+   :param location: The dataset location.
+   :param dataset_id: The dataset ID of the requested table. (templated)
+   :param table_id: The table ID of the requested table. (templated)
+   :param poll_interval: polling period in seconds to check for the status. (templated)
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account. (templated)
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryInsertJobTrigger arguments and classpath.
+
+
+   .. py:method:: get_task_instance(session)
+
+
+   .. py:method:: safe_to_cancel()
+
+      Whether it is safe to cancel the external job which is being executed by this trigger.
+
+      This is to avoid the case that `asyncio.CancelledError` is called because the trigger itself is stopped.
+      Because in those cases, we should NOT cancel the external job.
+
+
+   .. py:method:: run()
+      :async:
+
+      Get current job execution status and yields a TriggerEvent.
+
+
+
+.. py:class:: BigQueryCheckTrigger(conn_id, job_id, project_id, location, dataset_id = None, table_id = None, poll_interval = 4.0, impersonation_chain = None, cancel_on_kill = True)
+
+
+   Bases: :py:obj:`BigQueryInsertJobTrigger`
+
+   BigQueryCheckTrigger run on the trigger worker.
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryCheckTrigger arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Get current job execution status and yields a TriggerEvent.
+
+
+
+.. py:class:: BigQueryGetDataTrigger(as_dict = False, selected_fields = None, **kwargs)
+
+
+   Bases: :py:obj:`BigQueryInsertJobTrigger`
+
+   BigQueryGetDataTrigger run on the trigger worker, inherits from BigQueryInsertJobTrigger class.
+
+   :param as_dict: if True returns the result as a list of dictionaries, otherwise as list of lists
+       (default: False).
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryInsertJobTrigger arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Get current job execution status and yields a TriggerEvent with response data.
+
+
+
+.. py:class:: BigQueryIntervalCheckTrigger(conn_id, first_job_id, second_job_id, project_id, table, metrics_thresholds, location = None, date_filter_column = 'ds', days_back = -7, ratio_formula = 'max_over_min', ignore_zero = True, dataset_id = None, table_id = None, poll_interval = 4.0, impersonation_chain = None)
+
+
+   Bases: :py:obj:`BigQueryInsertJobTrigger`
+
+   BigQueryIntervalCheckTrigger run on the trigger worker, inherits from BigQueryInsertJobTrigger class.
+
+   :param conn_id: Reference to google cloud connection id
+   :param first_job_id:  The ID of the job 1 performed
+   :param second_job_id:  The ID of the job 2 performed
+   :param project_id: Google Cloud Project where the job is running
+   :param dataset_id: The dataset ID of the requested table. (templated)
+   :param table: table name
+   :param metrics_thresholds: dictionary of ratios indexed by metrics
+   :param location: The dataset location.
+   :param date_filter_column: column name. (templated)
+   :param days_back: number of days between ds and the ds we want to check against. (templated)
+   :param ratio_formula: ration formula. (templated)
+   :param ignore_zero: boolean value to consider zero or not. (templated)
+   :param table_id: The table ID of the requested table. (templated)
+   :param poll_interval: polling period in seconds to check for the status. (templated)
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account. (templated)
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryCheckTrigger arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Get current job execution status and yields a TriggerEvent.
+
+
+
+.. py:class:: BigQueryValueCheckTrigger(conn_id, sql, pass_value, job_id, project_id, tolerance = None, dataset_id = None, table_id = None, location = None, poll_interval = 4.0, impersonation_chain = None)
+
+
+   Bases: :py:obj:`BigQueryInsertJobTrigger`
+
+   BigQueryValueCheckTrigger run on the trigger worker, inherits from BigQueryInsertJobTrigger class.
+
+   :param conn_id: Reference to google cloud connection id
+   :param sql: the sql to be executed
+   :param pass_value: pass value
+   :param job_id: The ID of the job
+   :param project_id: Google Cloud Project where the job is running
+   :param tolerance: certain metrics for tolerance. (templated)
+   :param dataset_id: The dataset ID of the requested table. (templated)
+   :param table_id: The table ID of the requested table. (templated)
+   :param location: The dataset location
+   :param poll_interval: polling period in seconds to check for the status. (templated)
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryValueCheckTrigger arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Get current job execution status and yields a TriggerEvent.
+
+
+
+.. py:class:: BigQueryTableExistenceTrigger(project_id, dataset_id, table_id, gcp_conn_id, hook_params, poll_interval = 4.0, impersonation_chain = None)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Initialize the BigQuery Table Existence Trigger with needed parameters.
+
+   :param project_id: Google Cloud Project where the job is running
+   :param dataset_id: The dataset ID of the requested table.
+   :param table_id: The table ID of the requested table.
+   :param gcp_conn_id: Reference to google cloud connection id
+   :param hook_params: params for hook
+   :param poll_interval: polling period in seconds to check for the status
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account. (templated)
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryTableExistenceTrigger arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Will run until the table exists in the Google Big Query.
+
+
+
+.. py:class:: BigQueryTablePartitionExistenceTrigger(partition_id, **kwargs)
+
+
+   Bases: :py:obj:`BigQueryTableExistenceTrigger`
+
+   Initialize the BigQuery Table Partition Existence Trigger with needed parameters.
+
+   :param partition_id: The name of the partition to check the existence of.
+   :param project_id: Google Cloud Project where the job is running
+   :param dataset_id: The dataset ID of the requested table.
+   :param table_id: The table ID of the requested table.
+   :param gcp_conn_id: Reference to google cloud connection id
+   :param hook_params: params for hook
+   :param poll_interval: polling period in seconds to check for the status
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account. (templated)
+
+   .. py:method:: serialize()
+
+      Serialize BigQueryTablePartitionExistenceTrigger arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Will run until the table exists in the Google Big Query.
+
+
+

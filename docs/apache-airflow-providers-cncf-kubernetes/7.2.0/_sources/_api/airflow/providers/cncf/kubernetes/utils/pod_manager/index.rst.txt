@@ -1,0 +1,294 @@
+:py:mod:`airflow.providers.cncf.kubernetes.utils.pod_manager`
+=============================================================
+
+.. py:module:: airflow.providers.cncf.kubernetes.utils.pod_manager
+
+.. autoapi-nested-parse::
+
+   Launches PODs.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.utils.pod_manager.PodPhase
+   airflow.providers.cncf.kubernetes.utils.pod_manager.PodOperatorHookProtocol
+   airflow.providers.cncf.kubernetes.utils.pod_manager.PodLoggingStatus
+   airflow.providers.cncf.kubernetes.utils.pod_manager.PodManager
+   airflow.providers.cncf.kubernetes.utils.pod_manager.OnFinishAction
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.utils.pod_manager.should_retry_start_pod
+   airflow.providers.cncf.kubernetes.utils.pod_manager.get_container_status
+   airflow.providers.cncf.kubernetes.utils.pod_manager.container_is_running
+   airflow.providers.cncf.kubernetes.utils.pod_manager.container_is_terminated
+   airflow.providers.cncf.kubernetes.utils.pod_manager.get_container_termination_message
+
+
+
+.. py:exception:: PodLaunchFailedException
+
+
+   Bases: :py:obj:`airflow.exceptions.AirflowException`
+
+   When pod launching fails in KubernetesPodOperator.
+
+
+.. py:function:: should_retry_start_pod(exception)
+
+   Check if an Exception indicates a transient error and warrants retrying.
+
+
+.. py:class:: PodPhase
+
+
+   Possible pod phases.
+
+   See https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase.
+
+   .. py:attribute:: PENDING
+      :value: 'Pending'
+
+      
+
+   .. py:attribute:: RUNNING
+      :value: 'Running'
+
+      
+
+   .. py:attribute:: FAILED
+      :value: 'Failed'
+
+      
+
+   .. py:attribute:: SUCCEEDED
+      :value: 'Succeeded'
+
+      
+
+   .. py:attribute:: terminal_states
+
+      
+
+
+.. py:class:: PodOperatorHookProtocol
+
+
+   Bases: :py:obj:`airflow.typing_compat.Protocol`
+
+   Protocol to define methods relied upon by KubernetesPodOperator.
+
+   Subclasses of KubernetesPodOperator, such as GKEStartPodOperator, may use
+   hooks that don't extend KubernetesHook.  We use this protocol to document the
+   methods used by KPO and ensure that these methods exist on such other hooks.
+
+   .. py:property:: core_v1_client
+      :type: kubernetes.client.CoreV1Api
+
+      Get authenticated CoreV1Api object.
+
+
+   .. py:property:: is_in_cluster
+      :type: bool
+
+      Expose whether the hook is configured with ``load_incluster_config`` or not.
+
+
+   .. py:method:: get_pod(name, namespace)
+
+      Read pod object from kubernetes API.
+
+
+   .. py:method:: get_namespace()
+
+      Returns the namespace that defined in the connection.
+
+
+
+.. py:function:: get_container_status(pod, container_name)
+
+   Retrieves container status.
+
+
+.. py:function:: container_is_running(pod, container_name)
+
+   Examines V1Pod ``pod`` to determine whether ``container_name`` is running.
+
+   If that container is present and running, returns True.  Returns False otherwise.
+
+
+.. py:function:: container_is_terminated(pod, container_name)
+
+   Examines V1Pod ``pod`` to determine whether ``container_name`` is terminated.
+
+   If that container is present and terminated, returns True.  Returns False otherwise.
+
+
+.. py:function:: get_container_termination_message(pod, container_name)
+
+
+.. py:class:: PodLoggingStatus
+
+
+   Used for returning the status of the pod and last log time when exiting from `fetch_container_logs`.
+
+   .. py:attribute:: running
+      :type: bool
+
+      
+
+   .. py:attribute:: last_log_time
+      :type: pendulum.DateTime | None
+
+      
+
+
+.. py:class:: PodManager(kube_client)
+
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Create, monitor, and otherwise interact with Kubernetes pods for use with the KubernetesPodOperator.
+
+   .. py:method:: run_pod_async(pod, **kwargs)
+
+      Runs POD asynchronously.
+
+
+   .. py:method:: delete_pod(pod)
+
+      Deletes POD.
+
+
+   .. py:method:: create_pod(pod)
+
+      Launches the pod asynchronously.
+
+
+   .. py:method:: await_pod_start(pod, startup_timeout = 120)
+
+      Waits for the pod to reach phase other than ``Pending``.
+
+      :param pod:
+      :param startup_timeout: Timeout (in seconds) for startup of the pod
+          (if pod is pending for too long, fails task)
+      :return:
+
+
+   .. py:method:: follow_container_logs(pod, container_name)
+
+
+   .. py:method:: fetch_container_logs(pod, container_name, *, follow=False, since_time = None, post_termination_timeout = 120)
+
+      Follows the logs of container and streams to airflow logging.
+
+      Returns when container exits.
+
+      Between when the pod starts and logs being available, there might be a delay due to CSR not approved
+      and signed yet. In such situation, ApiException is thrown. This is why we are retrying on this
+      specific exception.
+
+
+   .. py:method:: await_container_completion(pod, container_name)
+
+      Waits for the given container in the given pod to be completed.
+
+      :param pod: pod spec that will be monitored
+      :param container_name: name of the container within the pod to monitor
+
+
+   .. py:method:: await_pod_completion(pod)
+
+      Monitors a pod and returns the final state.
+
+      :param pod: pod spec that will be monitored
+      :return: tuple[State, str | None]
+
+
+   .. py:method:: parse_log_line(line)
+
+      Parse K8s log line and returns the final state.
+
+      :param line: k8s log line
+      :return: timestamp and log message
+
+
+   .. py:method:: container_is_running(pod, container_name)
+
+      Reads pod and checks if container is running.
+
+
+   .. py:method:: container_is_terminated(pod, container_name)
+
+      Reads pod and checks if container is terminated.
+
+
+   .. py:method:: read_pod_logs(pod, container_name, tail_lines = None, timestamps = False, since_seconds = None, follow=True, post_termination_timeout = 120)
+
+      Reads log from the POD.
+
+
+   .. py:method:: read_pod_events(pod)
+
+      Reads events from the POD.
+
+
+   .. py:method:: read_pod(pod)
+
+      Read POD information.
+
+
+   .. py:method:: await_xcom_sidecar_container_start(pod)
+
+
+   .. py:method:: extract_xcom(pod)
+
+      Retrieves XCom value and kills xcom sidecar container.
+
+
+   .. py:method:: extract_xcom_json(pod)
+
+      Retrieves XCom value and also checks if xcom json is valid.
+
+
+   .. py:method:: extract_xcom_kill(pod)
+
+      Kills xcom sidecar container.
+
+
+
+.. py:class:: OnFinishAction
+
+
+   Bases: :py:obj:`enum.Enum`
+
+   Action to take when the pod finishes.
+
+   .. py:attribute:: KEEP_POD
+      :value: 'keep_pod'
+
+      
+
+   .. py:attribute:: DELETE_POD
+      :value: 'delete_pod'
+
+      
+
+   .. py:attribute:: DELETE_SUCCEEDED_POD
+      :value: 'delete_succeeded_pod'
+
+      
+
+

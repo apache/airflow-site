@@ -1,0 +1,587 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>airflow.contrib.operators.sql_to_gcs &mdash; Airflow Documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var el = document.getElementById('changelog');
+      if (el !== null ) {
+        // [AIRFLOW-...]
+        el.innerHTML = el.innerHTML.replace(
+            /\[(AIRFLOW-[\d]+)\]/g,
+            `<a href="https://issues.apache.org/jira/browse/$1">[$1]</a>`
+        );
+        // (#...)
+        el.innerHTML = el.innerHTML.replace(
+            /\(#([\d]+)\)/g,
+            `<a href="https://github.com/apache/airflow/pull/$1">(#$1)</a>`
+        );
+      };
+    })
+  </script>
+  <style>
+    .example-header {
+      position: relative;
+      background: #9AAA7A;
+      padding: 8px 16px;
+      margin-bottom: 0;
+    }
+    .example-header--with-button {
+      padding-right: 166px;
+    }
+    .example-header:after{
+      content: '';
+      display: table;
+      clear: both;
+    }
+    .example-title {
+      display:block;
+      padding: 4px;
+      margin-right: 16px;
+      color: white;
+      overflow-x: auto;
+    }
+    .example-header-button {
+      top: 8px;
+      right: 16px;
+      position: absolute;
+    }
+    .example-header + .highlight-python {
+      margin-top: 0 !important;
+    }
+    .viewcode-button {
+      display: inline-block;
+      padding: 8px 16px;
+      border: 0;
+      margin: 0;
+      outline: 0;
+      border-radius: 2px;
+      -webkit-box-shadow: 0 3px 5px 0 rgba(0,0,0,.3);
+      box-shadow: 0 3px 6px 0 rgba(0,0,0,.3);
+      color: #404040;
+      background-color: #e7e7e7;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      text-transform: uppercase;
+      -webkit-transition: background-color .2s;
+      transition: background-color .2s;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .viewcode-button:visited {
+      color: #404040;
+    }
+    .viewcode-button:hover, .viewcode-button:focus {
+      color: #404040;
+      background-color: #d6d6d6;
+    }
+  </style>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://analytics.apache.org/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '13']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo -->
+</head>
+
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Airflow
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.10.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../project.html">Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../howto/index.html">How-to Guides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui.html">UI / Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../profiling.html">Data Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../scheduler.html">Scheduling &amp; Triggers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../timezone.html">Time zones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../kubernetes.html">Kubernetes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../macros.html">Macros reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../_api/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Airflow</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../operators.html">airflow.contrib.operators</a> &raquo;</li>
+        
+      <li>airflow.contrib.operators.sql_to_gcs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for airflow.contrib.operators.sql_to_gcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Base operator for SQL to GCS operators.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">NamedTemporaryFile</span>
+
+<span class="kn">import</span> <span class="nn">unicodecsv</span> <span class="k">as</span> <span class="nn">csv</span>
+
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.gcs_hook</span> <span class="k">import</span> <span class="n">GoogleCloudStorageHook</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="k">import</span> <span class="n">BaseOperator</span>
+
+<div class="viewcode-block" id="PY3"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.PY3">[docs]</a><span class="n">PY3</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span></div>
+
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator">[docs]</a><span class="k">class</span> <span class="nc">BaseSQLToGoogleCloudStorageOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param sql: The SQL to execute.</span>
+<span class="sd">    :type sql: str</span>
+<span class="sd">    :param bucket: The bucket to upload to.</span>
+<span class="sd">    :type bucket: str</span>
+<span class="sd">    :param filename: The filename to use as the object name when uploading</span>
+<span class="sd">        to Google Cloud Storage. A {} should be specified in the filename</span>
+<span class="sd">        to allow the operator to inject file numbers in cases where the</span>
+<span class="sd">        file is split due to size.</span>
+<span class="sd">    :type filename: str</span>
+<span class="sd">    :param schema_filename: If set, the filename to use as the object name</span>
+<span class="sd">        when uploading a .json file containing the BigQuery schema fields</span>
+<span class="sd">        for the table that was dumped from the database.</span>
+<span class="sd">    :type schema_filename: str</span>
+<span class="sd">    :param approx_max_file_size_bytes: This operator supports the ability</span>
+<span class="sd">        to split large table dumps into multiple files (see notes in the</span>
+<span class="sd">        filename param docs above). This param allows developers to specify the</span>
+<span class="sd">        file size of the splits. Check https://cloud.google.com/storage/quotas</span>
+<span class="sd">        to see the maximum allowed file size for a single object.</span>
+<span class="sd">    :type approx_max_file_size_bytes: long</span>
+<span class="sd">    :param export_format: Desired format of files to be exported.</span>
+<span class="sd">    :type export_format: str</span>
+<span class="sd">    :param field_delimiter: The delimiter to be used for CSV files.</span>
+<span class="sd">    :type field_delimiter: str</span>
+<span class="sd">    :param gzip: Option to compress file for upload (does not apply to schemas).</span>
+<span class="sd">    :type gzip: bool</span>
+<span class="sd">    :param schema: The schema to use, if any. Should be a list of dict or</span>
+<span class="sd">        a str. Pass a string if using Jinja template, otherwise, pass a list of</span>
+<span class="sd">        dict. Examples could be seen: https://cloud.google.com/bigquery/docs</span>
+<span class="sd">        /schemas#specifying_a_json_schema_file</span>
+<span class="sd">    :type schema: str or list</span>
+<span class="sd">    :param google_cloud_storage_conn_id: Reference to a specific Google</span>
+<span class="sd">        cloud storage hook.</span>
+<span class="sd">    :type google_cloud_storage_conn_id: str</span>
+<span class="sd">    :param delegate_to: The account to impersonate, if any. For this to</span>
+<span class="sd">        work, the service account making the request must have domain-wide</span>
+<span class="sd">        delegation enabled.</span>
+<span class="sd">    :param parameters: a parameters dict that is substituted at query runtime.</span>
+<span class="sd">    :type parameters: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.template_fields"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.template_fields">[docs]</a>    <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;bucket&#39;</span><span class="p">,</span> <span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="s1">&#39;schema_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;schema&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.template_ext"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.template_ext">[docs]</a>    <span class="n">template_ext</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.sql&#39;</span><span class="p">,)</span></div>
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.ui_color"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.ui_color">[docs]</a>    <span class="n">ui_color</span> <span class="o">=</span> <span class="s1">&#39;#a0e08c&#39;</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+                 <span class="n">sql</span><span class="p">,</span>
+                 <span class="n">bucket</span><span class="p">,</span>
+                 <span class="n">filename</span><span class="p">,</span>
+                 <span class="n">schema_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">approx_max_file_size_bytes</span><span class="o">=</span><span class="mi">1900000000</span><span class="p">,</span>
+                 <span class="n">export_format</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
+                 <span class="n">field_delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                 <span class="n">gzip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">schema</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="s1">&#39;google_cloud_default&#39;</span><span class="p">,</span>
+                 <span class="n">delegate_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseSQLToGoogleCloudStorageOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sql</span> <span class="o">=</span> <span class="n">sql</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bucket</span> <span class="o">=</span> <span class="n">bucket</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schema_filename</span> <span class="o">=</span> <span class="n">schema_filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">approx_max_file_size_bytes</span> <span class="o">=</span> <span class="n">approx_max_file_size_bytes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">export_format</span> <span class="o">=</span> <span class="n">export_format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_delimiter</span> <span class="o">=</span> <span class="n">field_delimiter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gzip</span> <span class="o">=</span> <span class="n">gzip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">schema</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span> <span class="o">=</span> <span class="n">google_cloud_storage_conn_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span> <span class="o">=</span> <span class="n">delegate_to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.execute"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
+        <span class="n">files_to_upload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_local_data_files</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+
+        <span class="c1"># If a schema is set, create a BQ schema JSON file.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_filename</span><span class="p">:</span>
+            <span class="n">files_to_upload</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_write_local_schema_file</span><span class="p">(</span><span class="n">cursor</span><span class="p">))</span>
+
+        <span class="c1"># Flush all files before uploading</span>
+        <span class="k">for</span> <span class="n">tmp_file</span> <span class="ow">in</span> <span class="n">files_to_upload</span><span class="p">:</span>
+            <span class="n">tmp_file</span><span class="p">[</span><span class="s1">&#39;file_handle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_upload_to_gcs</span><span class="p">(</span><span class="n">files_to_upload</span><span class="p">)</span>
+
+        <span class="c1"># Close all temp file handles.</span>
+        <span class="k">for</span> <span class="n">tmp_file</span> <span class="ow">in</span> <span class="n">files_to_upload</span><span class="p">:</span>
+            <span class="n">tmp_file</span><span class="p">[</span><span class="s1">&#39;file_handle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.convert_types"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.convert_types">[docs]</a>    <span class="k">def</span> <span class="nf">convert_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">col_type_dict</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert values from DBAPI to output-friendly formats.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert_type</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">col_type_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span></div>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator._write_local_data_files"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator._write_local_data_files">[docs]</a>    <span class="k">def</span> <span class="nf">_write_local_data_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a cursor, and writes results to a local file.</span>
+
+<span class="sd">        :return: A dictionary where keys are filenames to be used as object</span>
+<span class="sd">            names in GCS, and values are file handles to local files that</span>
+<span class="sd">            contain the data for the GCS objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">schema_tuple</span><span class="p">:</span> <span class="n">schema_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+        <span class="n">col_type_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_col_type_dict</span><span class="p">()</span>
+        <span class="n">file_no</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tmp_file_handle</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+            <span class="n">file_mime_type</span> <span class="o">=</span> <span class="s1">&#39;text/csv&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">file_mime_type</span> <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
+        <span class="n">files_to_upload</span> <span class="o">=</span> <span class="p">[{</span>
+            <span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_no</span><span class="p">),</span>
+            <span class="s1">&#39;file_handle&#39;</span><span class="p">:</span> <span class="n">tmp_file_handle</span><span class="p">,</span>
+            <span class="s1">&#39;file_mime_type&#39;</span><span class="p">:</span> <span class="n">file_mime_type</span>
+        <span class="p">}]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+            <span class="n">csv_writer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configure_csv_file</span><span class="p">(</span><span class="n">tmp_file_handle</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="c1"># Convert datetime objects to utc seconds, and decimals to floats.</span>
+            <span class="c1"># Convert binary type object to string encoded with base64.</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_types</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">col_type_dict</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+                <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">row_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+
+                <span class="c1"># TODO validate that row isn&#39;t &gt; 2MB. BQ enforces a hard row size of 2MB.</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">row_dict</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+                <span class="c1"># Append newline to make dumps BigQuery compatible.</span>
+                <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Stop if the file exceeds the file size limit.</span>
+            <span class="k">if</span> <span class="n">tmp_file_handle</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">approx_max_file_size_bytes</span><span class="p">:</span>
+                <span class="n">file_no</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">tmp_file_handle</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">files_to_upload</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_no</span><span class="p">),</span>
+                    <span class="s1">&#39;file_handle&#39;</span><span class="p">:</span> <span class="n">tmp_file_handle</span><span class="p">,</span>
+                    <span class="s1">&#39;file_mime_type&#39;</span><span class="p">:</span> <span class="n">file_mime_type</span>
+                <span class="p">})</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+                    <span class="n">csv_writer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configure_csv_file</span><span class="p">(</span><span class="n">tmp_file_handle</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">files_to_upload</span></div>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator._configure_csv_file"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator._configure_csv_file">[docs]</a>    <span class="k">def</span> <span class="nf">_configure_csv_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_handle</span><span class="p">,</span> <span class="n">schema</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Configure a csv writer with the file_handle and write schema</span>
+<span class="sd">        as headers for the new file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file_handle</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span>
+                                <span class="n">delimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">field_delimiter</span><span class="p">)</span>
+        <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">csv_writer</span></div>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.query"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+        <span class="sd">&quot;&quot;&quot;Execute DBAPI query.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.field_to_bigquery"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.field_to_bigquery">[docs]</a>    <span class="k">def</span> <span class="nf">field_to_bigquery</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span></div>
+        <span class="sd">&quot;&quot;&quot;Convert a DBAPI field to BigQuery schema format.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator.convert_type"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator.convert_type">[docs]</a>    <span class="k">def</span> <span class="nf">convert_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema_type</span><span class="p">):</span></div>
+        <span class="sd">&quot;&quot;&quot;Convert a value from DBAPI to output-friendly formats.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator._get_col_type_dict"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator._get_col_type_dict">[docs]</a>    <span class="k">def</span> <span class="nf">_get_col_type_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dict of column name and column type based on self.schema if not None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">schema</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Using default schema due to unexpected type.&#39;</span>
+                             <span class="s1">&#39;Should be a string or list.&#39;</span><span class="p">)</span>
+
+        <span class="n">col_type_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">col_type_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]:</span> <span class="n">col</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">schema</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Using default schema due to missing name or type. Please &#39;</span>
+                             <span class="s1">&#39;refer to: https://cloud.google.com/bigquery/docs/schemas&#39;</span>
+                             <span class="s1">&#39;#specifying_a_json_schema_file&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">col_type_dict</span></div>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator._write_local_schema_file"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator._write_local_schema_file">[docs]</a>    <span class="k">def</span> <span class="nf">_write_local_schema_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a cursor, and writes the BigQuery schema for the results to a</span>
+<span class="sd">        local file system.</span>
+
+<span class="sd">        :return: A dictionary where key is a filename to be used as an object</span>
+<span class="sd">            name in GCS, and values are file handles to local files that</span>
+<span class="sd">            contains the BigQuery schema fields in .json format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">field_to_bigquery</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using schema for </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_filename</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+        <span class="n">tmp_schema_file_handle</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">schema_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+            <span class="n">schema_str</span> <span class="o">=</span> <span class="n">schema_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">tmp_schema_file_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">schema_str</span><span class="p">)</span>
+        <span class="n">schema_file_to_upload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_filename</span><span class="p">,</span>
+            <span class="s1">&#39;file_handle&#39;</span><span class="p">:</span> <span class="n">tmp_schema_file_handle</span><span class="p">,</span>
+            <span class="s1">&#39;file_mime_type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">schema_file_to_upload</span></div>
+
+<div class="viewcode-block" id="BaseSQLToGoogleCloudStorageOperator._upload_to_gcs"><a class="viewcode-back" href="../../../../_api/airflow/contrib/operators/sql_to_gcs/index.html#airflow.contrib.operators.sql_to_gcs.BaseSQLToGoogleCloudStorageOperator._upload_to_gcs">[docs]</a>    <span class="k">def</span> <span class="nf">_upload_to_gcs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files_to_upload</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Upload all of the file splits (and optionally the schema .json file) to</span>
+<span class="sd">        Google cloud storage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hook</span> <span class="o">=</span> <span class="n">GoogleCloudStorageHook</span><span class="p">(</span>
+            <span class="n">google_cloud_storage_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">google_cloud_storage_conn_id</span><span class="p">,</span>
+            <span class="n">delegate_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delegate_to</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tmp_file</span> <span class="ow">in</span> <span class="n">files_to_upload</span><span class="p">:</span>
+            <span class="n">hook</span><span class="o">.</span><span class="n">upload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">tmp_file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;file_name&#39;</span><span class="p">),</span>
+                        <span class="n">tmp_file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;file_handle&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">mime_type</span><span class="o">=</span><span class="n">tmp_file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;file_mime_type&#39;</span><span class="p">),</span>
+                        <span class="n">gzip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gzip</span> <span class="k">if</span> <span class="n">tmp_file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;file_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema_filename</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
