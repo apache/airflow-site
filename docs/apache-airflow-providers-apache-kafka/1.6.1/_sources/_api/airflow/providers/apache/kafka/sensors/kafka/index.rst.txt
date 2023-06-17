@@ -1,0 +1,152 @@
+:py:mod:`airflow.providers.apache.kafka.sensors.kafka`
+======================================================
+
+.. py:module:: airflow.providers.apache.kafka.sensors.kafka
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.apache.kafka.sensors.kafka.AwaitMessageSensor
+   airflow.providers.apache.kafka.sensors.kafka.AwaitMessageTriggerFunctionSensor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.apache.kafka.sensors.kafka.VALID_COMMIT_CADENCE
+
+
+.. py:data:: VALID_COMMIT_CADENCE
+
+   
+
+.. py:class:: AwaitMessageSensor(topics, apply_function, kafka_config_id = 'kafka_default', apply_function_args = None, apply_function_kwargs = None, poll_timeout = 1, poll_interval = 5, xcom_push_key=None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   An Airflow sensor that defers until a specific message is published to Kafka.
+
+   The sensor creates a consumer that reads the Kafka log until it encounters a positive event.
+
+   The behavior of the consumer for this trigger is as follows:
+   - poll the Kafka topics for a message
+   - if no message returned, sleep
+   - process the message with provided callable and commit the message offset
+   - if callable returns any data, raise a TriggerEvent with the return data
+   - else continue to next message
+   - return event (as default xcom or specific xcom key)
+
+
+   :param kafka_config_id: The connection object to use, defaults to "kafka_default"
+   :param topics: Topics (or topic regex) to use for reading from
+   :param apply_function: The function to apply to messages to determine if an event occurred. As a dot
+       notation string.
+   :param apply_function_args: Arguments to be applied to the processing function,
+       defaults to None
+   :param apply_function_kwargs: Key word arguments to be applied to the processing function,
+       defaults to None
+   :param poll_timeout: How long the kafka consumer should wait for a message to arrive from the kafka
+       cluster,defaults to 1
+   :param poll_interval: How long the kafka consumer should sleep after reaching the end of the Kafka log,
+       defaults to 5
+   :param xcom_push_key: the name of a key to push the returned message to, defaults to None
+
+
+
+   .. py:attribute:: BLUE
+      :value: '#ffefeb'
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: template_fields
+      :value: ('topics', 'apply_function', 'apply_function_args', 'apply_function_kwargs', 'kafka_config_id')
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event=None)
+
+
+
+.. py:class:: AwaitMessageTriggerFunctionSensor(topics, apply_function, event_triggered_function, kafka_config_id = 'kafka_default', apply_function_args = None, apply_function_kwargs = None, poll_timeout = 1, poll_interval = 5, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Defer until a specific message is published to Kafka, trigger a registered function, then resume waiting.
+
+   The behavior of the consumer for this trigger is as follows:
+   - poll the Kafka topics for a message
+   - if no message returned, sleep
+   - process the message with provided callable and commit the message offset
+   - if callable returns any data, raise a TriggerEvent with the return data
+   - else continue to next message
+   - return event (as default xcom or specific xcom key)
+
+
+   :param kafka_config_id: The connection object to use, defaults to "kafka_default"
+   :param topics: Topics (or topic regex) to use for reading from
+   :param apply_function: The function to apply to messages to determine if an event occurred. As a dot
+       notation string.
+   :param event_triggered_function: The callable to trigger once the apply_function encounters a
+       positive event.
+   :param apply_function_args: Arguments to be applied to the processing function, defaults to None
+   :param apply_function_kwargs: Key word arguments to be applied to the processing function,
+       defaults to None
+   :param poll_timeout: How long the kafka consumer should wait for a message to arrive from the kafka
+       cluster, defaults to 1
+   :param poll_interval: How long the kafka consumer should sleep after reaching the end of the Kafka log,
+       defaults to 5
+
+
+
+   .. py:attribute:: BLUE
+      :value: '#ffefeb'
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: template_fields
+      :value: ('topics', 'apply_function', 'apply_function_args', 'apply_function_kwargs', 'kafka_config_id')
+
+      
+
+   .. py:method:: execute(context, event=None)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event=None)
+
+
+

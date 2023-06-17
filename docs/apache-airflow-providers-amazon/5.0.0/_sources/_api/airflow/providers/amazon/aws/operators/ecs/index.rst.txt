@@ -1,0 +1,283 @@
+:py:mod:`airflow.providers.amazon.aws.operators.ecs`
+====================================================
+
+.. py:module:: airflow.providers.amazon.aws.operators.ecs
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.operators.ecs.EcsBaseOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsCreateClusterOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsDeleteClusterOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsDeregisterTaskDefinitionOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsRegisterTaskDefinitionOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsRunTaskOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsOperator
+   airflow.providers.amazon.aws.operators.ecs.EcsTaskLogFetcher
+   airflow.providers.amazon.aws.operators.ecs.EcsProtocol
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.operators.ecs.DEFAULT_CONN_ID
+
+
+.. py:data:: DEFAULT_CONN_ID
+   :annotation: = aws_default
+
+   
+
+.. py:class:: EcsBaseOperator(**kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   This is the base operator for all Elastic Container Service operators.
+
+   .. py:method:: hook()
+
+      Create and return an EcsHook.
+
+
+   .. py:method:: client()
+
+      Create and return the EcsHook's client.
+
+
+   .. py:method:: execute(context)
+      :abstractmethod:
+
+      Must overwrite in child classes.
+
+
+
+.. py:class:: EcsCreateClusterOperator(*, cluster_name, create_cluster_kwargs = None, wait_for_completion = True, **kwargs)
+
+   Bases: :py:obj:`EcsBaseOperator`
+
+   Creates an AWS ECS cluster.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:EcsCreateClusterOperator`
+
+   :param cluster_name: The name of your cluster. If you don't specify a name for your
+       cluster, you create a cluster that's named default.
+   :param create_cluster_kwargs: Extra arguments for Cluster Creation.
+   :param wait_for_completion: If True, waits for creation of the cluster to complete. (default: True)
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['cluster_name', 'create_cluster_kwargs', 'wait_for_completion']
+
+      
+
+   .. py:method:: execute(context)
+
+      Must overwrite in child classes.
+
+
+
+.. py:class:: EcsDeleteClusterOperator(*, cluster_name, wait_for_completion = True, **kwargs)
+
+   Bases: :py:obj:`EcsBaseOperator`
+
+   Deletes an AWS ECS cluster.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:EcsDeleteClusterOperator`
+
+   :param cluster_name: The short name or full Amazon Resource Name (ARN) of the cluster to delete.
+   :param wait_for_completion: If True, waits for creation of the cluster to complete. (default: True)
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['cluster_name', 'wait_for_completion']
+
+      
+
+   .. py:method:: execute(context)
+
+      Must overwrite in child classes.
+
+
+
+.. py:class:: EcsDeregisterTaskDefinitionOperator(*, task_definition, wait_for_completion = True, **kwargs)
+
+   Bases: :py:obj:`EcsBaseOperator`
+
+   Deregister a task definition on AWS ECS.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:EcsDeregisterTaskDefinitionOperator`
+
+   :param task_definition: The family and revision (family:revision) or full Amazon Resource Name (ARN)
+       of the task definition to deregister. If you use a family name, you must specify a revision.
+   :param wait_for_completion: If True, waits for creation of the cluster to complete. (default: True)
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['task_definition', 'wait_for_completion']
+
+      
+
+   .. py:method:: execute(context)
+
+      Must overwrite in child classes.
+
+
+
+.. py:class:: EcsRegisterTaskDefinitionOperator(*, family, container_definitions, register_task_kwargs = None, wait_for_completion = True, **kwargs)
+
+   Bases: :py:obj:`EcsBaseOperator`
+
+   Register a task definition on AWS ECS.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:EcsRegisterTaskDefinitionOperator`
+
+   :param family: The family name of a task definition to create.
+   :param container_definitions: A list of container definitions in JSON format that describe
+       the different containers that make up your task.
+   :param register_task_kwargs: Extra arguments for Register Task Definition.
+   :param wait_for_completion: If True, waits for creation of the cluster to complete. (default: True)
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['family', 'container_definitions', 'register_task_kwargs', 'wait_for_completion']
+
+      
+
+   .. py:method:: execute(context)
+
+      Must overwrite in child classes.
+
+
+
+.. py:class:: EcsRunTaskOperator(*, task_definition, cluster, overrides, launch_type = 'EC2', capacity_provider_strategy = None, group = None, placement_constraints = None, placement_strategy = None, platform_version = None, network_configuration = None, tags = None, awslogs_group = None, awslogs_region = None, awslogs_stream_prefix = None, awslogs_fetch_interval = timedelta(seconds=30), propagate_tags = None, quota_retry = None, reattach = False, number_logs_exception = 10, wait_for_completion = True, **kwargs)
+
+   Bases: :py:obj:`EcsBaseOperator`
+
+   Execute a task on AWS ECS (Elastic Container Service)
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:EcsRunTaskOperator`
+
+   :param task_definition: the task definition name on Elastic Container Service
+   :param cluster: the cluster name on Elastic Container Service
+   :param overrides: the same parameter that boto3 will receive (templated):
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecs.html#ECS.Client.run_task
+   :param aws_conn_id: connection id of AWS credentials / region name. If None,
+       credential boto3 strategy will be used
+       (http://boto3.readthedocs.io/en/latest/guide/configuration.html).
+   :param region_name: region name to use in AWS Hook.
+       Override the region_name in connection (if provided)
+   :param launch_type: the launch type on which to run your task ('EC2', 'EXTERNAL', or 'FARGATE')
+   :param capacity_provider_strategy: the capacity provider strategy to use for the task.
+       When capacity_provider_strategy is specified, the launch_type parameter is omitted.
+       If no capacity_provider_strategy or launch_type is specified,
+       the default capacity provider strategy for the cluster is used.
+   :param group: the name of the task group associated with the task
+   :param placement_constraints: an array of placement constraint objects to use for
+       the task
+   :param placement_strategy: an array of placement strategy objects to use for
+       the task
+   :param platform_version: the platform version on which your task is running
+   :param network_configuration: the network configuration for the task
+   :param tags: a dictionary of tags in the form of {'tagKey': 'tagValue'}.
+   :param awslogs_group: the CloudWatch group where your ECS container logs are stored.
+       Only required if you want logs to be shown in the Airflow UI after your job has
+       finished.
+   :param awslogs_region: the region in which your CloudWatch logs are stored.
+       If None, this is the same as the `region_name` parameter. If that is also None,
+       this is the default AWS region based on your connection settings.
+   :param awslogs_stream_prefix: the stream prefix that is used for the CloudWatch logs.
+       This is usually based on some custom name combined with the name of the container.
+       Only required if you want logs to be shown in the Airflow UI after your job has
+       finished.
+   :param awslogs_fetch_interval: the interval that the ECS task log fetcher should wait
+       in between each Cloudwatch logs fetches.
+   :param quota_retry: Config if and how to retry the launch of a new ECS task, to handle
+       transient errors.
+   :param reattach: If set to True, will check if the task previously launched by the task_instance
+       is already running. If so, the operator will attach to it instead of starting a new task.
+       This is to avoid relaunching a new task when the connection drops between Airflow and ECS while
+       the task is running (when the Airflow worker is restarted for example).
+   :param number_logs_exception: Number of lines from the last Cloudwatch logs to return in the
+       AirflowException if an ECS task is stopped (to receive Airflow alerts with the logs of what
+       failed in the code running in ECS).
+   :param wait_for_completion: If True, waits for creation of the cluster to complete. (default: True)
+
+   .. py:attribute:: ui_color
+      :annotation: = #f0ede4
+
+      
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['task_definition', 'cluster', 'overrides', 'launch_type', 'capacity_provider_strategy',...
+
+      
+
+   .. py:attribute:: template_fields_renderers
+      
+
+      
+
+   .. py:attribute:: REATTACH_XCOM_KEY
+      :annotation: = ecs_task_arn
+
+      
+
+   .. py:attribute:: REATTACH_XCOM_TASK_ID_TEMPLATE
+      :annotation: = {task_id}_task_arn
+
+      
+
+   .. py:method:: execute(context, session=None)
+
+      Must overwrite in child classes.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to cleanup subprocesses when a task instance
+      gets killed. Any use of the threading, subprocess or multiprocessing
+      module within an operator needs to be cleaned up or it will leave
+      ghost processes behind.
+
+
+
+.. py:class:: EcsOperator(*args, **kwargs)
+
+   Bases: :py:obj:`EcsRunTaskOperator`
+
+   This operator is deprecated.
+   Please use :class:`airflow.providers.amazon.aws.operators.ecs.EcsRunTaskOperator`.
+
+
+.. py:class:: EcsTaskLogFetcher(*args, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.ecs.EcsTaskLogFetcher`
+
+   This class is deprecated.
+   Please use :class:`airflow.providers.amazon.aws.hooks.ecs.EcsTaskLogFetcher`.
+
+
+.. py:class:: EcsProtocol
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.ecs.EcsProtocol`
+
+   This class is deprecated.
+   Please use :class:`airflow.providers.amazon.aws.hooks.ecs.EcsProtocol`.
+
+

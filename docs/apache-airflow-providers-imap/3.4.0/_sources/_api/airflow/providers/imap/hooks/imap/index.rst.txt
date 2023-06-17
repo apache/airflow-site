@@ -1,0 +1,193 @@
+:py:mod:`airflow.providers.imap.hooks.imap`
+===========================================
+
+.. py:module:: airflow.providers.imap.hooks.imap
+
+.. autoapi-nested-parse::
+
+   This module provides everything to search mail for a specific attachment and download it.
+
+   It uses the imaplib library that is already integrated in python 3.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.imap.hooks.imap.ImapHook
+   airflow.providers.imap.hooks.imap.Mail
+   airflow.providers.imap.hooks.imap.MailPart
+
+
+
+
+.. py:class:: ImapHook(imap_conn_id = default_conn_name)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   This hook connects to a mail server by using the imap protocol.
+
+   .. note:: Please call this Hook as context manager via `with`
+       to automatically open and close the connection to the mail server.
+
+   :param imap_conn_id: The :ref:`imap connection id <howto/connection:imap>`
+       that contains the information used to authenticate the client.
+
+   .. py:attribute:: conn_name_attr
+      :value: 'imap_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'imap_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'imap'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'IMAP'
+
+      
+
+   .. py:method:: __enter__()
+
+
+   .. py:method:: __exit__(exc_type, exc_val, exc_tb)
+
+
+   .. py:method:: get_conn()
+
+      Login to the mail server.
+
+      .. note:: Please call this Hook as context manager via `with`
+          to automatically open and close the connection to the mail server.
+
+      :return: an authorized ImapHook object.
+
+
+   .. py:method:: has_mail_attachment(name, *, check_regex = False, mail_folder = 'INBOX', mail_filter = 'All')
+
+      Checks the mail folder for mails containing attachments with the given name.
+
+      :param name: The name of the attachment that will be searched for.
+      :param check_regex: Checks the name for a regular expression.
+      :param mail_folder: The mail folder where to look at.
+      :param mail_filter: If set other than 'All' only specific mails will be checked.
+          See :py:meth:`imaplib.IMAP4.search` for details.
+      :returns: True if there is an attachment with the given name and False if not.
+
+
+   .. py:method:: retrieve_mail_attachments(name, *, check_regex = False, latest_only = False, mail_folder = 'INBOX', mail_filter = 'All', not_found_mode = 'raise')
+
+      Retrieves mail's attachments in the mail folder by its name.
+
+      :param name: The name of the attachment that will be downloaded.
+      :param check_regex: Checks the name for a regular expression.
+      :param latest_only: If set to True it will only retrieve the first matched attachment.
+      :param mail_folder: The mail folder where to look at.
+      :param mail_filter: If set other than 'All' only specific mails will be checked.
+          See :py:meth:`imaplib.IMAP4.search` for details.
+      :param not_found_mode: Specify what should happen if no attachment has been found.
+          Supported values are 'raise', 'warn' and 'ignore'.
+          If it is set to 'raise' it will raise an exception,
+          if set to 'warn' it will only print a warning and
+          if set to 'ignore' it won't notify you at all.
+      :returns: a list of tuple each containing the attachment filename and its payload.
+
+
+   .. py:method:: download_mail_attachments(name, local_output_directory, *, check_regex = False, latest_only = False, mail_folder = 'INBOX', mail_filter = 'All', not_found_mode = 'raise')
+
+      Downloads mail's attachments in the mail folder by its name to the local directory.
+
+      :param name: The name of the attachment that will be downloaded.
+      :param local_output_directory: The output directory on the local machine
+          where the files will be downloaded to.
+      :param check_regex: Checks the name for a regular expression.
+      :param latest_only: If set to True it will only download the first matched attachment.
+      :param mail_folder: The mail folder where to look at.
+      :param mail_filter: If set other than 'All' only specific mails will be checked.
+          See :py:meth:`imaplib.IMAP4.search` for details.
+      :param not_found_mode: Specify what should happen if no attachment has been found.
+          Supported values are 'raise', 'warn' and 'ignore'.
+          If it is set to 'raise' it will raise an exception,
+          if set to 'warn' it will only print a warning and
+          if set to 'ignore' it won't notify you at all.
+
+
+
+.. py:class:: Mail(mail_body)
+
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   This class simplifies working with mails returned by the imaplib client.
+
+   :param mail_body: The mail body of a mail received from imaplib client.
+
+   .. py:method:: has_attachments()
+
+      Checks the mail for a attachments.
+
+      :returns: True if it has attachments and False if not.
+
+
+   .. py:method:: get_attachments_by_name(name, check_regex, find_first = False)
+
+      Gets all attachments by name for the mail.
+
+      :param name: The name of the attachment to look for.
+      :param check_regex: Checks the name for a regular expression.
+      :param find_first: If set to True it will only find the first match and then quit.
+      :returns: a list of tuples each containing name and payload
+          where the attachments name matches the given name.
+
+
+
+.. py:class:: MailPart(part)
+
+
+   This class is a wrapper for a Mail object's part and gives it more features.
+
+   :param part: The mail part in a Mail object.
+
+   .. py:method:: is_attachment()
+
+      Checks if the part is a valid mail attachment.
+
+      :returns: True if it is an attachment and False if not.
+
+
+   .. py:method:: has_matching_name(name)
+
+      Checks if the given name matches the part's name.
+
+      :param name: The name to look for.
+      :returns: True if it matches the name (including regular expression).
+
+
+   .. py:method:: has_equal_name(name)
+
+      Checks if the given name is equal to the part's name.
+
+      :param name: The name to look for.
+      :returns: True if it is equal to the given name.
+
+
+   .. py:method:: get_file()
+
+      Gets the file including name and payload.
+
+      :returns: the part's name and payload.
+
+
+

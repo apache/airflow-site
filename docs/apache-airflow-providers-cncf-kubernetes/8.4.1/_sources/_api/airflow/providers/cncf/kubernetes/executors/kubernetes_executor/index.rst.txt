@@ -1,0 +1,161 @@
+:py:mod:`airflow.providers.cncf.kubernetes.executors.kubernetes_executor`
+=========================================================================
+
+.. py:module:: airflow.providers.cncf.kubernetes.executors.kubernetes_executor
+
+.. autoapi-nested-parse::
+
+   KubernetesExecutor.
+
+   .. seealso::
+       For more information on how the KubernetesExecutor works, take a look at the guide:
+       :doc:`/kubernetes_executor`
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.executors.kubernetes_executor.KubernetesExecutor
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.cncf.kubernetes.executors.kubernetes_executor.ARG_NAMESPACE
+   airflow.providers.cncf.kubernetes.executors.kubernetes_executor.ARG_MIN_PENDING_MINUTES
+   airflow.providers.cncf.kubernetes.executors.kubernetes_executor.KUBERNETES_COMMANDS
+
+
+.. py:data:: ARG_NAMESPACE
+
+   
+
+.. py:data:: ARG_MIN_PENDING_MINUTES
+
+   
+
+.. py:data:: KUBERNETES_COMMANDS
+   :value: ()
+
+   
+
+.. py:class:: KubernetesExecutor
+
+
+   Bases: :py:obj:`airflow.executors.base_executor.BaseExecutor`
+
+   Executor for Kubernetes.
+
+   .. py:attribute:: RUNNING_POD_LOG_LINES
+      :value: 100
+
+      
+
+   .. py:attribute:: supports_ad_hoc_ti_run
+      :type: bool
+      :value: True
+
+      
+
+   .. py:method:: clear_not_launched_queued_tasks(session = NEW_SESSION)
+
+      Clear tasks that were not yet launched, but were previously queued.
+
+      Tasks can end up in a "Queued" state when a rescheduled/deferred operator
+      comes back up for execution (with the same try_number) before the
+      pod of its previous incarnation has been fully removed (we think).
+
+      It's also possible when an executor abruptly shuts down (leaving a non-empty
+      task_queue on that executor), but that scenario is handled via normal adoption.
+
+      This method checks each of our queued tasks to see if the corresponding pod
+      is around, and if not, and there's no matching entry in our own
+      task_queue, marks it for re-execution.
+
+
+   .. py:method:: start()
+
+      Start the executor.
+
+
+   .. py:method:: execute_async(key, command, queue = None, executor_config = None)
+
+      Execute task asynchronously.
+
+
+   .. py:method:: sync()
+
+      Synchronize task state.
+
+
+   .. py:method:: get_task_log(ti, try_number)
+
+      Return the task logs.
+
+      :param ti: A TaskInstance object
+      :param try_number: current try_number to read log from
+      :return: tuple of logs and messages
+
+
+   .. py:method:: try_adopt_task_instances(tis)
+
+      Try to adopt running task instances that have been abandoned by a SchedulerJob dying.
+
+      Anything that is not adopted will be cleared by the scheduler (and then become eligible for
+      re-scheduling)
+
+      :return: any TaskInstances that were unable to be adopted
+
+
+   .. py:method:: cleanup_stuck_queued_tasks(tis)
+
+      Handle remnants of tasks that were failed because they were stuck in queued.
+
+      Tasks can get stuck in queued. If such a task is detected, it will be marked
+      as `UP_FOR_RETRY` if the task instance has remaining retries or marked as `FAILED`
+      if it doesn't.
+
+      :param tis: List of Task Instances to clean up
+      :return: List of readable task instances for a warning message
+
+
+   .. py:method:: adopt_launched_task(kube_client, pod, tis_to_flush_by_key)
+
+      Patch existing pod so that the current KubernetesJobWatcher can monitor it via label selectors.
+
+      :param kube_client: kubernetes client for speaking to kube API
+      :param pod: V1Pod spec that we will patch with new label
+      :param tis_to_flush_by_key: TIs that will be flushed if they aren't adopted
+
+
+   .. py:method:: end()
+
+      Shut down the executor.
+
+
+   .. py:method:: terminate()
+
+      Terminate the executor is not doing anything.
+
+
+   .. py:method:: get_cli_commands()
+      :staticmethod:
+
+      Vends CLI commands to be included in Airflow CLI.
+
+      Override this method to expose commands via Airflow CLI to manage this executor. This can
+      be commands to setup/teardown the executor, inspect state, etc.
+      Make sure to choose unique names for those commands, to avoid collisions.
+
+
+
