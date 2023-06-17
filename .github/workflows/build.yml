@@ -39,7 +39,7 @@ jobs:
         with:
           submodules: recursive
           lfs: true
-          depth: 1
+          fetch-depth: 1
       - name: Display disk free
         run: ./.github/scripts/print_df.sh
       - name: 🐍 Setup Python
@@ -112,12 +112,27 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         working-directory: dist
         run: |
-          git add .
+          ../.github/scripts/print_df.sh
+          git add . > ../git_add.log
+          echo "::group::config"
           git config user.name "GitHub Actions"
           git config user.email "actions@users.noreply.github.com"
-          git commit --amend --no-edit
+          echo "::endgroup::"
+          echo "::group::commit"
+          git commit --amend --no-edit > ../git_commit.log
+          echo "::group::push --force"
+          ../.github/scripts/print_df.sh
+          echo "::group::push --force"
           git push --force origin gh-pages
-      - name: 🔧 Copy files from site to theme️
+          echo "::group::push --force"
+          ../.github/scripts/print_df.sh
+      - name: 🚀 Upload git logs as artifacts
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
+        with:
+          name: airflow-sphinx-theme
+          path: './git_*.log'
+          retention-days: 5
+      - name: 🔧 Copy files from site to theme
         run: |
           ./site.sh prepare-theme
           ./.github/scripts/print_df.sh
