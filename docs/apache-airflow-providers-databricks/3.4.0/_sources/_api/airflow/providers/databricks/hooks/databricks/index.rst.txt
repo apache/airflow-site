@@ -1,0 +1,401 @@
+:py:mod:`airflow.providers.databricks.hooks.databricks`
+=======================================================
+
+.. py:module:: airflow.providers.databricks.hooks.databricks
+
+.. autoapi-nested-parse::
+
+   Databricks hook.
+
+   This hook enable the submitting and running of jobs to the Databricks platform. Internally the
+   operators talk to the
+   ``api/2.1/jobs/run-now``
+   `endpoint <https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsRunNow>_`
+   or the ``api/2.1/jobs/runs/submit``
+   `endpoint <https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsRunsSubmit>`_.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.hooks.databricks.RunState
+   airflow.providers.databricks.hooks.databricks.DatabricksHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.hooks.databricks.RESTART_CLUSTER_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.START_CLUSTER_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.TERMINATE_CLUSTER_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.RUN_NOW_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.SUBMIT_RUN_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.GET_RUN_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.CANCEL_RUN_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.OUTPUT_RUNS_JOB_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.INSTALL_LIBS_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.UNINSTALL_LIBS_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.LIST_JOBS_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.WORKSPACE_GET_STATUS_ENDPOINT
+   airflow.providers.databricks.hooks.databricks.RUN_LIFE_CYCLE_STATES
+   airflow.providers.databricks.hooks.databricks.SPARK_VERSIONS_ENDPOINT
+
+
+.. py:data:: RESTART_CLUSTER_ENDPOINT
+   :annotation: = ['POST', 'api/2.0/clusters/restart']
+
+   
+
+.. py:data:: START_CLUSTER_ENDPOINT
+   :annotation: = ['POST', 'api/2.0/clusters/start']
+
+   
+
+.. py:data:: TERMINATE_CLUSTER_ENDPOINT
+   :annotation: = ['POST', 'api/2.0/clusters/delete']
+
+   
+
+.. py:data:: RUN_NOW_ENDPOINT
+   :annotation: = ['POST', 'api/2.1/jobs/run-now']
+
+   
+
+.. py:data:: SUBMIT_RUN_ENDPOINT
+   :annotation: = ['POST', 'api/2.1/jobs/runs/submit']
+
+   
+
+.. py:data:: GET_RUN_ENDPOINT
+   :annotation: = ['GET', 'api/2.1/jobs/runs/get']
+
+   
+
+.. py:data:: CANCEL_RUN_ENDPOINT
+   :annotation: = ['POST', 'api/2.1/jobs/runs/cancel']
+
+   
+
+.. py:data:: OUTPUT_RUNS_JOB_ENDPOINT
+   :annotation: = ['GET', 'api/2.1/jobs/runs/get-output']
+
+   
+
+.. py:data:: INSTALL_LIBS_ENDPOINT
+   :annotation: = ['POST', 'api/2.0/libraries/install']
+
+   
+
+.. py:data:: UNINSTALL_LIBS_ENDPOINT
+   :annotation: = ['POST', 'api/2.0/libraries/uninstall']
+
+   
+
+.. py:data:: LIST_JOBS_ENDPOINT
+   :annotation: = ['GET', 'api/2.1/jobs/list']
+
+   
+
+.. py:data:: WORKSPACE_GET_STATUS_ENDPOINT
+   :annotation: = ['GET', 'api/2.0/workspace/get-status']
+
+   
+
+.. py:data:: RUN_LIFE_CYCLE_STATES
+   :annotation: = ['PENDING', 'RUNNING', 'TERMINATING', 'TERMINATED', 'SKIPPED', 'INTERNAL_ERROR']
+
+   
+
+.. py:data:: SPARK_VERSIONS_ENDPOINT
+   :annotation: = ['GET', 'api/2.0/clusters/spark-versions']
+
+   
+
+.. py:class:: RunState(life_cycle_state, result_state = '', state_message = '', *args, **kwargs)
+
+   Utility class for the run state concept of Databricks runs.
+
+   .. py:property:: is_terminal
+      :type: bool
+
+      True if the current state is a terminal state.
+
+
+   .. py:property:: is_successful
+      :type: bool
+
+      True if the result state is SUCCESS
+
+
+   .. py:method:: __eq__(other)
+
+      Return self==value.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: to_json()
+
+
+   .. py:method:: from_json(data)
+      :classmethod:
+
+
+
+.. py:class:: DatabricksHook(databricks_conn_id = BaseDatabricksHook.default_conn_name, timeout_seconds = 180, retry_limit = 3, retry_delay = 1.0, retry_args = None, caller = 'DatabricksHook')
+
+   Bases: :py:obj:`airflow.providers.databricks.hooks.databricks_base.BaseDatabricksHook`
+
+   Interact with Databricks.
+
+   :param databricks_conn_id: Reference to the :ref:`Databricks connection <howto/connection:databricks>`.
+   :param timeout_seconds: The amount of time in seconds the requests library
+       will wait before timing-out.
+   :param retry_limit: The number of times to retry the connection in case of
+       service outages.
+   :param retry_delay: The number of seconds to wait between retries (it
+       might be a floating point number).
+   :param retry_args: An optional dictionary with arguments passed to ``tenacity.Retrying`` class.
+
+   .. py:attribute:: hook_name
+      :annotation: = Databricks
+
+      
+
+   .. py:method:: run_now(json)
+
+      Utility function to call the ``api/2.0/jobs/run-now`` endpoint.
+
+      :param json: The data used in the body of the request to the ``run-now`` endpoint.
+      :return: the run_id as an int
+
+
+   .. py:method:: submit_run(json)
+
+      Utility function to call the ``api/2.0/jobs/runs/submit`` endpoint.
+
+      :param json: The data used in the body of the request to the ``submit`` endpoint.
+      :return: the run_id as an int
+
+
+   .. py:method:: list_jobs(limit = 25, offset = 0, expand_tasks = False, job_name = None)
+
+      Lists the jobs in the Databricks Job Service.
+
+      :param limit: The limit/batch size used to retrieve jobs.
+      :param offset: The offset of the first job to return, relative to the most recently created job.
+      :param expand_tasks: Whether to include task and cluster details in the response.
+      :param job_name: Optional name of a job to search.
+      :return: A list of jobs.
+
+
+   .. py:method:: find_job_id_by_name(job_name)
+
+      Finds job id by its name. If there are multiple jobs with the same name, raises AirflowException.
+
+      :param job_name: The name of the job to look up.
+      :return: The job_id as an int or None if no job was found.
+
+
+   .. py:method:: get_run_page_url(run_id)
+
+      Retrieves run_page_url.
+
+      :param run_id: id of the run
+      :return: URL of the run page
+
+
+   .. py:method:: a_get_run_page_url(run_id)
+      :async:
+
+      Async version of `get_run_page_url()`.
+      :param run_id: id of the run
+      :return: URL of the run page
+
+
+   .. py:method:: get_job_id(run_id)
+
+      Retrieves job_id from run_id.
+
+      :param run_id: id of the run
+      :return: Job id for given Databricks run
+
+
+   .. py:method:: get_run_state(run_id)
+
+      Retrieves run state of the run.
+
+      Please note that any Airflow tasks that call the ``get_run_state`` method will result in
+      failure unless you have enabled xcom pickling.  This can be done using the following
+      environment variable: ``AIRFLOW__CORE__ENABLE_XCOM_PICKLING``
+
+      If you do not want to enable xcom pickling, use the ``get_run_state_str`` method to get
+      a string describing state, or ``get_run_state_lifecycle``, ``get_run_state_result``, or
+      ``get_run_state_message`` to get individual components of the run state.
+
+      :param run_id: id of the run
+      :return: state of the run
+
+
+   .. py:method:: a_get_run_state(run_id)
+      :async:
+
+      Async version of `get_run_state()`.
+      :param run_id: id of the run
+      :return: state of the run
+
+
+   .. py:method:: get_run(run_id)
+
+      Retrieve run information.
+
+      :param run_id: id of the run
+      :return: state of the run
+
+
+   .. py:method:: a_get_run(run_id)
+      :async:
+
+      Async version of `get_run`.
+
+      :param run_id: id of the run
+      :return: state of the run
+
+
+   .. py:method:: get_run_state_str(run_id)
+
+      Return the string representation of RunState.
+
+      :param run_id: id of the run
+      :return: string describing run state
+
+
+   .. py:method:: get_run_state_lifecycle(run_id)
+
+      Returns the lifecycle state of the run
+
+      :param run_id: id of the run
+      :return: string with lifecycle state
+
+
+   .. py:method:: get_run_state_result(run_id)
+
+      Returns the resulting state of the run
+
+      :param run_id: id of the run
+      :return: string with resulting state
+
+
+   .. py:method:: get_run_state_message(run_id)
+
+      Returns the state message for the run
+
+      :param run_id: id of the run
+      :return: string with state message
+
+
+   .. py:method:: get_run_output(run_id)
+
+      Retrieves run output of the run.
+
+      :param run_id: id of the run
+      :return: output of the run
+
+
+   .. py:method:: cancel_run(run_id)
+
+      Cancels the run.
+
+      :param run_id: id of the run
+
+
+   .. py:method:: restart_cluster(json)
+
+      Restarts the cluster.
+
+      :param json: json dictionary containing cluster specification.
+
+
+   .. py:method:: start_cluster(json)
+
+      Starts the cluster.
+
+      :param json: json dictionary containing cluster specification.
+
+
+   .. py:method:: terminate_cluster(json)
+
+      Terminates the cluster.
+
+      :param json: json dictionary containing cluster specification.
+
+
+   .. py:method:: install(json)
+
+      Install libraries on the cluster.
+
+      Utility function to call the ``2.0/libraries/install`` endpoint.
+
+      :param json: json dictionary containing cluster_id and an array of library
+
+
+   .. py:method:: uninstall(json)
+
+      Uninstall libraries on the cluster.
+
+      Utility function to call the ``2.0/libraries/uninstall`` endpoint.
+
+      :param json: json dictionary containing cluster_id and an array of library
+
+
+   .. py:method:: update_repo(repo_id, json)
+
+      Updates given Databricks Repos
+
+      :param repo_id: ID of Databricks Repos
+      :param json: payload
+      :return: metadata from update
+
+
+   .. py:method:: delete_repo(repo_id)
+
+      Deletes given Databricks Repos
+
+      :param repo_id: ID of Databricks Repos
+      :return:
+
+
+   .. py:method:: create_repo(json)
+
+      Creates a Databricks Repos
+
+      :param json: payload
+      :return:
+
+
+   .. py:method:: get_repo_by_path(path)
+
+      Obtains Repos ID by path
+      :param path: path to a repository
+      :return: Repos ID if it exists, None if doesn't.
+
+
+   .. py:method:: test_connection()
+
+      Test the Databricks connectivity from UI
+
+
+

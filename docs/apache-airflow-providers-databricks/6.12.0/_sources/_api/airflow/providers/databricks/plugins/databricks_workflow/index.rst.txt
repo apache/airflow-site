@@ -1,0 +1,222 @@
+:py:mod:`airflow.providers.databricks.plugins.databricks_workflow`
+==================================================================
+
+.. py:module:: airflow.providers.databricks.plugins.databricks_workflow
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.plugins.databricks_workflow.WorkflowJobRunLink
+   airflow.providers.databricks.plugins.databricks_workflow.WorkflowJobRepairAllFailedLink
+   airflow.providers.databricks.plugins.databricks_workflow.WorkflowJobRepairSingleTaskLink
+   airflow.providers.databricks.plugins.databricks_workflow.RepairDatabricksTasks
+   airflow.providers.databricks.plugins.databricks_workflow.DatabricksWorkflowPlugin
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.plugins.databricks_workflow.get_auth_decorator
+   airflow.providers.databricks.plugins.databricks_workflow.get_databricks_task_ids
+   airflow.providers.databricks.plugins.databricks_workflow.get_launch_task_id
+   airflow.providers.databricks.plugins.databricks_workflow.get_task_instance
+   airflow.providers.databricks.plugins.databricks_workflow.get_xcom_result
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.plugins.databricks_workflow.REPAIR_WAIT_ATTEMPTS
+   airflow.providers.databricks.plugins.databricks_workflow.REPAIR_WAIT_DELAY
+   airflow.providers.databricks.plugins.databricks_workflow.airflow_app
+   airflow.providers.databricks.plugins.databricks_workflow.repair_databricks_view
+   airflow.providers.databricks.plugins.databricks_workflow.repair_databricks_package
+
+
+.. py:data:: REPAIR_WAIT_ATTEMPTS
+
+   
+
+.. py:data:: REPAIR_WAIT_DELAY
+
+   
+
+.. py:data:: airflow_app
+
+   
+
+.. py:function:: get_auth_decorator()
+
+
+.. py:function:: get_databricks_task_ids(group_id, task_map, log)
+
+   Return a list of all Databricks task IDs for a dictionary of Airflow tasks.
+
+   :param group_id: The task group ID.
+   :param task_map: A dictionary mapping task IDs to BaseOperator instances.
+   :param log: The logger to use for logging.
+   :return: A list of Databricks task IDs for the given task group.
+
+
+.. py:function:: get_launch_task_id(task_group)
+
+   Retrieve the launch task ID from the current task group or a parent task group, recursively.
+
+   :param task_group: Task Group to be inspected
+   :return: launch Task ID
+
+
+.. py:function:: get_task_instance(operator, dttm, session = NEW_SESSION)
+
+
+.. py:function:: get_xcom_result(ti_key, key)
+
+
+.. py:class:: WorkflowJobRunLink(context=None)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Constructs a link to monitor a Databricks Job Run.
+
+   .. py:attribute:: name
+      :value: 'See Databricks Job Run'
+
+      
+
+   .. py:method:: get_link(operator, dttm=None, *, ti_key = None)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: WorkflowJobRepairAllFailedLink(context=None)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Constructs a link to send a request to repair all failed tasks in the Databricks workflow.
+
+   .. py:attribute:: name
+      :value: 'Repair All Failed Tasks'
+
+      
+
+   .. py:method:: get_link(operator, dttm=None, *, ti_key = None)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+   .. py:method:: get_task_group_children(task_group)
+      :classmethod:
+
+      Given a TaskGroup, return children which are Tasks, inspecting recursively any TaskGroups within.
+
+      :param task_group: An Airflow TaskGroup
+      :return: Dictionary that contains Task IDs as keys and Tasks as values.
+
+
+   .. py:method:: get_tasks_to_run(ti_key, operator, log)
+
+
+
+.. py:class:: WorkflowJobRepairSingleTaskLink(context=None)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Construct a link to send a repair request for a single databricks task.
+
+   .. py:attribute:: name
+      :value: 'Repair a single task'
+
+      
+
+   .. py:method:: get_link(operator, dttm=None, *, ti_key = None)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: RepairDatabricksTasks
+
+
+   Bases: :py:obj:`airflow.www.views.AirflowBaseView`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Repair databricks tasks from Airflow.
+
+   .. py:attribute:: default_view
+      :value: 'repair'
+
+      
+
+   .. py:method:: repair(dag_id, run_id)
+
+
+
+.. py:data:: repair_databricks_view
+
+   
+
+.. py:data:: repair_databricks_package
+
+   
+
+.. py:class:: DatabricksWorkflowPlugin
+
+
+   Bases: :py:obj:`airflow.plugins_manager.AirflowPlugin`
+
+   Databricks Workflows plugin for Airflow.
+
+   .. seealso::
+       For more information on how to use this plugin, take a look at the guide:
+       :ref:`howto/plugin:DatabricksWorkflowPlugin`
+
+   .. py:attribute:: name
+      :value: 'databricks_workflow'
+
+      
+
+   .. py:attribute:: operator_extra_links
+
+      
+
+   .. py:attribute:: appbuilder_views
+
+      
+
+

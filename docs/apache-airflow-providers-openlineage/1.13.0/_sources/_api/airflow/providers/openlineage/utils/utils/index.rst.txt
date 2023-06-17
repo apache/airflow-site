@@ -1,0 +1,317 @@
+:py:mod:`airflow.providers.openlineage.utils.utils`
+===================================================
+
+.. py:module:: airflow.providers.openlineage.utils.utils
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.openlineage.utils.utils.InfoJsonEncodable
+   airflow.providers.openlineage.utils.utils.DagInfo
+   airflow.providers.openlineage.utils.utils.DagRunInfo
+   airflow.providers.openlineage.utils.utils.TaskInstanceInfo
+   airflow.providers.openlineage.utils.utils.AssetInfo
+   airflow.providers.openlineage.utils.utils.TaskInfo
+   airflow.providers.openlineage.utils.utils.TaskInfoComplete
+   airflow.providers.openlineage.utils.utils.TaskGroupInfo
+   airflow.providers.openlineage.utils.utils.OpenLineageRedactor
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.openlineage.utils.utils.try_import_from_string
+   airflow.providers.openlineage.utils.utils.get_operator_class
+   airflow.providers.openlineage.utils.utils.get_job_name
+   airflow.providers.openlineage.utils.utils.get_airflow_mapped_task_facet
+   airflow.providers.openlineage.utils.utils.get_user_provided_run_facets
+   airflow.providers.openlineage.utils.utils.get_fully_qualified_class_name
+   airflow.providers.openlineage.utils.utils.is_operator_disabled
+   airflow.providers.openlineage.utils.utils.is_selective_lineage_enabled
+   airflow.providers.openlineage.utils.utils.get_airflow_dag_run_facet
+   airflow.providers.openlineage.utils.utils.get_airflow_debug_facet
+   airflow.providers.openlineage.utils.utils.get_airflow_run_facet
+   airflow.providers.openlineage.utils.utils.get_airflow_job_facet
+   airflow.providers.openlineage.utils.utils.get_airflow_state_run_facet
+   airflow.providers.openlineage.utils.utils.get_unknown_source_attribute_run_facet
+   airflow.providers.openlineage.utils.utils.is_json_serializable
+   airflow.providers.openlineage.utils.utils.print_warning
+   airflow.providers.openlineage.utils.utils.get_filtered_unknown_operator_keys
+   airflow.providers.openlineage.utils.utils.normalize_sql
+   airflow.providers.openlineage.utils.utils.should_use_external_connection
+   airflow.providers.openlineage.utils.utils.translate_airflow_asset
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.openlineage.utils.utils.log
+   airflow.providers.openlineage.utils.utils.IS_AIRFLOW_2_10_OR_HIGHER
+
+
+.. py:data:: log
+
+   
+
+.. py:data:: IS_AIRFLOW_2_10_OR_HIGHER
+
+   
+
+.. py:function:: try_import_from_string(string)
+
+
+.. py:function:: get_operator_class(task)
+
+
+.. py:function:: get_job_name(task)
+
+
+.. py:function:: get_airflow_mapped_task_facet(task_instance)
+
+
+.. py:function:: get_user_provided_run_facets(ti, ti_state)
+
+
+.. py:function:: get_fully_qualified_class_name(operator)
+
+
+.. py:function:: is_operator_disabled(operator)
+
+
+.. py:function:: is_selective_lineage_enabled(obj)
+
+   If selective enable is active check if DAG or Task is enabled to emit events.
+
+
+.. py:class:: InfoJsonEncodable(obj)
+
+
+   Bases: :py:obj:`dict`
+
+   Airflow objects might not be json-encodable overall.
+
+   The class provides additional attributes to control
+   what and how is encoded:
+
+   * renames: a dictionary of attribute name changes
+   * | casts: a dictionary consisting of attribute names
+     | and corresponding methods that should change
+     | object value
+   * includes: list of attributes to be included in encoding
+   * excludes: list of attributes to be excluded from encoding
+
+   Don't use both includes and excludes.
+
+   .. py:attribute:: renames
+      :type: dict[str, str]
+
+      
+
+   .. py:attribute:: casts
+      :type: dict[str, Any]
+
+      
+
+   .. py:attribute:: includes
+      :type: list[str]
+      :value: []
+
+      
+
+   .. py:attribute:: excludes
+      :type: list[str]
+      :value: []
+
+      
+
+
+.. py:class:: DagInfo(obj)
+
+
+   Bases: :py:obj:`InfoJsonEncodable`
+
+   Defines encoding DAG object to JSON.
+
+   .. py:attribute:: includes
+      :value: ['dag_id', 'description', 'fileloc', 'owner', 'schedule_interval', 'timetable_summary',...
+
+      
+
+   .. py:attribute:: casts
+
+      
+
+   .. py:attribute:: renames
+
+      
+
+
+.. py:class:: DagRunInfo(obj)
+
+
+   Bases: :py:obj:`InfoJsonEncodable`
+
+   Defines encoding DagRun object to JSON.
+
+   .. py:attribute:: includes
+      :value: ['conf', 'dag_id', 'data_interval_start', 'data_interval_end', 'external_trigger', 'run_id',...
+
+      
+
+
+.. py:class:: TaskInstanceInfo(obj)
+
+
+   Bases: :py:obj:`InfoJsonEncodable`
+
+   Defines encoding TaskInstance object to JSON.
+
+   .. py:attribute:: includes
+      :value: ['duration', 'try_number', 'pool', 'queued_dttm', 'log_url']
+
+      
+
+   .. py:attribute:: casts
+
+      
+
+
+.. py:class:: AssetInfo(obj)
+
+
+   Bases: :py:obj:`InfoJsonEncodable`
+
+   Defines encoding Airflow Asset object to JSON.
+
+   .. py:attribute:: includes
+      :value: ['uri', 'extra']
+
+      
+
+
+.. py:class:: TaskInfo(obj)
+
+
+   Bases: :py:obj:`InfoJsonEncodable`
+
+   Defines encoding BaseOperator/AbstractOperator object to JSON.
+
+   .. py:attribute:: renames
+
+      
+
+   .. py:attribute:: includes
+      :value: ['deferrable', 'depends_on_past', 'downstream_task_ids', 'execution_timeout', 'executor_config',...
+
+      
+
+   .. py:attribute:: casts
+
+      
+
+
+.. py:class:: TaskInfoComplete(obj)
+
+
+   Bases: :py:obj:`TaskInfo`
+
+   Defines encoding BaseOperator/AbstractOperator object to JSON used when user enables full task info.
+
+   .. py:attribute:: includes
+      :value: []
+
+      
+
+   .. py:attribute:: excludes
+      :value: ['_BaseOperator__instantiated', '_dag', '_hook', '_log', '_outlets', '_inlets',...
+
+      
+
+
+.. py:class:: TaskGroupInfo(obj)
+
+
+   Bases: :py:obj:`InfoJsonEncodable`
+
+   Defines encoding TaskGroup object to JSON.
+
+   .. py:attribute:: renames
+
+      
+
+   .. py:attribute:: includes
+      :value: ['downstream_group_ids', 'downstream_task_ids', 'prefix_group_id', 'tooltip',...
+
+      
+
+
+.. py:function:: get_airflow_dag_run_facet(dag_run)
+
+
+.. py:function:: get_airflow_debug_facet()
+
+
+.. py:function:: get_airflow_run_facet(dag_run, dag, task_instance, task, task_uuid)
+
+
+.. py:function:: get_airflow_job_facet(dag_run)
+
+
+.. py:function:: get_airflow_state_run_facet(dag_id, run_id, task_ids, dag_run_state)
+
+
+.. py:function:: get_unknown_source_attribute_run_facet(task, name = None)
+
+
+.. py:class:: OpenLineageRedactor
+
+
+   Bases: :py:obj:`airflow.utils.log.secrets_masker.SecretsMasker`
+
+   This class redacts sensitive data similar to SecretsMasker in Airflow logs.
+
+   The difference is that our default max recursion depth is way higher - due to
+   the structure of OL events we need more depth.
+   Additionally, we allow data structures to specify data that needs not to be
+   redacted by specifying _skip_redact list by deriving RedactMixin.
+
+   .. py:method:: from_masker(other)
+      :classmethod:
+
+
+
+.. py:function:: is_json_serializable(item)
+
+
+.. py:function:: print_warning(log)
+
+
+.. py:function:: get_filtered_unknown_operator_keys(operator)
+
+
+.. py:function:: normalize_sql(sql)
+
+
+.. py:function:: should_use_external_connection(hook)
+
+
+.. py:function:: translate_airflow_asset(asset, lineage_context)
+
+   Convert an Asset with an AIP-60 compliant URI to an OpenLineageDataset.
+
+   This function returns None if no URI normalizer is defined, no asset converter is found or
+   some core Airflow changes are missing and ImportError is raised.
+
+
