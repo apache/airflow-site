@@ -1,0 +1,81 @@
+:py:mod:`airflow.timetables.trigger`
+====================================
+
+.. py:module:: airflow.timetables.trigger
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.timetables.trigger.CronTriggerTimetable
+
+
+
+
+.. py:class:: CronTriggerTimetable(cron, *, timezone, interval = datetime.timedelta())
+
+   Bases: :py:obj:`airflow.timetables._cron.CronMixin`, :py:obj:`airflow.timetables.base.Timetable`
+
+   Timetable that triggers DAG runs according to a cron expression.
+
+   This is different from ``CronDataIntervalTimetable``, where the cron
+   expression specifies the *data interval* of a DAG run. With this timetable,
+   the data intervals are specified independently from the cron expression.
+   Also for the same reason, this timetable kicks off a DAG run immediately at
+   the start of the period (similar to POSIX cron), instead of needing to wait
+   for one data interval to pass.
+
+   Don't pass ``@once`` in here; use ``OnceTimetable`` instead.
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+   .. py:method:: infer_manual_data_interval(*, run_after)
+
+      When a DAG run is manually triggered, infer a data interval for it.
+
+      This is used for e.g. manually-triggered runs, where ``run_after`` would
+      be when the user triggers the run. The default implementation raises
+      ``NotImplementedError``.
+
+
+   .. py:method:: next_dagrun_info(*, last_automated_data_interval, restriction)
+
+      Provide information to schedule the next DagRun.
+
+      The default implementation raises ``NotImplementedError``.
+
+      :param last_automated_data_interval: The data interval of the associated
+          DAG's last scheduled or backfilled run (manual runs not considered).
+      :param restriction: Restriction to apply when scheduling the DAG run.
+          See documentation of :class:`TimeRestriction` for details.
+
+      :return: Information on when the next DagRun can be scheduled. None
+          means a DagRun will not happen. This does not mean no more runs
+          will be scheduled even again for this DAG; the timetable can return
+          a DagRunInfo object when asked at another time.
+
+
+

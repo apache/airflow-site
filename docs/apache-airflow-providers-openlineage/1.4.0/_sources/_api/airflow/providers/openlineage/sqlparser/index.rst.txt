@@ -1,0 +1,239 @@
+:py:mod:`airflow.providers.openlineage.sqlparser`
+=================================================
+
+.. py:module:: airflow.providers.openlineage.sqlparser
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.openlineage.sqlparser.GetTableSchemasParams
+   airflow.providers.openlineage.sqlparser.DatabaseInfo
+   airflow.providers.openlineage.sqlparser.SQLParser
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.openlineage.sqlparser.default_normalize_name_method
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.openlineage.sqlparser.DEFAULT_NAMESPACE
+   airflow.providers.openlineage.sqlparser.DEFAULT_INFORMATION_SCHEMA_COLUMNS
+   airflow.providers.openlineage.sqlparser.DEFAULT_INFORMATION_SCHEMA_TABLE_NAME
+
+
+.. py:data:: DEFAULT_NAMESPACE
+   :value: 'default'
+
+   
+
+.. py:data:: DEFAULT_INFORMATION_SCHEMA_COLUMNS
+   :value: ['table_schema', 'table_name', 'column_name', 'ordinal_position', 'udt_name']
+
+   
+
+.. py:data:: DEFAULT_INFORMATION_SCHEMA_TABLE_NAME
+   :value: 'information_schema.columns'
+
+   
+
+.. py:function:: default_normalize_name_method(name)
+
+
+.. py:class:: GetTableSchemasParams
+
+
+   Bases: :py:obj:`airflow.typing_compat.TypedDict`
+
+   get_table_schemas params.
+
+   .. py:attribute:: normalize_name
+      :type: Callable[[str], str]
+
+      
+
+   .. py:attribute:: is_cross_db
+      :type: bool
+
+      
+
+   .. py:attribute:: information_schema_columns
+      :type: list[str]
+
+      
+
+   .. py:attribute:: information_schema_table
+      :type: str
+
+      
+
+   .. py:attribute:: use_flat_cross_db_query
+      :type: bool
+
+      
+
+   .. py:attribute:: is_uppercase_names
+      :type: bool
+
+      
+
+   .. py:attribute:: database
+      :type: str | None
+
+      
+
+
+.. py:class:: DatabaseInfo
+
+
+   Contains database specific information needed to process SQL statement parse result.
+
+   :param scheme: Scheme part of URI in OpenLineage namespace.
+   :param authority: Authority part of URI in OpenLineage namespace.
+       For most cases it should return `{host}:{port}` part of Airflow connection.
+       See: https://github.com/OpenLineage/OpenLineage/blob/main/spec/Naming.md
+   :param database: Takes precedence over parsed database name.
+   :param information_schema_columns: List of columns names from information schema table.
+   :param information_schema_table_name: Information schema table name.
+   :param use_flat_cross_db_query: Specifies if single information schema table should be used
+       for cross-database queries (e.g. for Redshift).
+   :param is_information_schema_cross_db: Specifies if information schema contains
+       cross-database data.
+   :param is_uppercase_names: Specifies if database accepts only uppercase names (e.g. Snowflake).
+   :param normalize_name_method: Method to normalize database, schema and table names.
+       Defaults to `name.lower()`.
+
+   .. py:attribute:: scheme
+      :type: str
+
+      
+
+   .. py:attribute:: authority
+      :type: str | None
+
+      
+
+   .. py:attribute:: database
+      :type: str | None
+
+      
+
+   .. py:attribute:: information_schema_columns
+      :type: list[str]
+
+      
+
+   .. py:attribute:: information_schema_table_name
+      :type: str
+
+      
+
+   .. py:attribute:: use_flat_cross_db_query
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: is_information_schema_cross_db
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: is_uppercase_names
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: normalize_name_method
+      :type: Callable[[str], str]
+
+      
+
+
+.. py:class:: SQLParser(dialect = None, default_schema = None)
+
+
+   Interface for openlineage-sql.
+
+   :param dialect: dialect specific to the database
+   :param default_schema: schema applied to each table with no schema parsed
+
+   .. py:method:: parse(sql)
+
+      Parse a single or a list of SQL statements.
+
+
+   .. py:method:: parse_table_schemas(hook, inputs, outputs, database_info, namespace = DEFAULT_NAMESPACE, database = None, sqlalchemy_engine = None)
+
+      Parse schemas for input and output tables.
+
+
+   .. py:method:: attach_column_lineage(datasets, database, parse_result)
+
+      Attaches column lineage facet to the list of datasets.
+
+      Note that currently each dataset has the same column lineage information set.
+      This would be a matter of change after OpenLineage SQL Parser improvements.
+
+
+   .. py:method:: generate_openlineage_metadata_from_sql(sql, hook, database_info, database = None, sqlalchemy_engine = None)
+
+      Parses SQL statement(s) and generates OpenLineage metadata.
+
+      Generated OpenLineage metadata contains:
+
+      * input tables with schemas parsed
+      * output tables with schemas parsed
+      * run facets
+      * job facets.
+
+      :param sql: a SQL statement or list of SQL statement to be parsed
+      :param hook: Airflow Hook used to connect to the database
+      :param database_info: database specific information
+      :param database: when passed it takes precedence over parsed database name
+      :param sqlalchemy_engine: when passed, engine's dialect is used to compile SQL queries
+
+
+   .. py:method:: create_namespace(database_info)
+      :staticmethod:
+
+
+   .. py:method:: normalize_sql(sql)
+      :classmethod:
+
+      Makes sure to return a semicolon-separated SQL statements.
+
+
+   .. py:method:: split_sql_string(sql)
+      :classmethod:
+
+      Split SQL string into list of statements.
+
+      Tries to use `DbApiHook.split_sql_string` if available.
+      Otherwise, uses the same logic.
+
+
+   .. py:method:: create_information_schema_query(tables, normalize_name, is_cross_db, information_schema_columns, information_schema_table, is_uppercase_names, use_flat_cross_db_query, database = None, sqlalchemy_engine = None)
+      :classmethod:
+
+      Creates SELECT statement to query information schema table.
+
+
+

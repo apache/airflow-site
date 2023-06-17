@@ -1,0 +1,612 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Managing Connections &mdash; Airflow Documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Securing Connections" href="secure-connections.html" />
+    <link rel="prev" title="Using Operators" href="operator.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://analytics.apache.org/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '13']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo -->
+</head>
+
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Airflow
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.10.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../project.html">Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">How-to Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="set-config.html">Setting Configuration Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize-database.html">Initializing a Database Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operator.html">Using Operators</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Managing Connections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-a-connection-with-the-ui">Creating a Connection with the UI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#editing-a-connection-with-the-ui">Editing a Connection with the UI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-a-connection-with-environment-variables">Creating a Connection with Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-types">Connection Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#google-cloud-platform">Google Cloud Platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mysql">MySQL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#postgres">Postgres</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cloudsql">Cloudsql</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ssh">SSH</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="secure-connections.html">Securing Connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write-logs.html">Writing Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="executor/use-celery.html">Scaling Out with Celery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="executor/use-dask.html">Scaling Out with Dask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="executor/use-mesos.html">Scaling Out with Mesos (community contributed)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run-with-systemd.html">Running Airflow with systemd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run-with-upstart.html">Running Airflow with upstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use-test-config.html">Using the Test Mode Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="check-health.html">Checking Airflow Health Status</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ui.html">UI / Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling.html">Data Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scheduler.html">Scheduling &amp; Triggers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timezone.html">Time zones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Experimental Rest API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kubernetes.html">Kubernetes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../code.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Airflow</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">How-to Guides</a> &raquo;</li>
+        
+      <li>Managing Connections</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/howto/manage-connections.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="managing-connections">
+<h1>Managing Connections<a class="headerlink" href="#managing-connections" title="Permalink to this headline">¶</a></h1>
+<p>Airflow needs to know how to connect to your environment. Information
+such as hostname, port, login and passwords to other systems and services is
+handled in the <code class="docutils literal notranslate"><span class="pre">Admin-&gt;Connections</span></code> section of the UI. The pipeline code you
+will author will reference the ‘conn_id’ of the Connection objects.</p>
+<img alt="../_images/connections.png" src="../_images/connections.png" />
+<p>Connections can be created and managed using either the UI or environment
+variables.</p>
+<p>See the <a class="reference internal" href="../concepts.html#concepts-connections"><span class="std std-ref">Connenctions Concepts</span></a> documentation for
+more information.</p>
+<div class="section" id="creating-a-connection-with-the-ui">
+<h2>Creating a Connection with the UI<a class="headerlink" href="#creating-a-connection-with-the-ui" title="Permalink to this headline">¶</a></h2>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">Admin-&gt;Connections</span></code> section of the UI. Click the <code class="docutils literal notranslate"><span class="pre">Create</span></code> link
+to create a new connection.</p>
+<img alt="../_images/connection_create.png" src="../_images/connection_create.png" />
+<ol class="arabic simple">
+<li>Fill in the <code class="docutils literal notranslate"><span class="pre">Conn</span> <span class="pre">Id</span></code> field with the desired connection ID. It is
+recommended that you use lower-case characters and separate words with
+underscores.</li>
+<li>Choose the connection type with the <code class="docutils literal notranslate"><span class="pre">Conn</span> <span class="pre">Type</span></code> field.</li>
+<li>Fill in the remaining fields. See
+<a class="reference internal" href="#manage-connections-connection-types"><span class="std std-ref">Connection Types</span></a> for a description of the fields
+belonging to the different connection types.</li>
+<li>Click the <code class="docutils literal notranslate"><span class="pre">Save</span></code> button to create the connection.</li>
+</ol>
+</div>
+<div class="section" id="editing-a-connection-with-the-ui">
+<h2>Editing a Connection with the UI<a class="headerlink" href="#editing-a-connection-with-the-ui" title="Permalink to this headline">¶</a></h2>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">Admin-&gt;Connections</span></code> section of the UI. Click the pencil icon next
+to the connection you wish to edit in the connection list.</p>
+<img alt="../_images/connection_edit.png" src="../_images/connection_edit.png" />
+<p>Modify the connection properties and click the <code class="docutils literal notranslate"><span class="pre">Save</span></code> button to save your
+changes.</p>
+</div>
+<div class="section" id="creating-a-connection-with-environment-variables">
+<h2>Creating a Connection with Environment Variables<a class="headerlink" href="#creating-a-connection-with-environment-variables" title="Permalink to this headline">¶</a></h2>
+<p>Connections in Airflow pipelines can be created using environment variables.
+The environment variable needs to have a prefix of <code class="docutils literal notranslate"><span class="pre">AIRFLOW_CONN_</span></code> for
+Airflow with the value in a URI format to use the connection properly.</p>
+<p>When referencing the connection in the Airflow pipeline, the <code class="docutils literal notranslate"><span class="pre">conn_id</span></code>
+should be the name of the variable without the prefix. For example, if the
+<code class="docutils literal notranslate"><span class="pre">conn_id</span></code> is named <code class="docutils literal notranslate"><span class="pre">postgres_master</span></code> the environment variable should be
+named <code class="docutils literal notranslate"><span class="pre">AIRFLOW_CONN_POSTGRES_MASTER</span></code> (note that the environment variable
+must be all uppercase). Airflow assumes the value returned from the
+environment variable to be in a URI format (e.g.
+<code class="docutils literal notranslate"><span class="pre">postgres://user:password&#64;localhost:5432/master</span></code> or
+<code class="docutils literal notranslate"><span class="pre">s3://accesskey:secretkey&#64;S3</span></code>).</p>
+</div>
+<div class="section" id="connection-types">
+<span id="manage-connections-connection-types"></span><h2>Connection Types<a class="headerlink" href="#connection-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="google-cloud-platform">
+<span id="connection-type-gcp"></span><h3>Google Cloud Platform<a class="headerlink" href="#google-cloud-platform" title="Permalink to this headline">¶</a></h3>
+<p>The Google Cloud Platform connection type enables the <a class="reference internal" href="../integration.html#gcp"><span class="std std-ref">GCP Integrations</span></a>.</p>
+<div class="section" id="authenticating-to-gcp">
+<h4>Authenticating to GCP<a class="headerlink" href="#authenticating-to-gcp" title="Permalink to this headline">¶</a></h4>
+<p>There are two ways to connect to GCP using Airflow.</p>
+<ol class="arabic simple">
+<li>Use <a class="reference external" href="https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default">Application Default Credentials</a>,
+such as via the metadata server when running on Google Compute Engine.</li>
+<li>Use a <a class="reference external" href="https://cloud.google.com/docs/authentication/#service_accounts">service account</a> key
+file (JSON format) on disk.</li>
+</ol>
+</div>
+<div class="section" id="default-connection-ids">
+<h4>Default Connection IDs<a class="headerlink" href="#default-connection-ids" title="Permalink to this headline">¶</a></h4>
+<p>The following connection IDs are used by default.</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">bigquery_default</span></code></dt>
+<dd>Used by the <a class="reference internal" href="../integration.html#airflow.contrib.hooks.bigquery_hook.BigQueryHook" title="airflow.contrib.hooks.bigquery_hook.BigQueryHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">BigQueryHook</span></code></a>
+hook.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">google_cloud_datastore_default</span></code></dt>
+<dd>Used by the <a class="reference internal" href="../integration.html#airflow.contrib.hooks.datastore_hook.DatastoreHook" title="airflow.contrib.hooks.datastore_hook.DatastoreHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatastoreHook</span></code></a>
+hook.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">google_cloud_default</span></code></dt>
+<dd>Used by the
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcp_api_base_hook.GoogleCloudBaseHook" title="airflow.contrib.hooks.gcp_api_base_hook.GoogleCloudBaseHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">GoogleCloudBaseHook</span></code></a>,
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcp_dataflow_hook.DataFlowHook" title="airflow.contrib.hooks.gcp_dataflow_hook.DataFlowHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFlowHook</span></code></a>,
+<a class="reference internal" href="../code.html#airflow.contrib.hooks.gcp_dataproc_hook.DataProcHook" title="airflow.contrib.hooks.gcp_dataproc_hook.DataProcHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataProcHook</span></code></a>,
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcp_mlengine_hook.MLEngineHook" title="airflow.contrib.hooks.gcp_mlengine_hook.MLEngineHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">MLEngineHook</span></code></a>, and
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcs_hook.GoogleCloudStorageHook" title="airflow.contrib.hooks.gcs_hook.GoogleCloudStorageHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">GoogleCloudStorageHook</span></code></a> hooks.</dd>
+</dl>
+</div>
+<div class="section" id="configuring-the-connection">
+<h4>Configuring the Connection<a class="headerlink" href="#configuring-the-connection" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Project Id (required)</dt>
+<dd>The Google Cloud project ID to connect to.</dd>
+<dt>Keyfile Path</dt>
+<dd><p class="first">Path to a <a class="reference external" href="https://cloud.google.com/docs/authentication/#service_accounts">service account</a> key
+file (JSON format) on disk.</p>
+<p class="last">Not required if using application default credentials.</p>
+</dd>
+<dt>Keyfile JSON</dt>
+<dd><p class="first">Contents of a <a class="reference external" href="https://cloud.google.com/docs/authentication/#service_accounts">service account</a> key
+file (JSON format) on disk. It is recommended to <a class="reference internal" href="secure-connections.html"><span class="doc">Secure your connections</span></a> if using this method to authenticate.</p>
+<p class="last">Not required if using application default credentials.</p>
+</dd>
+<dt>Scopes (comma separated)</dt>
+<dd><p class="first">A list of comma-separated <a class="reference external" href="https://developers.google.com/identity/protocols/googlescopes">Google Cloud scopes</a> to
+authenticate with.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Scopes are ignored when using application default credentials. See
+issue <a class="reference external" href="https://issues.apache.org/jira/browse/AIRFLOW-2522">AIRFLOW-2522</a>.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="mysql">
+<h3>MySQL<a class="headerlink" href="#mysql" title="Permalink to this headline">¶</a></h3>
+<p>The MySQL connection type provides connection to a MySQL database.</p>
+<div class="section" id="id3">
+<h4>Configuring the Connection<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Host (required)</dt>
+<dd>The host to connect to.</dd>
+<dt>Schema (optional)</dt>
+<dd>Specify the schema name to be used in the database.</dd>
+<dt>Login (required)</dt>
+<dd>Specify the user name to connect.</dd>
+<dt>Password (required)</dt>
+<dd>Specify the password to connect.</dd>
+<dt>Extra (optional)</dt>
+<dd><p class="first">Specify the extra parameters (as json dictionary) that can be used in MySQL
+connection. The following parameters are supported:</p>
+<ul class="simple">
+<li><strong>charset</strong>: specify charset of the connection</li>
+<li><strong>cursor</strong>: one of “sscursor”, “dictcursor, “ssdictcursor” . Specifies cursor class to be
+used</li>
+<li><strong>local_infile</strong>: controls MySQL’s LOCAL capability (permitting local data loading by
+clients). See <a class="reference external" href="https://mysqlclient.readthedocs.io/user_guide.html">MySQLdb docs</a>
+for details.</li>
+<li><strong>unix_socket</strong>: UNIX socket used instead of the default socket.</li>
+<li><strong>ssl</strong>: Dictionary of SSL parameters that control connecting using SSL. Those
+parameters are server specific and should contain “ca”, “cert”, “key”, “capath”,
+“cipher” parameters. See
+<a class="reference external" href="https://mysqlclient.readthedocs.io/user_guide.html">MySQLdb docs</a> for details.
+Note that to be useful in URL notation, this parameter might also be
+a string where the SSL dictionary is a string-encoded JSON dictionary.</li>
+</ul>
+<p>Example “extras” field:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;charset&quot;</span><span class="p">:</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;cursorclass&quot;</span><span class="p">:</span> <span class="s2">&quot;sscursor&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;local_infile&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+   <span class="nt">&quot;unix_socket&quot;</span><span class="p">:</span> <span class="s2">&quot;/var/socket&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;ssl&quot;</span><span class="p">:</span> <span class="p">{</span>
+     <span class="nt">&quot;cert&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp/client-cert.pem&quot;</span><span class="p">,</span>
+     <span class="nt">&quot;ca&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp/server-ca.pem&#39;&quot;</span><span class="p">,</span>
+     <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp/client-key.pem&quot;</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;charset&quot;</span><span class="p">:</span> <span class="s2">&quot;utf8&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;cursorclass&quot;</span><span class="p">:</span> <span class="s2">&quot;sscursor&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;local_infile&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+   <span class="nt">&quot;unix_socket&quot;</span><span class="p">:</span> <span class="s2">&quot;/var/socket&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;ssl&quot;</span><span class="p">:</span> <span class="s2">&quot;{\&quot;cert\&quot;: \&quot;/tmp/client-cert.pem\&quot;, \&quot;ca\&quot;: \&quot;/tmp/server-ca.pem\&quot;, \&quot;key\&quot;: \&quot;/tmp/client-key.pem\&quot;}&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When specifying the connection as URI (in AIRFLOW_CONN_* variable) you should specify it
+following the standard syntax of DB connections - where extras are passed as parameters
+of the URI. Note that all components of the URI should be URL-encoded.</p>
+<p>For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mysql://mysql_user:XXXXXXXXXXXX@1.1.1.1:3306/mysqldb?ssl<span class="o">=</span>%7B%22cert%22%3A+%22%2Ftmp%2Fclient-cert.pem%22%2C+%22ca%22%3A+%22%2Ftmp%2Fserver-ca.pem%22%2C+%22key%22%3A+%22%2Ftmp%2Fclient-key.pem%22%7D
+</pre></div>
+</div>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If encounter UnicodeDecodeError while working with MySQL connection, check
+the charset defined is matched to the database charset.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="postgres">
+<h3>Postgres<a class="headerlink" href="#postgres" title="Permalink to this headline">¶</a></h3>
+<p>The Postgres connection type provides connection to a Postgres database.</p>
+<div class="section" id="id5">
+<h4>Configuring the Connection<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Host (required)</dt>
+<dd>The host to connect to.</dd>
+<dt>Schema (optional)</dt>
+<dd>Specify the schema name to be used in the database.</dd>
+<dt>Login (required)</dt>
+<dd>Specify the user name to connect.</dd>
+<dt>Password (required)</dt>
+<dd>Specify the password to connect.</dd>
+<dt>Extra (optional)</dt>
+<dd><p class="first">Specify the extra parameters (as json dictionary) that can be used in postgres
+connection. The following parameters out of the standard python parameters
+are supported:</p>
+<ul class="simple">
+<li><strong>sslmode</strong> - This option determines whether or with what priority a secure SSL
+TCP/IP connection will be negotiated with the server. There are six modes:
+‘disable’, ‘allow’, ‘prefer’, ‘require’, ‘verify-ca’, ‘verify-full’.</li>
+<li><strong>sslcert</strong> - This parameter specifies the file name of the client SSL certificate,
+replacing the default.</li>
+<li><strong>sslkey</strong> - This parameter specifies the file name of the client SSL key,
+replacing the default.</li>
+<li><strong>sslrootcert</strong> - This parameter specifies the name of a file containing SSL
+certificate authority (CA) certificate(s).</li>
+<li><strong>sslcrl</strong> - This parameter specifies the file name of the SSL certificate
+revocation list (CRL).</li>
+<li><strong>application_name</strong> - Specifies a value for the application_name
+configuration parameter.</li>
+<li><strong>keepalives_idle</strong> - Controls the number of seconds of inactivity after which TCP
+should send a keepalive message to the server.</li>
+</ul>
+<p>More details on all Postgres parameters supported can be found in
+<a class="reference external" href="https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING">Postgres documentation</a>.</p>
+<p>Example “extras” field:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;sslmode&quot;</span><span class="p">:</span> <span class="s2">&quot;verify-ca&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;sslcert&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp/client-cert.pem&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;sslca&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp/server-ca.pem&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;sslkey&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp/client-key.pem&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When specifying the connection as URI (in AIRFLOW_CONN_* variable) you should specify it
+following the standard syntax of DB connections, where extras are passed as parameters
+of the URI (note that all components of the URI should be URL-encoded).</p>
+<p>For example:</p>
+<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>postgresql://postgres_user:XXXXXXXXXXXX@1.1.1.1:5432/postgresdb?sslmode<span class="o">=</span>verify-ca<span class="p">&amp;</span><span class="nv">sslcert</span><span class="o">=</span>%2Ftmp%2Fclient-cert.pem<span class="p">&amp;</span><span class="nv">sslkey</span><span class="o">=</span>%2Ftmp%2Fclient-key.pem<span class="p">&amp;</span><span class="nv">sslrootcert</span><span class="o">=</span>%2Ftmp%2Fserver-ca.pem
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="cloudsql">
+<h3>Cloudsql<a class="headerlink" href="#cloudsql" title="Permalink to this headline">¶</a></h3>
+<p>The gcpcloudsql:// connection is used by
+<a class="reference internal" href="../integration.html#airflow.contrib.operators.gcp_sql_operator.CloudSqlQueryOperator" title="airflow.contrib.operators.gcp_sql_operator.CloudSqlQueryOperator"><code class="xref py py-class docutils literal notranslate"><span class="pre">airflow.contrib.operators.gcp_sql_operator.CloudSqlQueryOperator</span></code></a> to perform query
+on a Google Cloud SQL database. Google Cloud SQL database can be either
+Postgres or MySQL, so this is a “meta” connection type. It introduces common schema
+for both MySQL and Postgres, including what kind of connectivity should be used.
+Google Cloud SQL supports connecting via public IP or via Cloud SQL Proxy.
+In the latter case the
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcp_sql_hook.CloudSqlDatabaseHook" title="airflow.contrib.hooks.gcp_sql_hook.CloudSqlDatabaseHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudSqlDatabaseHook</span></code></a> uses
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcp_sql_hook.CloudSqlProxyRunner" title="airflow.contrib.hooks.gcp_sql_hook.CloudSqlProxyRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudSqlProxyRunner</span></code></a> to automatically prepare
+and use temporary Postgres or MySQL connection that will use the proxy to connect
+(either via TCP or UNIX socket.</p>
+<div class="section" id="id6">
+<h4>Configuring the Connection<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Host (required)</dt>
+<dd>The host to connect to.</dd>
+<dt>Schema (optional)</dt>
+<dd>Specify the schema name to be used in the database.</dd>
+<dt>Login (required)</dt>
+<dd>Specify the user name to connect.</dd>
+<dt>Password (required)</dt>
+<dd>Specify the password to connect.</dd>
+<dt>Extra (optional)</dt>
+<dd><p class="first">Specify the extra parameters (as JSON dictionary) that can be used in Google Cloud SQL
+connection.</p>
+<p>Details of all the parameters supported in extra field can be found in
+<a class="reference internal" href="../integration.html#airflow.contrib.hooks.gcp_sql_hook.CloudSqlDatabaseHook" title="airflow.contrib.hooks.gcp_sql_hook.CloudSqlDatabaseHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">CloudSqlDatabaseHook</span></code></a></p>
+<p>Example “extras” field:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;database_type&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;project_id&quot;</span><span class="p">:</span> <span class="s2">&quot;example-project&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;europe-west1&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;instance&quot;</span><span class="p">:</span> <span class="s2">&quot;testinstance&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;use_proxy&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+   <span class="nt">&quot;sql_proxy_use_tcp&quot;</span><span class="p">:</span> <span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When specifying the connection as URI (in AIRFLOW_CONN_* variable), you should specify
+it following the standard syntax of DB connection, where extras are passed as
+parameters of the URI. Note that all components of the URI should be URL-encoded.</p>
+<p>For example:</p>
+<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>gcpcloudsql://user:XXXXXXXXX@1.1.1.1:3306/mydb?database_type<span class="o">=</span>mysql<span class="p">&amp;</span><span class="nv">project_id</span><span class="o">=</span>example-project<span class="p">&amp;</span><span class="nv">location</span><span class="o">=</span>europe-west1<span class="p">&amp;</span><span class="nv">instance</span><span class="o">=</span>testinstance<span class="p">&amp;</span><span class="nv">use_proxy</span><span class="o">=</span>True<span class="p">&amp;</span><span class="nv">sql_proxy_use_tcp</span><span class="o">=</span>False
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="ssh">
+<h3>SSH<a class="headerlink" href="#ssh" title="Permalink to this headline">¶</a></h3>
+<p>The SSH connection type provides connection to use <a class="reference internal" href="../code.html#airflow.contrib.hooks.ssh_hook.SSHHook" title="airflow.contrib.hooks.ssh_hook.SSHHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSHHook</span></code></a> to run commands on a remote server using <a class="reference internal" href="../code.html#airflow.contrib.operators.ssh_operator.SSHOperator" title="airflow.contrib.operators.ssh_operator.SSHOperator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSHOperator</span></code></a> or transfer file from/to the remote server using <code class="xref py py-class docutils literal notranslate"><span class="pre">SFTPOperator</span></code>.</p>
+<div class="section" id="id7">
+<h4>Configuring the Connection<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Host (required)</dt>
+<dd>The Remote host to connect.</dd>
+<dt>Username (optional)</dt>
+<dd>The Username to connect to the remote_host.</dd>
+<dt>Password (optional)</dt>
+<dd>Specify the password of the username to connect to the remote_host.</dd>
+<dt>Port (optional)</dt>
+<dd>Port of remote host to connect. Default is 22.</dd>
+<dt>Extra (optional)</dt>
+<dd><p class="first">Specify the extra parameters (as json dictionary) that can be used in ssh
+connection. The following parameters out of the standard python parameters
+are supported:</p>
+<ul class="simple">
+<li><strong>timeout</strong> - An optional timeout (in seconds) for the TCP connect. Default is <code class="docutils literal notranslate"><span class="pre">10</span></code>.</li>
+<li><strong>compress</strong> - <code class="docutils literal notranslate"><span class="pre">true</span></code> to ask the remote client/server to compress traffic; <cite>false</cite> to refuse compression. Default is <code class="docutils literal notranslate"><span class="pre">true</span></code>.</li>
+<li><strong>no_host_key_check</strong> - Set to <code class="docutils literal notranslate"><span class="pre">false</span></code> to restrict connecting to hosts with no entries in <code class="docutils literal notranslate"><span class="pre">~/.ssh/known_hosts</span></code> (Hosts file). This provides maximum protection against trojan horse attacks, but can be troublesome when the <code class="docutils literal notranslate"><span class="pre">/etc/ssh/ssh_known_hosts</span></code> file is poorly maintained or connections to new hosts are frequently made. This option forces the user to manually add all new hosts. Default is <code class="docutils literal notranslate"><span class="pre">true</span></code>, ssh will automatically add new host keys to the user known hosts files.</li>
+<li><strong>allow_host_key_change</strong> - Set to <code class="docutils literal notranslate"><span class="pre">true</span></code> if you want to allow connecting to hosts that has host key changed or when you get ‘REMOTE HOST IDENTIFICATION HAS CHANGED’ error.  This wont protect against Man-In-The-Middle attacks. Other possible solution is to remove the host entry from <code class="docutils literal notranslate"><span class="pre">~/.ssh/known_hosts</span></code> file. Default is <code class="docutils literal notranslate"><span class="pre">false</span></code>.</li>
+</ul>
+<p>Example “extras” field:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;timeout&quot;</span><span class="p">:</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;compress&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;no_host_key_check&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;allow_host_key_change&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When specifying the connection as URI (in AIRFLOW_CONN_* variable) you should specify it
+following the standard syntax of connections, where extras are passed as parameters
+of the URI (note that all components of the URI should be URL-encoded).</p>
+<p>For example:</p>
+<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>ssh://user:pass@localhost:22?timeout<span class="o">=</span><span class="m">10</span><span class="p">&amp;</span><span class="nv">compress</span><span class="o">=</span>false<span class="p">&amp;</span><span class="nv">no_host_key_check</span><span class="o">=</span>false<span class="p">&amp;</span><span class="nv">allow_host_key_change</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="secure-connections.html" class="btn btn-neutral float-right" title="Securing Connections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="operator.html" class="btn btn-neutral" title="Using Operators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

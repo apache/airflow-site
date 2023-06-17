@@ -1,0 +1,201 @@
+:py:mod:`airflow.hooks.dbapi`
+=============================
+
+.. py:module:: airflow.hooks.dbapi
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.hooks.dbapi.ConnectorProtocol
+   airflow.hooks.dbapi.DbApiHook
+
+
+
+
+.. py:class:: ConnectorProtocol
+
+   Bases: :py:obj:`airflow.typing_compat.Protocol`
+
+   A protocol where you can connect to a database.
+
+   .. py:method:: connect(host, port, username, schema)
+
+      Connect to a database.
+
+      :param host: The database host to connect to.
+      :param port: The database port to connect to.
+      :param username: The database username used for the authentication.
+      :param schema: The database schema to connect to.
+      :return: the authorized connection object.
+
+
+
+.. py:class:: DbApiHook(*args, schema = None, **kwargs)
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Abstract base class for sql hooks.
+
+   :param schema: Optional DB schema that overrides the schema specified in the connection. Make sure that
+       if you change the schema parameter value in the constructor of the derived Hook, such change
+       should be done before calling the ``DBApiHook.__init__()``.
+
+   .. py:attribute:: conn_name_attr
+      :annotation: :str
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = default_conn_id
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :annotation: = False
+
+      
+
+   .. py:attribute:: connector
+      :annotation: :Optional[ConnectorProtocol]
+
+      
+
+   .. py:method:: get_conn()
+
+      Returns a connection object
+
+
+   .. py:method:: get_uri()
+
+      Extract the URI from the connection.
+
+      :return: the extracted uri.
+
+
+   .. py:method:: get_sqlalchemy_engine(engine_kwargs=None)
+
+      Get an sqlalchemy_engine object.
+
+      :param engine_kwargs: Kwargs used in :func:`~sqlalchemy.create_engine`.
+      :return: the created engine.
+
+
+   .. py:method:: get_pandas_df(sql, parameters=None, **kwargs)
+
+      Executes the sql and returns a pandas dataframe
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+      :param kwargs: (optional) passed into pandas.io.sql.read_sql method
+
+
+   .. py:method:: get_pandas_df_by_chunks(sql, parameters=None, *, chunksize, **kwargs)
+
+      Executes the sql and returns a generator
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param parameters: The parameters to render the SQL query with
+      :param chunksize: number of rows to include in  each chunk
+      :param kwargs: (optional) passed into pandas.io.sql.read_sql method
+
+
+   .. py:method:: get_records(sql, parameters=None)
+
+      Executes the sql and returns a set of records.
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+
+
+   .. py:method:: get_first(sql, parameters=None)
+
+      Executes the sql and returns the first resulting row.
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+
+
+   .. py:method:: run(sql, autocommit=False, parameters=None, handler=None)
+
+      Runs a command or a list of commands. Pass a list of sql
+      statements to the sql parameter to get them to execute
+      sequentially
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param autocommit: What to set the connection's autocommit setting to
+          before executing the query.
+      :param parameters: The parameters to render the SQL query with.
+      :param handler: The result handler which is called with the result of each statement.
+      :return: query results if handler was provided.
+
+
+   .. py:method:: set_autocommit(conn, autocommit)
+
+      Sets the autocommit flag on the connection
+
+
+   .. py:method:: get_autocommit(conn)
+
+      Get autocommit setting for the provided connection.
+      Return True if conn.autocommit is set to True.
+      Return False if conn.autocommit is not set or set to False or conn
+      does not support autocommit.
+
+      :param conn: Connection to get autocommit setting from.
+      :return: connection autocommit setting.
+      :rtype: bool
+
+
+   .. py:method:: get_cursor()
+
+      Returns a cursor
+
+
+   .. py:method:: insert_rows(table, rows, target_fields=None, commit_every=1000, replace=False, **kwargs)
+
+      A generic way to insert a set of tuples into a table,
+      a new transaction is created every commit_every rows
+
+      :param table: Name of the target table
+      :param rows: The rows to insert into the table
+      :param target_fields: The names of the columns to fill in the table
+      :param commit_every: The maximum number of rows to insert in one
+          transaction. Set to 0 to insert all rows in one transaction.
+      :param replace: Whether to replace instead of insert
+
+
+   .. py:method:: bulk_dump(table, tmp_file)
+      :abstractmethod:
+
+      Dumps a database table into a tab-delimited file
+
+      :param table: The name of the source table
+      :param tmp_file: The path of the target file
+
+
+   .. py:method:: bulk_load(table, tmp_file)
+      :abstractmethod:
+
+      Loads a tab-delimited file into a database table
+
+      :param table: The name of the target table
+      :param tmp_file: The path of the file to load into the table
+
+
+   .. py:method:: test_connection()
+
+      Tests the connection using db-specific query
+
+
+
