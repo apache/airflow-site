@@ -23,6 +23,10 @@ Providers packages include integrations with third party projects. They are upda
 
 <ul class="list-providers">
 
+  <li><a href="/docs/apache-airflow-providers-airbyte/stable/index.html"><code>Airbyte</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-alibaba/stable/index.html"><code>Alibaba</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-beam/stable/index.html"><code>Apache Beam</code></a></li>
@@ -33,9 +37,13 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-apache-druid/stable/index.html"><code>Apache Druid</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-flink/stable/index.html"><code>Apache Flink</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-hdfs/stable/index.html"><code>Apache HDFS</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-apache-kafka/stable/index.html"><code>Apache Kafka</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Kylin</code></a></li>
 
@@ -56,6 +64,8 @@ Providers packages include integrations with third party projects. They are upda
   <li><a href="/docs/apache-airflow-providers-atlassian-jira/stable/index.html"><code>Atlassian Jira</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-databricks/stable/index.html"><code>Databricks</code></a></li>
 
@@ -97,18 +107,11 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html"><code>Jenkins</code></a></li>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  <li><a href="/docs/apache-airflow-providers-jira/stable/index.html"><code>Jira</code></a></li>
-=======
-  <li><a href="/docs/apache-airflow-providers-atlassian-jira/stable/index.html"><code>Jira (Atlassian)</code></a></li>
->>>>>>> bea9e16144 (Update _index.md (#680))
-
-=======
->>>>>>> b5dccf066b (Update Jira in the index (#776))
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-microsoft-psrp/stable/index.html"><code>Microsoft PowerShell Remoting Protocol (PSRP)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-mssql/stable/index.html"><code>Microsoft SQL Server (MSSQL)</code></a></li>
 
@@ -162,7 +165,13 @@ Providers packages include integrations with third party projects. They are upda
 
   <li><a href="/docs/apache-airflow-providers-ssh/stable/index.html"><code>SSH</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-tabular/stable/index.html"><code>Tabular</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-tableau/stable/index.html"><code>Tableau</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-trino/stable/index.html"><code>Trino</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
 
