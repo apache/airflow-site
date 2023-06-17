@@ -1,0 +1,136 @@
+:py:mod:`airflow.models.xcom_arg`
+=================================
+
+.. py:module:: airflow.models.xcom_arg
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.xcom_arg.XComArg
+
+
+
+
+.. py:class:: XComArg(operator, key = XCOM_RETURN_KEY)
+
+   Bases: :py:obj:`airflow.models.taskmixin.DependencyMixin`
+
+   Class that represents a XCom push from a previous operator.
+   Defaults to "return_value" as only key.
+
+   Current implementation supports
+       xcomarg >> op
+       xcomarg << op
+       op >> xcomarg   (by BaseOperator code)
+       op << xcomarg   (by BaseOperator code)
+
+   **Example**: The moment you get a result from any operator (decorated or regular) you can ::
+
+       any_op = AnyOperator()
+       xcomarg = XComArg(any_op)
+       # or equivalently
+       xcomarg = any_op.output
+       my_op = MyOperator()
+       my_op >> xcomarg
+
+   This object can be used in legacy Operators via Jinja.
+
+   **Example**: You can make this result to be part of any generated string ::
+
+       any_op = AnyOperator()
+       xcomarg = any_op.output
+       op1 = MyOperator(my_text_message=f"the value is {xcomarg}")
+       op2 = MyOperator(my_text_message=f"the value is {xcomarg['topic']}")
+
+   :param operator: operator to which the XComArg belongs to
+   :param key: key value which is used for xcom_pull (key in the XCom table)
+
+   .. py:method:: __eq__(self, other)
+
+      Return self==value.
+
+
+   .. py:method:: __getitem__(self, item)
+
+      Implements xcomresult['some_result_key']
+
+
+   .. py:method:: __iter__(self)
+
+      Override iterable protocol to raise error explicitly.
+
+      The default ``__iter__`` implementation in Python calls ``__getitem__``
+      with 0, 1, 2, etc. until it hits an ``IndexError``. This does not work
+      well with our custom ``__getitem__`` implementation, and results in poor
+      DAG-writing experience since a misplaced ``*`` expansion would create an
+      infinite loop consuming the entire DAG parser.
+
+      This override catches the error eagerly, so an incorrectly implemented
+      DAG fails fast and avoids wasting resources on nonsensical iterating.
+
+
+   .. py:method:: __str__(self)
+
+      Backward compatibility for old-style jinja used in Airflow Operators
+
+      **Example**: to use XComArg at BashOperator::
+
+          BashOperator(cmd=f"... { xcomarg } ...")
+
+      :return:
+
+
+   .. py:method:: roots(self)
+      :property:
+
+      Required by TaskMixin
+
+
+   .. py:method:: leaves(self)
+      :property:
+
+      Required by TaskMixin
+
+
+   .. py:method:: set_upstream(self, task_or_task_list, edge_modifier = None)
+
+      Proxy to underlying operator set_upstream method. Required by TaskMixin.
+
+
+   .. py:method:: set_downstream(self, task_or_task_list, edge_modifier = None)
+
+      Proxy to underlying operator set_downstream method. Required by TaskMixin.
+
+
+   .. py:method:: resolve(self, context, session = NEW_SESSION)
+
+      Pull XCom value for the existing arg. This method is run during ``op.execute()``
+      in respectable context.
+
+
+   .. py:method:: iter_xcom_args(arg)
+      :staticmethod:
+
+      Return XComArg instances in an arbitrary value.
+
+      This recursively traverse ``arg`` and look for XComArg instances in any
+      collection objects, and instances with ``template_fields`` set.
+
+
+   .. py:method:: apply_upstream_relationship(op, arg)
+      :staticmethod:
+
+      Set dependency for XComArgs.
+
+      This looks for XComArg objects in ``arg`` "deeply" (looking inside
+      collections objects and classes decorated with ``template_fields``), and
+      sets the relationship to ``op`` on any found.
+
+
+

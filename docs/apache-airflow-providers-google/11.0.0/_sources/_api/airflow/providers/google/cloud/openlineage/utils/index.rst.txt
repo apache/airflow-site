@@ -1,0 +1,161 @@
+:py:mod:`airflow.providers.google.cloud.openlineage.utils`
+==========================================================
+
+.. py:module:: airflow.providers.google.cloud.openlineage.utils
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.openlineage.utils.BigQueryJobRunFacet
+   airflow.providers.google.cloud.openlineage.utils.BigQueryErrorRunFacet
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.openlineage.utils.get_facets_from_bq_table
+   airflow.providers.google.cloud.openlineage.utils.get_identity_column_lineage_facet
+   airflow.providers.google.cloud.openlineage.utils.get_from_nullable_chain
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.openlineage.utils.BIGQUERY_NAMESPACE
+   airflow.providers.google.cloud.openlineage.utils.BIGQUERY_URI
+
+
+.. py:data:: BIGQUERY_NAMESPACE
+   :value: 'bigquery'
+
+   
+
+.. py:data:: BIGQUERY_URI
+   :value: 'bigquery'
+
+   
+
+.. py:function:: get_facets_from_bq_table(table)
+
+   Get facets from BigQuery table object.
+
+
+.. py:function:: get_identity_column_lineage_facet(dest_field_names, input_datasets)
+
+   Get column lineage facet for identity transformations.
+
+   This function generates a simple column lineage facet, where each destination column
+   consists of source columns of the same name from all input datasets that have that column.
+   The lineage assumes there are no transformations applied, meaning the columns retain their
+   identity between the source and destination datasets.
+
+   Args:
+       dest_field_names: A list of destination column names for which lineage should be determined.
+       input_datasets: A list of input datasets with schema facets.
+
+   Returns:
+       A dictionary containing a single key, `columnLineage`, mapped to a `ColumnLineageDatasetFacet`.
+        If no column lineage can be determined, an empty dictionary is returned - see Notes below.
+
+   Notes:
+       - If any input dataset lacks a schema facet, the function immediately returns an empty dictionary.
+       - If any field in the source dataset's schema is not present in the destination table,
+         the function returns an empty dictionary. The destination table can contain extra fields, but all
+         source columns should be present in the destination table.
+       - If none of the destination columns can be matched to input dataset columns, an empty
+         dictionary is returned.
+       - Extra columns in the destination table that do not exist in the input datasets are ignored and
+         skipped in the lineage facet, as they cannot be traced back to a source column.
+       - The function assumes there are no transformations applied, meaning the columns retain their
+         identity between the source and destination datasets.
+
+
+.. py:class:: BigQueryJobRunFacet
+
+
+   Bases: :py:obj:`airflow.providers.common.compat.openlineage.facet.RunFacet`
+
+   Facet that represents relevant statistics of bigquery run.
+
+   This facet is used to provide statistics about bigquery run.
+
+   :param cached: BigQuery caches query results. Rest of the statistics will not be provided for cached queries.
+   :param billedBytes: How many bytes BigQuery bills for.
+   :param properties: Full property tree of BigQUery run.
+
+   .. py:attribute:: cached
+      :type: bool
+
+      
+
+   .. py:attribute:: billedBytes
+      :type: int | None
+
+      
+
+   .. py:attribute:: properties
+      :type: str | None
+
+      
+
+
+.. py:class:: BigQueryErrorRunFacet
+
+
+   Bases: :py:obj:`airflow.providers.common.compat.openlineage.facet.RunFacet`
+
+   Represents errors that can happen during execution of BigqueryExtractor.
+
+   :param clientError: represents errors originating in bigquery client
+   :param parserError: represents errors that happened during parsing SQL provided to bigquery
+
+   .. py:attribute:: clientError
+      :type: str | None
+
+      
+
+   .. py:attribute:: parserError
+      :type: str | None
+
+      
+
+
+.. py:function:: get_from_nullable_chain(source, chain)
+
+   Get object from nested structure of objects, where it's not guaranteed that all keys in the nested structure exist.
+
+   Intended to replace chain of `dict.get()` statements.
+
+   Example usage:
+
+   .. code-block:: python
+
+       if (
+           not job._properties.get("statistics")
+           or not job._properties.get("statistics").get("query")
+           or not job._properties.get("statistics").get("query").get("referencedTables")
+       ):
+           return None
+       result = job._properties.get("statistics").get("query").get("referencedTables")
+
+   becomes:
+
+   .. code-block:: python
+
+       result = get_from_nullable_chain(properties, ["statistics", "query", "queryPlan"])
+       if not result:
+           return None
+
+

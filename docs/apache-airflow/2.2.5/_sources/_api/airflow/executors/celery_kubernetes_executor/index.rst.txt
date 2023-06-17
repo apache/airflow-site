@@ -1,0 +1,122 @@
+:py:mod:`airflow.executors.celery_kubernetes_executor`
+======================================================
+
+.. py:module:: airflow.executors.celery_kubernetes_executor
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.celery_kubernetes_executor.CeleryKubernetesExecutor
+
+
+
+
+.. py:class:: CeleryKubernetesExecutor(celery_executor, kubernetes_executor)
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   CeleryKubernetesExecutor consists of CeleryExecutor and KubernetesExecutor.
+   It chooses an executor to use based on the queue defined on the task.
+   When the queue is the value of ``kubernetes_queue`` in section ``[celery_kubernetes_executor]``
+   of the configuration (default value: `kubernetes`), KubernetesExecutor is selected to run the task,
+   otherwise, CeleryExecutor is used.
+
+   .. py:attribute:: KUBERNETES_QUEUE
+      
+
+      
+
+   .. py:method:: queued_tasks(self) -> Dict[airflow.models.taskinstance.TaskInstanceKey, airflow.executors.base_executor.QueuedTaskInstanceType]
+      :property:
+
+      Return queued tasks from celery and kubernetes executor
+
+
+   .. py:method:: running(self) -> Set[airflow.models.taskinstance.TaskInstanceKey]
+      :property:
+
+      Return running tasks from celery and kubernetes executor
+
+
+   .. py:method:: job_id(self)
+      :property:
+
+      This is a class attribute in BaseExecutor but since this is not really an executor, but a wrapper
+      of executors we implement as property so we can have custom setter.
+
+
+   .. py:method:: start(self) -> None
+
+      Start celery and kubernetes executor
+
+
+   .. py:method:: slots_available(self)
+      :property:
+
+      Number of new tasks this executor instance can accept
+
+
+   .. py:method:: queue_command(self, task_instance: airflow.models.taskinstance.TaskInstance, command: airflow.executors.base_executor.CommandType, priority: int = 1, queue: Optional[str] = None)
+
+      Queues command via celery or kubernetes executor
+
+
+   .. py:method:: queue_task_instance(self, task_instance: airflow.models.taskinstance.TaskInstance, mark_success: bool = False, pickle_id: Optional[str] = None, ignore_all_deps: bool = False, ignore_depends_on_past: bool = False, ignore_task_deps: bool = False, ignore_ti_state: bool = False, pool: Optional[str] = None, cfg_path: Optional[str] = None) -> None
+
+      Queues task instance via celery or kubernetes executor
+
+
+   .. py:method:: has_task(self, task_instance: airflow.models.taskinstance.TaskInstance) -> bool
+
+      Checks if a task is either queued or running in either celery or kubernetes executor.
+
+      :param task_instance: TaskInstance
+      :return: True if the task is known to this executor
+
+
+   .. py:method:: heartbeat(self) -> None
+
+      Heartbeat sent to trigger new jobs in celery and kubernetes executor
+
+
+   .. py:method:: get_event_buffer(self, dag_ids=None) -> Dict[airflow.models.taskinstance.TaskInstanceKey, airflow.executors.base_executor.EventBufferValueType]
+
+      Returns and flush the event buffer from celery and kubernetes executor
+
+      :param dag_ids: to dag_ids to return events for, if None returns all
+      :return: a dict of events
+
+
+   .. py:method:: try_adopt_task_instances(self, tis: List[airflow.models.taskinstance.TaskInstance]) -> List[airflow.models.taskinstance.TaskInstance]
+
+      Try to adopt running task instances that have been abandoned by a SchedulerJob dying.
+
+      Anything that is not adopted will be cleared by the scheduler (and then become eligible for
+      re-scheduling)
+
+      :return: any TaskInstances that were unable to be adopted
+      :rtype: list[airflow.models.TaskInstance]
+
+
+   .. py:method:: end(self) -> None
+
+      End celery and kubernetes executor
+
+
+   .. py:method:: terminate(self) -> None
+
+      Terminate celery and kubernetes executor
+
+
+   .. py:method:: debug_dump(self)
+
+      Called in response to SIGUSR2 by the scheduler
+
+
+

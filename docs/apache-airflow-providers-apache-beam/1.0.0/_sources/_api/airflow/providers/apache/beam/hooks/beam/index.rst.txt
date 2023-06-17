@@ -1,0 +1,166 @@
+:mod:`airflow.providers.apache.beam.hooks.beam`
+===============================================
+
+.. py:module:: airflow.providers.apache.beam.hooks.beam
+
+.. autoapi-nested-parse::
+
+   This module contains a Apache Beam Hook.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: BeamRunnerType
+
+   Helper class for listing runner types.
+   For more information about runners see:
+   https://beam.apache.org/documentation/
+
+   .. attribute:: DataflowRunner
+      :annotation: = DataflowRunner
+
+      
+
+   .. attribute:: DirectRunner
+      :annotation: = DirectRunner
+
+      
+
+   .. attribute:: SparkRunner
+      :annotation: = SparkRunner
+
+      
+
+   .. attribute:: FlinkRunner
+      :annotation: = FlinkRunner
+
+      
+
+   .. attribute:: SamzaRunner
+      :annotation: = SamzaRunner
+
+      
+
+   .. attribute:: NemoRunner
+      :annotation: = NemoRunner
+
+      
+
+   .. attribute:: JetRunner
+      :annotation: = JetRunner
+
+      
+
+   .. attribute:: Twister2Runner
+      :annotation: = Twister2Runner
+
+      
+
+
+.. function:: beam_options_to_args(options: dict) -> List[str]
+   Returns a formatted pipeline options from a dictionary of arguments
+
+   The logic of this method should be compatible with Apache Beam:
+   https://github.com/apache/beam/blob/b56740f0e8cd80c2873412847d0b336837429fb9/sdks/python/
+   apache_beam/options/pipeline_options.py#L230-L251
+
+   :param options: Dictionary with options
+   :type options: dict
+   :return: List of arguments
+   :rtype: List[str]
+
+
+.. py:class:: BeamCommandRunner(cmd: List[str], process_line_callback: Optional[Callable[[str], None]] = None)
+
+   Bases: :class:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Class responsible for running pipeline command in subprocess
+
+   :param cmd: Parts of the command to be run in subprocess
+   :type cmd: List[str]
+   :param process_line_callback: Optional callback which can be used to process
+       stdout and stderr to detect job id
+   :type process_line_callback: Optional[Callable[[str], None]]
+
+   
+   .. method:: _process_fd(self, fd)
+
+      Prints output to logs.
+
+      :param fd: File descriptor.
+
+
+
+   
+   .. method:: wait_for_done(self)
+
+      Waits for Apache Beam pipeline to complete.
+
+
+
+
+.. py:class:: BeamHook(runner: str)
+
+   Bases: :class:`airflow.hooks.base_hook.BaseHook`
+
+   Hook for Apache Beam.
+
+   All the methods in the hook where project_id is used must be called with
+   keyword arguments rather than positional.
+
+   :param runner: Runner type
+   :type runner: str
+
+   
+   .. method:: _start_pipeline(self, variables: dict, command_prefix: List[str], process_line_callback: Optional[Callable[[str], None]] = None)
+
+
+
+   
+   .. method:: start_python_pipeline(self, variables: dict, py_file: str, py_options: List[str], py_interpreter: str = 'python3', py_requirements: Optional[List[str]] = None, py_system_site_packages: bool = False, process_line_callback: Optional[Callable[[str], None]] = None)
+
+      Starts Apache Beam python pipeline.
+
+      :param variables: Variables passed to the pipeline.
+      :type variables: Dict
+      :param py_options: Additional options.
+      :type py_options: List[str]
+      :param py_interpreter: Python version of the Apache Beam pipeline.
+          If None, this defaults to the python3.
+          To track python versions supported by beam and related
+          issues check: https://issues.apache.org/jira/browse/BEAM-1251
+      :type py_interpreter: str
+      :param py_requirements: Additional python package(s) to install.
+          If a value is passed to this parameter, a new virtual environment has been created with
+          additional packages installed.
+
+          You could also install the apache-beam package if it is not installed on your system or you want
+          to use a different version.
+      :type py_requirements: List[str]
+      :param py_system_site_packages: Whether to include system_site_packages in your virtualenv.
+          See virtualenv documentation for more information.
+
+          This option is only relevant if the ``py_requirements`` parameter is not None.
+      :type py_system_site_packages: bool
+      :param on_new_job_id_callback: Callback called when the job ID is known.
+      :type on_new_job_id_callback: callable
+
+
+
+   
+   .. method:: start_java_pipeline(self, variables: dict, jar: str, job_class: Optional[str] = None, process_line_callback: Optional[Callable[[str], None]] = None)
+
+      Starts Apache Beam Java pipeline.
+
+      :param variables: Variables passed to the job.
+      :type variables: dict
+      :param jar: Name of the jar for the pipeline
+      :type job_class: str
+      :param job_class: Name of the java class for the pipeline.
+      :type job_class: str
+
+
+
+

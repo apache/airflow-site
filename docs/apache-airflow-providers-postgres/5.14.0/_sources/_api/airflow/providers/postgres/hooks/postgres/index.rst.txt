@@ -1,0 +1,195 @@
+:py:mod:`airflow.providers.postgres.hooks.postgres`
+===================================================
+
+.. py:module:: airflow.providers.postgres.hooks.postgres
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.postgres.hooks.postgres.PostgresHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.postgres.hooks.postgres.CursorType
+
+
+.. py:data:: CursorType
+
+   
+
+.. py:class:: PostgresHook(*args, options = None, enable_log_db_messages = False, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.common.sql.hooks.sql.DbApiHook`
+
+   Interact with Postgres.
+
+   You can specify ssl parameters in the extra field of your connection
+   as ``{"sslmode": "require", "sslcert": "/path/to/cert.pem", etc}``.
+   Also you can choose cursor as ``{"cursor": "dictcursor"}``. Refer to the
+   psycopg2.extras for more details.
+
+   Note: For Redshift, use keepalives_idle in the extra connection parameters
+   and set it to less than 300 seconds.
+
+   Note: For AWS IAM authentication, use iam in the extra connection parameters
+   and set it to true. Leave the password field empty. This will use the
+   "aws_default" connection to get the temporary token unless you override
+   in extras.
+   extras example: ``{"iam":true, "aws_conn_id":"my_aws_conn"}``
+
+   For Redshift, also use redshift in the extra connection parameters and
+   set it to true. The cluster-identifier is extracted from the beginning of
+   the host field, so is optional. It can however be overridden in the extra field.
+   extras example: ``{"iam":true, "redshift":true, "cluster-identifier": "my_cluster_id"}``
+
+   For Redshift Serverless, use redshift-serverless in the extra connection parameters and
+   set it to true. The workgroup-name is extracted from the beginning of
+   the host field, so is optional. It can however be overridden in the extra field.
+   extras example: ``{"iam":true, "redshift-serverless":true, "workgroup-name": "my_serverless_workgroup"}``
+
+   :param postgres_conn_id: The :ref:`postgres conn id <howto/connection:postgres>`
+       reference to a specific postgres database.
+   :param options: Optional. Specifies command-line options to send to the server
+       at connection start. For example, setting this to ``-c search_path=myschema``
+       sets the session's value of the ``search_path`` to ``myschema``.
+   :param enable_log_db_messages: Optional. If enabled logs database messages sent to the client
+       during the session. To avoid a memory leak psycopg2 only saves the last 50 messages.
+       For details, see: `PostgreSQL logging configuration parameters
+       <https://www.postgresql.org/docs/current/runtime-config-logging.html>`__
+
+   .. py:property:: schema
+
+
+   .. py:property:: sqlalchemy_url
+      :type: sqlalchemy.engine.URL
+
+      Return a Sqlalchemy.engine.URL object from the connection.
+
+      Needs to be implemented in the provider subclass to return the sqlalchemy.engine.URL object.
+
+      :return: the extracted sqlalchemy.engine.URL object.
+
+
+   .. py:attribute:: conn_name_attr
+      :value: 'postgres_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'postgres_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'postgres'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Postgres'
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :value: True
+
+      
+
+   .. py:attribute:: supports_executemany
+      :value: True
+
+      
+
+   .. py:method:: get_conn()
+
+      Establish a connection to a postgres database.
+
+
+   .. py:method:: copy_expert(sql, filename)
+
+      Execute SQL using psycopg2's ``copy_expert`` method.
+
+      Necessary to execute COPY command without access to a superuser.
+
+      Note: if this method is called with a "COPY FROM" statement and
+      the specified input file does not exist, it creates an empty
+      file and no data is loaded, but the operation succeeds.
+      So if users want to be aware when the input file does not exist,
+      they have to check its existence by themselves.
+
+
+   .. py:method:: get_uri()
+
+      Extract the URI from the connection.
+
+      :return: the extracted URI in Sqlalchemy URI format.
+
+
+   .. py:method:: bulk_load(table, tmp_file)
+
+      Load a tab-delimited file into a database table.
+
+
+   .. py:method:: bulk_dump(table, tmp_file)
+
+      Dump a database table into a tab-delimited file.
+
+
+   .. py:method:: get_iam_token(conn)
+
+      Get the IAM token.
+
+      This uses AWSHook to retrieve a temporary password to connect to
+      Postgres or Redshift. Port is required. If none is provided, the default
+      5432 is used.
+
+
+   .. py:method:: get_table_primary_key(table, schema = 'public')
+
+      Get the table's primary key.
+
+      :param table: Name of the target table
+      :param schema: Name of the target schema, public by default
+      :return: Primary key columns list
+
+
+   .. py:method:: get_openlineage_database_info(connection)
+
+      Return Postgres/Redshift specific information for OpenLineage.
+
+
+   .. py:method:: get_openlineage_database_dialect(connection)
+
+      Return postgres/redshift dialect.
+
+
+   .. py:method:: get_openlineage_default_schema()
+
+      Return current schema. This is usually changed with ``SEARCH_PATH`` parameter.
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :classmethod:
+
+
+   .. py:method:: get_db_log_messages(conn)
+
+      Log all database messages sent to the client during the session.
+
+      :param conn: Connection object
+
+
+
