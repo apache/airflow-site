@@ -1,0 +1,132 @@
+:py:mod:`airflow.providers.celery.executors.celery_executor_utils`
+==================================================================
+
+.. py:module:: airflow.providers.celery.executors.celery_executor_utils
+
+.. autoapi-nested-parse::
+
+   Utilities and classes used by the Celery Executor.
+
+   Much of this code is expensive to import/load, be careful where this module is imported.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.celery.executors.celery_executor_utils.ExceptionWithTraceback
+   airflow.providers.celery.executors.celery_executor_utils.BulkStateFetcher
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.celery.executors.celery_executor_utils.on_celery_import_modules
+   airflow.providers.celery.executors.celery_executor_utils.execute_command
+   airflow.providers.celery.executors.celery_executor_utils.send_task_to_executor
+   airflow.providers.celery.executors.celery_executor_utils.fetch_celery_task_state
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.celery.executors.celery_executor_utils.log
+   airflow.providers.celery.executors.celery_executor_utils.TaskInstanceInCelery
+   airflow.providers.celery.executors.celery_executor_utils.OPERATION_TIMEOUT
+   airflow.providers.celery.executors.celery_executor_utils.CELERY_FETCH_ERR_MSG_HEADER
+   airflow.providers.celery.executors.celery_executor_utils.celery_configuration
+   airflow.providers.celery.executors.celery_executor_utils.app
+
+
+.. py:data:: log
+
+   
+
+.. py:data:: TaskInstanceInCelery
+
+   
+
+.. py:data:: OPERATION_TIMEOUT
+
+   
+
+.. py:data:: CELERY_FETCH_ERR_MSG_HEADER
+   :value: 'Error fetching Celery task state'
+
+   
+
+.. py:data:: celery_configuration
+
+   
+
+.. py:data:: app
+
+   
+
+.. py:function:: on_celery_import_modules(*args, **kwargs)
+
+   Preload some "expensive" airflow modules once, so other task processes won't have to import it again.
+
+   Loading these for each task adds 0.3-0.5s *per task* before the task can run. For long running tasks this
+   doesn't matter, but for short tasks this starts to be a noticeable impact.
+
+
+.. py:function:: execute_command(command_to_exec)
+
+   Execute command.
+
+
+.. py:class:: ExceptionWithTraceback(exception, exception_traceback)
+
+
+   Wrapper class used to propagate exceptions to parent processes from subprocesses.
+
+   :param exception: The exception to wrap
+   :param exception_traceback: The stacktrace to wrap
+
+
+.. py:function:: send_task_to_executor(task_tuple)
+
+   Send task to executor.
+
+
+.. py:function:: fetch_celery_task_state(async_result)
+
+   Fetch and return the state of the given celery task.
+
+   The scope of this function is global so that it can be called by subprocesses in the pool.
+
+   :param async_result: a tuple of the Celery task key and the async Celery object used
+       to fetch the task's state
+   :return: a tuple of the Celery task key and the Celery state and the celery info
+       of the task
+
+
+.. py:class:: BulkStateFetcher(sync_parallelism=None)
+
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Gets status for many Celery tasks using the best method available.
+
+   If BaseKeyValueStoreBackend is used as result backend, the mget method is used.
+   If DatabaseBackend is used as result backend, the SELECT ...WHERE task_id IN (...) query is used
+   Otherwise, multiprocessing.Pool will be used. Each task status will be downloaded individually.
+
+   .. py:method:: get_many(async_results)
+
+      Get status for many Celery tasks using the best method available.
+
+
+

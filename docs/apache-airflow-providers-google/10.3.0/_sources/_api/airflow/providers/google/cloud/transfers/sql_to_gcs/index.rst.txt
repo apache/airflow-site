@@ -1,0 +1,132 @@
+:py:mod:`airflow.providers.google.cloud.transfers.sql_to_gcs`
+=============================================================
+
+.. py:module:: airflow.providers.google.cloud.transfers.sql_to_gcs
+
+.. autoapi-nested-parse::
+
+   Base operator for SQL to GCS operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.transfers.sql_to_gcs.BaseSQLToGCSOperator
+
+
+
+
+.. py:class:: BaseSQLToGCSOperator(*, sql, bucket, filename, schema_filename = None, approx_max_file_size_bytes = 1900000000, export_format = 'json', stringify_dict = False, field_delimiter = ',', null_marker = None, gzip = False, schema = None, parameters = None, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, upload_metadata = False, exclude_columns = None, partition_columns = None, write_on_empty = False, parquet_row_group_size = 1, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Copy data from SQL to Google Cloud Storage in JSON, CSV, or Parquet format.
+
+   :param sql: The SQL to execute.
+   :param bucket: The bucket to upload to.
+   :param filename: The filename to use as the object name when uploading
+       to Google Cloud Storage. A ``{}`` should be specified in the filename
+       to allow the operator to inject file numbers in cases where the
+       file is split due to size.
+   :param schema_filename: If set, the filename to use as the object name
+       when uploading a .json file containing the BigQuery schema fields
+       for the table that was dumped from the database.
+   :param approx_max_file_size_bytes: This operator supports the ability
+       to split large table dumps into multiple files (see notes in the
+       filename param docs above). This param allows developers to specify the
+       file size of the splits. Check https://cloud.google.com/storage/quotas
+       to see the maximum allowed file size for a single object.
+   :param export_format: Desired format of files to be exported. (json, csv or parquet)
+   :param stringify_dict: Whether to dump Dictionary type objects
+       (such as JSON columns) as a string. Applies only to CSV/JSON export format.
+   :param field_delimiter: The delimiter to be used for CSV files.
+   :param null_marker: The null marker to be used for CSV files.
+   :param gzip: Option to compress file for upload (does not apply to schemas).
+   :param schema: The schema to use, if any. Should be a list of dict or
+       a str. Pass a string if using Jinja template, otherwise, pass a list of
+       dict. Examples could be seen: https://cloud.google.com/bigquery/docs
+       /schemas#specifying_a_json_schema_file
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param parameters: a parameters dict that is substituted at query runtime.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param upload_metadata: whether to upload the row count metadata as blob metadata
+   :param exclude_columns: set of columns to exclude from transmission
+   :param partition_columns: list of columns to use for file partitioning. In order to use
+       this parameter, you must sort your dataset by partition_columns. Do this by
+       passing an ORDER BY clause to the sql query. Files are uploaded to GCS as objects
+       with a hive style partitioning directory structure (templated).
+   :param write_on_empty: Optional parameter to specify whether to write a file if the
+       export does not return any rows. Default is False so we will not write a file
+       if the export returns no rows.
+   :param parquet_row_group_size: The approximate number of rows in each row group
+       when using parquet format. Using a large row group size can reduce the file size
+       and improve the performance of reading the data, but it needs more memory to
+       execute the operator. (default: 1)
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'bucket', 'filename', 'schema_filename', 'schema', 'parameters', 'impersonation_chain',...
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql',)
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#a0e08c'
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: convert_types(schema, col_type_dict, row)
+
+      Convert values from DBAPI to output-friendly formats.
+
+
+   .. py:method:: query()
+      :abstractmethod:
+
+      Execute DBAPI query.
+
+
+   .. py:method:: field_to_bigquery(field)
+      :abstractmethod:
+
+      Convert a DBAPI field to BigQuery schema format.
+
+
+   .. py:method:: convert_type(value, schema_type, **kwargs)
+      :abstractmethod:
+
+      Convert a value from DBAPI to output-friendly formats.
+
+
+

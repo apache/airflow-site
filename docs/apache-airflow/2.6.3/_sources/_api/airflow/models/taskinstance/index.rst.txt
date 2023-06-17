@@ -1,0 +1,792 @@
+:py:mod:`airflow.models.taskinstance`
+=====================================
+
+.. py:module:: airflow.models.taskinstance
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.taskinstance.TaskInstance
+   airflow.models.taskinstance.SimpleTaskInstance
+   airflow.models.taskinstance.TaskInstanceNote
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.taskinstance.set_current_context
+   airflow.models.taskinstance.clear_task_instances
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.taskinstance.TR
+   airflow.models.taskinstance.log
+   airflow.models.taskinstance.hybrid_property
+   airflow.models.taskinstance.PAST_DEPENDS_MET
+   airflow.models.taskinstance.TaskInstanceStateType
+
+
+.. py:data:: TR
+
+   
+
+.. py:data:: log
+
+   
+
+.. py:data:: hybrid_property
+
+   
+
+.. py:data:: PAST_DEPENDS_MET
+   :value: 'past_depends_met'
+
+   
+
+.. py:function:: set_current_context(context)
+
+   Sets the current execution context to the provided context object.
+   This method should be called once per Task execution, before calling operator.execute.
+
+
+.. py:function:: clear_task_instances(tis, session, activate_dag_runs = None, dag = None, dag_run_state = DagRunState.QUEUED)
+
+   Clears a set of task instances, but makes sure the running ones
+   get killed. Also sets Dagrun's `state` to QUEUED and `start_date`
+   to the time of execution. But only for finished DRs (SUCCESS and FAILED).
+   Doesn't clear DR's `state` and `start_date`for running
+   DRs (QUEUED and RUNNING) because clearing the state for already
+   running DR is redundant and clearing `start_date` affects DR's duration.
+
+   :param tis: a list of task instances
+   :param session: current session
+   :param dag_run_state: state to set finished DagRuns to.
+       If set to False, DagRuns state will not be changed.
+   :param dag: DAG object
+   :param activate_dag_runs: Deprecated parameter, do not pass
+
+
+.. py:class:: TaskInstance(task, execution_date = None, run_id = None, state = None, map_index = -1)
+
+
+   Bases: :py:obj:`airflow.models.base.Base`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Task instances store the state of a task instance. This table is the
+   authority and single source of truth around what tasks have run and the
+   state they are in.
+
+   The SqlAlchemy model doesn't have a SqlAlchemy foreign key to the task or
+   dag model deliberately to have more control over transactions.
+
+   Database transactions on this table should insure double triggers and
+   any confusion around what task instances are or aren't ready to run
+   even while multiple schedulers may be firing task instances.
+
+   A value of -1 in map_index represents any of: a TI without mapped tasks;
+   a TI with mapped tasks that has yet to be expanded (state=pending);
+   a TI with mapped tasks that expanded to an empty list (state=skipped).
+
+   .. py:property:: try_number
+
+      Return the try number that this task number will be when it is actually
+      run.
+
+      If the TaskInstance is currently running, this will match the column in the
+      database, in all other cases this will be incremented.
+
+
+   .. py:property:: prev_attempted_tries
+      :type: int
+
+      Based on this instance's try_number, this will calculate
+      the number of previously attempted tries, defaulting to 0.
+
+
+   .. py:property:: next_try_number
+      :type: int
+
+
+   .. py:property:: log_url
+      :type: str
+
+      Log URL for TaskInstance
+
+
+   .. py:property:: mark_success_url
+      :type: str
+
+      URL to mark TI success
+
+
+   .. py:property:: key
+      :type: airflow.models.taskinstancekey.TaskInstanceKey
+
+      Returns a tuple that identifies the task instance uniquely
+
+
+   .. py:property:: is_premature
+      :type: bool
+
+      Returns whether a task is in UP_FOR_RETRY state and its retry interval
+      has elapsed.
+
+
+   .. py:property:: previous_ti
+      :type: TaskInstance | None
+
+      This attribute is deprecated.
+      Please use `airflow.models.taskinstance.TaskInstance.get_previous_ti` method.
+
+
+   .. py:property:: previous_ti_success
+      :type: TaskInstance | None
+
+      This attribute is deprecated.
+      Please use `airflow.models.taskinstance.TaskInstance.get_previous_ti` method.
+
+
+   .. py:property:: previous_start_date_success
+      :type: pendulum.DateTime | None
+
+      This attribute is deprecated.
+      Please use `airflow.models.taskinstance.TaskInstance.get_previous_start_date` method.
+
+
+   .. py:attribute:: __tablename__
+      :value: 'task_instance'
+
+      
+
+   .. py:attribute:: task_id
+
+      
+
+   .. py:attribute:: dag_id
+
+      
+
+   .. py:attribute:: run_id
+
+      
+
+   .. py:attribute:: map_index
+
+      
+
+   .. py:attribute:: start_date
+
+      
+
+   .. py:attribute:: end_date
+
+      
+
+   .. py:attribute:: duration
+
+      
+
+   .. py:attribute:: state
+
+      
+
+   .. py:attribute:: max_tries
+
+      
+
+   .. py:attribute:: hostname
+
+      
+
+   .. py:attribute:: unixname
+
+      
+
+   .. py:attribute:: job_id
+
+      
+
+   .. py:attribute:: pool
+
+      
+
+   .. py:attribute:: pool_slots
+
+      
+
+   .. py:attribute:: queue
+
+      
+
+   .. py:attribute:: priority_weight
+
+      
+
+   .. py:attribute:: operator
+
+      
+
+   .. py:attribute:: queued_dttm
+
+      
+
+   .. py:attribute:: queued_by_job_id
+
+      
+
+   .. py:attribute:: pid
+
+      
+
+   .. py:attribute:: executor_config
+
+      
+
+   .. py:attribute:: updated_at
+
+      
+
+   .. py:attribute:: external_executor_id
+
+      
+
+   .. py:attribute:: trigger_id
+
+      
+
+   .. py:attribute:: trigger_timeout
+
+      
+
+   .. py:attribute:: next_method
+
+      
+
+   .. py:attribute:: next_kwargs
+
+      
+
+   .. py:attribute:: __table_args__
+      :value: ()
+
+      
+
+   .. py:attribute:: dag_model
+
+      
+
+   .. py:attribute:: trigger
+
+      
+
+   .. py:attribute:: triggerer_job
+
+      
+
+   .. py:attribute:: dag_run
+
+      
+
+   .. py:attribute:: rendered_task_instance_fields
+
+      
+
+   .. py:attribute:: execution_date
+
+      
+
+   .. py:attribute:: task_instance_note
+
+      
+
+   .. py:attribute:: note
+
+      
+
+   .. py:attribute:: task
+      :type: airflow.models.operator.Operator
+
+      
+
+   .. py:method:: init_on_load()
+
+      Initialize the attributes that aren't stored in the DB
+
+
+   .. py:method:: command_as_list(mark_success=False, ignore_all_deps=False, ignore_task_deps=False, ignore_depends_on_past=False, wait_for_past_depends_before_skipping=False, ignore_ti_state=False, local=False, pickle_id = None, raw=False, job_id=None, pool=None, cfg_path=None)
+
+      Returns a command that can be executed anywhere where airflow is
+      installed. This command is part of the message sent to executors by
+      the orchestrator.
+
+
+   .. py:method:: generate_command(dag_id, task_id, run_id, mark_success = False, ignore_all_deps = False, ignore_depends_on_past = False, wait_for_past_depends_before_skipping = False, ignore_task_deps = False, ignore_ti_state = False, local = False, pickle_id = None, file_path = None, raw = False, job_id = None, pool = None, cfg_path = None, map_index = -1)
+      :staticmethod:
+
+      Generates the shell command required to execute this task instance.
+
+      :param dag_id: DAG ID
+      :param task_id: Task ID
+      :param run_id: The run_id of this task's DagRun
+      :param mark_success: Whether to mark the task as successful
+      :param ignore_all_deps: Ignore all ignorable dependencies.
+          Overrides the other ignore_* parameters.
+      :param ignore_depends_on_past: Ignore depends_on_past parameter of DAGs
+          (e.g. for Backfills)
+      :param wait_for_past_depends_before_skipping: Wait for past depends before marking the ti as skipped
+      :param ignore_task_deps: Ignore task-specific dependencies such as depends_on_past
+          and trigger rule
+      :param ignore_ti_state: Ignore the task instance's previous failure/success
+      :param local: Whether to run the task locally
+      :param pickle_id: If the DAG was serialized to the DB, the ID
+          associated with the pickled DAG
+      :param file_path: path to the file containing the DAG definition
+      :param raw: raw mode (needs more details)
+      :param job_id: job ID (needs more details)
+      :param pool: the Airflow pool that the task should run in
+      :param cfg_path: the Path to the configuration file
+      :return: shell command that can be used to run the task instance
+
+
+   .. py:method:: current_state(session = NEW_SESSION)
+
+      Get the very latest state from the database, if a session is passed,
+      we use and looking up the state becomes part of the session, otherwise
+      a new session is used.
+
+      sqlalchemy.inspect is used here to get the primary keys ensuring that if they change
+      it will not regress
+
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: error(session = NEW_SESSION)
+
+      Forces the task instance's state to FAILED in the database.
+
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: refresh_from_db(session = NEW_SESSION, lock_for_update = False)
+
+      Refreshes the task instance from the database based on the primary key
+
+      :param session: SQLAlchemy ORM Session
+      :param lock_for_update: if True, indicates that the database should
+          lock the TaskInstance (issuing a FOR UPDATE clause) until the
+          session is committed.
+
+
+   .. py:method:: refresh_from_task(task, pool_override = None)
+
+      Copy common attributes from the given task.
+
+      :param task: The task object to copy from
+      :param pool_override: Use the pool_override instead of task's pool
+
+
+   .. py:method:: clear_xcom_data(session = NEW_SESSION)
+
+      Clear all XCom data from the database for the task instance.
+
+      If the task is unmapped, all XComs matching this task ID in the same DAG
+      run are removed. If the task is mapped, only the one with matching map
+      index is removed.
+
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: set_state(state, session = NEW_SESSION)
+
+      Set TaskInstance state.
+
+      :param state: State to set for the TI
+      :param session: SQLAlchemy ORM Session
+      :return: Was the state changed
+
+
+   .. py:method:: are_dependents_done(session = NEW_SESSION)
+
+      Checks whether the immediate dependents of this task instance have succeeded or have been skipped.
+      This is meant to be used by wait_for_downstream.
+
+      This is useful when you do not want to start processing the next
+      schedule of a task until the dependents are done. For instance,
+      if the task DROPs and recreates a table.
+
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: get_previous_dagrun(state = None, session = None)
+
+      The DagRun that ran before this task instance's DagRun.
+
+      :param state: If passed, it only take into account instances of a specific state.
+      :param session: SQLAlchemy ORM Session.
+
+
+   .. py:method:: get_previous_ti(state = None, session = NEW_SESSION)
+
+      The task instance for the task that ran before this task instance.
+
+      :param state: If passed, it only take into account instances of a specific state.
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: get_previous_execution_date(state = None, session = NEW_SESSION)
+
+      The execution date from property previous_ti_success.
+
+      :param state: If passed, it only take into account instances of a specific state.
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: get_previous_start_date(state = None, session = NEW_SESSION)
+
+      The start date from property previous_ti_success.
+
+      :param state: If passed, it only take into account instances of a specific state.
+      :param session: SQLAlchemy ORM Session
+
+
+   .. py:method:: are_dependencies_met(dep_context = None, session = NEW_SESSION, verbose = False)
+
+      Returns whether or not all the conditions are met for this task instance to be run
+      given the context for the dependencies (e.g. a task instance being force run from
+      the UI will ignore some dependencies).
+
+      :param dep_context: The execution context that determines the dependencies that
+          should be evaluated.
+      :param session: database session
+      :param verbose: whether log details on failed dependencies on
+          info or debug log level
+
+
+   .. py:method:: get_failed_dep_statuses(dep_context = None, session = NEW_SESSION)
+
+      Get failed Dependencies
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: next_retry_datetime()
+
+      Get datetime of the next retry if the task instance fails. For exponential
+      backoff, retry_delay is used as base and will be converted to seconds.
+
+
+   .. py:method:: ready_for_retry()
+
+      Checks on whether the task instance is in the right state and timeframe
+      to be retried.
+
+
+   .. py:method:: get_dagrun(session = NEW_SESSION)
+
+      Returns the DagRun for this TaskInstance
+
+      :param session: SQLAlchemy ORM Session
+      :return: DagRun
+
+
+   .. py:method:: check_and_change_state_before_execution(verbose = True, ignore_all_deps = False, ignore_depends_on_past = False, wait_for_past_depends_before_skipping = False, ignore_task_deps = False, ignore_ti_state = False, mark_success = False, test_mode = False, job_id = None, pool = None, external_executor_id = None, session = NEW_SESSION)
+
+      Checks dependencies and then sets state to RUNNING if they are met. Returns
+      True if and only if state is set to RUNNING, which implies that task should be
+      executed, in preparation for _run_raw_task
+
+      :param verbose: whether to turn on more verbose logging
+      :param ignore_all_deps: Ignore all of the non-critical dependencies, just runs
+      :param ignore_depends_on_past: Ignore depends_on_past DAG attribute
+      :param wait_for_past_depends_before_skipping: Wait for past depends before mark the ti as skipped
+      :param ignore_task_deps: Don't check the dependencies of this TaskInstance's task
+      :param ignore_ti_state: Disregards previous task instance state
+      :param mark_success: Don't run the task, mark its state as success
+      :param test_mode: Doesn't record success or failure in the DB
+      :param job_id: Job (BackfillJob / LocalTaskJob / SchedulerJob) ID
+      :param pool: specifies the pool to use to run the task instance
+      :param external_executor_id: The identifier of the celery executor
+      :param session: SQLAlchemy ORM Session
+      :return: whether the state was changed to running or not
+
+
+   .. py:method:: clear_next_method_args()
+
+
+   .. py:method:: run(verbose = True, ignore_all_deps = False, ignore_depends_on_past = False, wait_for_past_depends_before_skipping = False, ignore_task_deps = False, ignore_ti_state = False, mark_success = False, test_mode = False, job_id = None, pool = None, session = NEW_SESSION)
+
+      Run TaskInstance
+
+
+   .. py:method:: dry_run()
+
+      Only Renders Templates for the TI
+
+
+   .. py:method:: handle_failure(error, test_mode = None, context = None, force_fail = False, session = NEW_SESSION)
+
+      Handle Failure for the TaskInstance
+
+
+   .. py:method:: is_eligible_to_retry()
+
+      Is task instance is eligible for retry
+
+
+   .. py:method:: get_template_context(session = None, ignore_param_exceptions = True)
+
+      Return TI Context
+
+
+   .. py:method:: get_rendered_template_fields(session = NEW_SESSION)
+
+      Update task with rendered template fields for presentation in UI.
+      If task has already run, will fetch from DB; otherwise will render.
+
+
+   .. py:method:: get_rendered_k8s_spec(session = NEW_SESSION)
+
+      Fetch rendered template fields from DB
+
+
+   .. py:method:: overwrite_params_with_dag_run_conf(params, dag_run)
+
+      Overwrite Task Params with DagRun.conf
+
+
+   .. py:method:: render_templates(context = None)
+
+      Render templates in the operator fields.
+
+      If the task was originally mapped, this may replace ``self.task`` with
+      the unmapped, fully rendered BaseOperator. The original ``self.task``
+      before replacement is returned.
+
+
+   .. py:method:: render_k8s_pod_yaml()
+
+      Render k8s pod yaml
+
+
+   .. py:method:: get_email_subject_content(exception, task = None)
+
+      Get the email subject content for exceptions.
+
+
+   .. py:method:: email_alert(exception, task)
+
+      Send alert email with exception information.
+
+
+   .. py:method:: set_duration()
+
+      Set TI duration
+
+
+   .. py:method:: xcom_push(key, value, execution_date = None, session = NEW_SESSION)
+
+      Make an XCom available for tasks to pull.
+
+      :param key: Key to store the value under.
+      :param value: Value to store. What types are possible depends on whether
+          ``enable_xcom_pickling`` is true or not. If so, this can be any
+          picklable object; only be JSON-serializable may be used otherwise.
+      :param execution_date: Deprecated parameter that has no effect.
+
+
+   .. py:method:: xcom_pull(task_ids = None, dag_id = None, key = XCOM_RETURN_KEY, include_prior_dates = False, session = NEW_SESSION, *, map_indexes = None, default = None)
+
+      Pull XComs that optionally meet certain criteria.
+
+      :param key: A key for the XCom. If provided, only XComs with matching
+          keys will be returned. The default key is ``'return_value'``, also
+          available as constant ``XCOM_RETURN_KEY``. This key is automatically
+          given to XComs returned by tasks (as opposed to being pushed
+          manually). To remove the filter, pass *None*.
+      :param task_ids: Only XComs from tasks with matching ids will be
+          pulled. Pass *None* to remove the filter.
+      :param dag_id: If provided, only pulls XComs from this DAG. If *None*
+          (default), the DAG of the calling task is used.
+      :param map_indexes: If provided, only pull XComs with matching indexes.
+          If *None* (default), this is inferred from the task(s) being pulled
+          (see below for details).
+      :param include_prior_dates: If False, only XComs from the current
+          execution_date are returned. If *True*, XComs from previous dates
+          are returned as well.
+
+      When pulling one single task (``task_id`` is *None* or a str) without
+      specifying ``map_indexes``, the return value is inferred from whether
+      the specified task is mapped. If not, value from the one single task
+      instance is returned. If the task to pull is mapped, an iterator (not a
+      list) yielding XComs from mapped task instances is returned. In either
+      case, ``default`` (*None* if not specified) is returned if no matching
+      XComs are found.
+
+      When pulling multiple tasks (i.e. either ``task_id`` or ``map_index`` is
+      a non-str iterable), a list of matching XComs is returned. Elements in
+      the list is ordered by item ordering in ``task_id`` and ``map_index``.
+
+
+   .. py:method:: get_num_running_task_instances(session, same_dagrun=False)
+
+      Return Number of running TIs from the DB
+
+
+   .. py:method:: init_run_context(raw = False)
+
+      Sets the log context.
+
+
+   .. py:method:: filter_for_tis(tis)
+      :staticmethod:
+
+      Returns SQLAlchemy filter to query selected task instances
+
+
+   .. py:method:: schedule_downstream_tasks(session = NEW_SESSION)
+
+      The mini-scheduler for scheduling downstream tasks of this task instance
+      :meta: private
+
+
+   .. py:method:: get_relevant_upstream_map_indexes(upstream, ti_count, *, session)
+
+      Infer the map indexes of an upstream "relevant" to this ti.
+
+      The bulk of the logic mainly exists to solve the problem described by
+      the following example, where 'val' must resolve to different values,
+      depending on where the reference is being used::
+
+          @task
+          def this_task(v):  # This is self.task.
+              return v * 2
+
+          @task_group
+          def tg1(inp):
+              val = upstream(inp)  # This is the upstream task.
+              this_task(val)  # When inp is 1, val here should resolve to 2.
+              return val
+
+          # This val is the same object returned by tg1.
+          val = tg1.expand(inp=[1, 2, 3])
+
+          @task_group
+          def tg2(inp):
+              another_task(inp, val)  # val here should resolve to [2, 4, 6].
+
+          tg2.expand(inp=["a", "b"])
+
+      The surrounding mapped task groups of ``upstream`` and ``self.task`` are
+      inspected to find a common "ancestor". If such an ancestor is found,
+      we need to return specific map indexes to pull a partial value from
+      upstream XCom.
+
+      :param upstream: The referenced upstream task.
+      :param ti_count: The total count of task instance this task was expanded
+          by the scheduler, i.e. ``expanded_ti_count`` in the template context.
+      :return: Specific map index or map indexes to pull, or ``None`` if we
+          want to "whole" return value (i.e. no mapped task groups involved).
+
+
+
+.. py:data:: TaskInstanceStateType
+
+   
+
+.. py:class:: SimpleTaskInstance(dag_id, task_id, run_id, start_date, end_date, try_number, map_index, state, executor_config, pool, queue, key, run_as_user = None, priority_weight = None)
+
+
+   Simplified Task Instance.
+
+   Used to send data between processes via Queues.
+
+   .. py:method:: __eq__(other)
+
+      Return self==value.
+
+
+   .. py:method:: as_dict()
+
+
+   .. py:method:: from_ti(ti)
+      :classmethod:
+
+
+   .. py:method:: from_dict(obj_dict)
+      :classmethod:
+
+
+
+.. py:class:: TaskInstanceNote(content, user_id=None)
+
+
+   Bases: :py:obj:`airflow.models.base.Base`
+
+   For storage of arbitrary notes concerning the task instance.
+
+   .. py:attribute:: __tablename__
+      :value: 'task_instance_note'
+
+      
+
+   .. py:attribute:: user_id
+
+      
+
+   .. py:attribute:: task_id
+
+      
+
+   .. py:attribute:: dag_id
+
+      
+
+   .. py:attribute:: run_id
+
+      
+
+   .. py:attribute:: map_index
+
+      
+
+   .. py:attribute:: content
+
+      
+
+   .. py:attribute:: created_at
+
+      
+
+   .. py:attribute:: updated_at
+
+      
+
+   .. py:attribute:: task_instance
+
+      
+
+   .. py:attribute:: __table_args__
+      :value: ()
+
+      
+
+   .. py:method:: __repr__()
+
+
+

@@ -1,0 +1,309 @@
+:py:mod:`airflow.providers.microsoft.azure.hooks.data_lake`
+===========================================================
+
+.. py:module:: airflow.providers.microsoft.azure.hooks.data_lake
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.hooks.data_lake.AzureDataLakeHook
+   airflow.providers.microsoft.azure.hooks.data_lake.AzureDataLakeStorageV2Hook
+
+
+
+
+.. py:class:: AzureDataLakeHook(azure_data_lake_conn_id = default_conn_name)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Integration with Azure Data Lake.
+
+   AzureDataLakeHook communicates via a REST API compatible with WebHDFS. Make
+   sure that a Airflow connection of type ``azure_data_lake`` exists.
+   Authorization can be done by supplying a *login* (=Client ID), *password*
+   (=Client Secret), and extra fields *tenant* (Tenant) and *account_name*
+   (Account Name). See connection ``azure_data_lake_default`` for an example.
+
+   Client ID and secret should be in user and password parameters.
+   Tenant and account name should be extra field as
+   ``{"tenant": "<TENANT>", "account_name": "ACCOUNT_NAME"}``.
+
+   :param azure_data_lake_conn_id: Reference to
+       :ref:`Azure Data Lake connection<howto/connection:adl>`.
+
+   .. py:attribute:: conn_name_attr
+      :value: 'azure_data_lake_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'azure_data_lake_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'azure_data_lake'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Azure Data Lake'
+
+      
+
+   .. py:method:: get_connection_form_widgets()
+      :staticmethod:
+
+      Returns connection widgets to add to connection form.
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :staticmethod:
+
+      Returns custom field behaviour.
+
+
+   .. py:method:: get_conn()
+
+      Return a AzureDLFileSystem object.
+
+
+   .. py:method:: check_for_file(file_path)
+
+      Check if a file exists on Azure Data Lake.
+
+      :param file_path: Path and name of the file.
+      :return: True if the file exists, False otherwise.
+
+
+   .. py:method:: upload_file(local_path, remote_path, nthreads = 64, overwrite = True, buffersize = 4194304, blocksize = 4194304, **kwargs)
+
+      Upload a file to Azure Data Lake.
+
+      :param local_path: local path. Can be single file, directory (in which case,
+          upload recursively) or glob pattern. Recursive glob patterns using `**`
+          are not supported.
+      :param remote_path: Remote path to upload to; if multiple files, this is the
+          directory root to write within.
+      :param nthreads: Number of threads to use. If None, uses the number of cores.
+      :param overwrite: Whether to forcibly overwrite existing files/directories.
+          If False and remote path is a directory, will quit regardless if any files
+          would be overwritten or not. If True, only matching filenames are actually
+          overwritten.
+      :param buffersize: int [2**22]
+          Number of bytes for internal buffer. This block cannot be bigger than
+          a chunk and cannot be smaller than a block.
+      :param blocksize: int [2**22]
+          Number of bytes for a block. Within each chunk, we write a smaller
+          block for each API call. This block cannot be bigger than a chunk.
+
+
+   .. py:method:: download_file(local_path, remote_path, nthreads = 64, overwrite = True, buffersize = 4194304, blocksize = 4194304, **kwargs)
+
+      Download a file from Azure Blob Storage.
+
+      :param local_path: local path. If downloading a single file, will write to this
+          specific file, unless it is an existing directory, in which case a file is
+          created within it. If downloading multiple files, this is the root
+          directory to write within. Will create directories as required.
+      :param remote_path: remote path/globstring to use to find remote files.
+          Recursive glob patterns using `**` are not supported.
+      :param nthreads: Number of threads to use. If None, uses the number of cores.
+      :param overwrite: Whether to forcibly overwrite existing files/directories.
+          If False and remote path is a directory, will quit regardless if any files
+          would be overwritten or not. If True, only matching filenames are actually
+          overwritten.
+      :param buffersize: int [2**22]
+          Number of bytes for internal buffer. This block cannot be bigger than
+          a chunk and cannot be smaller than a block.
+      :param blocksize: int [2**22]
+          Number of bytes for a block. Within each chunk, we write a smaller
+          block for each API call. This block cannot be bigger than a chunk.
+
+
+   .. py:method:: list(path)
+
+      List files in Azure Data Lake Storage.
+
+      :param path: full path/globstring to use to list files in ADLS
+
+
+   .. py:method:: remove(path, recursive = False, ignore_not_found = True)
+
+      Remove files in Azure Data Lake Storage.
+
+      :param path: A directory or file to remove in ADLS
+      :param recursive: Whether to loop into directories in the location and remove the files
+      :param ignore_not_found: Whether to raise error if file to delete is not found
+
+
+
+.. py:class:: AzureDataLakeStorageV2Hook(adls_conn_id, public_read = False)
+
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   Interact with a ADLS gen2 storage account.
+
+   It mainly helps to create and manage directories and files in storage
+   accounts that have a hierarchical namespace. Using Adls_v2 connection
+   details create DataLakeServiceClient object.
+
+   Due to Wasb is marked as legacy and and retirement of the (ADLS1), it would
+   be nice to implement ADLS gen2 hook for interacting with the storage account.
+
+   .. seealso::
+       https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-directory-file-acl-python
+
+   :param adls_conn_id: Reference to the :ref:`adls connection <howto/connection:adls>`.
+   :param public_read: Whether an anonymous public read access should be used. default is False
+
+   .. py:attribute:: conn_name_attr
+      :value: 'adls_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'adls_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'adls'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'Azure Date Lake Storage V2'
+
+      
+
+   .. py:method:: get_connection_form_widgets()
+      :staticmethod:
+
+      Returns connection widgets to add to connection form.
+
+
+   .. py:method:: get_ui_field_behaviour()
+      :staticmethod:
+
+      Returns custom field behaviour.
+
+
+   .. py:method:: get_conn()
+
+      Return the DataLakeServiceClient object.
+
+
+   .. py:method:: create_file_system(file_system_name)
+
+      Create a new file system under the specified account.
+
+      A container acts as a file system for your files.
+
+      If the file system with the same name already exists, a ResourceExistsError will
+      be raised. This method returns a client with which to interact with the newly
+      created file system.
+
+
+   .. py:method:: get_file_system(file_system)
+
+      Get a client to interact with the specified file system.
+
+      :param file_system: This can either be the name of the file system
+          or an instance of FileSystemProperties.
+
+
+   .. py:method:: create_directory(file_system_name, directory_name, **kwargs)
+
+      Create a directory under the specified file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param directory_name: Name of the directory which needs to be created in the file system.
+
+
+   .. py:method:: get_directory_client(file_system_name, directory_name)
+
+      Get the specific directory under the specified file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param directory_name: Name of the directory or instance of DirectoryProperties which needs to be
+          retrieved from the file system.
+
+
+   .. py:method:: create_file(file_system_name, file_name)
+
+      Create a file under the file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param file_name: Name of the file which needs to be created in the file system.
+
+
+   .. py:method:: upload_file(file_system_name, file_name, file_path, overwrite = False, **kwargs)
+
+      Create a file with data in the file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param file_name: Name of the file to be created with name.
+      :param file_path: Path to the file to load.
+      :param overwrite: Boolean flag to overwrite an existing file or not.
+
+
+   .. py:method:: upload_file_to_directory(file_system_name, directory_name, file_name, file_path, overwrite = False, **kwargs)
+
+      Upload data to a file.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param directory_name: Name of the directory.
+      :param file_name: Name of the file to be created with name.
+      :param file_path: Path to the file to load.
+      :param overwrite: Boolean flag to overwrite an existing file or not.
+
+
+   .. py:method:: list_files_directory(file_system_name, directory_name)
+
+      List files or directories under the specified file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param directory_name: Name of the directory.
+
+
+   .. py:method:: list_file_system(prefix = None, include_metadata = False, **kwargs)
+
+      List file systems under the specified account.
+
+      :param prefix:
+          Filters the results to return only file systems whose names
+          begin with the specified prefix.
+      :param include_metadata: Specifies that file system metadata be returned in the response.
+          The default value is `False`.
+
+
+   .. py:method:: delete_file_system(file_system_name)
+
+      Delete the file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+
+
+   .. py:method:: delete_directory(file_system_name, directory_name)
+
+      Delete the specified directory in a file system.
+
+      :param file_system_name: Name of the file system or instance of FileSystemProperties.
+      :param directory_name: Name of the directory.
+
+
+   .. py:method:: test_connection()
+
+      Test ADLS Gen2 Storage connection.
+
+
+

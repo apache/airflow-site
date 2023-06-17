@@ -1,0 +1,213 @@
+:py:mod:`airflow.models.taskmixin`
+==================================
+
+.. py:module:: airflow.models.taskmixin
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.taskmixin.DependencyMixin
+   airflow.models.taskmixin.TaskMixin
+   airflow.models.taskmixin.DAGNode
+
+
+
+
+.. py:class:: DependencyMixin
+
+   Mixing implementing common dependency setting methods methods like >> and <<.
+
+   .. py:property:: roots
+      :type: Sequence[DependencyMixin]
+      :abstractmethod:
+
+      List of root nodes -- ones with no upstream dependencies.
+
+      a.k.a. the "start" of this sub-graph
+
+
+   .. py:property:: leaves
+      :type: Sequence[DependencyMixin]
+      :abstractmethod:
+
+      List of leaf nodes -- ones with only upstream dependencies.
+
+      a.k.a. the "end" of this sub-graph
+
+
+   .. py:method:: set_upstream(other)
+      :abstractmethod:
+
+      Set a task or a task list to be directly upstream from the current task.
+
+
+   .. py:method:: set_downstream(other)
+      :abstractmethod:
+
+      Set a task or a task list to be directly downstream from the current task.
+
+
+   .. py:method:: update_relative(other, upstream=True)
+
+      Update relationship information about another TaskMixin. Default is no-op.
+      Override if necessary.
+
+
+   .. py:method:: __lshift__(other)
+
+      Implements Task << Task
+
+
+   .. py:method:: __rshift__(other)
+
+      Implements Task >> Task
+
+
+   .. py:method:: __rrshift__(other)
+
+      Called for Task >> [Task] because list don't have __rshift__ operators.
+
+
+   .. py:method:: __rlshift__(other)
+
+      Called for Task << [Task] because list don't have __lshift__ operators.
+
+
+
+.. py:class:: TaskMixin
+
+   Bases: :py:obj:`DependencyMixin`
+
+   :meta private:
+
+   .. py:method:: __init_subclass__()
+      :classmethod:
+
+
+
+.. py:class:: DAGNode
+
+   Bases: :py:obj:`DependencyMixin`
+
+   A base class for a node in the graph of a workflow -- an Operator or a Task Group, either mapped or
+   unmapped.
+
+   .. py:property:: node_id
+      :type: str
+      :abstractmethod:
+
+
+   .. py:property:: label
+      :type: str | None
+
+
+   .. py:property:: dag_id
+      :type: str
+
+      Returns dag id if it has one or an adhoc/meaningless ID
+
+
+   .. py:property:: log
+      :type: logging.Logger
+      :abstractmethod:
+
+
+   .. py:property:: roots
+      :type: Sequence[DAGNode]
+      :abstractmethod:
+
+      List of root nodes -- ones with no upstream dependencies.
+
+      a.k.a. the "start" of this sub-graph
+
+
+   .. py:property:: leaves
+      :type: Sequence[DAGNode]
+      :abstractmethod:
+
+      List of leaf nodes -- ones with only upstream dependencies.
+
+      a.k.a. the "end" of this sub-graph
+
+
+   .. py:property:: downstream_list
+      :type: Iterable[airflow.models.operator.Operator]
+
+      List of nodes directly downstream
+
+
+   .. py:property:: upstream_list
+      :type: Iterable[airflow.models.operator.Operator]
+
+      List of nodes directly upstream
+
+
+   .. py:attribute:: dag
+      :annotation: :DAG | None
+
+      
+
+   .. py:attribute:: task_group
+      :annotation: :TaskGroup | None
+
+      The task_group that contains this node
+
+
+   .. py:attribute:: start_date
+      :annotation: :pendulum.DateTime | None
+
+      
+
+   .. py:attribute:: end_date
+      :annotation: :pendulum.DateTime | None
+
+      
+
+   .. py:attribute:: upstream_task_ids
+      :annotation: :set[str]
+
+      
+
+   .. py:attribute:: downstream_task_ids
+      :annotation: :set[str]
+
+      
+
+   .. py:method:: has_dag()
+
+
+   .. py:method:: set_downstream(task_or_task_list, edge_modifier = None)
+
+      Set a node (or nodes) to be directly downstream from the current node.
+
+
+   .. py:method:: set_upstream(task_or_task_list, edge_modifier = None)
+
+      Set a node (or nodes) to be directly upstream from the current node.
+
+
+   .. py:method:: get_direct_relative_ids(upstream = False)
+
+      Get set of the direct relative ids to the current task, upstream or
+      downstream.
+
+
+   .. py:method:: get_direct_relatives(upstream = False)
+
+      Get list of the direct relatives to the current task, upstream or
+      downstream.
+
+
+   .. py:method:: serialize_for_task_group()
+      :abstractmethod:
+
+      This is used by TaskGroupSerialization to serialize a task group's content.
+
+
+
