@@ -35,14 +35,15 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - name: 🗂 Checkout
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f  # v2.3.4
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # v3.5.3
         with:
           submodules: recursive
           lfs: true
+          depth: 1
       - name: Display disk free
         run: ./.github/scripts/print_df.sh
       - name: 🐍 Setup Python
-        uses: actions/setup-python@41b7212b1668f5de9d65e9c82aa777e6bbedb3a8  # v2.1.4
+        uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0  # v4.6.1
         with:
           python-version: '3.7'
       - name: ❤️  Install Node 16
@@ -65,7 +66,7 @@ jobs:
       - name: 🔎 Lint
         uses: apache/airflow-pre-commit-action@0764670bf370aab253130d534e1eda7ff497dc60  # v2.0.0
       - name: 🗂 Checkout gh-pages branch with minimum depth
-        uses: actions/checkout@v3
+        uses: actions/actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
         if: ${{ github.event_name == 'push' }}
         with:
           ref: gh-pages
@@ -87,7 +88,7 @@ jobs:
           echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
           find ./dist/
           ./.github/scripts/print_df.sh
-      - uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -107,13 +108,15 @@ jobs:
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
           ./.github/scripts/print_df.sh
-      - name: 🚀 Amend gh-pages branch and deploy it with force
+      - name: 🚀 Amend gh-pages branch and deploy it with force (replacing previous pages)
         if: ${{ github.event_name == 'push' }}
         working-directory: dist
         run: |
           git add .
+          git config user.name "GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
           git commit --amend --no-edit
-          git push origin gh-pages --force
+          git push --force origin gh-pages
       - name: 🔧 Copy files from site to theme️
         run: |
           ./site.sh prepare-theme
@@ -125,7 +128,7 @@ jobs:
           python3 setup.py sdist bdist_wheel
           ../.github/scripts/print_df.sh
       - name: 🚀 Upload sphinx_airflow_theme package as artifact
-        uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
         with:
           name: airflow-sphinx-theme
           path: './sphinx_airflow_theme/dist'
@@ -139,7 +142,7 @@ jobs:
           ./docs.sh build
           ../../.github/scripts/print_df.sh
       - name: 🚀 Upload sphinx_airflow_theme demo as artifact
-        uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
         with:
           name: airflow-sphinx-theme-demo
           path: './sphinx_airflow_theme/demo/_build'
