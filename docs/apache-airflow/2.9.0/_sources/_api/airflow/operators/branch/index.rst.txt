@@ -1,0 +1,75 @@
+:py:mod:`airflow.operators.branch`
+==================================
+
+.. py:module:: airflow.operators.branch
+
+.. autoapi-nested-parse::
+
+   Branching operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.operators.branch.BranchMixIn
+   airflow.operators.branch.BaseBranchOperator
+
+
+
+
+.. py:class:: BranchMixIn(context=None)
+
+
+   Bases: :py:obj:`airflow.models.skipmixin.SkipMixin`
+
+   Utility helper which handles the branching as one-liner.
+
+   .. py:method:: do_branch(context, branches_to_execute)
+
+      Implement the handling of branching including logging.
+
+
+
+.. py:class:: BaseBranchOperator(task_id, owner = DEFAULT_OWNER, email = None, email_on_retry = conf.getboolean('email', 'default_email_on_retry', fallback=True), email_on_failure = conf.getboolean('email', 'default_email_on_failure', fallback=True), retries = DEFAULT_RETRIES, retry_delay = DEFAULT_RETRY_DELAY, retry_exponential_backoff = False, max_retry_delay = None, start_date = None, end_date = None, depends_on_past = False, ignore_first_depends_on_past = DEFAULT_IGNORE_FIRST_DEPENDS_ON_PAST, wait_for_past_depends_before_skipping = DEFAULT_WAIT_FOR_PAST_DEPENDS_BEFORE_SKIPPING, wait_for_downstream = False, dag = None, params = None, default_args = None, priority_weight = DEFAULT_PRIORITY_WEIGHT, weight_rule = DEFAULT_WEIGHT_RULE, queue = DEFAULT_QUEUE, pool = None, pool_slots = DEFAULT_POOL_SLOTS, sla = None, execution_timeout = DEFAULT_TASK_EXECUTION_TIMEOUT, on_execute_callback = None, on_failure_callback = None, on_success_callback = None, on_retry_callback = None, on_skipped_callback = None, pre_execute = None, post_execute = None, trigger_rule = DEFAULT_TRIGGER_RULE, resources = None, run_as_user = None, task_concurrency = None, map_index_template = None, max_active_tis_per_dag = None, max_active_tis_per_dagrun = None, executor_config = None, do_xcom_push = True, multiple_outputs = False, inlets = None, outlets = None, task_group = None, doc = None, doc_md = None, doc_json = None, doc_yaml = None, doc_rst = None, task_display_name = None, logger_name = None, allow_nested_operators = True, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.baseoperator.BaseOperator`, :py:obj:`BranchMixIn`
+
+   A base class for creating operators with branching functionality, like to BranchPythonOperator.
+
+   Users should create a subclass from this operator and implement the function
+   `choose_branch(self, context)`. This should run whatever business logic
+   is needed to determine the branch, and return either the task_id for
+   a single task (as a str) or a list of task_ids.
+
+   The operator will continue with the returned task_id(s), and all other
+   tasks directly downstream of this operator will be skipped.
+
+   .. py:method:: choose_branch(context)
+      :abstractmethod:
+
+      Abstract method to choose which branch to run.
+
+      Subclasses should implement this, running whatever logic is
+      necessary to choose a branch and returning a task_id or list of
+      task_ids.
+
+      :param context: Context dictionary as passed to execute()
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

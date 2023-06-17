@@ -1,0 +1,336 @@
+:py:mod:`airflow.providers.google.cloud.triggers.dataflow`
+==========================================================
+
+.. py:module:: airflow.providers.google.cloud.triggers.dataflow
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.triggers.dataflow.TemplateJobStartTrigger
+   airflow.providers.google.cloud.triggers.dataflow.DataflowJobStatusTrigger
+   airflow.providers.google.cloud.triggers.dataflow.DataflowStartYamlJobTrigger
+   airflow.providers.google.cloud.triggers.dataflow.DataflowJobMetricsTrigger
+   airflow.providers.google.cloud.triggers.dataflow.DataflowJobAutoScalingEventTrigger
+   airflow.providers.google.cloud.triggers.dataflow.DataflowJobMessagesTrigger
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.triggers.dataflow.DEFAULT_DATAFLOW_LOCATION
+
+
+.. py:data:: DEFAULT_DATAFLOW_LOCATION
+   :value: 'us-central1'
+
+   
+
+.. py:class:: TemplateJobStartTrigger(job_id, project_id, location = DEFAULT_DATAFLOW_LOCATION, gcp_conn_id = 'google_cloud_default', poll_sleep = 10, impersonation_chain = None, cancel_timeout = 5 * 60)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Dataflow trigger to check if templated job has been finished.
+
+   :param project_id: Required. the Google Cloud project ID in which the job was started.
+   :param job_id: Required. ID of the job.
+   :param location: Optional. the location where job is executed. If set to None then
+       the value of DEFAULT_DATAFLOW_LOCATION will be used
+   :param gcp_conn_id: The connection ID to use connecting to Google Cloud.
+   :param impersonation_chain: Optional. Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param cancel_timeout: Optional. How long (in seconds) operator should wait for the pipeline to be
+       successfully cancelled when task is being killed.
+
+   .. py:method:: serialize()
+
+      Serialize class arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Fetch job status or yield certain Events.
+
+      Main loop of the class in where it is fetching the job status and yields certain Event.
+
+      If the job has status success then it yields TriggerEvent with success status, if job has
+      status failed - with error status. In any other case Trigger will wait for specified
+      amount of time stored in self.poll_sleep variable.
+
+
+
+.. py:class:: DataflowJobStatusTrigger(job_id, expected_statuses, project_id, location = DEFAULT_DATAFLOW_LOCATION, gcp_conn_id = 'google_cloud_default', poll_sleep = 10, impersonation_chain = None)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Trigger that monitors if a Dataflow job has reached any of the expected statuses.
+
+   :param job_id: Required. ID of the job.
+   :param expected_statuses: The expected state(s) of the operation.
+       See: https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.jobs#Job.JobState
+   :param project_id: Required. The Google Cloud project ID in which the job was started.
+   :param location: Optional. The location where the job is executed. If set to None then
+       the value of DEFAULT_DATAFLOW_LOCATION will be used.
+   :param gcp_conn_id: The connection ID to use for connecting to Google Cloud.
+   :param poll_sleep: Time (seconds) to wait between two consecutive calls to check the job.
+   :param impersonation_chain: Optional. Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:method:: serialize()
+
+      Serialize class arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Loop until the job reaches an expected or terminal state.
+
+      Yields a TriggerEvent with success status, if the client returns an expected job status.
+
+      Yields a TriggerEvent with error status, if the client returns an unexpected terminal
+      job status or any exception is raised while looping.
+
+      In any other case the Trigger will wait for a specified amount of time
+      stored in self.poll_sleep variable.
+
+
+   .. py:method:: async_hook()
+
+
+
+.. py:class:: DataflowStartYamlJobTrigger(job_id, project_id, location = DEFAULT_DATAFLOW_LOCATION, gcp_conn_id = 'google_cloud_default', poll_sleep = 10, cancel_timeout = 5 * 60, expected_terminal_state = None, impersonation_chain = None)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Dataflow trigger that checks the state of a Dataflow YAML job.
+
+   :param job_id: Required. ID of the job.
+   :param project_id: Required. The Google Cloud project ID in which the job was started.
+   :param location: The location where job is executed. If set to None then
+       the value of DEFAULT_DATAFLOW_LOCATION will be used.
+   :param gcp_conn_id: The connection ID to use connecting to Google Cloud.
+   :param poll_sleep: Optional. The time in seconds to sleep between polling Google Cloud Platform
+       for the Dataflow job.
+   :param cancel_timeout: Optional. How long (in seconds) operator should wait for the pipeline to be
+       successfully cancelled when task is being killed.
+   :param expected_terminal_state: Optional. The expected terminal state of the Dataflow job at which the
+       operator task is set to succeed. Defaults to 'JOB_STATE_DONE' for the batch jobs and
+       'JOB_STATE_RUNNING' for the streaming jobs.
+   :param impersonation_chain: Optional. Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:method:: serialize()
+
+      Serialize class arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Fetch job and yield events depending on the job's type and state.
+
+      Yield TriggerEvent if the job reaches a terminal state.
+      Otherwise awaits for a specified amount of time stored in self.poll_sleep variable.
+
+
+
+.. py:class:: DataflowJobMetricsTrigger(job_id, project_id, location = DEFAULT_DATAFLOW_LOCATION, gcp_conn_id = 'google_cloud_default', poll_sleep = 10, impersonation_chain = None, fail_on_terminal_state = True)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Trigger that checks for metrics associated with a Dataflow job.
+
+   :param job_id: Required. ID of the job.
+   :param project_id: Required. The Google Cloud project ID in which the job was started.
+   :param location: Optional. The location where the job is executed. If set to None then
+       the value of DEFAULT_DATAFLOW_LOCATION will be used.
+   :param gcp_conn_id: The connection ID to use for connecting to Google Cloud.
+   :param poll_sleep: Time (seconds) to wait between two consecutive calls to check the job.
+   :param impersonation_chain: Optional. Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param fail_on_terminal_state: If set to True the trigger will yield a TriggerEvent with
+       error status if the job reaches a terminal state.
+
+   .. py:method:: serialize()
+
+      Serialize class arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Loop until a terminal job status or any job metrics are returned.
+
+      Yields a TriggerEvent with success status, if the client returns any job metrics
+      and fail_on_terminal_state attribute is False.
+
+      Yields a TriggerEvent with error status, if the client returns a job status with
+      a terminal state value and fail_on_terminal_state attribute is True.
+
+      Yields a TriggerEvent with error status, if any exception is raised while looping.
+
+      In any other case the Trigger will wait for a specified amount of time
+      stored in self.poll_sleep variable.
+
+
+   .. py:method:: get_job_metrics()
+      :async:
+
+      Wait for the Dataflow client response and then return it in a serialized list.
+
+
+   .. py:method:: async_hook()
+
+
+
+.. py:class:: DataflowJobAutoScalingEventTrigger(job_id, project_id, location = DEFAULT_DATAFLOW_LOCATION, gcp_conn_id = 'google_cloud_default', poll_sleep = 10, impersonation_chain = None, fail_on_terminal_state = True)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Trigger that checks for autoscaling events associated with a Dataflow job.
+
+   :param job_id: Required. ID of the job.
+   :param project_id: Required. The Google Cloud project ID in which the job was started.
+   :param location: Optional. The location where the job is executed. If set to None then
+       the value of DEFAULT_DATAFLOW_LOCATION will be used.
+   :param gcp_conn_id: The connection ID to use for connecting to Google Cloud.
+   :param poll_sleep: Time (seconds) to wait between two consecutive calls to check the job.
+   :param impersonation_chain: Optional. Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param fail_on_terminal_state: If set to True the trigger will yield a TriggerEvent with
+       error status if the job reaches a terminal state.
+
+   .. py:method:: serialize()
+
+      Serialize class arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Loop until a terminal job status or any autoscaling events are returned.
+
+      Yields a TriggerEvent with success status, if the client returns any autoscaling events
+      and fail_on_terminal_state attribute is False.
+
+      Yields a TriggerEvent with error status, if the client returns a job status with
+      a terminal state value and fail_on_terminal_state attribute is True.
+
+      Yields a TriggerEvent with error status, if any exception is raised while looping.
+
+      In any other case the Trigger will wait for a specified amount of time
+      stored in self.poll_sleep variable.
+
+
+   .. py:method:: list_job_autoscaling_events()
+      :async:
+
+      Wait for the Dataflow client response and then return it in a serialized list.
+
+
+   .. py:method:: async_hook()
+
+
+
+.. py:class:: DataflowJobMessagesTrigger(job_id, project_id, location = DEFAULT_DATAFLOW_LOCATION, gcp_conn_id = 'google_cloud_default', poll_sleep = 10, impersonation_chain = None, fail_on_terminal_state = True)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Trigger that checks for job messages associated with a Dataflow job.
+
+   :param job_id: Required. ID of the job.
+   :param project_id: Required. The Google Cloud project ID in which the job was started.
+   :param location: Optional. The location where the job is executed. If set to None then
+       the value of DEFAULT_DATAFLOW_LOCATION will be used.
+   :param gcp_conn_id: The connection ID to use for connecting to Google Cloud.
+   :param poll_sleep: Time (seconds) to wait between two consecutive calls to check the job.
+   :param impersonation_chain: Optional. Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param fail_on_terminal_state: If set to True the trigger will yield a TriggerEvent with
+       error status if the job reaches a terminal state.
+
+   .. py:method:: serialize()
+
+      Serialize class arguments and classpath.
+
+
+   .. py:method:: run()
+      :async:
+
+      Loop until a terminal job status or any job messages are returned.
+
+      Yields a TriggerEvent with success status, if the client returns any job messages
+      and fail_on_terminal_state attribute is False.
+
+      Yields a TriggerEvent with error status, if the client returns a job status with
+      a terminal state value and fail_on_terminal_state attribute is True.
+
+      Yields a TriggerEvent with error status, if any exception is raised while looping.
+
+      In any other case the Trigger will wait for a specified amount of time
+      stored in self.poll_sleep variable.
+
+
+   .. py:method:: list_job_messages()
+      :async:
+
+      Wait for the Dataflow client response and then return it in a serialized list.
+
+
+   .. py:method:: async_hook()
+
+
+

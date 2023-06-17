@@ -1,0 +1,164 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: Build docs
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Based on https://github.com/actions/runner-images/issues/2840
+      - name: 🪓 Remove some stuff we don't need
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      - name: 🗂 Checkout
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f  # v2.3.4
+        with:
+          submodules: recursive
+          lfs: true
+      - name: Display disk free
+        run: ./.github/scripts/print_df.sh
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@41b7212b1668f5de9d65e9c82aa777e6bbedb3a8  # v2.1.4
+        with:
+          python-version: '3.7'
+      - name: ❤️  Install Node 16
+        uses: actions/setup-node@v3.3.0  # v3.3.0
+        with:
+          node-version: 16
+      - name: 📚 Install Hugo
+        uses: peaceiris/actions-hugo@v2.4.13  # v2.4.13
+        with:
+          hugo-version: '0.91.2'
+          extended: true
+      - name: 🟢 Install node dependencies
+        run: |
+          ./site.sh install-node-deps
+          ./.github/scripts/print_df.sh
+      - name: 🐍 Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          ./.github/scripts/print_df.sh
+      - name: 🔎 Lint
+        uses: apache/airflow-pre-commit-action@0764670bf370aab253130d534e1eda7ff497dc60  # v2.0.0
+      - name: 🔧 Build site
+        run: |
+          ./site.sh build-site
+          ./.github/scripts/print_df.sh
+      - run: |
+          rm -rf ./docs-archive/*
+          echo "docs-archive directory files are deleted as they are no longer needed after the site is built in the above step"
+          ./.github/scripts/print_df.sh
+      - name: 🐅 Optimize artifacts
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          rm -rf ./dist/docs/*
+          echo "These files have been deleted to optimize the size of the artifacts." > ./dist/docs/index.html
+          echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
+          find ./dist/
+          ./.github/scripts/print_df.sh
+      - uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
+        name: 🚀 Upload website as artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          name: airflow-website
+          path: './dist'
+          if-no-files-found: error
+          retention-days: 14
+      - name: 👷 Copy .asf.yaml to /dist/
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          # The asf.yaml file must be in the branch from which the files are published.
+          # Otherwise, ASF publising tools cannot detect it.
+          cp .asf.yaml ./dist/
+          ./.github/scripts/print_df.sh
+      - name: 🪓 Remove node and node modules
+        run: |
+          rm -rf node_modules
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
+          ./.github/scripts/print_df.sh
+      - name: 🚀 Deploy website on gh-pages branch
+        uses: apache/airflow-JamesIves-github-pages-deploy-action@132898c54c57c7cc6b80eb3a89968de8fc283505  # v3.7.1
+        if: ${{ github.event_name == 'push' }}
+        with:
+          BRANCH: gh-pages  # The branch the action should deploy to.
+          FOLDER: dist  # The folder the action should deploy.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLEAN: true  # Automatically remove deleted files from the deploy branch
+      - name: 🔧 Copy files from site to theme️
+        run: |
+          ./site.sh prepare-theme
+          ./.github/scripts/print_df.sh
+      - name: 🔧 Prepare sphinx_airflow_theme package ️
+        working-directory: sphinx_airflow_theme
+        run: |
+          python3 -m pip install --user --upgrade setuptools wheel
+          python3 setup.py sdist bdist_wheel
+          ../.github/scripts/print_df.sh
+      - name: 🚀 Upload sphinx_airflow_theme package as artifact
+        uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
+        with:
+          name: airflow-sphinx-theme
+          path: './sphinx_airflow_theme/dist'
+          if-no-files-found: error
+          retention-days: 14
+      - name: 🔧 Build theme demo
+        working-directory: sphinx_airflow_theme
+        run: |
+          pip install ./dist/sphinx_airflow_theme-*.whl
+          cd demo
+          ./docs.sh build
+          ../../.github/scripts/print_df.sh
+      - name: 🚀 Upload sphinx_airflow_theme demo as artifact
+        uses: actions/upload-artifact@726a6dcd0199f578459862705eed35cda05af50b  # v2.2.1
+        with:
+          name: airflow-sphinx-theme-demo
+          path: './sphinx_airflow_theme/demo/_build'
+          if-no-files-found: error
+          retention-days: 14
+      - name: 🚀 Create releases on GitHub
+        working-directory: sphinx_airflow_theme
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_COMMIT: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+        if: >
+          github.ref == 'refs/heads/main' && github.repository == 'apache/airflow-site' &&
+          github.event_name == 'push'
+        run: |
+          set -x
+          gh auth status
+          VERSION="$(python setup.py --version 2>/dev/null | tail -1)"
+          TITLE=$(date "+%Y-%m-%d %H:%M:%S")
+          NOTES="Commit: ${GITHUB_COMMIT}
+          Source: ${GITHUB_REF}"
+
+          gh release delete "${VERSION}" -y || true
+          gh release create "${VERSION}" \
+            --title "${TITLE}" \
+            --notes "${NOTES}" \
+            ./dist/*
+          ../.github/scripts/print_df.sh

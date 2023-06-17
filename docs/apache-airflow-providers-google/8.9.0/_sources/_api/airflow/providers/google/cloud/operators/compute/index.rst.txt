@@ -1,0 +1,733 @@
+:py:mod:`airflow.providers.google.cloud.operators.compute`
+==========================================================
+
+.. py:module:: airflow.providers.google.cloud.operators.compute
+
+.. autoapi-nested-parse::
+
+   This module contains Google Compute Engine operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.compute.ComputeEngineBaseOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineInsertInstanceOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineInsertInstanceFromTemplateOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineDeleteInstanceOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineStartInstanceOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineStopInstanceOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineSetMachineTypeOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineInsertInstanceTemplateOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineDeleteInstanceTemplateOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineCopyInstanceTemplateOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineInstanceGroupUpdateManagerTemplateOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineInsertInstanceGroupManagerOperator
+   airflow.providers.google.cloud.operators.compute.ComputeEngineDeleteInstanceGroupManagerOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.compute.SET_MACHINE_TYPE_VALIDATION_SPECIFICATION
+   airflow.providers.google.cloud.operators.compute.GCE_INSTANCE_TEMPLATE_VALIDATION_PATCH_SPECIFICATION
+   airflow.providers.google.cloud.operators.compute.GCE_INSTANCE_FIELDS_TO_SANITIZE
+
+
+.. py:class:: ComputeEngineBaseOperator(*, zone, resource_id, project_id = None, gcp_conn_id = 'google_cloud_default', api_version = 'v1', impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Abstract base operator for Google Compute Engine operators to inherit from.
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineInsertInstanceOperator(*, body, zone, resource_id = None, project_id = None, request_id = None, retry = None, timeout = None, metadata = (), gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Creates an Instance in Google Compute Engine based on specified parameters.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineInsertInstanceOperator`
+
+   :param body: Instance representation as an object. Should at least include 'name', 'machine_type',
+       'disks' and 'network_interfaces' fields but doesn't include 'zone' field, as it will be specified
+       in 'zone' parameter.
+       Full or partial URL and can be represented as examples below:
+       1. "machine_type": "projects/your-project-name/zones/your-zone/machineTypes/your-machine-type"
+       2. "disk_type": "projects/your-project-name/zones/your-zone/diskTypes/your-disk-type"
+       3. "subnetwork": "projects/your-project-name/regions/your-region/subnetworks/your-subnetwork"
+   :param zone: Google Cloud zone where the Instance exists
+   :param project_id: Google Cloud project ID where the Compute Engine Instance exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param resource_id: Name of the Instance. If the name of Instance is not specified in body['name'],
+       the name will be taken from 'resource_id' parameter
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again)
+       It should be in UUID format as defined in RFC 4122
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('body', 'project_id', 'zone', 'request_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: check_body_fields()
+
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineInsertInstanceFromTemplateOperator(*, source_instance_template, body, zone, resource_id = None, project_id = None, request_id = None, retry = None, timeout = None, metadata = (), gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Creates an Instance in Google Compute Engine based on specified parameters from existing Template.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineInsertInstanceFromTemplateOperator`
+
+   :param body: Instance representation as object. For this Operator only 'name' parameter is required for
+       creating new Instance since all other parameters will be passed through the Template.
+   :param source_instance_template: Existing Instance Template that will be used as a base while creating
+       new Instance. When specified, only name of new Instance should be provided as input arguments in
+       'body' parameter when creating new Instance. All other parameters, such as 'machine_type', 'disks'
+       and 'network_interfaces' will be passed to Instance as they are specified in the Instance Template.
+       Full or partial URL and can be represented as examples below:
+       1. "https://www.googleapis.com/compute/v1/projects/your-project-name/global/instanceTemplates/temp"
+       2. "projects/your-project-name/global/instanceTemplates/temp"
+       3. "global/instanceTemplates/temp"
+   :param zone: Google Cloud zone where the instance exists.
+   :param project_id: Google Cloud project ID where the Compute Engine Instance exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param resource_id: Name of the Instance. If the name of Instance is not specified in body['name'],
+       the name will be taken from 'resource_id' parameter
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again)
+       It should be in UUID format as defined in RFC 4122
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('body', 'source_instance_template', 'project_id', 'zone', 'request_id', 'gcp_conn_id',...
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineDeleteInstanceOperator(*, resource_id, zone, request_id = None, project_id = None, retry = None, timeout = None, metadata = (), gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Deletes an Instance in Google Compute Engine.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineDeleteInstanceOperator`
+
+   :param project_id: Google Cloud project ID where the Compute Engine Instance exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param zone: Google Cloud zone where the instance exists.
+   :param resource_id: Name of the Instance.
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again)
+       It should be in UUID format as defined in RFC 4122
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('zone', 'resource_id', 'request_id', 'project_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineStartInstanceOperator(*, zone, resource_id, project_id = None, gcp_conn_id = 'google_cloud_default', api_version = 'v1', impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Starts an instance in Google Compute Engine.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineStartInstanceOperator`
+
+   :param zone: Google Cloud zone where the instance exists.
+   :param resource_id: Name of the Compute Engine instance resource.
+   :param project_id: Optional, Google Cloud Project ID where the Compute
+       Engine Instance exists. If set to None or missing, the default project_id from the Google Cloud
+       connection is used.
+   :param gcp_conn_id: Optional, The connection ID used to connect to Google Cloud.
+       Defaults to 'google_cloud_default'.
+   :param api_version: Optional, API version used (for example v1 - or beta). Defaults
+       to v1.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'zone', 'resource_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineStopInstanceOperator(*, zone, resource_id, project_id = None, gcp_conn_id = 'google_cloud_default', api_version = 'v1', impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Stops an instance in Google Compute Engine.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineStopInstanceOperator`
+
+   :param zone: Google Cloud zone where the instance exists.
+   :param resource_id: Name of the Compute Engine instance resource.
+   :param project_id: Optional, Google Cloud Project ID where the Compute
+       Engine Instance exists. If set to None or missing, the default project_id from the Google Cloud
+       connection is used.
+   :param gcp_conn_id: Optional, The connection ID used to connect to Google Cloud.
+       Defaults to 'google_cloud_default'.
+   :param api_version: Optional, API version used (for example v1 - or beta). Defaults
+       to v1.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'zone', 'resource_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:data:: SET_MACHINE_TYPE_VALIDATION_SPECIFICATION
+
+   
+
+.. py:class:: ComputeEngineSetMachineTypeOperator(*, zone, resource_id, body, project_id = None, gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Changes the machine type for a stopped instance to the machine type specified in
+       the request.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineSetMachineTypeOperator`
+
+   :param zone: Google Cloud zone where the instance exists.
+   :param resource_id: Name of the Compute Engine instance resource.
+   :param body: Body required by the Compute Engine setMachineType API, as described in
+       https://cloud.google.com/compute/docs/reference/rest/v1/instances/setMachineType#request-body
+   :param project_id: Optional, Google Cloud Project ID where the Compute
+       Engine Instance exists. If set to None or missing, the default project_id from the Google Cloud
+       connection is used.
+   :param gcp_conn_id: Optional, The connection ID used to connect to Google Cloud.
+       Defaults to 'google_cloud_default'.
+   :param api_version: Optional, API version used (for example v1 - or beta). Defaults
+       to v1.
+   :param validate_body: Optional, If set to False, body validation is not performed.
+       Defaults to False.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'zone', 'resource_id', 'body', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:data:: GCE_INSTANCE_TEMPLATE_VALIDATION_PATCH_SPECIFICATION
+   :type: list[dict[str, Any]]
+
+   
+
+.. py:data:: GCE_INSTANCE_FIELDS_TO_SANITIZE
+   :value: ['kind', 'id', 'creationTimestamp', 'properties.disks.sha256', 'properties.disks.kind',...
+
+   
+
+.. py:class:: ComputeEngineInsertInstanceTemplateOperator(*, body, project_id = None, resource_id = None, request_id = None, retry = None, timeout = None, metadata = (), gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Creates an Instance Template using specified fields.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineInsertInstanceTemplateOperator`
+
+   :param body: Instance template representation as object.
+   :param project_id: Google Cloud project ID where the Compute Engine Instance exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again)
+       It should be in UUID format as defined in RFC 4122
+   :param resource_id: Name of the Instance Template. If the name of Instance Template is not specified in
+       body['name'], the name will be taken from 'resource_id' parameter
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('body', 'project_id', 'request_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: check_body_fields()
+
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineDeleteInstanceTemplateOperator(*, resource_id, request_id = None, project_id = None, retry = None, timeout = None, metadata = (), gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Deletes an Instance Template in Google Compute Engine.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineDeleteInstanceTemplateOperator`
+
+   :param resource_id: Name of the Instance Template.
+   :param project_id: Google Cloud project ID where the Compute Engine Instance exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again)
+       It should be in UUID format as defined in RFC 4122
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('resource_id', 'request_id', 'project_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineCopyInstanceTemplateOperator(*, resource_id, body_patch, project_id = None, request_id = None, gcp_conn_id = 'google_cloud_default', api_version = 'v1', validate_body = True, impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Copies the instance template, applying specified changes.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineCopyInstanceTemplateOperator`
+
+   :param resource_id: Name of the Instance Template
+   :param body_patch: Patch to the body of instanceTemplates object following rfc7386
+       PATCH semantics. The body_patch content follows
+       https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
+       Name field is required as we need to rename the template,
+       all the other fields are optional. It is important to follow PATCH semantics
+       - arrays are replaced fully, so if you need to update an array you should
+       provide the whole target array as patch element.
+   :param project_id: Optional, Google Cloud Project ID where the Compute
+       Engine Instance exists. If set to None or missing, the default project_id from the Google Cloud
+       connection is used.
+   :param request_id: Optional, unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again).
+       It should be in UUID format as defined in RFC 4122.
+   :param gcp_conn_id: Optional, The connection ID used to connect to Google Cloud.
+       Defaults to 'google_cloud_default'.
+   :param api_version: Optional, API version used (for example v1 - or beta). Defaults
+       to v1.
+   :param validate_body: Optional, If set to False, body validation is not performed.
+       Defaults to False.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'resource_id', 'request_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineInstanceGroupUpdateManagerTemplateOperator(*, resource_id, zone, source_template, destination_template, project_id = None, update_policy = None, request_id = None, gcp_conn_id = 'google_cloud_default', api_version='beta', impersonation_chain = None, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Patches the Instance Group Manager, replacing source template URL with the
+   destination one. API V1 does not have update/patch operations for Instance
+   Group Manager, so you must use beta or newer API version. Beta is the default.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineInstanceGroupUpdateManagerTemplateOperator`
+
+   :param resource_id: Name of the Instance Group Manager
+   :param zone: Google Cloud zone where the Instance Group Manager exists.
+   :param source_template: URL of the template to replace.
+   :param destination_template: URL of the target template.
+   :param project_id: Optional, Google Cloud Project ID where the Compute
+       Engine Instance exists. If set to None or missing, the default project_id from the Google Cloud
+       connection is used.
+   :param request_id: Optional, unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new instance template again).
+       It should be in UUID format as defined in RFC 4122.
+   :param gcp_conn_id: Optional, The connection ID used to connect to Google Cloud.
+       Defaults to 'google_cloud_default'.
+   :param api_version: Optional, API version used (for example v1 - or beta). Defaults
+       to v1.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'resource_id', 'zone', 'request_id', 'source_template', 'destination_template',...
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineInsertInstanceGroupManagerOperator(*, body, zone, project_id = None, resource_id = None, request_id = None, gcp_conn_id = 'google_cloud_default', api_version='v1', retry = None, timeout = None, metadata = (), impersonation_chain = None, validate_body = True, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Creates an Instance Group Managers using the body specified.
+   After the group is created, instances in the group are created using the specified Instance Template.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineInsertInstanceGroupManagerOperator`
+
+   :param body: Instance Group Managers representation as object.
+   :param project_id: Google Cloud project ID where the Compute Engine Instance Group Managers exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new Instance Group Managers again)
+       It should be in UUID format as defined in RFC 4122
+   :param resource_id: Name of the Instance Group Managers. If the name of Instance Group Managers is
+       not specified in body['name'], the name will be taken from 'resource_id' parameter.
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'body', 'zone', 'request_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: check_body_fields()
+
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ComputeEngineDeleteInstanceGroupManagerOperator(*, resource_id, zone, project_id = None, request_id = None, gcp_conn_id = 'google_cloud_default', api_version='v1', retry = None, timeout = None, metadata = (), impersonation_chain = None, validate_body = True, **kwargs)
+
+   Bases: :py:obj:`ComputeEngineBaseOperator`
+
+   Deletes an Instance Group Managers.
+   Deleting an Instance Group Manager is permanent and cannot be undone.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ComputeEngineDeleteInstanceGroupManagerOperator`
+
+   :param resource_id: Name of the Instance Group Managers.
+   :param project_id: Google Cloud project ID where the Compute Engine Instance Group Managers exists.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param request_id: Unique request_id that you might add to achieve
+       full idempotence (for example when client call times out repeating the request
+       with the same request id will not create a new Instance Group Managers again)
+       It should be in UUID format as defined in RFC 4122
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud. Defaults to 'google_cloud_default'.
+   :param api_version: API version used (for example v1 - or beta). Defaults to v1.
+   :param impersonation_chain: Service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param retry: A retry object used  to retry requests. If `None` is specified, requests
+       will not be retried.
+   :param timeout: The amount of time, in seconds, to wait for the request to complete.
+       Note that if `retry` is specified, the timeout applies to each individual attempt.
+   :param metadata: Additional metadata that is provided to the method.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'resource_id', 'zone', 'request_id', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
