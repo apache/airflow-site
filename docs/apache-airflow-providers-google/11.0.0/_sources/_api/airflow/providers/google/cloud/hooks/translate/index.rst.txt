@@ -1,0 +1,304 @@
+:py:mod:`airflow.providers.google.cloud.hooks.translate`
+========================================================
+
+.. py:module:: airflow.providers.google.cloud.hooks.translate
+
+.. autoapi-nested-parse::
+
+   This module contains a Google Cloud Translate Hook.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.translate.CloudTranslateHook
+   airflow.providers.google.cloud.hooks.translate.TranslateHook
+
+
+
+
+.. py:exception:: WaitOperationNotDoneYetError
+
+
+   Bases: :py:obj:`Exception`
+
+   Wait operation not done yet error.
+
+
+.. py:class:: CloudTranslateHook(gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`
+
+   Hook for Google Cloud translate APIs.
+
+   All the methods in the hook where project_id is used must be called with
+   keyword arguments rather than positional.
+
+   .. py:method:: get_conn()
+
+      Retrieve connection to Cloud Translate.
+
+      :return: Google Cloud Translate client object.
+
+
+   .. py:method:: translate(values, target_language, format_ = None, source_language = None, model = None)
+
+      Translate a string or list of strings.
+
+      See https://cloud.google.com/translate/docs/translating-text
+
+      :param values: String or list of strings to translate.
+      :param target_language: The language to translate results into. This
+                              is required by the API and defaults to
+                              the target language of the current instance.
+      :param format_: (Optional) One of ``text`` or ``html``, to specify
+                      if the input text is plain text or HTML.
+      :param source_language: (Optional) The language of the text to
+                              be translated.
+      :param model: (Optional) The model used to translate the text, such
+                    as ``'base'`` or ``'NMT'``.
+      :returns: A list of dictionaries for each queried value. Each
+                dictionary typically contains three keys (though not
+                all will be present in all cases)
+
+                * ``detectedSourceLanguage``: The detected language (as an
+                  ISO 639-1 language code) of the text.
+
+                * ``translatedText``: The translation of the text into the
+                  target language.
+
+                * ``input``: The corresponding input value.
+
+                * ``model``: The model used to translate the text.
+
+                If only a single value is passed, then only a single
+                dictionary will be returned.
+      :raises: :class:`~exceptions.ValueError` if the number of
+               values and translations differ.
+
+
+
+.. py:class:: TranslateHook(gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`
+
+   Hook for Google Cloud translation (Advanced) using client version V3.
+
+   See related docs https://cloud.google.com/translate/docs/editions#advanced.
+
+   .. py:method:: get_client()
+
+      Retrieve TranslationService client.
+
+      :return: Google Cloud Translation Service client object.
+
+
+   .. py:method:: wait_for_operation_done(*, operation, timeout = None, initial = 3, multiplier = 2, maximum = 3600)
+      :staticmethod:
+
+      Wait for long-running operation to be done.
+
+      Calls operation.done() until success or timeout exhaustion, following the back-off retry strategy.
+      See `google.api_core.retry.Retry`.
+      It's intended use on `Operation` instances that have empty result
+      (:class `google.protobuf.empty_pb2.Empty`) by design.
+      Thus calling operation.result() for such operation triggers the exception
+      ``GoogleAPICallError("Unexpected state: Long-running operation had neither response nor error set.")``
+      even though operation itself is totally fine.
+
+
+   .. py:method:: wait_for_operation_result(operation, timeout = None)
+      :staticmethod:
+
+      Wait for long-lasting operation to complete.
+
+
+   .. py:method:: extract_object_id(obj)
+      :staticmethod:
+
+      Return unique id of the object.
+
+
+   .. py:method:: translate_text(*, project_id = PROVIDE_PROJECT_ID, contents, target_language_code, source_language_code = None, mime_type = None, location = None, model = None, transliteration_config = None, glossary_config = None, labels = None, timeout = DEFAULT, metadata = (), retry = DEFAULT)
+
+      Translate text content provided.
+
+      :param project_id: Required. The ID of the Google Cloud project that the service belongs to.
+      :param contents: Required. The content of the input in string
+          format. Max length 1024 items with 30_000 codepoints recommended.
+      :param  mime_type: Optional. The format of the source text, If left
+          blank, the MIME type defaults to "text/html".
+      :param source_language_code: Optional. The ISO-639 language code of the
+          input text if known. If the source language
+          isn't specified, the API attempts to identify
+          the source language automatically and returns
+          the source language within the response.
+      :param target_language_code: Required. The ISO-639 language code to use
+          for translation of the input text
+      :param location: Optional. Project or location to make a call. Must refer to
+          a caller's project.
+          If not specified, 'global' is used.
+          Non-global location is required for requests using AutoML
+          models or custom glossaries.
+          Models and glossaries must be within the same region (have
+          the same location-id).
+      :param model: Optional. The ``model`` type requested for this translation.
+          If not provided, the default Google model (NMT) will be used.
+          The format depends on model type:
+
+          - AutoML Translation models:
+            ``projects/{project-number-or-id}/locations/{location-id}/models/{model-id}``
+          - General (built-in) models:
+            ``projects/{project-number-or-id}/locations/{location-id}/models/general/nmt``
+          - Translation LLM models:
+            ``projects/{project-number-or-id}/locations/{location-id}/models/general/translation-llm``
+
+          For global (no region) requests, use ``location-id`` ``global``.
+          For example, ``projects/{project-number-or-id}/locations/global/models/general/nmt``.
+      :param glossary_config: Optional. Glossary to be applied. The glossary must be
+          within the same region (have the same location-id) as the
+          model.
+      :param transliteration_config: Optional. Transliteration to be applied.
+      :param labels: Optional. The labels with user-defined
+          metadata for the request.
+          See https://cloud.google.com/translate/docs/advanced/labels for more information.
+      :param retry: Designation of what errors, if any, should be retried.
+      :param timeout: The timeout for this request.
+      :param metadata: Strings which should be sent along with the request as metadata.
+
+      :return: Translate text result from the API response.
+
+
+   .. py:method:: batch_translate_text(*, project_id = PROVIDE_PROJECT_ID, location, source_language_code, target_language_codes, input_configs, output_config, models = None, glossaries = None, labels = None, timeout = DEFAULT, metadata = (), retry = DEFAULT)
+
+      Translate large volumes of text data.
+
+      :param project_id: Required. The ID of the Google Cloud project that the service belongs to.
+      :param location: Optional. Project or location to make a call. Must refer to
+          a caller's project. Must be non-global.
+      :param source_language_code: Required. Source language code.
+      :param target_language_codes: Required. Specify up to 10 language codes here.
+      :param models: Optional. The models to use for translation. Map's key is
+          target language code. Map's value is model name. Value can
+          be a built-in general model, or an AutoML Translation model.
+          The value format depends on model type:
+
+          - AutoML Translation models:
+            ``projects/{project-number-or-id}/locations/{location-id}/models/{model-id}``
+          - General (built-in) models:
+            ``projects/{project-number-or-id}/locations/{location-id}/models/general/nmt``
+
+          If the map is empty or a specific model is not requested for
+          a language pair, then the default Google model (NMT) is used.
+      :param input_configs: Required. Input configurations.
+          The total number of files matched should be <= 100. The total content size should be <= 100M
+          Unicode codepoints. The files must use UTF-8 encoding.
+      :param output_config: Required. Output configuration.
+      :param glossaries: Optional. Glossaries to be applied for
+          translation. It's keyed by target language code.
+      :param labels: Optional. The labels with user-defined metadata for the request.
+          See https://cloud.google.com/translate/docs/advanced/labels for more information.
+      :param retry: Designation of what errors, if any, should be retried.
+      :param timeout: The timeout for this request.
+      :param metadata: Strings which should be sent along with the request as metadata.
+
+      :return: Operation object with the batch text translate results,
+          that are returned by batches as they are ready.
+
+
+   .. py:method:: create_dataset(*, project_id = PROVIDE_PROJECT_ID, location, dataset, timeout = DEFAULT, metadata = (), retry = DEFAULT)
+
+      Create the translation dataset.
+
+      :param dataset: The dataset to create. If a dict is provided, it must correspond to
+       the automl_translation.Dataset type.
+      :param project_id: ID of the Google Cloud project where dataset is located. If not provided
+          default project_id is used.
+      :param location: The location of the project.
+      :param retry: A retry object used to retry requests. If `None` is specified, requests will not be
+          retried.
+      :param timeout: The amount of time, in seconds, to wait for the request to complete. Note that if
+          `retry` is specified, the timeout applies to each individual attempt.
+      :param metadata: Additional metadata that is provided to the method.
+
+      :return: `Operation` object for the dataset to be created.
+
+
+   .. py:method:: get_dataset(dataset_id, project_id, location, retry = DEFAULT, timeout = DEFAULT, metadata = ())
+
+      Retrieve the dataset for the given dataset_id.
+
+      :param dataset_id: ID of translation dataset to be retrieved.
+      :param project_id: ID of the Google Cloud project where dataset is located. If not provided
+          default project_id is used.
+      :param location: The location of the project.
+      :param retry: A retry object used to retry requests. If `None` is specified, requests will not be
+          retried.
+      :param timeout: The amount of time, in seconds, to wait for the request to complete. Note that if
+          `retry` is specified, the timeout applies to each individual attempt.
+      :param metadata: Additional metadata that is provided to the method.
+
+      :return: `automl_translation.Dataset` instance.
+
+
+   .. py:method:: import_dataset_data(dataset_id, location, input_config, project_id = PROVIDE_PROJECT_ID, retry = DEFAULT, timeout = None, metadata = ())
+
+      Import data into the translation dataset.
+
+      :param dataset_id: ID of the translation dataset.
+      :param input_config: The desired input location and its domain specific semantics, if any.
+          If a dict is provided, it must be of the same form as the protobuf message InputConfig.
+      :param project_id: ID of the Google Cloud project where dataset is located if None then
+          default project_id is used.
+      :param location: The location of the project.
+      :param retry: A retry object used to retry requests. If `None` is specified, requests will not be
+          retried.
+      :param timeout: The amount of time, in seconds, to wait for the request to complete. Note that if
+          `retry` is specified, the timeout applies to each individual attempt.
+      :param metadata: Additional metadata that is provided to the method.
+
+      :return: `Operation` object for the import data.
+
+
+   .. py:method:: list_datasets(project_id, location, retry = DEFAULT, timeout = DEFAULT, metadata = ())
+
+      List translation datasets in a project.
+
+      :param project_id: ID of the Google Cloud project where dataset is located. If not provided
+          default project_id is used.
+      :param location: The location of the project.
+      :param retry: A retry object used to retry requests. If `None` is specified, requests will not be
+          retried.
+      :param timeout: The amount of time, in seconds, to wait for the request to complete. Note that if
+          `retry` is specified, the timeout applies to each individual attempt.
+      :param metadata: Additional metadata that is provided to the method.
+
+      :return: ``pagers.ListDatasetsPager`` instance, iterable object to retrieve the datasets list.
+
+
+   .. py:method:: delete_dataset(dataset_id, project_id, location, retry = DEFAULT, timeout = None, metadata = ())
+
+      Delete the translation dataset and all of its contents.
+
+      :param dataset_id: ID of dataset to be deleted.
+      :param project_id: ID of the Google Cloud project where dataset is located. If not provided
+          default project_id is used.
+      :param location: The location of the project.
+      :param retry: A retry object used to retry requests. If `None` is specified, requests will not be
+          retried.
+      :param timeout: The amount of time, in seconds, to wait for the request to complete. Note that if
+          `retry` is specified, the timeout applies to each individual attempt.
+      :param metadata: Additional metadata that is provided to the method.
+
+      :return: `Operation` object with dataset deletion results, when finished.
+
+
+

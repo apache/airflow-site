@@ -1,0 +1,148 @@
+:py:mod:`airflow.providers.microsoft.azure.hooks.asb`
+=====================================================
+
+.. py:module:: airflow.providers.microsoft.azure.hooks.asb
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.hooks.asb.BaseAzureServiceBusHook
+   airflow.providers.microsoft.azure.hooks.asb.AdminClientHook
+   airflow.providers.microsoft.azure.hooks.asb.MessageHook
+
+
+
+
+.. py:class:: BaseAzureServiceBusHook(azure_service_bus_conn_id = default_conn_name)
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+   BaseAzureServiceBusHook class to create session and create connection using connection string
+
+   :param azure_service_bus_conn_id: Reference to the
+       :ref:`Azure Service Bus connection<howto/connection:azure_service_bus>`.
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = azure_service_bus_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = azure_service_bus_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = azure_service_bus
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = Azure Service Bus
+
+      
+
+   .. py:method:: get_ui_field_behaviour()
+      :staticmethod:
+
+      Returns custom field behaviour
+
+
+   .. py:method:: get_conn(self)
+      :abstractmethod:
+
+      Returns connection for the hook.
+
+
+
+.. py:class:: AdminClientHook(azure_service_bus_conn_id = default_conn_name)
+
+   Bases: :py:obj:`BaseAzureServiceBusHook`
+
+   Interacts with ServiceBusAdministrationClient client
+   to create, update, list, and delete resources of a
+   Service Bus namespace.  This hook uses the same Azure Service Bus client connection inherited
+   from the base class
+
+   .. py:method:: get_conn(self)
+
+      Create and returns ServiceBusAdministrationClient by using the connection
+      string in connection details
+
+
+   .. py:method:: create_queue(self, queue_name, max_delivery_count = 10, dead_lettering_on_message_expiration = True, enable_batched_operations = True)
+
+      Create Queue by connecting to service Bus Admin client return the QueueProperties
+
+      :param queue_name: The name of the queue or a QueueProperties with name.
+      :param max_delivery_count: The maximum delivery count. A message is automatically
+          dead lettered after this number of deliveries. Default value is 10..
+      :param dead_lettering_on_message_expiration: A value that indicates whether this subscription has
+          dead letter support when a message expires.
+      :param enable_batched_operations: Value that indicates whether server-side batched
+          operations are enabled.
+
+
+   .. py:method:: delete_queue(self, queue_name)
+
+      Delete the queue by queue_name in service bus namespace
+
+      :param queue_name: The name of the queue or a QueueProperties with name.
+
+
+   .. py:method:: delete_subscription(self, subscription_name, topic_name)
+
+      Delete a topic subscription entities under a ServiceBus Namespace
+
+      :param subscription_name: The subscription name that will own the rule in topic
+      :param topic_name: The topic that will own the subscription rule.
+
+
+
+.. py:class:: MessageHook(azure_service_bus_conn_id = default_conn_name)
+
+   Bases: :py:obj:`BaseAzureServiceBusHook`
+
+   Interacts with ServiceBusClient and acts as a high level interface
+   for getting ServiceBusSender and ServiceBusReceiver.
+
+   .. py:method:: get_conn(self)
+
+      Create and returns ServiceBusClient by using the connection string in connection details
+
+
+   .. py:method:: send_message(self, queue_name, messages, batch_message_flag = False)
+
+      By using ServiceBusClient Send message(s) to a Service Bus Queue. By using
+      batch_message_flag it enables and send message as batch message
+
+      :param queue_name: The name of the queue or a QueueProperties with name.
+      :param messages: Message which needs to be sent to the queue. It can be string or list of string.
+      :param batch_message_flag: bool flag, can be set to True if message needs to be
+          sent as batch message.
+
+
+   .. py:method:: send_list_messages(sender, messages)
+      :staticmethod:
+
+
+   .. py:method:: send_batch_message(sender, messages)
+      :staticmethod:
+
+
+   .. py:method:: receive_message(self, queue_name, max_message_count = 1, max_wait_time = None)
+
+      Receive a batch of messages at once in a specified Queue name
+
+      :param queue_name: The name of the queue name or a QueueProperties with name.
+      :param max_message_count: Maximum number of messages in the batch.
+      :param max_wait_time: Maximum time to wait in seconds for the first message to arrive.
+
+
+
