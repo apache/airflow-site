@@ -1,0 +1,279 @@
+:py:mod:`airflow.providers.amazon.aws.operators.emr`
+====================================================
+
+.. py:module:: airflow.providers.amazon.aws.operators.emr
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator
+   airflow.providers.amazon.aws.operators.emr.EmrContainerOperator
+   airflow.providers.amazon.aws.operators.emr.EmrClusterLink
+   airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator
+   airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator
+   airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator
+
+
+
+
+.. py:class:: EmrAddStepsOperator(*, job_flow_id: Optional[str] = None, job_flow_name: Optional[str] = None, cluster_states: Optional[List[str]] = None, aws_conn_id: str = 'aws_default', steps: Optional[Union[List[dict], str]] = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   An operator that adds steps to an existing EMR job_flow.
+
+   :param job_flow_id: id of the JobFlow to add steps to. (templated)
+   :type job_flow_id: Optional[str]
+   :param job_flow_name: name of the JobFlow to add steps to. Use as an alternative to passing
+       job_flow_id. will search for id of JobFlow with matching name in one of the states in
+       param cluster_states. Exactly one cluster like this should exist or will fail. (templated)
+   :type job_flow_name: Optional[str]
+   :param cluster_states: Acceptable cluster states when searching for JobFlow id by job_flow_name.
+       (templated)
+   :type cluster_states: list
+   :param aws_conn_id: aws connection to uses
+   :type aws_conn_id: str
+   :param steps: boto3 style steps or reference to a steps file (must be '.json') to
+       be added to the jobflow. (templated)
+   :type steps: list|str
+   :param do_xcom_push: if True, job_flow_id is pushed to XCom with key job_flow_id.
+   :type do_xcom_push: bool
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['job_flow_id', 'job_flow_name', 'cluster_states', 'steps']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = ['.json']
+
+      
+
+   .. py:attribute:: template_fields_renderers
+      
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #f9c915
+
+      
+
+   .. py:method:: execute(self, context: airflow.utils.context.Context) -> List[str]
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: EmrContainerOperator(*, name: str, virtual_cluster_id: str, execution_role_arn: str, release_label: str, job_driver: dict, configuration_overrides: Optional[dict] = None, client_request_token: Optional[str] = None, aws_conn_id: str = 'aws_default', poll_interval: int = 30, max_tries: Optional[int] = None, **kwargs: Any)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   An operator that submits jobs to EMR on EKS virtual clusters.
+
+   :param name: The name of the job run.
+   :type name: str
+   :param virtual_cluster_id: The EMR on EKS virtual cluster ID
+   :type virtual_cluster_id: str
+   :param execution_role_arn: The IAM role ARN associated with the job run.
+   :type execution_role_arn: str
+   :param release_label: The Amazon EMR release version to use for the job run.
+   :type release_label: str
+   :param job_driver: Job configuration details, e.g. the Spark job parameters.
+   :type job_driver: dict
+   :param configuration_overrides: The configuration overrides for the job run,
+       specifically either application configuration or monitoring configuration.
+   :type configuration_overrides: dict
+   :param client_request_token: The client idempotency token of the job run request.
+       Use this if you want to specify a unique ID to prevent two jobs from getting started.
+       If no token is provided, a UUIDv4 token will be generated for you.
+   :type client_request_token: str
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+   :type aws_conn_id: str
+   :param poll_interval: Time (in seconds) to wait between two consecutive calls to check query status on EMR
+   :type poll_interval: int
+   :param max_tries: Maximum number of times to wait for the job run to finish.
+       Defaults to None, which will poll until the job is *not* in a pending, submitted, or running state.
+   :type max_tries: int
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['name', 'virtual_cluster_id', 'execution_role_arn', 'release_label', 'job_driver']
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #f9c915
+
+      
+
+   .. py:method:: hook(self) -> airflow.providers.amazon.aws.hooks.emr.EmrContainerHook
+
+      Create and return an EmrContainerHook.
+
+
+   .. py:method:: execute(self, context: airflow.utils.context.Context) -> Optional[str]
+
+      Run job on EMR Containers
+
+
+   .. py:method:: on_kill(self) -> None
+
+      Cancel the submitted job run
+
+
+
+.. py:class:: EmrClusterLink
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`
+
+   Operator link for EmrCreateJobFlowOperator. It allows users to access the EMR Cluster
+
+   .. py:attribute:: name
+      :annotation: = EMR Cluster
+
+      
+
+   .. py:method:: get_link(self, operator: airflow.models.BaseOperator, dttm: datetime.datetime) -> str
+
+      Get link to EMR cluster.
+
+      :param operator: operator
+      :param dttm: datetime
+      :return: url link
+
+
+
+.. py:class:: EmrCreateJobFlowOperator(*, aws_conn_id: str = 'aws_default', emr_conn_id: str = 'emr_default', job_flow_overrides: Optional[Union[str, Dict[str, Any]]] = None, region_name: Optional[str] = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Creates an EMR JobFlow, reading the config from the EMR connection.
+   A dictionary of JobFlow overrides can be passed that override
+   the config from the connection.
+
+   :param aws_conn_id: aws connection to uses
+   :type aws_conn_id: str
+   :param emr_conn_id: emr connection to use
+   :type emr_conn_id: str
+   :param job_flow_overrides: boto3 style arguments or reference to an arguments file
+       (must be '.json') to override emr_connection extra. (templated)
+   :type job_flow_overrides: dict|str
+   :param region_name: Region named passed to EmrHook
+   :type region_name: Optional[str]
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['job_flow_overrides']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = ['.json']
+
+      
+
+   .. py:attribute:: template_fields_renderers
+      
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #f9c915
+
+      
+
+   .. py:attribute:: operator_extra_links
+      
+
+      
+
+   .. py:method:: execute(self, context: airflow.utils.context.Context) -> str
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: EmrModifyClusterOperator(*, cluster_id: str, step_concurrency_level: int, aws_conn_id: str = 'aws_default', **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   An operator that modifies an existing EMR cluster.
+   :param cluster_id: cluster identifier
+   :type cluster_id: str
+   :param step_concurrency_level: Concurrency of the cluster
+   :type step_concurrency_level: int
+   :param aws_conn_id: aws connection to uses
+   :type aws_conn_id: str
+   :param do_xcom_push: if True, cluster_id is pushed to XCom with key cluster_id.
+   :type do_xcom_push: bool
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['cluster_id', 'step_concurrency_level']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = []
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #f9c915
+
+      
+
+   .. py:method:: execute(self, context: airflow.utils.context.Context) -> int
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: EmrTerminateJobFlowOperator(*, job_flow_id: str, aws_conn_id: str = 'aws_default', **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Operator to terminate EMR JobFlows.
+
+   :param job_flow_id: id of the JobFlow to terminate. (templated)
+   :type job_flow_id: str
+   :param aws_conn_id: aws connection to uses
+   :type aws_conn_id: str
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['job_flow_id']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = []
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #f9c915
+
+      
+
+   .. py:method:: execute(self, context: airflow.utils.context.Context) -> None
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

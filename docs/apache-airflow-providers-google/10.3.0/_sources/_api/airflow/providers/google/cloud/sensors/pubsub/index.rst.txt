@@ -1,0 +1,109 @@
+:py:mod:`airflow.providers.google.cloud.sensors.pubsub`
+=======================================================
+
+.. py:module:: airflow.providers.google.cloud.sensors.pubsub
+
+.. autoapi-nested-parse::
+
+   This module contains a Google PubSub sensor.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.sensors.pubsub.PubSubPullSensor
+
+
+
+
+.. py:class:: PubSubPullSensor(*, project_id, subscription, max_messages = 5, ack_messages = False, gcp_conn_id = 'google_cloud_default', messages_callback = None, impersonation_chain = None, poke_interval = 10.0, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.sensors.base.BaseSensorOperator`
+
+   Pulls messages from a PubSub subscription and passes them through XCom.
+   Always waits for at least one message to be returned from the subscription.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:PubSubPullSensor`
+
+   .. seealso::
+       If you don't want to wait for at least one message to come, use Operator instead:
+       :class:`~airflow.providers.google.cloud.operators.pubsub.PubSubPullOperator`
+
+   This sensor operator will pull up to ``max_messages`` messages from the
+   specified PubSub subscription. When the subscription returns messages,
+   the poke method's criteria will be fulfilled and the messages will be
+   returned from the operator and passed through XCom for downstream tasks.
+
+   If ``ack_messages`` is set to True, messages will be immediately
+   acknowledged before being returned, otherwise, downstream tasks will be
+   responsible for acknowledging them.
+
+   If you want a non-blocking task that does not to wait for messages, please use
+   :class:`~airflow.providers.google.cloud.operators.pubsub.PubSubPullOperator`
+   instead.
+
+   ``project_id`` and ``subscription`` are templated so you can use
+   variables in them.
+
+   :param project_id: the Google Cloud project ID for the subscription (templated)
+   :param subscription: the Pub/Sub subscription name. Do not include the
+       full subscription path.
+   :param max_messages: The maximum number of messages to retrieve per
+       PubSub pull request
+   :param ack_messages: If True, each message will be acknowledged
+       immediately rather than by any downstream tasks
+   :param gcp_conn_id: The connection ID to use connecting to
+       Google Cloud.
+   :param messages_callback: (Optional) Callback to process received messages.
+       It's return value will be saved to XCom.
+       If you are pulling large messages, you probably want to provide a custom callback.
+       If not provided, the default implementation will convert `ReceivedMessage` objects
+       into JSON-serializable dicts using `google.protobuf.json_format.MessageToDict` function.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param deferrable: Run sensor in deferrable mode
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('project_id', 'subscription', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#ff7f50'
+
+      
+
+   .. py:method:: poke(context)
+
+      Function defined by the sensors while deriving this class should override.
+
+
+   .. py:method:: execute(context)
+
+      Airflow runs this method on the worker and defers using the triggers
+      if deferrable is set to True.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Callback for when the trigger fires; returns immediately.
+      Relies on trigger to throw a success event.
+
+
+
