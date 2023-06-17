@@ -1,0 +1,351 @@
+
+
+:mod:`airflow.operators.python_operator`
+========================================
+
+.. py:module:: airflow.operators.python_operator
+
+
+
+
+
+
+
+Module Contents
+---------------
+
+
+
+
+
+
+.. py:class:: PythonOperator(python_callable, op_args=None, op_kwargs=None, provide_context=False, templates_dict=None, templates_exts=None, *args, **kwargs)
+
+   Bases::class:`airflow.models.BaseOperator`
+
+   
+
+   Executes a Python callable
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:PythonOperator`
+
+   :param python_callable: A reference to an object that is callable
+   :type python_callable: python callable
+   :param op_kwargs: a dictionary of keyword arguments that will get unpacked
+       in your function
+   :type op_kwargs: dict (templated)
+   :param op_args: a list of positional arguments that will get unpacked when
+       calling your callable
+   :type op_args: list (templated)
+   :param provide_context: if set to true, Airflow will pass a set of
+       keyword arguments that can be used in your function. This set of
+       kwargs correspond exactly to what you can use in your jinja
+       templates. For this to work, you need to define `**kwargs` in your
+       function header.
+   :type provide_context: bool
+   :param templates_dict: a dictionary where the values are templates that
+       will get templated by the Airflow engine sometime between
+       ``__init__`` and ``execute`` takes place and are made available
+       in your callable's context after the template has been applied. (templated)
+   :type templates_dict: dict[str]
+   :param templates_exts: a list of file extensions to resolve while
+       processing templated fields, for examples ``['.sql', '.hql']``
+   :type templates_exts: list[str]
+
+
+   
+
+   
+
+   .. attribute:: template_fields
+      :annotation: = ['templates_dict', 'op_args', 'op_kwargs'] 
+
+      
+
+
+
+   
+
+   
+
+   .. attribute:: ui_color
+      :annotation: = #ffefeb 
+
+      
+
+
+
+   
+
+   
+
+   .. attribute:: shallow_copy_attrs
+      :annotation: = ['python_callable', 'op_kwargs'] 
+
+      
+
+
+
+   
+
+   
+
+   
+
+   .. method:: execute(self, context)
+
+      
+
+
+
+   
+
+   .. method:: execute_callable(self)
+
+      
+
+
+
+
+
+
+
+
+
+
+
+.. py:class:: BranchPythonOperator
+
+   Bases::class:`airflow.operators.python_operator.PythonOperator`, :class:`airflow.models.skipmixin.SkipMixin`
+
+   
+
+   Allows a workflow to "branch" or follow a path following the execution
+   of this task.
+
+   It derives the PythonOperator and expects a Python function that returns
+   a single task_id or list of task_ids to follow. The task_id(s) returned
+   should point to a task directly downstream from {self}. All other "branches"
+   or directly downstream tasks are marked with a state of ``skipped`` so that
+   these paths can't move forward. The ``skipped`` states are propagated
+   downstream to allow for the DAG state to fill up and the DAG run's state
+   to be inferred.
+
+   Note that using tasks with ``depends_on_past=True`` downstream from
+   ``BranchPythonOperator`` is logically unsound as ``skipped`` status
+   will invariably lead to block tasks that depend on their past successes.
+   ``skipped`` states propagates where all directly upstream tasks are
+   ``skipped``.
+
+
+   
+
+   
+
+   .. method:: execute(self, context)
+
+      
+
+
+
+
+
+
+
+
+
+
+
+.. py:class:: ShortCircuitOperator
+
+   Bases::class:`airflow.operators.python_operator.PythonOperator`, :class:`airflow.models.skipmixin.SkipMixin`
+
+   
+
+   Allows a workflow to continue only if a condition is met. Otherwise, the
+   workflow "short-circuits" and downstream tasks are skipped.
+
+   The ShortCircuitOperator is derived from the PythonOperator. It evaluates a
+   condition and short-circuits the workflow if the condition is False. Any
+   downstream tasks are marked with a state of "skipped". If the condition is
+   True, downstream tasks proceed as normal.
+
+   The condition is determined by the result of `python_callable`.
+
+
+   
+
+   
+
+   .. method:: execute(self, context)
+
+      
+
+
+
+
+
+
+
+
+
+
+
+.. py:class:: PythonVirtualenvOperator(python_callable, requirements=None, python_version=None, use_dill=False, system_site_packages=True, op_args=None, op_kwargs=None, provide_context=False, string_args=None, templates_dict=None, templates_exts=None, *args, **kwargs)
+
+   Bases::class:`airflow.operators.python_operator.PythonOperator`
+
+   
+
+   Allows one to run a function in a virtualenv that is created and destroyed
+   automatically (with certain caveats).
+
+   The function must be defined using def, and not be
+   part of a class. All imports must happen inside the function
+   and no variables outside of the scope may be referenced. A global scope
+   variable named virtualenv_string_args will be available (populated by
+   string_args). In addition, one can pass stuff through op_args and op_kwargs, and one
+   can use a return value.
+   Note that if your virtualenv runs in a different Python major version than Airflow,
+   you cannot use return values, op_args, or op_kwargs. You can use string_args though.
+
+   :param python_callable: A python function with no references to outside variables,
+       defined with def, which will be run in a virtualenv
+   :type python_callable: function
+   :param requirements: A list of requirements as specified in a pip install command
+   :type requirements: list[str]
+   :param python_version: The Python version to run the virtualenv with. Note that
+       both 2 and 2.7 are acceptable forms.
+   :type python_version: str
+   :param use_dill: Whether to use dill to serialize
+       the args and result (pickle is default). This allow more complex types
+       but requires you to include dill in your requirements.
+   :type use_dill: bool
+   :param system_site_packages: Whether to include
+       system_site_packages in your virtualenv.
+       See virtualenv documentation for more information.
+   :type system_site_packages: bool
+   :param op_args: A list of positional arguments to pass to python_callable.
+   :type op_kwargs: list
+   :param op_kwargs: A dict of keyword arguments to pass to python_callable.
+   :type op_kwargs: dict
+   :param provide_context: if set to true, Airflow will pass a set of
+       keyword arguments that can be used in your function. This set of
+       kwargs correspond exactly to what you can use in your jinja
+       templates. For this to work, you need to define `**kwargs` in your
+       function header.
+   :type provide_context: bool
+   :param string_args: Strings that are present in the global var virtualenv_string_args,
+       available to python_callable at runtime as a list[str]. Note that args are split
+       by newline.
+   :type string_args: list[str]
+   :param templates_dict: a dictionary where the values are templates that
+       will get templated by the Airflow engine sometime between
+       ``__init__`` and ``execute`` takes place and are made available
+       in your callable's context after the template has been applied
+   :type templates_dict: dict of str
+   :param templates_exts: a list of file extensions to resolve while
+       processing templated fields, for examples ``['.sql', '.hql']``
+   :type templates_exts: list[str]
+
+
+   
+
+   
+
+   
+
+   .. method:: execute_callable(self)
+
+      
+
+
+
+   
+
+   .. method:: _pass_op_args(self)
+
+      
+
+
+
+   
+
+   .. method:: _execute_in_subprocess(self, cmd)
+
+      
+
+
+
+   
+
+   .. method:: _write_string_args(self, filename)
+
+      
+
+
+
+   
+
+   .. method:: _write_args(self, input_filename)
+
+      
+
+
+
+   
+
+   .. method:: _read_result(self, output_filename)
+
+      
+
+
+
+   
+
+   .. method:: _write_script(self, script_filename)
+
+      
+
+
+
+   
+
+   .. method:: _generate_virtualenv_cmd(self, tmp_dir)
+
+      
+
+
+
+   
+
+   .. method:: _generate_pip_install_cmd(self, tmp_dir)
+
+      
+
+
+
+   
+
+   .. staticmethod:: _generate_python_cmd(tmp_dir, script_filename, input_filename, output_filename, string_args_filename)
+
+      
+
+
+
+   
+
+   .. method:: _generate_python_code(self)
+
+      
+
+
+
+
+
+
+
+
+

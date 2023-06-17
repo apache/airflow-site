@@ -1,0 +1,178 @@
+:py:mod:`airflow.providers.microsoft.azure.operators.synapse`
+=============================================================
+
+.. py:module:: airflow.providers.microsoft.azure.operators.synapse
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.microsoft.azure.operators.synapse.AzureSynapseRunSparkBatchOperator
+   airflow.providers.microsoft.azure.operators.synapse.AzureSynapsePipelineRunLink
+   airflow.providers.microsoft.azure.operators.synapse.AzureSynapseRunPipelineOperator
+
+
+
+
+.. py:class:: AzureSynapseRunSparkBatchOperator(*, azure_synapse_conn_id = AzureSynapseHook.default_conn_name, wait_for_termination = True, spark_pool = '', payload, timeout = 60 * 60 * 24 * 7, check_interval = 60, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Execute a Spark job on Azure Synapse.
+
+   .. see also::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:AzureSynapseRunSparkBatchOperator`
+
+   :param azure_synapse_conn_id: The connection identifier for connecting to Azure Synapse.
+   :param wait_for_termination: Flag to wait on a job run's termination.
+   :param spark_pool: The target synapse spark pool used to submit the job
+   :param payload: Livy compatible payload which represents the spark job that a user wants to submit
+   :param timeout: Time in seconds to wait for a job to reach a terminal status for non-asynchronous
+       waits. Used only if ``wait_for_termination`` is True.
+   :param check_interval: Time in seconds to check on a job run's status for non-asynchronous waits.
+       Used only if ``wait_for_termination`` is True.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('azure_synapse_conn_id', 'spark_pool')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#0678d4'
+
+      
+
+   .. py:method:: hook()
+
+      Create and return an AzureSynapseHook (cached).
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance gets killed.
+
+      Any use of the threading, subprocess or multiprocessing module within an
+      operator needs to be cleaned up, or it will leave ghost processes behind.
+
+
+
+.. py:class:: AzureSynapsePipelineRunLink
+
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`
+
+   Construct a link to monitor a pipeline run in Azure Synapse.
+
+   .. py:attribute:: name
+      :value: 'Monitor Pipeline Run'
+
+      
+
+   .. py:method:: get_fields_from_url(workspace_url)
+
+      Extract the workspace_name, subscription_id and resource_group from the Synapse workspace url.
+
+      :param workspace_url: The workspace url.
+
+
+   .. py:method:: get_link(operator, *, ti_key)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: AzureSynapseRunPipelineOperator(pipeline_name, azure_synapse_conn_id, azure_synapse_workspace_dev_endpoint, wait_for_termination = True, reference_pipeline_run_id = None, is_recovery = None, start_activity_name = None, parameters = None, timeout = 60 * 60 * 24 * 7, check_interval = 60, **kwargs)
+
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Execute a Synapse Pipeline.
+
+   :param pipeline_name: The name of the pipeline to execute.
+   :param azure_synapse_conn_id: The Airflow connection ID for Azure Synapse.
+   :param azure_synapse_workspace_dev_endpoint: The Azure Synapse workspace development endpoint.
+   :param wait_for_termination: Flag to wait on a pipeline run's termination.
+   :param reference_pipeline_run_id: The pipeline run identifier. If this run ID is specified the parameters
+       of the specified run will be used to create a new run.
+   :param is_recovery: Recovery mode flag. If recovery mode is set to `True`, the specified referenced
+       pipeline run and the new run will be grouped under the same ``groupId``.
+   :param start_activity_name: In recovery mode, the rerun will start from this activity. If not specified,
+       all activities will run.
+   :param parameters: Parameters of the pipeline run. These parameters are referenced in a pipeline via
+       ``@pipeline().parameters.parameterName`` and will be used only if the ``reference_pipeline_run_id`` is
+       not specified.
+   :param timeout: Time in seconds to wait for a pipeline to reach a terminal status for non-asynchronous
+       waits. Used only if ``wait_for_termination`` is True.
+   :param check_interval: Time in seconds to check on a pipeline run's status for non-asynchronous waits.
+       Used only if ``wait_for_termination`` is True.
+
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('azure_synapse_conn_id',)
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: hook()
+
+      Create and return an AzureSynapsePipelineHook (cached).
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(event)
+
+      Return immediately - callback for when the trigger fires.
+
+      Relies on trigger to throw an exception, otherwise it assumes execution was successful.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance gets killed.
+
+      Any use of the threading, subprocess or multiprocessing module within an
+      operator needs to be cleaned up, or it will leave ghost processes behind.
+
+
+

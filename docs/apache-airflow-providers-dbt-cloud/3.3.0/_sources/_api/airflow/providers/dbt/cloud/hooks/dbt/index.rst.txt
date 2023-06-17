@@ -1,0 +1,421 @@
+:py:mod:`airflow.providers.dbt.cloud.hooks.dbt`
+===============================================
+
+.. py:module:: airflow.providers.dbt.cloud.hooks.dbt
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.dbt.cloud.hooks.dbt.TokenAuth
+   airflow.providers.dbt.cloud.hooks.dbt.JobRunInfo
+   airflow.providers.dbt.cloud.hooks.dbt.DbtCloudJobRunStatus
+   airflow.providers.dbt.cloud.hooks.dbt.DbtCloudHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.dbt.cloud.hooks.dbt.fallback_to_default_account
+   airflow.providers.dbt.cloud.hooks.dbt.provide_account_id
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.dbt.cloud.hooks.dbt.T
+
+
+.. py:function:: fallback_to_default_account(func)
+
+   Decorator which provides a fallback value for ``account_id``.
+
+   If the ``account_id`` is None or not passed to the decorated function,
+   the value will be taken from the configured dbt Cloud Airflow Connection.
+
+
+.. py:class:: TokenAuth(token)
+
+
+   Bases: :py:obj:`requests.auth.AuthBase`
+
+   Helper class for Auth when executing requests.
+
+   .. py:method:: __call__(request)
+
+
+
+.. py:class:: JobRunInfo
+
+
+   Bases: :py:obj:`airflow.typing_compat.TypedDict`
+
+   Type class for the ``job_run_info`` dictionary.
+
+   .. py:attribute:: account_id
+      :type: int | None
+
+      
+
+   .. py:attribute:: run_id
+      :type: int
+
+      
+
+
+.. py:class:: DbtCloudJobRunStatus
+
+
+   Bases: :py:obj:`enum.Enum`
+
+   dbt Cloud Job statuses.
+
+   .. py:attribute:: QUEUED
+      :value: 1
+
+      
+
+   .. py:attribute:: STARTING
+      :value: 2
+
+      
+
+   .. py:attribute:: RUNNING
+      :value: 3
+
+      
+
+   .. py:attribute:: SUCCESS
+      :value: 10
+
+      
+
+   .. py:attribute:: ERROR
+      :value: 20
+
+      
+
+   .. py:attribute:: CANCELLED
+      :value: 30
+
+      
+
+   .. py:attribute:: TERMINAL_STATUSES
+      :value: ()
+
+      
+
+   .. py:method:: check_is_valid(statuses)
+      :classmethod:
+
+      Validates input statuses are a known value.
+
+
+   .. py:method:: is_terminal(status)
+      :classmethod:
+
+      Checks if the input status is that of a terminal type.
+
+
+
+.. py:exception:: DbtCloudJobRunException
+
+
+   Bases: :py:obj:`airflow.exceptions.AirflowException`
+
+   An exception that indicates a job run failed to complete.
+
+
+.. py:data:: T
+
+   
+
+.. py:function:: provide_account_id(func)
+
+   Decorator which provides a fallback value for ``account_id``.
+
+   If the ``account_id`` is None or not passed to the decorated function,
+   the value will be taken from the configured dbt Cloud Airflow Connection.
+
+
+.. py:class:: DbtCloudHook(dbt_cloud_conn_id = default_conn_name, *args, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.http.hooks.http.HttpHook`
+
+   Interact with dbt Cloud using the V2 API.
+
+   :param dbt_cloud_conn_id: The ID of the :ref:`dbt Cloud connection <howto/connection:dbt-cloud>`.
+
+   .. py:attribute:: conn_name_attr
+      :value: 'dbt_cloud_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'dbt_cloud_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'dbt_cloud'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'dbt Cloud'
+
+      
+
+   .. py:method:: get_ui_field_behaviour()
+      :staticmethod:
+
+      Builds custom field behavior for the dbt Cloud connection form in the Airflow UI.
+
+
+   .. py:method:: get_request_url_params(tenant, endpoint, include_related = None)
+      :staticmethod:
+
+      Form URL from base url and endpoint url.
+
+      :param tenant: The tenant domain name which is need to be replaced in base url.
+      :param endpoint: Endpoint url to be requested.
+      :param include_related: Optional. List of related fields to pull with the run.
+          Valid values are "trigger", "job", "repository", and "environment".
+
+
+   .. py:method:: get_headers_tenants_from_connection()
+      :async:
+
+      Get Headers, tenants from the connection details.
+
+
+   .. py:method:: get_job_details(run_id, account_id = None, include_related = None)
+      :async:
+
+      Uses Http async call to retrieve metadata for a specific run of a dbt Cloud job.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param include_related: Optional. List of related fields to pull with the run.
+          Valid values are "trigger", "job", "repository", and "environment".
+
+
+   .. py:method:: get_job_status(run_id, account_id = None, include_related = None)
+      :async:
+
+      Retrieves the status for a specific run of a dbt Cloud job.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param include_related: Optional. List of related fields to pull with the run.
+          Valid values are "trigger", "job", "repository", and "environment".
+
+
+   .. py:method:: connection()
+
+
+   .. py:method:: get_conn(*args, **kwargs)
+
+      Create a Requests HTTP session.
+
+      :param headers: additional headers to be passed through as a dictionary
+
+
+   .. py:method:: list_accounts()
+
+      Retrieves all of the dbt Cloud accounts the configured API token is authorized to access.
+
+      :return: List of request responses.
+
+
+   .. py:method:: get_account(account_id = None)
+
+      Retrieves metadata for a specific dbt Cloud account.
+
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :return: The request response.
+
+
+   .. py:method:: list_projects(account_id = None)
+
+      Retrieves metadata for all projects tied to a specified dbt Cloud account.
+
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :return: List of request responses.
+
+
+   .. py:method:: get_project(project_id, account_id = None)
+
+      Retrieves metadata for a specific project.
+
+      :param project_id: The ID of a dbt Cloud project.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :return: The request response.
+
+
+   .. py:method:: list_jobs(account_id = None, order_by = None, project_id = None)
+
+      Retrieves metadata for all jobs tied to a specified dbt Cloud account.
+
+      If a ``project_id`` is supplied, only jobs pertaining to this project will be retrieved.
+
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param order_by: Optional. Field to order the result by. Use '-' to indicate reverse order.
+          For example, to use reverse order by the run ID use ``order_by=-id``.
+      :param project_id: The ID of a dbt Cloud project.
+      :return: List of request responses.
+
+
+   .. py:method:: get_job(job_id, account_id = None)
+
+      Retrieves metadata for a specific job.
+
+      :param job_id: The ID of a dbt Cloud job.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :return: The request response.
+
+
+   .. py:method:: trigger_job_run(job_id, cause, account_id = None, steps_override = None, schema_override = None, additional_run_config = None)
+
+      Triggers a run of a dbt Cloud job.
+
+      :param job_id: The ID of a dbt Cloud job.
+      :param cause: Description of the reason to trigger the job.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param steps_override: Optional. List of dbt commands to execute when triggering the job
+          instead of those configured in dbt Cloud.
+      :param schema_override: Optional. Override the destination schema in the configured target for this
+          job.
+      :param additional_run_config: Optional. Any additional parameters that should be included in the API
+          request when triggering the job.
+      :return: The request response.
+
+
+   .. py:method:: list_job_runs(account_id = None, include_related = None, job_definition_id = None, order_by = None)
+
+      Retrieves metadata for all dbt Cloud job runs for an account.
+
+      If a ``job_definition_id`` is supplied, only metadata for runs of that specific job are pulled.
+
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param include_related: Optional. List of related fields to pull with the run.
+          Valid values are "trigger", "job", "repository", and "environment".
+      :param job_definition_id: Optional. The dbt Cloud job ID to retrieve run metadata.
+      :param order_by: Optional. Field to order the result by. Use '-' to indicate reverse order.
+          For example, to use reverse order by the run ID use ``order_by=-id``.
+      :return: List of request responses.
+
+
+   .. py:method:: get_job_run(run_id, account_id = None, include_related = None)
+
+      Retrieves metadata for a specific run of a dbt Cloud job.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param include_related: Optional. List of related fields to pull with the run.
+          Valid values are "trigger", "job", "repository", and "environment".
+      :return: The request response.
+
+
+   .. py:method:: get_job_run_status(run_id, account_id = None)
+
+      Retrieves the status for a specific run of a dbt Cloud job.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :return: The status of a dbt Cloud job run.
+
+
+   .. py:method:: wait_for_job_run_status(run_id, account_id = None, expected_statuses = DbtCloudJobRunStatus.SUCCESS.value, check_interval = 60, timeout = 60 * 60 * 24 * 7)
+
+      Waits for a dbt Cloud job run to match an expected status.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param expected_statuses: Optional. The desired status(es) to check against a job run's current
+          status. Defaults to the success status value.
+      :param check_interval: Time in seconds to check on a pipeline run's status.
+      :param timeout: Time in seconds to wait for a pipeline to reach a terminal status or the expected
+          status.
+      :return: Boolean indicating if the job run has reached the ``expected_status``.
+
+
+   .. py:method:: cancel_job_run(run_id, account_id = None)
+
+      Cancel a specific dbt Cloud job run.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+
+
+   .. py:method:: list_job_run_artifacts(run_id, account_id = None, step = None)
+
+      Retrieves a list of the available artifact files generated for a completed run of a dbt Cloud job.
+
+      By default, this returns artifacts from the last step in the run. To
+      list artifacts from other steps in the run, use the ``step`` parameter.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param step: Optional. The index of the Step in the Run to query for artifacts. The first step in the
+          run has the index 1. If the step parameter is omitted, artifacts for the last step in the run will
+          be returned.
+      :return: List of request responses.
+
+
+   .. py:method:: get_job_run_artifact(run_id, path, account_id = None, step = None)
+
+      Retrieves a list of the available artifact files generated for a completed run of a dbt Cloud job.
+
+      By default, this returns artifacts from the last step in the run. To
+      list artifacts from other steps in the run, use the ``step`` parameter.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param path: The file path related to the artifact file. Paths are rooted at the target/ directory.
+          Use "manifest.json", "catalog.json", or "run_results.json" to download dbt-generated artifacts
+          for the run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+      :param step: Optional. The index of the Step in the Run to query for artifacts. The first step in the
+          run has the index 1. If the step parameter is omitted, artifacts for the last step in the run will
+          be returned.
+      :return: The request response.
+
+
+   .. py:method:: get_job_run_artifacts_concurrently(run_id, artifacts, account_id = None, step = None)
+      :async:
+
+      Retrieves a list of chosen artifact files generated for a step in completed run of a dbt Cloud job.
+
+      By default, this returns artifacts from the last step in the run.
+      This takes advantage of the asynchronous calls to speed up the retrieval.
+
+      :param run_id: The ID of a dbt Cloud job run.
+      :param step: The index of the Step in the Run to query for artifacts. The first step in the
+          run has the index 1. If the step parameter is omitted, artifacts for the last step in the run will
+          be returned.
+      :param path: The file path related to the artifact file. Paths are rooted at the target/ directory.
+          Use "manifest.json", "catalog.json", or "run_results.json" to download dbt-generated artifacts
+          for the run.
+      :param account_id: Optional. The ID of a dbt Cloud account.
+
+      :return: The request response.
+
+
+   .. py:method:: test_connection()
+
+      Test dbt Cloud connection.
+
+
+

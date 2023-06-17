@@ -1,0 +1,189 @@
+:py:mod:`airflow.providers.presto.hooks.presto`
+===============================================
+
+.. py:module:: airflow.providers.presto.hooks.presto
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.presto.hooks.presto.PrestoHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.presto.hooks.presto.generate_presto_client_info
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.presto.hooks.presto.DEFAULT_FORMAT_PREFIX
+
+
+.. py:data:: DEFAULT_FORMAT_PREFIX
+   :annotation: = airflow.ctx.
+
+   
+
+.. py:function:: generate_presto_client_info()
+
+   Return json string with dag_id, task_id, execution_date and try_number
+
+
+.. py:exception:: PrestoException
+
+   Bases: :py:obj:`Exception`
+
+   Presto exception
+
+
+.. py:class:: PrestoHook(*args, schema = None, log_sql = True, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.common.sql.hooks.sql.DbApiHook`
+
+   Interact with Presto through prestodb.
+
+   >>> ph = PrestoHook()
+   >>> sql = "SELECT count(1) AS num FROM airflow.static_babynames"
+   >>> ph.get_records(sql)
+   [[340698]]
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = presto_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = presto_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = presto
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = Presto
+
+      
+
+   .. py:attribute:: placeholder
+      :annotation: = ?
+
+      
+
+   .. py:method:: get_conn()
+
+      Returns a connection object
+
+
+   .. py:method:: get_isolation_level()
+
+      Returns an isolation level
+
+
+   .. py:method:: get_records(sql = '', parameters = None)
+
+      Executes the sql and returns a set of records.
+
+      :param sql: the sql statement to be executed (str) or a list of sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+
+
+   .. py:method:: get_first(sql = '', parameters = None)
+
+      Executes the sql and returns the first resulting row.
+
+      :param sql: the sql statement to be executed (str) or a list of sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+
+
+   .. py:method:: get_pandas_df(sql = '', parameters=None, **kwargs)
+
+      Executes the sql and returns a pandas dataframe
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param parameters: The parameters to render the SQL query with.
+      :param kwargs: (optional) passed into pandas.io.sql.read_sql method
+
+
+   .. py:method:: run(sql, autocommit = False, parameters = None, handler = None, split_statements = False, return_last = True)
+
+      Runs a command or a list of commands. Pass a list of sql
+      statements to the sql parameter to get them to execute
+      sequentially.
+
+      The method will return either single query results (typically list of rows) or list of those results
+      where each element in the list are results of one of the queries (typically list of list of rows :D)
+
+      For compatibility reasons, the behaviour of the DBAPIHook is somewhat confusing.
+      In cases, when multiple queries are run, the return values will be an iterable (list) of results
+      - one for each query. However, in certain cases, when single query is run - the results will be just
+      the results of that query without wrapping the results in a list.
+
+      The cases when single query results are returned without wrapping them in a list are when:
+
+      a) sql is string and last_statement is True (regardless what split_statement value is)
+      b) sql is string and split_statement is False
+
+      In all other cases, the results are wrapped in a list, even if there is only one statement to process:
+
+      a) always when sql is an iterable of string statements (regardless what last_statement value is)
+      b) when sql is string, split_statement is True and last_statement is False
+
+
+      In any of those cases, however you can access the following properties of the Hook after running it:
+
+        * descriptions - has an array of cursor descriptions - each statement executed contain the list
+          of descriptions executed. If ``return_last`` is used, this is always a one-element array
+        * last_description - description of the last statement executed
+
+      Note that return value from the hook will ONLY be actually returned when handler is provided. Setting
+      the ``handler`` to None, results in this method returning None.
+
+      Handler is a way to process the rows from cursor (Iterator) into a value that is suitable to be
+      returned to XCom and generally fit in memory. As an optimization, handler is usually not executed
+      by the SQLExecuteQuery operator if `do_xcom_push` is not specified.
+
+      You can use pre-defined handles (`fetch_all_handler``, ''fetch_one_handler``) or implement your
+      own handler.
+
+      :param sql: the sql statement to be executed (str) or a list of
+          sql statements to execute
+      :param autocommit: What to set the connection's autocommit setting to
+          before executing the query.
+      :param parameters: The parameters to render the SQL query with.
+      :param handler: The result handler which is called with the result of each statement.
+      :param split_statements: Whether to split a single SQL string into statements and run separately
+      :param return_last: Whether to return result for only last statement or for all after split
+      :return: return only result of the ALL SQL expressions if handler was provided.
+
+
+   .. py:method:: insert_rows(table, rows, target_fields = None, commit_every = 0, replace = False, **kwargs)
+
+      A generic way to insert a set of tuples into a table.
+
+      :param table: Name of the target table
+      :param rows: The rows to insert into the table
+      :param target_fields: The names of the columns to fill in the table
+      :param commit_every: The maximum number of rows to insert in one
+          transaction. Set to 0 to insert all rows in one transaction.
+      :param replace: Whether to replace instead of insert
+
+
+

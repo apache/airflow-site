@@ -1,0 +1,342 @@
+:py:mod:`airflow.operators.python`
+==================================
+
+.. py:module:: airflow.operators.python
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.operators.python.PythonOperator
+   airflow.operators.python.BranchPythonOperator
+   airflow.operators.python.ShortCircuitOperator
+   airflow.operators.python.PythonVirtualenvOperator
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.operators.python.task
+   airflow.operators.python.get_current_context
+
+
+
+.. py:function:: task(python_callable = None, multiple_outputs = None, **kwargs)
+
+   Deprecated function that calls @task.python and allows users to turn a python function into
+   an Airflow task. Please use the following instead:
+
+   from airflow.decorators import task
+
+   @task
+   def my_task()
+
+   :param python_callable: A reference to an object that is callable
+   :param op_kwargs: a dictionary of keyword arguments that will get unpacked
+       in your function (templated)
+   :param op_args: a list of positional arguments that will get unpacked when
+       calling your callable (templated)
+   :param multiple_outputs: if set, function return value will be
+       unrolled to multiple XCom values. Dict will unroll to xcom values with keys as keys.
+       Defaults to False.
+   :return:
+
+
+.. py:class:: PythonOperator(*, python_callable, op_args = None, op_kwargs = None, templates_dict = None, templates_exts = None, show_return_value_in_logs = True, **kwargs)
+
+   Bases: :py:obj:`airflow.models.baseoperator.BaseOperator`
+
+   Executes a Python callable
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:PythonOperator`
+
+   When running your callable, Airflow will pass a set of keyword arguments that can be used in your
+   function. This set of kwargs correspond exactly to what you can use in your jinja templates.
+   For this to work, you need to define ``**kwargs`` in your function header, or you can add directly the
+   keyword arguments you would like to get - for example with the below code your callable will get
+   the values of ``ti`` and ``next_ds`` context variables.
+
+   With explicit arguments:
+
+   .. code-block:: python
+
+      def my_python_callable(ti, next_ds):
+          pass
+
+   With kwargs:
+
+   .. code-block:: python
+
+      def my_python_callable(**kwargs):
+          ti = kwargs["ti"]
+          next_ds = kwargs["next_ds"]
+
+
+   :param python_callable: A reference to an object that is callable
+   :param op_kwargs: a dictionary of keyword arguments that will get unpacked
+       in your function
+   :param op_args: a list of positional arguments that will get unpacked when
+       calling your callable
+   :param templates_dict: a dictionary where the values are templates that
+       will get templated by the Airflow engine sometime between
+       ``__init__`` and ``execute`` takes place and are made available
+       in your callable's context after the template has been applied. (templated)
+   :param templates_exts: a list of file extensions to resolve while
+       processing templated fields, for examples ``['.sql', '.hql']``
+   :param show_return_value_in_logs: a bool value whether to show return_value
+       logs. Defaults to True, which allows return value log output.
+       It can be set to False to prevent log output of return value when you return huge data
+       such as transmission a large amount of XCom to TaskAPI.
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['templates_dict', 'op_args', 'op_kwargs']
+
+      
+
+   .. py:attribute:: template_fields_renderers
+      
+
+      
+
+   .. py:attribute:: BLUE
+      :annotation: = #ffefeb
+
+      
+
+   .. py:attribute:: ui_color
+      
+
+      
+
+   .. py:attribute:: shallow_copy_attrs
+      :annotation: :Sequence[str] = ['python_callable', 'op_kwargs']
+
+      
+
+   .. py:attribute:: mapped_arguments_validated_by_init
+      :annotation: = True
+
+      
+
+   .. py:method:: execute(self, context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: determine_kwargs(self, context)
+
+
+   .. py:method:: execute_callable(self)
+
+      Calls the python callable with the given arguments.
+
+      :return: the return value of the call.
+      :rtype: any
+
+
+
+.. py:class:: BranchPythonOperator(*, python_callable, op_args = None, op_kwargs = None, templates_dict = None, templates_exts = None, show_return_value_in_logs = True, **kwargs)
+
+   Bases: :py:obj:`PythonOperator`, :py:obj:`airflow.models.skipmixin.SkipMixin`
+
+   Allows a workflow to "branch" or follow a path following the execution
+   of this task.
+
+   It derives the PythonOperator and expects a Python function that returns
+   a single task_id or list of task_ids to follow. The task_id(s) returned
+   should point to a task directly downstream from {self}. All other "branches"
+   or directly downstream tasks are marked with a state of ``skipped`` so that
+   these paths can't move forward. The ``skipped`` states are propagated
+   downstream to allow for the DAG state to fill up and the DAG run's state
+   to be inferred.
+
+   .. py:method:: execute(self, context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: ShortCircuitOperator(*, ignore_downstream_trigger_rules = True, **kwargs)
+
+   Bases: :py:obj:`PythonOperator`, :py:obj:`airflow.models.skipmixin.SkipMixin`
+
+   Allows a pipeline to continue based on the result of a ``python_callable``.
+
+   The ShortCircuitOperator is derived from the PythonOperator and evaluates the result of a
+   ``python_callable``. If the returned result is False or a falsy value, the pipeline will be
+   short-circuited. Downstream tasks will be marked with a state of "skipped" based on the short-circuiting
+   mode configured. If the returned result is True or a truthy value, downstream tasks proceed as normal and
+   an ``XCom`` of the returned result is pushed.
+
+   The short-circuiting can be configured to either respect or ignore the ``trigger_rule`` set for
+   downstream tasks. If ``ignore_downstream_trigger_rules`` is set to True, the default setting, all
+   downstream tasks are skipped without considering the ``trigger_rule`` defined for tasks. However, if this
+   parameter is set to False, the direct downstream tasks are skipped but the specified ``trigger_rule`` for
+   other subsequent downstream tasks are respected. In this mode, the operator assumes the direct downstream
+   tasks were purposely meant to be skipped but perhaps not other subsequent tasks.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:ShortCircuitOperator`
+
+   :param ignore_downstream_trigger_rules: If set to True, all downstream tasks from this operator task will
+       be skipped. This is the default behavior. If set to False, the direct, downstream task(s) will be
+       skipped but the ``trigger_rule`` defined for a other downstream tasks will be respected.
+
+   .. py:method:: execute(self, context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: PythonVirtualenvOperator(*, python_callable, requirements = None, python_version = None, use_dill = False, system_site_packages = True, pip_install_options = None, op_args = None, op_kwargs = None, string_args = None, templates_dict = None, templates_exts = None, **kwargs)
+
+   Bases: :py:obj:`PythonOperator`
+
+   Allows one to run a function in a virtualenv that is created and destroyed
+   automatically (with certain caveats).
+
+   The function must be defined using def, and not be
+   part of a class. All imports must happen inside the function
+   and no variables outside of the scope may be referenced. A global scope
+   variable named virtualenv_string_args will be available (populated by
+   string_args). In addition, one can pass stuff through op_args and op_kwargs, and one
+   can use a return value.
+   Note that if your virtualenv runs in a different Python major version than Airflow,
+   you cannot use return values, op_args, op_kwargs, or use any macros that are being provided to
+   Airflow through plugins. You can use string_args though.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:PythonVirtualenvOperator`
+
+   :param python_callable: A python function with no references to outside variables,
+       defined with def, which will be run in a virtualenv
+   :param requirements: Either a list of requirement strings, or a (templated)
+       "requirements file" as specified by pip.
+   :param python_version: The Python version to run the virtualenv with. Note that
+       both 2 and 2.7 are acceptable forms.
+   :param use_dill: Whether to use dill to serialize
+       the args and result (pickle is default). This allow more complex types
+       but requires you to include dill in your requirements.
+   :param system_site_packages: Whether to include
+       system_site_packages in your virtualenv.
+       See virtualenv documentation for more information.
+   :param pip_install_options: a list of pip install options when installing requirements
+       See 'pip install -h' for available options
+   :param op_args: A list of positional arguments to pass to python_callable.
+   :param op_kwargs: A dict of keyword arguments to pass to python_callable.
+   :param string_args: Strings that are present in the global var virtualenv_string_args,
+       available to python_callable at runtime as a list[str]. Note that args are split
+       by newline.
+   :param templates_dict: a dictionary where the values are templates that
+       will get templated by the Airflow engine sometime between
+       ``__init__`` and ``execute`` takes place and are made available
+       in your callable's context after the template has been applied
+   :param templates_exts: a list of file extensions to resolve while
+       processing templated fields, for examples ``['.sql', '.hql']``
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['requirements']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = ['.txt']
+
+      
+
+   .. py:attribute:: BASE_SERIALIZABLE_CONTEXT_KEYS
+      
+
+      
+
+   .. py:attribute:: PENDULUM_SERIALIZABLE_CONTEXT_KEYS
+      
+
+      
+
+   .. py:attribute:: AIRFLOW_SERIALIZABLE_CONTEXT_KEYS
+      
+
+      
+
+   .. py:method:: execute(self, context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: determine_kwargs(self, context)
+
+
+   .. py:method:: execute_callable(self)
+
+      Calls the python callable with the given arguments.
+
+      :return: the return value of the call.
+      :rtype: any
+
+
+   .. py:method:: get_python_source(self)
+
+      Returns the source of self.python_callable
+      @return:
+
+
+   .. py:method:: __deepcopy__(self, memo)
+
+      Hack sorting double chained task lists by task_id to avoid hitting
+      max_depth on deepcopy operations.
+
+
+
+.. py:function:: get_current_context()
+
+   Obtain the execution context for the currently executing operator without
+   altering user method's signature.
+   This is the simplest method of retrieving the execution context dictionary.
+
+   **Old style:**
+
+   .. code:: python
+
+       def my_task(**context):
+           ti = context["ti"]
+
+   **New style:**
+
+   .. code:: python
+
+       from airflow.operators.python import get_current_context
+
+
+       def my_task():
+           context = get_current_context()
+           ti = context["ti"]
+
+   Current context will only have value if this method was called after an operator
+   was starting to execute.
+
+
