@@ -1,0 +1,143 @@
+:py:mod:`airflow.providers.google.cloud.triggers.vertex_ai`
+===========================================================
+
+.. py:module:: airflow.providers.google.cloud.triggers.vertex_ai
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.triggers.vertex_ai.BaseVertexAIJobTrigger
+   airflow.providers.google.cloud.triggers.vertex_ai.CreateHyperparameterTuningJobTrigger
+   airflow.providers.google.cloud.triggers.vertex_ai.CreateBatchPredictionJobTrigger
+   airflow.providers.google.cloud.triggers.vertex_ai.RunPipelineJobTrigger
+
+
+
+
+.. py:class:: BaseVertexAIJobTrigger(conn_id, project_id, location, job_id, poll_interval, impersonation_chain = None)
+
+
+   Bases: :py:obj:`airflow.triggers.base.BaseTrigger`
+
+   Base class for Vertex AI job triggers.
+
+   This trigger polls the Vertex AI job and checks its status.
+
+   In order to use it properly, you must:
+   - implement the following methods `_wait_job()`.
+   - override required `job_type_verbose_name` attribute to provide meaningful message describing your
+   job type.
+   - override required `job_serializer_class` attribute to provide proto.Message class that will be used
+   to serialize your job with `to_dict()` class method.
+
+   .. py:attribute:: job_type_verbose_name
+      :type: str
+      :value: 'Vertex AI Job'
+
+      
+
+   .. py:attribute:: job_serializer_class
+      :type: proto.Message
+
+      
+
+   .. py:attribute:: statuses_success
+
+      
+
+   .. py:method:: serialize()
+
+      Return the information needed to reconstruct this Trigger.
+
+      :return: Tuple of (class path, keyword arguments needed to re-instantiate).
+
+
+   .. py:method:: run()
+      :async:
+
+      Run the trigger in an asynchronous context.
+
+      The trigger should yield an Event whenever it wants to fire off
+      an event, and return None if it is finished. Single-event triggers
+      should thus yield and then immediately return.
+
+      If it yields, it is likely that it will be resumed very quickly,
+      but it may not be (e.g. if the workload is being moved to another
+      triggerer process, or a multi-event trigger was being used for a
+      single-event task defer).
+
+      In either case, Trigger classes should assume they will be persisted,
+      and then rely on cleanup() being called when they are no longer needed.
+
+
+
+.. py:class:: CreateHyperparameterTuningJobTrigger(conn_id, project_id, location, job_id, poll_interval, impersonation_chain = None)
+
+
+   Bases: :py:obj:`BaseVertexAIJobTrigger`
+
+   CreateHyperparameterTuningJobTrigger run on the trigger worker to perform create operation.
+
+   .. py:attribute:: job_type_verbose_name
+      :value: 'Hyperparameter Tuning Job'
+
+      
+
+   .. py:attribute:: job_serializer_class
+
+      
+
+   .. py:method:: async_hook()
+
+
+
+.. py:class:: CreateBatchPredictionJobTrigger(conn_id, project_id, location, job_id, poll_interval, impersonation_chain = None)
+
+
+   Bases: :py:obj:`BaseVertexAIJobTrigger`
+
+   CreateBatchPredictionJobTrigger run on the trigger worker to perform create operation.
+
+   .. py:attribute:: job_type_verbose_name
+      :value: 'Batch Prediction Job'
+
+      
+
+   .. py:attribute:: job_serializer_class
+
+      
+
+   .. py:method:: async_hook()
+
+
+
+.. py:class:: RunPipelineJobTrigger(conn_id, project_id, location, job_id, poll_interval, impersonation_chain = None)
+
+
+   Bases: :py:obj:`BaseVertexAIJobTrigger`
+
+   Make async calls to Vertex AI to check the state of a Pipeline Job.
+
+   .. py:attribute:: job_type_verbose_name
+      :value: 'Pipeline Job'
+
+      
+
+   .. py:attribute:: job_serializer_class
+
+      
+
+   .. py:attribute:: statuses_success
+
+      
+
+   .. py:method:: async_hook()
+
+
+

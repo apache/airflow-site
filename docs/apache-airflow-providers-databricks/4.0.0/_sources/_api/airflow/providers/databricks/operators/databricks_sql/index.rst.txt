@@ -1,0 +1,153 @@
+:py:mod:`airflow.providers.databricks.operators.databricks_sql`
+===============================================================
+
+.. py:module:: airflow.providers.databricks.operators.databricks_sql
+
+.. autoapi-nested-parse::
+
+   This module contains Databricks operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.operators.databricks_sql.DatabricksSqlOperator
+   airflow.providers.databricks.operators.databricks_sql.DatabricksCopyIntoOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.databricks.operators.databricks_sql.COPY_INTO_APPROVED_FORMATS
+
+
+.. py:class:: DatabricksSqlOperator(*, databricks_conn_id = DatabricksSqlHook.default_conn_name, http_path = None, sql_endpoint_name = None, session_configuration=None, http_headers = None, catalog = None, schema = None, output_path = None, output_format = 'csv', csv_params = None, client_parameters = None, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.common.sql.operators.sql.SQLExecuteQueryOperator`
+
+   Executes SQL code in a Databricks SQL endpoint or a Databricks cluster
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:DatabricksSqlOperator`
+
+   :param databricks_conn_id: Reference to
+       :ref:`Databricks connection id<howto/connection:databricks>` (templated)
+   :param http_path: Optional string specifying HTTP path of Databricks SQL Endpoint or cluster.
+       If not specified, it should be either specified in the Databricks connection's extra parameters,
+       or ``sql_endpoint_name`` must be specified.
+   :param sql_endpoint_name: Optional name of Databricks SQL Endpoint. If not specified, ``http_path`` must
+       be provided as described above.
+   :param sql: the SQL code to be executed as a single string, or
+       a list of str (sql statements), or a reference to a template file. (templated)
+       Template references are recognized by str ending in '.sql'
+   :param parameters: (optional) the parameters to render the SQL query with.
+   :param session_configuration: An optional dictionary of Spark session parameters. Defaults to None.
+       If not specified, it could be specified in the Databricks connection's extra parameters.
+   :param client_parameters: Additional parameters internal to Databricks SQL Connector parameters
+   :param http_headers: An optional list of (k, v) pairs that will be set as HTTP headers on every request.
+        (templated)
+   :param catalog: An optional initial catalog to use. Requires DBR version 9.0+ (templated)
+   :param schema: An optional initial schema to use. Requires DBR version 9.0+ (templated)
+   :param output_path: optional string specifying the file to which write selected data. (templated)
+   :param output_format: format of output data if ``output_path` is specified.
+       Possible values are ``csv``, ``json``, ``jsonl``. Default is ``csv``.
+   :param csv_params: parameters that will be passed to the ``csv.DictWriter`` class used to write CSV data.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', '_output_path', 'schema', 'catalog', 'http_headers', 'databricks_conn_id')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql',)
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:method:: get_db_hook()
+
+      Get the database hook for the connection.
+
+      :return: the database hook object.
+
+
+
+.. py:data:: COPY_INTO_APPROVED_FORMATS
+   :value: ['CSV', 'JSON', 'AVRO', 'ORC', 'PARQUET', 'TEXT', 'BINARYFILE']
+
+   
+
+.. py:class:: DatabricksCopyIntoOperator(*, table_name, file_location, file_format, databricks_conn_id = DatabricksSqlHook.default_conn_name, http_path = None, sql_endpoint_name = None, session_configuration=None, http_headers = None, client_parameters = None, catalog = None, schema = None, files = None, pattern = None, expression_list = None, credential = None, storage_credential = None, encryption = None, format_options = None, force_copy = None, copy_options = None, validate = None, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Executes COPY INTO command in a Databricks SQL endpoint or a Databricks cluster.
+   COPY INTO command is constructed from individual pieces, that are described in
+   `documentation <https://docs.databricks.com/sql/language-manual/delta-copy-into.html>`_.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:DatabricksSqlCopyIntoOperator`
+
+   :param table_name: Required name of the table. (templated)
+   :param file_location: Required location of files to import. (templated)
+   :param file_format: Required file format. Supported formats are
+       ``CSV``, ``JSON``, ``AVRO``, ``ORC``, ``PARQUET``, ``TEXT``, ``BINARYFILE``.
+   :param databricks_conn_id: Reference to
+       :ref:`Databricks connection id<howto/connection:databricks>` (templated)
+   :param http_path: Optional string specifying HTTP path of Databricks SQL Endpoint or cluster.
+       If not specified, it should be either specified in the Databricks connection's extra parameters,
+       or ``sql_endpoint_name`` must be specified.
+   :param sql_endpoint_name: Optional name of Databricks SQL Endpoint.
+       If not specified, ``http_path`` must be provided as described above.
+   :param session_configuration: An optional dictionary of Spark session parameters. Defaults to None.
+       If not specified, it could be specified in the Databricks connection's extra parameters.
+   :param http_headers: An optional list of (k, v) pairs that will be set as HTTP headers on every request
+   :param catalog: An optional initial catalog to use. Requires DBR version 9.0+
+   :param schema: An optional initial schema to use. Requires DBR version 9.0+
+   :param client_parameters: Additional parameters internal to Databricks SQL Connector parameters
+   :param files: optional list of files to import. Can't be specified together with ``pattern``. (templated)
+   :param pattern: optional regex string to match file names to import.
+       Can't be specified together with ``files``.
+   :param expression_list: optional string that will be used in the ``SELECT`` expression.
+   :param credential: optional credential configuration for authentication against a source location.
+   :param storage_credential: optional Unity Catalog storage credential for destination.
+   :param encryption: optional encryption configuration for a specified location.
+   :param format_options: optional dictionary with options specific for a given file format.
+   :param force_copy: optional bool to control forcing of data import
+       (could be also specified in ``copy_options``).
+   :param validate: optional configuration for schema & data validation. ``True`` forces validation
+       of all rows, integer number - validate only N first rows
+   :param copy_options: optional dictionary of copy options. Right now only ``force`` option is supported.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('_file_location', '_files', '_table_name', 'databricks_conn_id')
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

@@ -1,0 +1,419 @@
+
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Scaling Out with Mesos (community contributed) &mdash; Airflow Documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Running Airflow behind a reverse proxy" href="../run-behind-proxy.html" />
+    <link rel="prev" title="Dask Executor" href="use-dask.html" />
+   
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var el = document.getElementById('changelog');
+      if (el !== null ) {
+        // [AIRFLOW-...]
+        el.innerHTML = el.innerHTML.replace(
+            /\[(AIRFLOW-[\d]+)\]/g,
+            `<a href="https://issues.apache.org/jira/browse/$1">[$1]</a>`
+        );
+        // (#...)
+        el.innerHTML = el.innerHTML.replace(
+            /\(#([\d]+)\)/g,
+            `<a href="https://github.com/apache/airflow/pull/$1">(#$1)</a>`
+        );
+      };
+    })
+  </script>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://analytics.apache.org/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '13']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo -->
+  <style>
+    .example-header {
+      position: relative;
+      background: #9AAA7A;
+      padding: 8px 16px;
+      margin-bottom: 0;
+    }
+    .example-header--with-button {
+      padding-right: 166px;
+    }
+    .example-header:after{
+      content: '';
+      display: table;
+      clear: both;
+    }
+    .example-title {
+      display:block;
+      padding: 4px;
+      margin-right: 16px;
+      color: white;
+      overflow-x: auto;
+    }
+    .example-header-button {
+      top: 8px;
+      right: 16px;
+      position: absolute;
+    }
+    .example-header + .highlight-python {
+      margin-top: 0 !important;
+    }
+    .viewcode-button {
+      display: inline-block;
+      padding: 8px 16px;
+      border: 0;
+      margin: 0;
+      outline: 0;
+      border-radius: 2px;
+      -webkit-box-shadow: 0 3px 5px 0 rgba(0,0,0,.3);
+      box-shadow: 0 3px 6px 0 rgba(0,0,0,.3);
+      color: #404040;
+      background-color: #e7e7e7;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      text-transform: uppercase;
+      -webkit-transition: background-color .2s;
+      transition: background-color .2s;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .viewcode-button:visited {
+      color: #404040;
+    }
+    .viewcode-button:hover, .viewcode-button:focus {
+      color: #404040;
+      background-color: #d6d6d6;
+    }
+  </style>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Airflow
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.10.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../project.html">Project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">How-to Guides</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../set-config.html">Setting Configuration Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../initialize-database.html">Initializing a Database Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operator/index.html">Using Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../connection/index.html">Managing Connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secure-connections.html">Securing Connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secure-connections.html#rotating-encryption-keys">Rotating encryption keys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../write-logs.html">Writing Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use-celery.html">Celery Executor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use-dask.html">Dask Executor</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Scaling Out with Mesos (community contributed)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tasks-executed-directly-on-mesos-slaves">Tasks executed directly on mesos slaves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tasks-executed-in-containers-on-mesos-slaves">Tasks executed in containers on mesos slaves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../run-behind-proxy.html">Running Airflow behind a reverse proxy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run-with-systemd.html">Running Airflow with systemd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run-with-upstart.html">Running Airflow with upstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../use-test-config.html">Using the Test Mode Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../check-health.html">Checking Airflow Health Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../define_extra_link.html">Define an operator extra link</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tracking-user-activity.html">Tracking User Activity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ui.html">UI / Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../profiling.html">Data Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scheduler.html">Scheduling &amp; Triggers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../timezone.html">Time zones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">REST API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metrics.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../kubernetes.html">Kubernetes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lineage.html">Lineage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../macros.html">Macros reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_api/index.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../privacy_notice.html">Privacy Notice</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Airflow</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">How-to Guides</a> &raquo;</li>
+        
+      <li>Scaling Out with Mesos (community contributed)</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/howto/executor/use-mesos.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <blockquote>
+<div></div></blockquote>
+<div class="section" id="scaling-out-with-mesos-community-contributed">
+<h1>Scaling Out with Mesos (community contributed)<a class="headerlink" href="#scaling-out-with-mesos-community-contributed" title="Permalink to this headline">¶</a></h1>
+<p>There are two ways you can run airflow as a mesos framework:</p>
+<ol class="arabic simple">
+<li><p>Running airflow tasks directly on mesos slaves, requiring each mesos slave to have airflow installed and configured.</p></li>
+<li><p>Running airflow tasks inside a docker container that has airflow installed, which is run on a mesos slave.</p></li>
+</ol>
+<div class="section" id="tasks-executed-directly-on-mesos-slaves">
+<h2>Tasks executed directly on mesos slaves<a class="headerlink" href="#tasks-executed-directly-on-mesos-slaves" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="../../_api/airflow/contrib/executors/mesos_executor/index.html#airflow.contrib.executors.mesos_executor.MesosExecutor" title="airflow.contrib.executors.mesos_executor.MesosExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">airflow.contrib.executors.mesos_executor.MesosExecutor</span></code></a> allows you to schedule airflow tasks on a Mesos cluster.
+For this to work, you need a running mesos cluster and you must perform the following
+steps -</p>
+<ol class="arabic simple">
+<li><p>Install airflow on a mesos slave where web server and scheduler will run,
+let’s refer to this as the “Airflow server”.</p></li>
+<li><p>On the Airflow server, install mesos python eggs from <a class="reference external" href="http://open.mesosphere.com/downloads/mesos/">mesos downloads</a>.</p></li>
+<li><p>On the Airflow server, use a database (such as mysql) which can be accessed from all mesos
+slaves and add configuration in <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code>.</p></li>
+<li><p>Change your <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code> to point executor parameter to
+<cite>MesosExecutor</cite> and provide related Mesos settings.</p></li>
+<li><p>On all mesos slaves, install airflow. Copy the <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code> from
+Airflow server (so that it uses same sql alchemy connection).</p></li>
+<li><p>On all mesos slaves, run the following for serving logs:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>airflow serve_logs
+</pre></div>
+</div>
+<ol class="arabic simple" start="7">
+<li><p>On Airflow server, to start processing/scheduling DAGs on mesos, run:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>airflow scheduler -p
+</pre></div>
+</div>
+<p>Note: We need -p parameter to pickle the DAGs.</p>
+<p>You can now see the airflow framework and corresponding tasks in mesos UI.
+The logs for airflow tasks can be seen in airflow UI as usual.</p>
+<p>For more information about mesos, refer to <a class="reference external" href="http://mesos.apache.org/documentation/latest/">mesos documentation</a>.
+For any queries/bugs on <a class="reference internal" href="../../_api/airflow/contrib/executors/mesos_executor/index.html#airflow.contrib.executors.mesos_executor.MesosExecutor" title="airflow.contrib.executors.mesos_executor.MesosExecutor"><code class="xref py py-class docutils literal notranslate"><span class="pre">airflow.contrib.executors.mesos_executor.MesosExecutor</span></code></a>, please contact <a class="reference external" href="https://github.com/kapil-malik">&#64;kapil-malik</a>.</p>
+</div>
+<div class="section" id="tasks-executed-in-containers-on-mesos-slaves">
+<h2>Tasks executed in containers on mesos slaves<a class="headerlink" href="#tasks-executed-in-containers-on-mesos-slaves" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://gist.github.com/sebradloff/f158874e615bda0005c6f4577b20036e">This gist</a> contains all files and configuration changes necessary to achieve the following:</p>
+<ol class="arabic simple">
+<li><p>Create a dockerized version of airflow with mesos python eggs installed.</p></li>
+</ol>
+<blockquote>
+<div><p>We recommend taking advantage of docker’s multi stage builds in order to achieve this. We have one Dockerfile that defines building a specific version of mesos from source (Dockerfile-mesos), in order to create the python eggs. In the airflow Dockerfile (Dockerfile-airflow) we copy the python eggs from the mesos image.</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Create a mesos configuration block within the <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code>.</p></li>
+</ol>
+<blockquote>
+<div><p>The configuration block remains the same as the default airflow configuration (default_airflow.cfg), but has the addition of an option <code class="docutils literal notranslate"><span class="pre">docker_image_slave</span></code>. This should be set to the name of the image you would like mesos to use when running airflow tasks. Make sure you have the proper configuration of the DNS record for your mesos master and any sort of authorization if any exists.</p>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>Change your <code class="docutils literal notranslate"><span class="pre">airflow.cfg</span></code> to point the executor parameter to
+<cite>MesosExecutor</cite> (<cite>executor = SequentialExecutor</cite>).</p></li>
+<li><p>Make sure your mesos slave has access to the docker repository you are using for your <code class="docutils literal notranslate"><span class="pre">docker_image_slave</span></code>.</p></li>
+</ol>
+<blockquote>
+<div><p><a class="reference external" href="https://mesos.readthedocs.io/en/latest/docker-containerizer/#private-docker-repository">Instructions are available in the mesos docs.</a></p>
+</div></blockquote>
+<p>The rest is up to you and how you want to work with a dockerized airflow configuration.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          
+
+<footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../run-behind-proxy.html" class="btn btn-neutral float-right" title="Running Airflow behind a reverse proxy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="use-dask.html" class="btn btn-neutral float-left" title="Dask Executor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

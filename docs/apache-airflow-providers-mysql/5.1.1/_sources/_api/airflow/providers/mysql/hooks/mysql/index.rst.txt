@@ -1,0 +1,166 @@
+:py:mod:`airflow.providers.mysql.hooks.mysql`
+=============================================
+
+.. py:module:: airflow.providers.mysql.hooks.mysql
+
+.. autoapi-nested-parse::
+
+   This module allows to connect to a MySQL database.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.mysql.hooks.mysql.MySqlHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.mysql.hooks.mysql.logger
+   airflow.providers.mysql.hooks.mysql.MySQLConnectionTypes
+
+
+.. py:data:: logger
+
+   
+
+.. py:data:: MySQLConnectionTypes
+
+   
+
+.. py:class:: MySqlHook(*args, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.common.sql.hooks.sql.DbApiHook`
+
+   Interact with MySQL.
+
+   You can specify charset in the extra field of your connection
+   as ``{"charset": "utf8"}``. Also you can choose cursor as
+   ``{"cursor": "SSCursor"}``. Refer to the MySQLdb.cursors for more details.
+
+   Note: For AWS IAM authentication, use iam in the extra connection parameters
+   and set it to true. Leave the password field empty. This will use the
+   "aws_default" connection to get the temporary token unless you override
+   in extras.
+   extras example: ``{"iam":true, "aws_conn_id":"my_aws_conn"}``
+
+   You can also add "local_infile" parameter to determine whether local_infile feature of MySQL client is
+   going to be enabled (it is disabled by default).
+
+   :param schema: The MySQL database schema to connect to.
+   :param connection: The :ref:`MySQL connection id <howto/connection:mysql>` used for MySQL credentials.
+   :param local_infile: Boolean flag determining if local_infile should be used
+
+   .. py:attribute:: conn_name_attr
+      :value: 'mysql_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'mysql_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'mysql'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'MySQL'
+
+      
+
+   .. py:attribute:: supports_autocommit
+      :value: True
+
+      
+
+   .. py:method:: set_autocommit(conn, autocommit)
+
+      Set *autocommit*.
+
+      *mysqlclient* uses an *autocommit* method rather than an *autocommit*
+      property, so we need to override this to support it.
+
+      :param conn: connection to set autocommit setting
+      :param autocommit: autocommit setting
+
+
+   .. py:method:: get_autocommit(conn)
+
+      Whether *autocommit* is active.
+
+      *mysqlclient* uses an *get_autocommit* method rather than an *autocommit*
+      property, so we need to override this to support it.
+
+      :param conn: connection to get autocommit setting from.
+      :return: connection autocommit setting
+
+
+   .. py:method:: get_conn()
+
+      Connection to a MySQL database.
+
+      Establishes a connection to a mysql database
+      by extracting the connection configuration from the Airflow connection.
+
+      .. note:: By default it connects to the database via the mysqlclient library.
+          But you can also choose the mysql-connector-python library which lets you connect through ssl
+          without any further ssl parameters required.
+
+      :return: a mysql connection object
+
+
+   .. py:method:: bulk_load(table, tmp_file)
+
+      Load a tab-delimited file into a database table.
+
+
+   .. py:method:: bulk_dump(table, tmp_file)
+
+      Dump a database table into a tab-delimited file.
+
+
+   .. py:method:: get_iam_token(conn)
+
+      Retrieve a temporary password to connect to MySQL.
+
+      Uses AWSHook to retrieve a temporary password to connect to MySQL
+      Port is required. If none is provided, default 3306 is used
+
+
+   .. py:method:: bulk_load_custom(table, tmp_file, duplicate_key_handling = 'IGNORE', extra_options = '')
+
+      A more configurable way to load local data from a file into the database.
+
+      .. warning:: According to the mysql docs using this function is a
+          `security risk <https://dev.mysql.com/doc/refman/8.0/en/load-data-local.html>`_.
+          If you want to use it anyway you can do so by setting a client-side + server-side option.
+          This depends on the mysql client library used.
+
+      :param table: The table were the file will be loaded into.
+      :param tmp_file: The file (name) that contains the data.
+      :param duplicate_key_handling: Specify what should happen to duplicate data.
+          You can choose either `IGNORE` or `REPLACE`.
+
+          .. seealso::
+              https://dev.mysql.com/doc/refman/8.0/en/load-data.html#load-data-duplicate-key-handling
+      :param extra_options: More sql options to specify exactly how to load the data.
+
+          .. seealso:: https://dev.mysql.com/doc/refman/8.0/en/load-data.html
+
+
+

@@ -1,0 +1,1225 @@
+airflow.providers.google.cloud.operators.kubernetes_engine
+==========================================================
+
+.. py:module:: airflow.providers.google.cloud.operators.kubernetes_engine
+
+.. autoapi-nested-parse::
+
+   This module contains Google Kubernetes Engine operators.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.kubernetes_engine.KUBE_CONFIG_ENV_VAR
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEClusterAuthDetails
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEOperatorMixin
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEDeleteClusterOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKECreateClusterOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEStartKueueInsideClusterOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEStartPodOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEStartJobOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEDescribeJobOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEListJobsOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKECreateCustomResourceOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEDeleteCustomResourceOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEStartKueueJobOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEDeleteJobOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKESuspendJobOperator
+   airflow.providers.google.cloud.operators.kubernetes_engine.GKEResumeJobOperator
+
+
+Module Contents
+---------------
+
+.. py:data:: KUBE_CONFIG_ENV_VAR
+   :value: 'KUBECONFIG'
+
+
+.. py:class:: GKEClusterAuthDetails(cluster_name, project_id, use_internal_ip, cluster_hook)
+
+   Helper for fetching information about cluster for connecting.
+
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param project_id: The Google Developers Console project id.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param cluster_hook: airflow hook for working with kubernetes cluster.
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: project_id
+
+
+   .. py:attribute:: use_internal_ip
+
+
+   .. py:attribute:: cluster_hook
+
+
+   .. py:method:: fetch_cluster_info()
+
+      Fetch cluster info for connecting to it.
+
+
+
+.. py:class:: GKEOperatorMixin
+
+   Mixin for GKE operators provides proper unified hooks creation.
+
+
+   .. py:attribute:: enable_tcp_keepalive
+      :value: False
+
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+      :value: ('location', 'cluster_name', 'use_internal_ip', 'project_id', 'gcp_conn_id', 'impersonation_chain')
+
+
+
+   .. py:property:: cluster_hook
+      :type: airflow.providers.google.cloud.hooks.kubernetes_engine.GKEHook
+
+
+
+   .. py:property:: hook
+      :type: airflow.providers.google.cloud.hooks.kubernetes_engine.GKEKubernetesHook
+
+
+
+   .. py:property:: cluster_info
+      :type: tuple[str, str]
+
+
+      Fetch cluster info for connecting to it.
+
+
+
+   .. py:property:: cluster_url
+      :type: str
+
+
+
+   .. py:property:: ssl_ca_cert
+      :type: str
+
+
+
+.. py:class:: GKEDeleteClusterOperator(location, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, cluster_name = None, name = None, api_version = 'v2', deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 10, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+
+   Deletes the cluster, including the Kubernetes endpoint and all worker nodes.
+
+   To delete a certain cluster, you must specify the ``project_id``, the ``cluster_name``
+   of the cluster, the ``location`` that the cluster is in, and the ``task_id``.
+
+   **Operator Creation**: ::
+
+       operator = GKEClusterDeleteOperator(
+                   task_id='cluster_delete',
+                   project_id='my-project',
+                   location='cluster-location'
+                   cluster_name='cluster-name')
+
+   .. seealso::
+       For more detail about deleting clusters have a look at the reference:
+       https://google-cloud-python.readthedocs.io/en/latest/container/gapic/v1/api.html#google.cloud.container_v1.ClusterManagerClient.delete_cluster
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEDeleteClusterOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param name: (Deprecated) The name of the resource to delete, in this case cluster name
+   :param api_version: The api version to use
+   :param deferrable: Run operator in the deferrable mode.
+   :param poll_interval: Interval size which defines how often operation status is checked.
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+      :value: None
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: api_version
+      :value: 'v2'
+
+
+
+   .. py:attribute:: deferrable
+      :value: True
+
+
+
+   .. py:attribute:: poll_interval
+      :value: 10
+
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Execute after trigger job is done.
+
+
+
+.. py:class:: GKECreateClusterOperator(body, location, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, api_version = 'v2', deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 10, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+
+   Create a Google Kubernetes Engine Cluster of specified dimensions and wait until the cluster is created.
+
+   The **minimum** required to define a cluster to create is:
+
+   ``dict()`` ::
+       cluster_def = {"name": "my-cluster-name", "initial_node_count": 1}
+
+   or
+
+   ``Cluster`` proto ::
+       from google.cloud.container_v1.types import Cluster
+
+       cluster_def = Cluster(name="my-cluster-name", initial_node_count=1)
+
+   **Operator Creation**: ::
+
+       operator = GKEClusterCreateOperator(
+                   task_id='cluster_create',
+                   project_id='my-project',
+                   location='my-location'
+                   body=cluster_def)
+
+   .. seealso::
+       For more detail on about creating clusters have a look at the reference:
+       :class:`google.cloud.container_v1.types.Cluster`
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKECreateClusterOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param body: The Cluster definition to create, can be protobuf or python dict, if
+       dict it must match protobuf message Cluster
+   :param api_version: The api version to use
+   :param deferrable: Run operator in the deferrable mode.
+   :param poll_interval: Interval size which defines how often operation status is checked.
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: body
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: api_version
+      :value: 'v2'
+
+
+
+   .. py:attribute:: poll_interval
+      :value: 10
+
+
+
+   .. py:attribute:: deferrable
+      :value: True
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+   .. py:method:: execute_complete(context, event)
+
+
+.. py:class:: GKEStartKueueInsideClusterOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.kueue.KubernetesInstallKueueOperator`
+
+
+   Installs Kueue of specific version inside Cluster.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEStartKueueInsideClusterOperator`
+
+   .. seealso::
+       For more details about Kueue have a look at the reference:
+       https://kueue.sigs.k8s.io/docs/overview/
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: enable_tcp_keepalive
+      :value: True
+
+
+
+   .. py:attribute:: template_fields
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: GKEStartPodOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, regional = None, on_finish_action = None, is_delete_operator_pod = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.pod.KubernetesPodOperator`
+
+
+   Executes a task in a Kubernetes pod in the specified Google Kubernetes Engine cluster.
+
+   This Operator assumes that the system has gcloud installed and has configured a
+   connection id with a service account.
+
+   The **minimum** required to define a cluster to create are the variables
+   ``task_id``, ``project_id``, ``location``, ``cluster_name``, ``name``,
+   ``namespace``, and ``image``
+
+   .. seealso::
+       For more detail about Kubernetes Engine authentication have a look at the reference:
+       https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#internal_ip
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEStartPodOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param regional: (Deprecated) The location param is region name.
+   :param on_finish_action: What to do when the pod reaches its final state, or the execution is interrupted.
+       If "delete_pod", the pod will be deleted regardless its state; if "delete_succeeded_pod",
+       only succeeded pod will be deleted. You can set to "keep_pod" to keep the pod.
+       Current default is `keep_pod`, but this will be changed in the next major release of this provider.
+   :param is_delete_operator_pod: (Deprecated) What to do when the pod reaches its final
+       state, or the execution is interrupted. If True, delete the
+       pod; if False, leave the pod. Current default is False, but this will be
+       changed in the next major release of this provider.
+       Deprecated - use `on_finish_action` instead.
+   :param deferrable: Run operator in the deferrable mode.
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: deferrable
+      :value: True
+
+
+
+   .. py:property:: is_delete_operator_pod
+      :type: bool | None
+
+
+
+   .. py:property:: regional
+      :type: bool | None
+
+
+
+   .. py:method:: invoke_defer_method(last_log_time = None)
+
+      Redefine triggers which are being used in child classes.
+
+
+
+.. py:class:: GKEStartJobOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), job_poll_interval = 10.0, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.job.KubernetesJobOperator`
+
+
+   Executes a Kubernetes job in the specified Google Kubernetes Engine cluster.
+
+   This Operator assumes that the system has gcloud installed and has configured a
+   connection id with a service account.
+
+   The **minimum** required to define a cluster to create are the variables
+   ``task_id``, ``project_id``, ``location``, ``cluster_name``, ``name``,
+   ``namespace``, and ``image``
+
+   .. seealso::
+       For more detail about Kubernetes Engine authentication have a look at the reference:
+       https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#internal_ip
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEStartJobOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param deferrable: Run operator in the deferrable mode.
+   :param poll_interval: (Deferrable mode only) polling period in seconds to
+       check for the status of job.
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: deferrable
+      :value: True
+
+
+
+   .. py:attribute:: job_poll_interval
+      :value: 10.0
+
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:method:: execute(context)
+
+      Execute process of creating Job.
+
+
+
+   .. py:method:: execute_deferrable()
+
+
+.. py:class:: GKEDescribeJobOperator(job_name, namespace, location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+
+   Retrieve information about Job by given name.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEDescribeJobOperator`
+
+   :param job_name: The name of the Job to delete
+   :param namespace: The name of the Google Kubernetes Engine namespace.
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: job_name
+
+
+   .. py:attribute:: namespace
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: job
+      :type:  kubernetes.client.models.V1Job | None
+      :value: None
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: GKEListJobsOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, namespace = None, do_xcom_push = True, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+
+   Retrieve list of Jobs.
+
+   If namespace parameter is specified, the list of Jobs from dedicated
+   namespace will be retrieved. If no namespace specified, it will output Jobs from all namespaces.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEListJobsOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param namespace: The name of the Google Kubernetes Engine namespace.
+   :param do_xcom_push: If set to True the result list of Jobs will be pushed to the task result.
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: namespace
+      :value: None
+
+
+
+   .. py:attribute:: do_xcom_push
+      :value: True
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: GKECreateCustomResourceOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.resource.KubernetesCreateResourceOperator`
+
+
+   Create a resource in the specified Google Kubernetes Engine cluster.
+
+   This Operator assumes that the system has gcloud installed and has configured a
+   connection id with a service account.
+
+   .. seealso::
+       For more detail about Kubernetes Engine authentication have a look at the reference:
+       https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#internal_ip
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKECreateCustomResourceOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+.. py:class:: GKEDeleteCustomResourceOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.resource.KubernetesDeleteResourceOperator`
+
+
+   Delete a resource in the specified Google Kubernetes Engine cluster.
+
+   This Operator assumes that the system has gcloud installed and has configured a
+   connection id with a service account.
+
+   .. seealso::
+       For more detail about Kubernetes Engine authentication have a look at the reference:
+       https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#internal_ip
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEDeleteCustomResourceOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+.. py:class:: GKEStartKueueJobOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.kueue.KubernetesStartKueueJobOperator`
+
+
+   Executes a Kubernetes Job in Kueue in the specified Google Kubernetes Engine cluster.
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+.. py:class:: GKEDeleteJobOperator(location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.cncf.kubernetes.operators.job.KubernetesDeleteJobOperator`
+
+
+   Delete a Kubernetes job in the specified Google Kubernetes Engine cluster.
+
+   This Operator assumes that the system has gcloud installed and has configured a
+   connection id with a service account.
+
+   The **minimum** required to define a cluster to create are the variables
+   ``task_id``, ``project_id``, ``location``, ``cluster_name``, ``name``,
+   ``namespace``
+
+   .. seealso::
+       For more detail about Kubernetes Engine authentication have a look at the reference:
+       https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#internal_ip
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEDeleteJobOperator`
+
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+.. py:class:: GKESuspendJobOperator(name, namespace, location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+
+   Suspend Job by given name.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKESuspendJobOperator`
+
+   :param name: The name of the Job to suspend
+   :param namespace: The name of the Google Kubernetes Engine namespace.
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: namespace
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: job
+      :type:  kubernetes.client.models.V1Job | None
+      :value: None
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: GKEResumeJobOperator(name, namespace, location, cluster_name, use_internal_ip = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, *args, **kwargs)
+
+   Bases: :py:obj:`GKEOperatorMixin`, :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+
+   Resume Job by given name.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:GKEResumeJobOperator`
+
+   :param name: The name of the Job to resume
+   :param namespace: The name of the Google Kubernetes Engine namespace.
+   :param location: The name of the Google Kubernetes Engine zone or region in which the
+       cluster resides, e.g. 'us-central1-a'
+   :param cluster_name: The name of the Google Kubernetes Engine cluster.
+   :param use_internal_ip: Use the internal IP address as the endpoint.
+   :param project_id: The Google Developers Console project id
+   :param gcp_conn_id: The Google cloud connection id to use. This allows for
+       users to specify a service account.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+
+   .. py:attribute:: template_fields
+      :type:  collections.abc.Sequence[str]
+
+
+   .. py:attribute:: operator_extra_links
+
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: namespace
+
+
+   .. py:attribute:: project_id
+      :value: None
+
+
+
+   .. py:attribute:: location
+
+
+   .. py:attribute:: cluster_name
+
+
+   .. py:attribute:: gcp_conn_id
+      :value: 'google_cloud_default'
+
+
+
+   .. py:attribute:: use_internal_ip
+      :value: False
+
+
+
+   .. py:attribute:: impersonation_chain
+      :value: None
+
+
+
+   .. py:attribute:: job
+      :type:  kubernetes.client.models.V1Job | None
+      :value: None
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

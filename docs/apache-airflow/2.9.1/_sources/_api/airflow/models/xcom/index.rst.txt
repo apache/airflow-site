@@ -1,0 +1,175 @@
+:py:mod:`airflow.models.xcom`
+=============================
+
+.. py:module:: airflow.models.xcom
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.xcom.BaseXCom
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.xcom.resolve_xcom_backend
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.xcom.log
+   airflow.models.xcom.XCom
+
+
+.. py:data:: log
+
+   
+
+.. py:class:: BaseXCom(context=None)
+
+
+   Bases: :py:obj:`airflow.models.base.TaskInstanceDependencies`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Base class for XCom objects.
+
+   .. py:attribute:: __tablename__
+      :value: 'xcom'
+
+      
+
+   .. py:attribute:: dag_run_id
+
+      
+
+   .. py:attribute:: task_id
+
+      
+
+   .. py:attribute:: map_index
+
+      
+
+   .. py:attribute:: key
+
+      
+
+   .. py:attribute:: dag_id
+
+      
+
+   .. py:attribute:: run_id
+
+      
+
+   .. py:attribute:: value
+
+      
+
+   .. py:attribute:: timestamp
+
+      
+
+   .. py:attribute:: __table_args__
+      :value: ()
+
+      
+
+   .. py:attribute:: dag_run
+
+      
+
+   .. py:attribute:: execution_date
+
+      
+
+   .. py:method:: init_on_load()
+
+      Execute after the instance has been loaded from the DB or otherwise reconstituted; called by the ORM.
+
+      i.e automatically deserialize Xcom value when loading from DB.
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: get_value(*, ti_key, key = None, session = NEW_SESSION)
+      :staticmethod:
+
+      Retrieve an XCom value for a task instance.
+
+      This method returns "full" XCom values (i.e. uses ``deserialize_value``
+      from the XCom backend). Use :meth:`get_many` if you want the "shortened"
+      value via ``orm_deserialize_value``.
+
+      If there are no results, *None* is returned. If multiple XCom entries
+      match the criteria, an arbitrary one is returned.
+
+      :param ti_key: The TaskInstanceKey to look up the XCom for.
+      :param key: A key for the XCom. If provided, only XCom with matching
+          keys will be returned. Pass *None* (default) to remove the filter.
+      :param session: Database session. If not given, a new session will be
+          created for this function.
+
+
+   .. py:method:: delete(xcoms, session)
+      :classmethod:
+
+      Delete one or multiple XCom entries.
+
+
+   .. py:method:: purge(xcom, session)
+      :staticmethod:
+
+      Purge an XCom entry from underlying storage implementations.
+
+
+   .. py:method:: serialize_value(value, *, key = None, task_id = None, dag_id = None, run_id = None, map_index = None)
+      :staticmethod:
+
+      Serialize XCom value to str or pickled object.
+
+
+   .. py:method:: deserialize_value(result)
+      :staticmethod:
+
+      Deserialize XCom value from str or pickle object.
+
+
+   .. py:method:: orm_deserialize_value()
+
+      Deserialize method which is used to reconstruct ORM XCom object.
+
+      This method should be overridden in custom XCom backends to avoid
+      unnecessary request or other resource consuming operations when
+      creating XCom orm model. This is used when viewing XCom listing
+      in the webserver, for example.
+
+
+
+.. py:function:: resolve_xcom_backend()
+
+   Resolve custom XCom class.
+
+   Confirm that custom XCom class extends the BaseXCom.
+   Compare the function signature of the custom XCom serialize_value to the base XCom serialize_value.
+
+
+.. py:data:: XCom
+
+   
+

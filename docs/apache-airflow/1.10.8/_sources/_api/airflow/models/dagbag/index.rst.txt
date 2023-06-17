@@ -1,0 +1,150 @@
+:mod:`airflow.models.dagbag`
+============================
+
+.. py:module:: airflow.models.dagbag
+
+
+Module Contents
+---------------
+
+.. py:class:: DagBag(dag_folder=None, executor=None, include_examples=conf.getboolean('core', 'LOAD_EXAMPLES'), safe_mode=conf.getboolean('core', 'DAG_DISCOVERY_SAFE_MODE'), store_serialized_dags=False)
+
+   Bases: :class:`airflow.dag.base_dag.BaseDagBag`, :class:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   A dagbag is a collection of dags, parsed out of a folder tree and has high
+   level configuration settings, like what database to use as a backend and
+   what executor to use to fire off tasks. This makes it easier to run
+   distinct environments for say production and development, tests, or for
+   different teams or security profiles. What would have been system level
+   settings are now dagbag level so that one system can run multiple,
+   independent settings sets.
+
+   :param dag_folder: the folder to scan to find DAGs
+   :type dag_folder: unicode
+   :param executor: the executor to use when executing task instances
+       in this DagBag
+   :param include_examples: whether to include the examples that ship
+       with airflow or not
+   :type include_examples: bool
+   :param has_logged: an instance boolean that gets flipped from False to True after a
+       file has been skipped. This is to prevent overloading the user with logging
+       messages about skipped files. Therefore only once per DagBag is a file logged
+       being skipped.
+   :param store_serialized_dags: Read DAGs from DB if store_serialized_dags is ``True``.
+       If ``False`` DAGs are read from python files.
+   :type store_serialized_dags: bool
+
+   .. attribute:: CYCLE_NEW
+      :annotation: = 0
+
+      
+
+   .. attribute:: CYCLE_IN_PROGRESS
+      :annotation: = 1
+
+      
+
+   .. attribute:: CYCLE_DONE
+      :annotation: = 2
+
+      
+
+   .. attribute:: DAGBAG_IMPORT_TIMEOUT
+      
+
+      
+
+   .. attribute:: UNIT_TEST_MODE
+      
+
+      
+
+   .. attribute:: SCHEDULER_ZOMBIE_TASK_THRESHOLD
+      
+
+      
+
+   .. attribute:: dag_ids
+      
+
+      
+
+   
+   .. method:: size(self)
+
+      :return: the amount of dags contained in this dagbag
+
+
+
+   
+   .. method:: get_dag(self, dag_id, from_file_only=False)
+
+      Gets the DAG out of the dictionary, and refreshes it if expired
+
+      :param dag_id: DAG Id
+      :type dag_id: str
+      :param from_file_only: returns a DAG loaded from file.
+      :type from_file_only: bool
+
+
+
+   
+   .. method:: process_file(self, filepath, only_if_updated=True, safe_mode=True)
+
+      Given a path to a python module or zip file, this method imports
+      the module and look for dag objects within it.
+
+
+
+   
+   .. method:: kill_zombies(self, zombies, session=None)
+
+      Fail given zombie tasks, which are tasks that haven't
+      had a heartbeat for too long, in the current DagBag.
+
+      :param zombies: zombie task instances to kill.
+      :type zombies: airflow.utils.dag_processing.SimpleTaskInstance
+      :param session: DB session.
+      :type session: sqlalchemy.orm.session.Session
+
+
+
+   
+   .. method:: bag_dag(self, dag, parent_dag, root_dag)
+
+      Adds the DAG into the bag, recurses into sub dags.
+      Throws AirflowDagCycleException if a cycle is detected in this dag or its subdags
+
+
+
+   
+   .. method:: collect_dags(self, dag_folder=None, only_if_updated=True, include_examples=conf.getboolean('core', 'LOAD_EXAMPLES'), safe_mode=conf.getboolean('core', 'DAG_DISCOVERY_SAFE_MODE'))
+
+      Given a file path or a folder, this method looks for python modules,
+      imports them and adds them to the dagbag collection.
+
+      Note that if a ``.airflowignore`` file is found while processing
+      the directory, it will behave much like a ``.gitignore``,
+      ignoring files that match any of the regex patterns specified
+      in the file.
+
+      **Note**: The patterns in .airflowignore are treated as
+      un-anchored regexes, not shell-like glob patterns.
+
+
+
+   
+   .. method:: collect_dags_from_db(self)
+
+      Collects DAGs from database.
+
+
+
+   
+   .. method:: dagbag_report(self)
+
+      Prints a report around DagBag loading stats
+
+
+
+
