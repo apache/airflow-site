@@ -1,0 +1,159 @@
+:py:mod:`airflow.providers.amazon.aws.hooks.emr`
+================================================
+
+.. py:module:: airflow.providers.amazon.aws.hooks.emr
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.hooks.emr.EmrHook
+   airflow.providers.amazon.aws.hooks.emr.EmrContainerHook
+
+
+
+
+.. py:class:: EmrHook(emr_conn_id = default_conn_name, *args, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   Interact with AWS EMR. emr_conn_id is only necessary for using the
+   create_job_flow method.
+
+   Additional arguments (such as ``aws_conn_id``) may be specified and
+   are passed down to the underlying AwsBaseHook.
+
+   .. seealso::
+       :class:`~airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   .. py:attribute:: conn_name_attr
+      :annotation: = emr_conn_id
+
+      
+
+   .. py:attribute:: default_conn_name
+      :annotation: = emr_default
+
+      
+
+   .. py:attribute:: conn_type
+      :annotation: = emr
+
+      
+
+   .. py:attribute:: hook_name
+      :annotation: = Amazon Elastic MapReduce
+
+      
+
+   .. py:method:: get_cluster_id_by_name(self, emr_cluster_name, cluster_states)
+
+      Fetch id of EMR cluster with given name and (optional) states.
+      Will return only if single id is found.
+
+      :param emr_cluster_name: Name of a cluster to find
+      :param cluster_states: State(s) of cluster to find
+      :return: id of the EMR cluster
+
+
+   .. py:method:: create_job_flow(self, job_flow_overrides)
+
+      Creates a job flow using the config from the EMR connection.
+      Keys of the json extra hash may have the arguments of the boto3
+      run_job_flow method.
+      Overrides for this config may be passed as the job_flow_overrides.
+
+
+
+.. py:class:: EmrContainerHook(*args, virtual_cluster_id = None, **kwargs)
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   Interact with AWS EMR Virtual Cluster to run, poll jobs and return job status
+   Additional arguments (such as ``aws_conn_id``) may be specified and
+   are passed down to the underlying AwsBaseHook.
+
+   .. seealso::
+       :class:`~airflow.providers.amazon.aws.hooks.base_aws.AwsBaseHook`
+
+   :param virtual_cluster_id: Cluster ID of the EMR on EKS virtual cluster
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :annotation: = ['PENDING', 'SUBMITTED', 'RUNNING']
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :annotation: = ['FAILED', 'CANCELLED', 'CANCEL_PENDING']
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :annotation: = ['COMPLETED']
+
+      
+
+   .. py:attribute:: TERMINAL_STATES
+      :annotation: = ['COMPLETED', 'FAILED', 'CANCELLED', 'CANCEL_PENDING']
+
+      
+
+   .. py:method:: submit_job(self, name, execution_role_arn, release_label, job_driver, configuration_overrides = None, client_request_token = None)
+
+      Submit a job to the EMR Containers API and return the job ID.
+      A job run is a unit of work, such as a Spark jar, PySpark script,
+      or SparkSQL query, that you submit to Amazon EMR on EKS.
+      See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr-containers.html#EMRContainers.Client.start_job_run  # noqa: E501
+
+      :param name: The name of the job run.
+      :param execution_role_arn: The IAM role ARN associated with the job run.
+      :param release_label: The Amazon EMR release version to use for the job run.
+      :param job_driver: Job configuration details, e.g. the Spark job parameters.
+      :param configuration_overrides: The configuration overrides for the job run,
+          specifically either application configuration or monitoring configuration.
+      :param client_request_token: The client idempotency token of the job run request.
+          Use this if you want to specify a unique ID to prevent two jobs from getting started.
+      :return: Job ID
+
+
+   .. py:method:: get_job_failure_reason(self, job_id)
+
+      Fetch the reason for a job failure (e.g. error message). Returns None or reason string.
+
+      :param job_id: Id of submitted job run
+      :return: str
+
+
+   .. py:method:: check_query_status(self, job_id)
+
+      Fetch the status of submitted job run. Returns None or one of valid query states.
+      See: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr-containers.html#EMRContainers.Client.describe_job_run  # noqa: E501
+      :param job_id: Id of submitted job run
+      :return: str
+
+
+   .. py:method:: poll_query_status(self, job_id, max_tries = None, poll_interval = 30)
+
+      Poll the status of submitted job run until query state reaches final state.
+      Returns one of the final states.
+
+      :param job_id: Id of submitted job run
+      :param max_tries: Number of times to poll for query state before function exits
+      :param poll_interval: Time (in seconds) to wait between calls to check query status on EMR
+      :return: str
+
+
+   .. py:method:: stop_query(self, job_id)
+
+      Cancel the submitted job_run
+
+      :param job_id: Id of submitted job_run
+      :return: dict
+
+
+

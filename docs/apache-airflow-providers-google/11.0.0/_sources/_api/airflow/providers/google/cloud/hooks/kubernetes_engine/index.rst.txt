@@ -1,0 +1,233 @@
+:py:mod:`airflow.providers.google.cloud.hooks.kubernetes_engine`
+================================================================
+
+.. py:module:: airflow.providers.google.cloud.hooks.kubernetes_engine
+
+.. autoapi-nested-parse::
+
+   This module contains a Google Kubernetes Engine Hook.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.kubernetes_engine.GKEClusterConnection
+   airflow.providers.google.cloud.hooks.kubernetes_engine.GKEHook
+   airflow.providers.google.cloud.hooks.kubernetes_engine.GKEAsyncHook
+   airflow.providers.google.cloud.hooks.kubernetes_engine.GKEKubernetesHook
+   airflow.providers.google.cloud.hooks.kubernetes_engine.GKEKubernetesAsyncHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.kubernetes_engine.OPERATIONAL_POLL_INTERVAL
+
+
+.. py:data:: OPERATIONAL_POLL_INTERVAL
+   :value: 15
+
+   
+
+.. py:class:: GKEClusterConnection(cluster_url, ssl_ca_cert, credentials, enable_tcp_keepalive = False)
+
+
+   Helper for establishing connection to GKE cluster.
+
+   .. py:method:: get_conn()
+
+
+
+.. py:class:: GKEHook(gcp_conn_id = 'google_cloud_default', location = None, impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`
+
+   Google Kubernetes Engine cluster APIs.
+
+   All the methods in the hook where project_id is used must be called with
+   keyword arguments rather than positional.
+
+   .. py:method:: get_cluster_manager_client()
+
+      Create or get a ClusterManagerClient.
+
+
+   .. py:method:: wait_for_operation(operation, project_id = PROVIDE_PROJECT_ID)
+
+      Continuously fetch the status from Google Cloud.
+
+      This is done until the given operation completes, or raises an error.
+
+      :param operation: The Operation to wait for.
+      :param project_id: Google Cloud project ID.
+      :return: A new, updated operation fetched from Google Cloud.
+
+
+   .. py:method:: get_operation(operation_name, project_id = PROVIDE_PROJECT_ID)
+
+      Get an operation from Google Cloud.
+
+      :param operation_name: Name of operation to fetch
+      :param project_id: Google Cloud project ID
+      :return: The new, updated operation from Google Cloud
+
+
+   .. py:method:: delete_cluster(name, project_id = PROVIDE_PROJECT_ID, wait_to_complete = True, retry = DEFAULT, timeout = None)
+
+      Delete the cluster, the Kubernetes endpoint, and all worker nodes.
+
+      Firewalls and routes that were configured during cluster creation are
+      also deleted. Other Google Compute Engine resources that might be in use
+      by the cluster (e.g. load balancer resources) will not be deleted if
+      they were not present at the initial create time.
+
+      :param name: The name of the cluster to delete.
+      :param project_id: Google Cloud project ID.
+      :param wait_to_complete: If *True*, wait until the deletion is finished
+          before returning.
+      :param retry: Retry object used to determine when/if to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to
+          each individual attempt.
+      :return: The full url to the delete operation if successful, else None.
+
+
+   .. py:method:: create_cluster(cluster, project_id = PROVIDE_PROJECT_ID, wait_to_complete = True, retry = DEFAULT, timeout = None)
+
+      Create a cluster.
+
+      This should consist of the specified number, and the type of Google
+      Compute Engine instances.
+
+      :param cluster: A Cluster protobuf or dict. If dict is provided, it must
+          be of the same form as the protobuf message
+          :class:`google.cloud.container_v1.types.Cluster`.
+      :param project_id: Google Cloud project ID.
+      :param wait_to_complete: A boolean value which makes method to sleep
+          while operation of creation is not finished.
+      :param retry: A retry object (``google.api_core.retry.Retry``) used to
+          retry requests. If None is specified, requests will not be retried.
+      :param timeout: The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to
+          each individual attempt.
+      :return: The full url to the new, or existing, cluster.
+      :raises ParseError: On JSON parsing problems when trying to convert
+          dict.
+      :raises AirflowException: cluster is not dict type nor Cluster proto
+          type.
+
+
+   .. py:method:: get_cluster(name, project_id = PROVIDE_PROJECT_ID, retry = DEFAULT, timeout = None)
+
+      Get details of specified cluster.
+
+      :param name: The name of the cluster to retrieve.
+      :param project_id: Google Cloud project ID.
+      :param retry: A retry object used to retry requests. If None is
+          specified, requests will not be retried.
+      :param timeout: The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to
+          each individual attempt.
+
+
+   .. py:method:: check_cluster_autoscaling_ability(cluster)
+
+      Check if the specified Cluster has ability to autoscale.
+
+      Cluster should be Autopilot, with Node Auto-provisioning or regular auto-scaled node pools.
+      Returns True if the Cluster supports autoscaling, otherwise returns False.
+
+      :param cluster: The Cluster object.
+
+
+
+.. py:class:: GKEAsyncHook(gcp_conn_id = 'google_cloud_default', location = None, impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseAsyncHook`
+
+   Asynchronous client of GKE.
+
+   .. py:attribute:: sync_hook_class
+
+      
+
+   .. py:method:: get_operation(operation_name, project_id = PROVIDE_PROJECT_ID)
+      :async:
+
+      Fetch an operation from Google Cloud.
+
+      :param operation_name: Name of operation to fetch.
+      :param project_id: Google Cloud project ID.
+      :return: The new, updated operation from Google Cloud.
+
+
+
+.. py:class:: GKEKubernetesHook(cluster_url, ssl_ca_cert, enable_tcp_keepalive = False, *args, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`, :py:obj:`airflow.providers.cncf.kubernetes.hooks.kubernetes.KubernetesHook`
+
+   GKE authenticated hook for standard Kubernetes API.
+
+   This hook provides full set of the standard Kubernetes API provided by the KubernetesHook,
+   and at the same time it provides a GKE authentication, so it makes it possible to KubernetesHook
+   functionality against GKE clusters.
+
+   .. py:method:: get_conn()
+
+      Return connection for the hook.
+
+
+   .. py:method:: check_kueue_deployment_running(name, namespace)
+
+
+   .. py:method:: apply_from_yaml_file(yaml_file = None, yaml_objects = None, verbose = False, namespace = 'default')
+
+      Perform an action from a yaml file.
+
+      :param yaml_file: Contains the path to yaml file.
+      :param yaml_objects: List of YAML objects; used instead of reading the yaml_file.
+      :param verbose: If True, print confirmation from create action. Default is False.
+      :param namespace: Contains the namespace to create all resources inside. The namespace must
+          preexist otherwise the resource creation will fail.
+
+
+
+.. py:class:: GKEKubernetesAsyncHook(cluster_url, ssl_ca_cert, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, enable_tcp_keepalive = True, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseAsyncHook`, :py:obj:`airflow.providers.cncf.kubernetes.hooks.kubernetes.AsyncKubernetesHook`
+
+   Async GKE authenticated hook for standard Kubernetes API.
+
+   This hook provides full set of the standard Kubernetes API provided by the AsyncKubernetesHook,
+   and at the same time it provides a GKE authentication, so it makes it possible to KubernetesHook
+   functionality against GKE clusters.
+
+   .. py:attribute:: sync_hook_class
+
+      
+
+   .. py:attribute:: scopes
+      :value: ['https://www.googleapis.com/auth/cloud-platform']
+
+      
+
+   .. py:method:: get_conn()
+      :async:
+
+
+

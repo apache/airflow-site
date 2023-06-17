@@ -1,0 +1,441 @@
+:py:mod:`airflow.providers.google.cloud.hooks.gcs`
+==================================================
+
+.. py:module:: airflow.providers.google.cloud.hooks.gcs
+
+.. autoapi-nested-parse::
+
+   This module contains a Google Cloud Storage hook.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.gcs.GCSHook
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.gcs.gcs_object_is_directory
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.gcs.RT
+   airflow.providers.google.cloud.hooks.gcs.T
+   airflow.providers.google.cloud.hooks.gcs.DEFAULT_TIMEOUT
+   airflow.providers.google.cloud.hooks.gcs.PROVIDE_BUCKET
+
+
+.. py:data:: RT
+   
+
+   
+
+.. py:data:: T
+   
+
+   
+
+.. py:data:: DEFAULT_TIMEOUT
+   :annotation: = 60
+
+   
+
+.. py:data:: PROVIDE_BUCKET
+   :annotation: :str
+
+   
+
+.. py:class:: GCSHook(gcp_conn_id = 'google_cloud_default', delegate_to = None, impersonation_chain = None)
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`
+
+   Interact with Google Cloud Storage. This hook uses the Google Cloud
+   connection.
+
+   .. py:method:: get_conn(self)
+
+      Returns a Google Cloud Storage service object.
+
+
+   .. py:method:: copy(self, source_bucket, source_object, destination_bucket = None, destination_object = None)
+
+      Copies an object from a bucket to another, with renaming if requested.
+
+      destination_bucket or destination_object can be omitted, in which case
+      source bucket/object is used, but not both.
+
+      :param source_bucket: The bucket of the object to copy from.
+      :param source_object: The object to copy.
+      :param destination_bucket: The destination of the object to copied to.
+          Can be omitted; then the same bucket is used.
+      :param destination_object: The (renamed) path of the object if given.
+          Can be omitted; then the same name is used.
+
+
+   .. py:method:: rewrite(self, source_bucket, source_object, destination_bucket, destination_object = None)
+
+      Has the same functionality as copy, except that will work on files
+      over 5 TB, as well as when copying between locations and/or storage
+      classes.
+
+      destination_object can be omitted, in which case source_object is used.
+
+      :param source_bucket: The bucket of the object to copy from.
+      :param source_object: The object to copy.
+      :param destination_bucket: The destination of the object to copied to.
+      :param destination_object: The (renamed) path of the object if given.
+          Can be omitted; then the same name is used.
+
+
+   .. py:method:: download(self, bucket_name: str, object_name: str, filename: None = None, chunk_size: Optional[int] = None, timeout: Optional[int] = DEFAULT_TIMEOUT, num_max_attempts: Optional[int] = 1) -> bytes
+               download(self, bucket_name: str, object_name: str, filename: str, chunk_size: Optional[int] = None, timeout: Optional[int] = DEFAULT_TIMEOUT, num_max_attempts: Optional[int] = 1) -> str
+
+      Downloads a file from Google Cloud Storage.
+
+      When no filename is supplied, the operator loads the file into memory and returns its
+      content. When a filename is supplied, it writes the file to the specified location and
+      returns the location. For file sizes that exceed the available memory it is recommended
+      to write to a file.
+
+      :param bucket_name: The bucket to fetch from.
+      :param object_name: The object to fetch.
+      :param filename: If set, a local file path where the file should be written to.
+      :param chunk_size: Blob chunk size.
+      :param timeout: Request timeout in seconds.
+      :param num_max_attempts: Number of attempts to download the file.
+
+
+   .. py:method:: download_as_byte_array(self, bucket_name, object_name, chunk_size = None, timeout = DEFAULT_TIMEOUT, num_max_attempts = 1)
+
+      Downloads a file from Google Cloud Storage.
+
+      When no filename is supplied, the operator loads the file into memory and returns its
+      content. When a filename is supplied, it writes the file to the specified location and
+      returns the location. For file sizes that exceed the available memory it is recommended
+      to write to a file.
+
+      :param bucket_name: The bucket to fetch from.
+      :param object_name: The object to fetch.
+      :param chunk_size: Blob chunk size.
+      :param timeout: Request timeout in seconds.
+      :param num_max_attempts: Number of attempts to download the file.
+
+
+   .. py:method:: provide_file(self, bucket_name = PROVIDE_BUCKET, object_name = None, object_url = None, dir = None)
+
+      Downloads the file to a temporary directory and returns a file handle
+
+      You can use this method by passing the bucket_name and object_name parameters
+      or just object_url parameter.
+
+      :param bucket_name: The bucket to fetch from.
+      :param object_name: The object to fetch.
+      :param object_url: File reference url. Must start with "gs: //"
+      :param dir: The tmp sub directory to download the file to. (passed to NamedTemporaryFile)
+      :return: File handler
+
+
+   .. py:method:: provide_file_and_upload(self, bucket_name = PROVIDE_BUCKET, object_name = None, object_url = None)
+
+      Creates temporary file, returns a file handle and uploads the files content
+      on close.
+
+      You can use this method by passing the bucket_name and object_name parameters
+      or just object_url parameter.
+
+      :param bucket_name: The bucket to fetch from.
+      :param object_name: The object to fetch.
+      :param object_url: File reference url. Must start with "gs: //"
+      :return: File handler
+
+
+   .. py:method:: upload(self, bucket_name, object_name, filename = None, data = None, mime_type = None, gzip = False, encoding = 'utf-8', chunk_size = None, timeout = DEFAULT_TIMEOUT, num_max_attempts = 1, metadata = None)
+
+      Uploads a local file or file data as string or bytes to Google Cloud Storage.
+
+      :param bucket_name: The bucket to upload to.
+      :param object_name: The object name to set when uploading the file.
+      :param filename: The local file path to the file to be uploaded.
+      :param data: The file's data as a string or bytes to be uploaded.
+      :param mime_type: The file's mime type set when uploading the file.
+      :param gzip: Option to compress local file or file data for upload
+      :param encoding: bytes encoding for file data if provided as string
+      :param chunk_size: Blob chunk size.
+      :param timeout: Request timeout in seconds.
+      :param num_max_attempts: Number of attempts to try to upload the file.
+      :param metadata: The metadata to be uploaded with the file.
+
+
+   .. py:method:: exists(self, bucket_name, object_name)
+
+      Checks for the existence of a file in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the object is.
+      :param object_name: The name of the blob_name to check in the Google cloud
+          storage bucket.
+
+
+   .. py:method:: get_blob_update_time(self, bucket_name, object_name)
+
+      Get the update time of a file in Google Cloud Storage
+
+      :param bucket_name: The Google Cloud Storage bucket where the object is.
+      :param object_name: The name of the blob to get updated time from the Google cloud
+          storage bucket.
+
+
+   .. py:method:: is_updated_after(self, bucket_name, object_name, ts)
+
+      Checks if an blob_name is updated in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the object is.
+      :param object_name: The name of the object to check in the Google cloud
+          storage bucket.
+      :param ts: The timestamp to check against.
+
+
+   .. py:method:: is_updated_between(self, bucket_name, object_name, min_ts, max_ts)
+
+      Checks if an blob_name is updated in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the object is.
+      :param object_name: The name of the object to check in the Google cloud
+              storage bucket.
+      :param min_ts: The minimum timestamp to check against.
+      :param max_ts: The maximum timestamp to check against.
+
+
+   .. py:method:: is_updated_before(self, bucket_name, object_name, ts)
+
+      Checks if an blob_name is updated before given time in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the object is.
+      :param object_name: The name of the object to check in the Google cloud
+          storage bucket.
+      :param ts: The timestamp to check against.
+
+
+   .. py:method:: is_older_than(self, bucket_name, object_name, seconds)
+
+      Check if object is older than given time
+
+      :param bucket_name: The Google Cloud Storage bucket where the object is.
+      :param object_name: The name of the object to check in the Google cloud
+          storage bucket.
+      :param seconds: The time in seconds to check against
+
+
+   .. py:method:: delete(self, bucket_name, object_name)
+
+      Deletes an object from the bucket.
+
+      :param bucket_name: name of the bucket, where the object resides
+      :param object_name: name of the object to delete
+
+
+   .. py:method:: delete_bucket(self, bucket_name, force = False)
+
+      Delete a bucket object from the Google Cloud Storage.
+
+      :param bucket_name: name of the bucket which will be deleted
+      :param force: false not allow to delete non empty bucket, set force=True
+          allows to delete non empty bucket
+
+
+   .. py:method:: list(self, bucket_name, versions=None, max_results=None, prefix=None, delimiter=None)
+
+      List all objects from the bucket with the give string prefix in name
+
+      :param bucket_name: bucket name
+      :param versions: if true, list all versions of the objects
+      :param max_results: max count of items to return in a single page of responses
+      :param prefix: prefix string which filters objects whose name begin with
+          this prefix
+      :param delimiter: filters objects based on the delimiter (for e.g '.csv')
+      :return: a stream of object names matching the filtering criteria
+
+
+   .. py:method:: list_by_timespan(self, bucket_name, timespan_start, timespan_end, versions = None, max_results = None, prefix = None, delimiter = None)
+
+      List all objects from the bucket with the give string prefix in name that were
+      updated in the time between ``timespan_start`` and ``timespan_end``.
+
+      :param bucket_name: bucket name
+      :param timespan_start: will return objects that were updated at or after this datetime (UTC)
+      :param timespan_end: will return objects that were updated before this datetime (UTC)
+      :param versions: if true, list all versions of the objects
+      :param max_results: max count of items to return in a single page of responses
+      :param prefix: prefix string which filters objects whose name begin with
+          this prefix
+      :param delimiter: filters objects based on the delimiter (for e.g '.csv')
+      :return: a stream of object names matching the filtering criteria
+
+
+   .. py:method:: get_size(self, bucket_name, object_name)
+
+      Gets the size of a file in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the blob_name is.
+      :param object_name: The name of the object to check in the Google
+          cloud storage bucket_name.
+
+
+
+   .. py:method:: get_crc32c(self, bucket_name, object_name)
+
+      Gets the CRC32c checksum of an object in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the blob_name is.
+      :param object_name: The name of the object to check in the Google cloud
+          storage bucket_name.
+
+
+   .. py:method:: get_md5hash(self, bucket_name, object_name)
+
+      Gets the MD5 hash of an object in Google Cloud Storage.
+
+      :param bucket_name: The Google Cloud Storage bucket where the blob_name is.
+      :param object_name: The name of the object to check in the Google cloud
+          storage bucket_name.
+
+
+   .. py:method:: create_bucket(self, bucket_name, resource = None, storage_class = 'MULTI_REGIONAL', location = 'US', project_id = None, labels = None)
+
+      Creates a new bucket. Google Cloud Storage uses a flat namespace, so
+      you can't create a bucket with a name that is already in use.
+
+      .. seealso::
+          For more information, see Bucket Naming Guidelines:
+          https://cloud.google.com/storage/docs/bucketnaming.html#requirements
+
+      :param bucket_name: The name of the bucket.
+      :param resource: An optional dict with parameters for creating the bucket.
+          For information on available parameters, see Cloud Storage API doc:
+          https://cloud.google.com/storage/docs/json_api/v1/buckets/insert
+      :param storage_class: This defines how objects in the bucket are stored
+          and determines the SLA and the cost of storage. Values include
+
+          - ``MULTI_REGIONAL``
+          - ``REGIONAL``
+          - ``STANDARD``
+          - ``NEARLINE``
+          - ``COLDLINE``.
+
+          If this value is not specified when the bucket is
+          created, it will default to STANDARD.
+      :param location: The location of the bucket.
+          Object data for objects in the bucket resides in physical storage
+          within this region. Defaults to US.
+
+          .. seealso::
+              https://developers.google.com/storage/docs/bucket-locations
+
+      :param project_id: The ID of the Google Cloud Project.
+      :param labels: User-provided labels, in key/value pairs.
+      :return: If successful, it returns the ``id`` of the bucket.
+
+
+   .. py:method:: insert_bucket_acl(self, bucket_name, entity, role, user_project = None)
+
+      Creates a new ACL entry on the specified bucket_name.
+      See: https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls/insert
+
+      :param bucket_name: Name of a bucket_name.
+      :param entity: The entity holding the permission, in one of the following forms:
+          user-userId, user-email, group-groupId, group-email, domain-domain,
+          project-team-projectId, allUsers, allAuthenticatedUsers.
+          See: https://cloud.google.com/storage/docs/access-control/lists#scopes
+      :param role: The access permission for the entity.
+          Acceptable values are: "OWNER", "READER", "WRITER".
+      :param user_project: (Optional) The project to be billed for this request.
+          Required for Requester Pays buckets.
+
+
+   .. py:method:: insert_object_acl(self, bucket_name, object_name, entity, role, generation = None, user_project = None)
+
+      Creates a new ACL entry on the specified object.
+      See: https://cloud.google.com/storage/docs/json_api/v1/objectAccessControls/insert
+
+      :param bucket_name: Name of a bucket_name.
+      :param object_name: Name of the object. For information about how to URL encode
+          object names to be path safe, see:
+          https://cloud.google.com/storage/docs/json_api/#encoding
+      :param entity: The entity holding the permission, in one of the following forms:
+          user-userId, user-email, group-groupId, group-email, domain-domain,
+          project-team-projectId, allUsers, allAuthenticatedUsers
+          See: https://cloud.google.com/storage/docs/access-control/lists#scopes
+      :param role: The access permission for the entity.
+          Acceptable values are: "OWNER", "READER".
+      :param generation: Optional. If present, selects a specific revision of this object.
+      :param user_project: (Optional) The project to be billed for this request.
+          Required for Requester Pays buckets.
+
+
+   .. py:method:: compose(self, bucket_name, source_objects, destination_object)
+
+      Composes a list of existing object into a new object in the same storage bucket_name
+
+      Currently it only supports up to 32 objects that can be concatenated
+      in a single operation
+
+      https://cloud.google.com/storage/docs/json_api/v1/objects/compose
+
+      :param bucket_name: The name of the bucket containing the source objects.
+          This is also the same bucket to store the composed destination object.
+      :param source_objects: The list of source objects that will be composed
+          into a single object.
+      :param destination_object: The path of the object if given.
+
+
+   .. py:method:: sync(self, source_bucket, destination_bucket, source_object = None, destination_object = None, recursive = True, allow_overwrite = False, delete_extra_files = False)
+
+      Synchronizes the contents of the buckets.
+
+      Parameters ``source_object`` and ``destination_object`` describe the root sync directories. If they
+      are not passed, the entire bucket will be synchronized. If they are passed, they should point
+      to directories.
+
+      .. note::
+          The synchronization of individual files is not supported. Only entire directories can be
+          synchronized.
+
+      :param source_bucket: The name of the bucket containing the source objects.
+      :param destination_bucket: The name of the bucket containing the destination objects.
+      :param source_object: The root sync directory in the source bucket.
+      :param destination_object: The root sync directory in the destination bucket.
+      :param recursive: If True, subdirectories will be considered
+      :param recursive: If True, subdirectories will be considered
+      :param allow_overwrite: if True, the files will be overwritten if a mismatched file is found.
+          By default, overwriting files is not allowed
+      :param delete_extra_files: if True, deletes additional files from the source that not found in the
+          destination. By default extra files are not deleted.
+
+          .. note::
+              This option can delete data quickly if you specify the wrong source/destination combination.
+
+      :return: none
+
+
+
+.. py:function:: gcs_object_is_directory(bucket)
+
+   Return True if given Google Cloud Storage URL (gs://<bucket>/<blob>)
+   is a directory or an empty bucket. Otherwise return False.
+
+
