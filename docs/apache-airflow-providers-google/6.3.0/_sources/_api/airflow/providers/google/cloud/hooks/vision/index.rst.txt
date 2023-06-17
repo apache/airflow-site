@@ -1,0 +1,255 @@
+:py:mod:`airflow.providers.google.cloud.hooks.vision`
+=====================================================
+
+.. py:module:: airflow.providers.google.cloud.hooks.vision
+
+.. autoapi-nested-parse::
+
+   This module contains a Google Cloud Vision Hook.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.vision.NameDeterminer
+   airflow.providers.google.cloud.hooks.vision.CloudVisionHook
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.vision.ERR_DIFF_NAMES
+   airflow.providers.google.cloud.hooks.vision.ERR_UNABLE_TO_CREATE
+
+
+.. py:data:: ERR_DIFF_NAMES
+   :annotation: = Multiline-String
+
+    .. raw:: html
+
+        <details><summary>Show Value</summary>
+
+    .. code-block:: text
+        :linenos:
+
+        The {label} name provided in the object ({explicit_name}) is different
+            than the name created from the input parameters ({constructed_name}). Please either:
+            1) Remove the {label} name,
+            2) Remove the location and {id_label} parameters,
+            3) Unify the {label} name and input parameters.
+            
+
+    .. raw:: html
+
+        </details>
+
+   
+
+.. py:data:: ERR_UNABLE_TO_CREATE
+   :annotation: = Multiline-String
+
+    .. raw:: html
+
+        <details><summary>Show Value</summary>
+
+    .. code-block:: text
+        :linenos:
+
+        Unable to determine the {label} name. Please either set the name directly
+            in the {label} object or provide the `location` and `{id_label}` parameters.
+            
+
+    .. raw:: html
+
+        </details>
+
+   
+
+.. py:class:: NameDeterminer(label: str, id_label: str, get_path: Callable[[str, str, str], str])
+
+   Helper class to determine entity name.
+
+   .. py:method:: get_entity_with_name(self, entity: Any, entity_id: Optional[str], location: Optional[str], project_id: str) -> Any
+
+      Check if entity has the `name` attribute set:
+      * If so, no action is taken.
+
+      * If not, and the name can be constructed from other parameters provided, it is created and filled in
+          the entity.
+
+      * If both the entity's 'name' attribute is set and the name can be constructed from other parameters
+          provided:
+
+          * If they are the same - no action is taken
+
+          * if they are different - an exception is thrown.
+
+
+      :param entity: Entity
+      :type entity: any
+      :param entity_id: Entity id
+      :type entity_id: str
+      :param location: Location
+      :type location: str
+      :param project_id: The id of Google Cloud Vision project.
+      :type project_id: str
+      :return: The same entity or entity with new name
+      :rtype: str
+      :raises: AirflowException
+
+
+
+.. py:class:: CloudVisionHook(gcp_conn_id: str = 'google_cloud_default', delegate_to: Optional[str] = None, impersonation_chain: Optional[Union[str, Sequence[str]]] = None)
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`
+
+   Hook for Google Cloud Vision APIs.
+
+   All the methods in the hook where project_id is used must be called with
+   keyword arguments rather than positional.
+
+   .. py:attribute:: product_name_determiner
+      
+
+      
+
+   .. py:attribute:: product_set_name_determiner
+      
+
+      
+
+   .. py:method:: get_conn(self) -> google.cloud.vision_v1.ProductSearchClient
+
+      Retrieves connection to Cloud Vision.
+
+      :return: Google Cloud Vision client object.
+      :rtype: google.cloud.vision_v1.ProductSearchClient
+
+
+   .. py:method:: annotator_client(self) -> google.cloud.vision_v1.ImageAnnotatorClient
+
+      Creates ImageAnnotatorClient.
+
+      :return: Google Image Annotator client object.
+      :rtype: google.cloud.vision_v1.ImageAnnotatorClient
+
+
+   .. py:method:: create_product_set(self, location: str, product_set: Union[dict, google.cloud.vision_v1.types.ProductSet], project_id: str = PROVIDE_PROJECT_ID, product_set_id: Optional[str] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> str
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionCreateProductSetOperator`
+
+
+   .. py:method:: get_product_set(self, location: str, product_set_id: str, project_id: str = PROVIDE_PROJECT_ID, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> dict
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionGetProductSetOperator`
+
+
+   .. py:method:: update_product_set(self, product_set: Union[dict, google.cloud.vision_v1.types.ProductSet], project_id: str = PROVIDE_PROJECT_ID, location: Optional[str] = None, product_set_id: Optional[str] = None, update_mask: Union[dict, google.cloud.vision_v1.types.FieldMask] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> dict
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionUpdateProductSetOperator`
+
+
+   .. py:method:: delete_product_set(self, location: str, product_set_id: str, project_id: str = PROVIDE_PROJECT_ID, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> None
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionDeleteProductSetOperator`
+
+
+   .. py:method:: create_product(self, location: str, product: Union[dict, google.cloud.vision_v1.types.Product], project_id: str = PROVIDE_PROJECT_ID, product_id: Optional[str] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ())
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionCreateProductOperator`
+
+
+   .. py:method:: get_product(self, location: str, product_id: str, project_id: str = PROVIDE_PROJECT_ID, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ())
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionGetProductOperator`
+
+
+   .. py:method:: update_product(self, product: Union[dict, google.cloud.vision_v1.types.Product], project_id: str = PROVIDE_PROJECT_ID, location: Optional[str] = None, product_id: Optional[str] = None, update_mask: Optional[Dict[str, google.cloud.vision_v1.types.FieldMask]] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ())
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionUpdateProductOperator`
+
+
+   .. py:method:: delete_product(self, location: str, product_id: str, project_id: str = PROVIDE_PROJECT_ID, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> None
+
+      For the documentation see:
+      :class:`~airflow.providers.google.cloud.operators.vision.CloudVisionDeleteProductOperator`
+
+
+   .. py:method:: create_reference_image(self, location: str, product_id: str, reference_image: Union[dict, google.cloud.vision_v1.types.ReferenceImage], project_id: str, reference_image_id: Optional[str] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> str
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionCreateReferenceImageOperator`
+
+
+   .. py:method:: delete_reference_image(self, location: str, product_id: str, reference_image_id: str, project_id: str, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionDeleteReferenceImageOperator`
+
+
+   .. py:method:: add_product_to_product_set(self, product_set_id: str, product_id: str, project_id: str, location: Optional[str] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> None
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionAddProductToProductSetOperator`
+
+
+   .. py:method:: remove_product_from_product_set(self, product_set_id: str, product_id: str, project_id: str, location: Optional[str] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, metadata: Sequence[Tuple[str, str]] = ()) -> None
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionRemoveProductFromProductSetOperator`
+
+
+   .. py:method:: annotate_image(self, request: Union[dict, google.cloud.vision_v1.types.AnnotateImageRequest], retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None) -> Dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionImageAnnotateOperator`
+
+
+   .. py:method:: batch_annotate_images(self, requests: Union[List[dict], List[google.cloud.vision_v1.types.AnnotateImageRequest]], retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None) -> dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionImageAnnotateOperator`
+
+
+   .. py:method:: text_detection(self, image: Union[dict, google.cloud.vision_v1.types.Image], max_results: Optional[int] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, additional_properties: Optional[Dict] = None) -> dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionDetectTextOperator`
+
+
+   .. py:method:: document_text_detection(self, image: Union[dict, google.cloud.vision_v1.types.Image], max_results: Optional[int] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, additional_properties: Optional[dict] = None) -> dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionTextDetectOperator`
+
+
+   .. py:method:: label_detection(self, image: Union[dict, google.cloud.vision_v1.types.Image], max_results: Optional[int] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, additional_properties: Optional[dict] = None) -> dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionDetectImageLabelsOperator`
+
+
+   .. py:method:: safe_search_detection(self, image: Union[dict, google.cloud.vision_v1.types.Image], max_results: Optional[int] = None, retry: Optional[google.api_core.retry.Retry] = None, timeout: Optional[float] = None, additional_properties: Optional[dict] = None) -> dict
+
+      For the documentation see:
+      :py:class:`~airflow.providers.google.cloud.operators.vision.CloudVisionDetectImageSafeSearchOperator`
+
+
+

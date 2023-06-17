@@ -1,0 +1,250 @@
+:py:mod:`airflow.providers.sftp.hooks.sftp`
+===========================================
+
+.. py:module:: airflow.providers.sftp.hooks.sftp
+
+.. autoapi-nested-parse::
+
+   This module contains SFTP hook.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.sftp.hooks.sftp.SFTPHook
+
+
+
+
+.. py:class:: SFTPHook(ssh_conn_id = 'sftp_default', ssh_hook = None, *args, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.ssh.hooks.ssh.SSHHook`
+
+   Interact with SFTP.
+
+   This hook inherits the SSH hook. Please refer to SSH hook for the input
+   arguments.
+
+   :Pitfalls::
+
+       - In contrast with FTPHook describe_directory only returns size, type and
+         modify. It doesn't return unix.owner, unix.mode, perm, unix.group and
+         unique.
+       - retrieve_file and store_file only take a local full path and not a
+          buffer.
+       - If no mode is passed to create_directory it will be created with 777
+         permissions.
+
+   Errors that may occur throughout but should be handled downstream.
+
+   For consistency reasons with SSHHook, the preferred parameter is "ssh_conn_id".
+
+   :param ssh_conn_id: The :ref:`sftp connection id<howto/connection:sftp>`
+   :param ssh_hook: Optional SSH hook (included to support passing of an SSH hook to the SFTP operator)
+
+   .. py:attribute:: conn_name_attr
+      :value: 'ssh_conn_id'
+
+      
+
+   .. py:attribute:: default_conn_name
+      :value: 'sftp_default'
+
+      
+
+   .. py:attribute:: conn_type
+      :value: 'sftp'
+
+      
+
+   .. py:attribute:: hook_name
+      :value: 'SFTP'
+
+      
+
+   .. py:method:: get_ui_field_behaviour()
+      :classmethod:
+
+      Returns custom field behaviour.
+
+
+   .. py:method:: get_conn()
+
+      Opens an SFTP connection to the remote host.
+
+
+   .. py:method:: close_conn()
+
+      Closes the SFTP connection.
+
+
+   .. py:method:: describe_directory(path)
+
+      Get file information in a directory on the remote system.
+
+      The return format is ``{filename: {attributes}}``. The remote system
+      support the MLSD command.
+
+      :param path: full path to the remote directory
+
+
+   .. py:method:: list_directory(path)
+
+      List files in a directory on the remote system.
+
+      :param path: full path to the remote directory to list
+
+
+   .. py:method:: mkdir(path, mode = 511)
+
+      Create a directory on the remote system.
+
+      The default mode is ``0o777``, but on some systems, the current umask
+      value may be first masked out.
+
+      :param path: full path to the remote directory to create
+      :param mode: int permissions of octal mode for directory
+
+
+   .. py:method:: isdir(path)
+
+      Check if the path provided is a directory.
+
+      :param path: full path to the remote directory to check
+
+
+   .. py:method:: isfile(path)
+
+      Check if the path provided is a file.
+
+      :param path: full path to the remote file to check
+
+
+   .. py:method:: create_directory(path, mode = 511)
+
+      Create a directory on the remote system.
+
+      The default mode is ``0o777``, but on some systems, the current umask
+      value may be first masked out. Different from :func:`.mkdir`, this
+      function attempts to create parent directories if needed, and returns
+      silently if the target directory already exists.
+
+      :param path: full path to the remote directory to create
+      :param mode: int permissions of octal mode for directory
+
+
+   .. py:method:: delete_directory(path)
+
+      Delete a directory on the remote system.
+
+      :param path: full path to the remote directory to delete
+
+
+   .. py:method:: retrieve_file(remote_full_path, local_full_path, prefetch = True)
+
+      Transfer the remote file to a local location.
+
+      If local_full_path is a string path, the file will be put
+      at that location.
+
+      :param remote_full_path: full path to the remote file
+      :param local_full_path: full path to the local file
+      :param prefetch: controls whether prefetch is performed (default: True)
+
+
+   .. py:method:: store_file(remote_full_path, local_full_path, confirm = True)
+
+      Transfer a local file to the remote location.
+
+      If local_full_path_or_buffer is a string path, the file will be read
+      from that location.
+
+      :param remote_full_path: full path to the remote file
+      :param local_full_path: full path to the local file
+
+
+   .. py:method:: delete_file(path)
+
+      Remove a file on the server.
+
+      :param path: full path to the remote file
+
+
+   .. py:method:: get_mod_time(path)
+
+      Get an entry's modification time.
+
+      :param path: full path to the remote file
+
+
+   .. py:method:: path_exists(path)
+
+      Whether a remote entity exists.
+
+      :param path: full path to the remote file or directory
+
+
+   .. py:method:: walktree(path, fcallback, dcallback, ucallback, recurse = True)
+
+      Recursively descend, depth first, the directory tree at ``path``.
+
+      This calls discrete callback functions for each regular file, directory,
+      and unknown file type.
+
+      :param str path:
+          root of remote directory to descend, use '.' to start at
+          :attr:`.pwd`
+      :param callable fcallback:
+          callback function to invoke for a regular file.
+          (form: ``func(str)``)
+      :param callable dcallback:
+          callback function to invoke for a directory. (form: ``func(str)``)
+      :param callable ucallback:
+          callback function to invoke for an unknown file type.
+          (form: ``func(str)``)
+      :param bool recurse: *Default: True* - should it recurse
+
+
+   .. py:method:: get_tree_map(path, prefix = None, delimiter = None)
+
+      Get tuple with recursive lists of files, directories and unknown paths.
+
+      It is possible to filter results by giving prefix and/or delimiter parameters.
+
+      :param path: path from which tree will be built
+      :param prefix: if set paths will be added if start with prefix
+      :param delimiter: if set paths will be added if end with delimiter
+      :return: tuple with list of files, dirs and unknown items
+
+
+   .. py:method:: test_connection()
+
+      Test the SFTP connection by calling path with directory.
+
+
+   .. py:method:: get_file_by_pattern(path, fnmatch_pattern)
+
+      Get the first matching file based on the given fnmatch type pattern.
+
+      :param path: path to be checked
+      :param fnmatch_pattern: The pattern that will be matched with `fnmatch`
+      :return: string containing the first found file, or an empty string if none matched
+
+
+   .. py:method:: get_files_by_pattern(path, fnmatch_pattern)
+
+      Get all matching files based on the given fnmatch type pattern.
+
+      :param path: path to be checked
+      :param fnmatch_pattern: The pattern that will be matched with `fnmatch`
+      :return: list of string containing the found files, or an empty list if none matched
+
+
+

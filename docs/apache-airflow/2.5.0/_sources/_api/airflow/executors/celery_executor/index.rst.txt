@@ -1,0 +1,220 @@
+:py:mod:`airflow.executors.celery_executor`
+===========================================
+
+.. py:module:: airflow.executors.celery_executor
+
+.. autoapi-nested-parse::
+
+   CeleryExecutor
+
+   .. seealso::
+       For more information on how the CeleryExecutor works, take a look at the guide:
+       :ref:`executor:CeleryExecutor`
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.celery_executor.ExceptionWithTraceback
+   airflow.executors.celery_executor.CeleryExecutor
+   airflow.executors.celery_executor.BulkStateFetcher
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.celery_executor.execute_command
+   airflow.executors.celery_executor.send_task_to_executor
+   airflow.executors.celery_executor.on_celery_import_modules
+   airflow.executors.celery_executor.fetch_celery_task_state
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.executors.celery_executor.log
+   airflow.executors.celery_executor.CELERY_FETCH_ERR_MSG_HEADER
+   airflow.executors.celery_executor.CELERY_SEND_ERR_MSG_HEADER
+   airflow.executors.celery_executor.OPERATION_TIMEOUT
+   airflow.executors.celery_executor.celery_configuration
+   airflow.executors.celery_executor.app
+   airflow.executors.celery_executor.TaskInstanceInCelery
+
+
+.. py:data:: log
+   
+
+   
+
+.. py:data:: CELERY_FETCH_ERR_MSG_HEADER
+   :annotation: = Error fetching Celery task state
+
+   
+
+.. py:data:: CELERY_SEND_ERR_MSG_HEADER
+   :annotation: = Error sending Celery task
+
+   
+
+.. py:data:: OPERATION_TIMEOUT
+   
+
+   To start the celery worker, run the command:
+   airflow celery worker
+
+
+.. py:data:: celery_configuration
+   
+
+   
+
+.. py:data:: app
+   
+
+   
+
+.. py:function:: execute_command(command_to_exec)
+
+   Executes command.
+
+
+.. py:class:: ExceptionWithTraceback(exception, exception_traceback)
+
+   Wrapper class used to propagate exceptions to parent processes from subprocesses.
+
+   :param exception: The exception to wrap
+   :param exception_traceback: The stacktrace to wrap
+
+
+.. py:data:: TaskInstanceInCelery
+   
+
+   
+
+.. py:function:: send_task_to_executor(task_tuple)
+
+   Sends task to executor.
+
+
+.. py:function:: on_celery_import_modules(*args, **kwargs)
+
+   Preload some "expensive" airflow modules so that every task process doesn't have to import it again and
+   again.
+
+   Loading these for each task adds 0.3-0.5s *per task* before the task can run. For long running tasks this
+   doesn't matter, but for short tasks this starts to be a noticeable impact.
+
+
+.. py:class:: CeleryExecutor
+
+   Bases: :py:obj:`airflow.executors.base_executor.BaseExecutor`
+
+   CeleryExecutor is recommended for production use of Airflow. It allows
+   distributing the execution of task instances to multiple worker nodes.
+
+   Celery is a simple, flexible and reliable distributed system to process
+   vast amounts of messages, while providing operations with the tools
+   required to maintain such a system.
+
+   .. py:attribute:: supports_ad_hoc_ti_run
+      :annotation: :bool = True
+
+      
+
+   .. py:method:: start()
+
+      Executors may need to get things started.
+
+
+   .. py:method:: sync()
+
+      Sync will get called periodically by the heartbeat method.
+      Executors should override this to perform gather statuses.
+
+
+   .. py:method:: debug_dump()
+
+      Called in response to SIGUSR2 by the scheduler
+
+
+   .. py:method:: update_all_task_states()
+
+      Updates states of the tasks.
+
+
+   .. py:method:: change_state(key, state, info=None)
+
+      Changes state of the task.
+
+      :param info: Executor information for the task instance
+      :param key: Unique key for the task instance
+      :param state: State to set for the task.
+
+
+   .. py:method:: update_task_state(key, state, info)
+
+      Updates state of a single task.
+
+
+   .. py:method:: end(synchronous = False)
+
+      This method is called when the caller is done submitting job and
+      wants to wait synchronously for the job submitted previously to be
+      all done.
+
+
+   .. py:method:: terminate()
+
+      This method is called when the daemon receives a SIGTERM
+
+
+   .. py:method:: try_adopt_task_instances(tis)
+
+      Try to adopt running task instances that have been abandoned by a SchedulerJob dying.
+
+      Anything that is not adopted will be cleared by the scheduler (and then become eligible for
+      re-scheduling)
+
+      :return: any TaskInstances that were unable to be adopted
+
+
+
+.. py:function:: fetch_celery_task_state(async_result)
+
+   Fetch and return the state of the given celery task. The scope of this function is
+   global so that it can be called by subprocesses in the pool.
+
+   :param async_result: a tuple of the Celery task key and the async Celery object used
+       to fetch the task's state
+   :return: a tuple of the Celery task key and the Celery state and the celery info
+       of the task
+
+
+.. py:class:: BulkStateFetcher(sync_parallelism=None)
+
+   Bases: :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Gets status for many Celery tasks using the best method available
+
+   If BaseKeyValueStoreBackend is used as result backend, the mget method is used.
+   If DatabaseBackend is used as result backend, the SELECT ...WHERE task_id IN (...) query is used
+   Otherwise, multiprocessing.Pool will be used. Each task status will be downloaded individually.
+
+   .. py:method:: get_many(async_results)
+
+      Gets status for many Celery tasks using the best method available.
+
+
+
