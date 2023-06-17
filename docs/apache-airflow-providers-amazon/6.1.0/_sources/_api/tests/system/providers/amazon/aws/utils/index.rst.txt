@@ -1,0 +1,193 @@
+:py:mod:`tests.system.providers.amazon.aws.utils`
+=================================================
+
+.. py:module:: tests.system.providers.amazon.aws.utils
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   ec2/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   tests.system.providers.amazon.aws.utils.Variable
+   tests.system.providers.amazon.aws.utils.SystemTestContextBuilder
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   tests.system.providers.amazon.aws.utils.fetch_variable
+   tests.system.providers.amazon.aws.utils.set_env_id
+   tests.system.providers.amazon.aws.utils.purge_logs
+   tests.system.providers.amazon.aws.utils.split_string
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   tests.system.providers.amazon.aws.utils.ENV_ID_ENVIRON_KEY
+   tests.system.providers.amazon.aws.utils.ENV_ID_KEY
+   tests.system.providers.amazon.aws.utils.DEFAULT_ENV_ID_PREFIX
+   tests.system.providers.amazon.aws.utils.DEFAULT_ENV_ID_LEN
+   tests.system.providers.amazon.aws.utils.DEFAULT_ENV_ID
+   tests.system.providers.amazon.aws.utils.PURGE_LOGS_INTERVAL_PERIOD
+   tests.system.providers.amazon.aws.utils.TEST_FILE_IDENTIFIER
+   tests.system.providers.amazon.aws.utils.INVALID_ENV_ID_MSG
+   tests.system.providers.amazon.aws.utils.LOWERCASE_ENV_ID_MSG
+   tests.system.providers.amazon.aws.utils.NO_VALUE_MSG
+   tests.system.providers.amazon.aws.utils.log
+
+
+.. py:data:: ENV_ID_ENVIRON_KEY
+   :annotation: :str = SYSTEM_TESTS_ENV_ID
+
+   
+
+.. py:data:: ENV_ID_KEY
+   :annotation: :str = ENV_ID
+
+   
+
+.. py:data:: DEFAULT_ENV_ID_PREFIX
+   :annotation: :str = env
+
+   
+
+.. py:data:: DEFAULT_ENV_ID_LEN
+   :annotation: :int = 8
+
+   
+
+.. py:data:: DEFAULT_ENV_ID
+   :annotation: :str
+
+   
+
+.. py:data:: PURGE_LOGS_INTERVAL_PERIOD
+   :annotation: = 5
+
+   
+
+.. py:data:: TEST_FILE_IDENTIFIER
+   :annotation: :str = example
+
+   
+
+.. py:data:: INVALID_ENV_ID_MSG
+   :annotation: :str = In order to maximize compatibility, the SYSTEM_TESTS_ENV_ID must be an alphanumeric string which...
+
+   
+
+.. py:data:: LOWERCASE_ENV_ID_MSG
+   :annotation: :str = The provided Environment ID contains uppercase letters and will be converted to lowercase for...
+
+   
+
+.. py:data:: NO_VALUE_MSG
+   :annotation: :str = No Value Found: Variable {key} could not be found and no default value was provided.
+
+   
+
+.. py:data:: log
+   
+
+   
+
+.. py:class:: Variable(name, to_split = False, delimiter = None, test_name = None)
+
+   Stores metadata about a variable to be fetched for AWS System Tests.
+
+   :param name: The name of the variable to be fetched.
+   :param to_split: If True, the input is a string-formatted List and needs to be split. Defaults to False.
+   :param delimiter: If to_split is true, this will be used to split the string. Defaults to ','.
+   :param test_name: The name of the system test that the variable is associated with.
+
+   .. py:method:: get_value()
+
+
+   .. py:method:: set_default(default)
+
+
+
+.. py:class:: SystemTestContextBuilder
+
+   This builder class ultimately constructs a TaskFlow task which is run at
+   runtime (task execution time). This task generates and stores the test ENV_ID as well
+   as any external resources requested (e.g.g IAM Roles, VPC, etc)
+
+   .. py:method:: add_variable(variable_name, split_string = False, delimiter = None, **kwargs)
+
+      Register a variable to fetch from environment or cloud parameter store
+
+
+   .. py:method:: build()
+
+      Build and return a TaskFlow task which will create an env_id and
+      fetch requested variables. Storing everything in xcom for downstream
+      tasks to use.
+
+
+
+.. py:function:: fetch_variable(key, default_value = None, test_name = None)
+
+   Given a Parameter name: first check for an existing Environment Variable,
+   then check SSM for a value. If neither are available, fall back on the
+   optional default value.
+
+   :param key: The name of the Parameter to fetch a value for.
+   :param default_value: The default value to use if no value can be found.
+   :param test_name: The system test name.
+   :return: The value of the parameter.
+
+
+.. py:function:: set_env_id()
+
+   Retrieves or generates an Environment ID, validate that it is suitable,
+   export it as an Environment Variable, and return it.
+
+   If an Environment ID has already been generated, use that.
+   Otherwise, try to fetch it and export it as an Environment Variable.
+   If there is not one available to fetch then generate one and export it as an Environment Variable.
+
+   :return: A valid System Test Environment ID.
+
+
+.. py:function:: purge_logs(test_logs, force_delete = False, retry = False, retry_times = 3)
+
+   Accepts a tuple in the format: ('log group name', 'log stream prefix').
+   For each log group, it will delete any log streams matching the provided
+   prefix then if the log group is empty, delete the group. If the group
+   is not empty that indicates there are logs not generated by the test and
+   those are left intact. If `check_log_streams` is True, it will simply delete the log group regardless
+   of log streams within that log group.
+
+   :param test_logs: A list of log_group/stream_prefix tuples to delete.
+   :param force_delete: Whether to check log streams within the log group before removal. If True,
+       removes the log group and all its log streams inside it
+   :param retry: Whether to retry if the log group/stream was not found. In some cases, the log group/stream
+       is created seconds after the main resource has been created. By default, it retries for 3 times
+       with a 5s waiting period
+   :param retry_times: Number of retries
+
+
+.. py:function:: split_string(string)
+
+

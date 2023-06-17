@@ -1,0 +1,161 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+---
+default_stages: [commit, push]
+default_language_version:
+  # force all unspecified python hooks to run python3
+  python: python3
+exclude: ^docs-archive
+
+repos:
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.3.1
+    hooks:
+      - id: forbid-tabs
+        exclude: ^\.gitmodules$
+      - id: insert-license
+        name: Add licence for all other files
+        args:
+          - --comment-style
+          - "|#|"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+        files: ^\.gitmodules$|^\.gitignore$|^\.gitignore$|^Dockerfile.*$
+      - id: insert-license
+        name: Add licence for all JS/CSS/SCSS files
+        files: \.js$|\.s?css$
+        args:
+          - --comment-style
+          - "/**| *| */"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+      - id: insert-license
+        name: Add licence for all shell files
+        types: [shell]
+        files: ^breeze$|^breeze-complete$|\.sh$
+        args:
+          - --comment-style
+          - "|#|"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+      - id: insert-license
+        name: Add licence for all yaml files
+        types: [yaml]
+        args:
+          - --comment-style
+          - "|#|"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+      - id: insert-license
+        name: Add licence for all TOML files
+        types: [toml]
+        args:
+          - --comment-style
+          - "|#|"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+      - id: insert-license
+        name: Add licence for all HTML files
+        types: [text]
+        args:
+          - --comment-style
+          - "{{/*||*/}}"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+        files: ^landing-pages/site/layouts/.+\.html$
+      - id: insert-license
+        name: Add licence for all Python files
+        types: [python]
+        args:
+          - --comment-style
+          - "|#|"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+      - id: insert-license
+        name: Add license for all rst files
+        args:
+          - --comment-style
+          - "||"
+          - --license-filepath
+          - license-templates/LICENSE.rst
+          - --fuzzy-match-generates-todo
+        files: \.rst$
+      - id: insert-license
+        name: Add license for all JINJA template files
+        files: ^sphinx_airflow_theme/.*\.html$
+        args:
+          - --comment-style
+          - "{#||#}"
+          - --license-filepath
+          - license-templates/LICENSE.txt
+          - --fuzzy-match-generates-todo
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: Check Shell scripts syntax correctness
+        language: docker_image
+        entry: koalaman/shellcheck:stable -x -a
+        types: [shell]
+        files: ^breeze$|^breeze-complete$|\.sh$|^hooks/build$|^hooks/push$
+      - id: lint-dockerfile
+        name: Lint dockerfile
+        language: docker_image
+        types:
+          - dockerfile
+        entry: --entrypoint /bin/hadolint hadolint/hadolint:latest -
+      - id: lint-css
+        name: Lint CSS files
+        entry: ./site.sh lint-css
+        language: system
+        files: \.scss$
+        exclude: _roadmap.scss$|_rst-content.scss$
+      - id: lint-js
+        name: Lint JS files
+        entry: ./site.sh lint-js
+        language: system
+        files: \.js$
+        exclude: ^sphinx_airflow_theme/
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: pretty-format-json
+        args:
+          - --indent=2
+          - --autofix
+          - --top-keys=name,version,description,repository,main,author,license,scripts
+      - id: mixed-line-ending
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]

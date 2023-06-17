@@ -1,0 +1,394 @@
+:py:mod:`airflow.providers.amazon.aws.sensors.bedrock`
+======================================================
+
+.. py:module:: airflow.providers.amazon.aws.sensors.bedrock
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.sensors.bedrock.BedrockBaseSensor
+   airflow.providers.amazon.aws.sensors.bedrock.BedrockCustomizeModelCompletedSensor
+   airflow.providers.amazon.aws.sensors.bedrock.BedrockProvisionModelThroughputCompletedSensor
+   airflow.providers.amazon.aws.sensors.bedrock.BedrockKnowledgeBaseActiveSensor
+   airflow.providers.amazon.aws.sensors.bedrock.BedrockIngestionJobSensor
+
+
+
+
+.. py:class:: BedrockBaseSensor(deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.sensors.base_aws.AwsBaseSensor`\ [\ :py:obj:`_GenericBedrockHook`\ ]
+
+   General sensor behavior for Amazon Bedrock.
+
+   Subclasses must implement following methods:
+       - ``get_state()``
+
+   Subclasses must set the following fields:
+       - ``INTERMEDIATE_STATES``
+       - ``FAILURE_STATES``
+       - ``SUCCESS_STATES``
+       - ``FAILURE_MESSAGE``
+
+   :param deferrable: If True, the sensor will operate in deferrable mode. This mode requires aiobotocore
+       module to be installed.
+       (default: False, but can be overridden in config file by setting default_deferrable to True)
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ()
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ()
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ()
+
+      
+
+   .. py:attribute:: FAILURE_MESSAGE
+      :value: ''
+
+      
+
+   .. py:attribute:: aws_hook_class
+      :type: type[_GenericBedrockHook]
+
+      
+
+   .. py:attribute:: ui_color
+      :value: '#66c3ff'
+
+      
+
+   .. py:method:: poke(context, **kwargs)
+
+      Override when deriving this class.
+
+
+   .. py:method:: get_state()
+      :abstractmethod:
+
+      Implement in subclasses.
+
+
+
+.. py:class:: BedrockCustomizeModelCompletedSensor(*, job_name, max_retries = 75, poke_interval = 120, **kwargs)
+
+
+   Bases: :py:obj:`BedrockBaseSensor`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockHook`\ ]
+
+   Poll the state of the model customization job until it reaches a terminal state; fails if the job fails.
+
+   .. seealso::
+       For more information on how to use this sensor, take a look at the guide:
+       :ref:`howto/sensor:BedrockCustomizeModelCompletedSensor`
+
+   :param job_name: The name of the Bedrock model customization job.
+
+   :param deferrable: If True, the sensor will operate in deferrable mode. This mode requires aiobotocore
+       module to be installed.
+       (default: False, but can be overridden in config file by setting default_deferrable to True)
+   :param poke_interval: Polling period in seconds to check for the status of the job. (default: 120)
+   :param max_retries: Number of times before returning the current state. (default: 75)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('InProgress',)
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('Failed', 'Stopping', 'Stopped')
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('Completed',)
+
+      
+
+   .. py:attribute:: FAILURE_MESSAGE
+      :value: 'Bedrock model customization job sensor failed.'
+
+      
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: get_state()
+
+      Implement in subclasses.
+
+
+
+.. py:class:: BedrockProvisionModelThroughputCompletedSensor(*, model_id, poke_interval = 60, max_retries = 20, **kwargs)
+
+
+   Bases: :py:obj:`BedrockBaseSensor`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockHook`\ ]
+
+   Poll the provisioned model throughput job until it reaches a terminal state; fails if the job fails.
+
+   .. seealso::
+       For more information on how to use this sensor, take a look at the guide:
+       :ref:`howto/sensor:BedrockProvisionModelThroughputCompletedSensor`
+
+   :param model_id: The ARN or name of the provisioned throughput.
+
+   :param deferrable: If True, the sensor will operate in deferrable more. This mode requires aiobotocore
+       module to be installed.
+       (default: False, but can be overridden in config file by setting default_deferrable to True)
+   :param poke_interval: Polling period in seconds to check for the status of the job. (default: 60)
+   :param max_retries: Number of times before returning the current state (default: 20)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('Creating', 'Updating')
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('Failed',)
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('InService',)
+
+      
+
+   .. py:attribute:: FAILURE_MESSAGE
+      :value: 'Bedrock provision model throughput sensor failed.'
+
+      
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: get_state()
+
+      Implement in subclasses.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockKnowledgeBaseActiveSensor(*, knowledge_base_id, poke_interval = 5, max_retries = 24, **kwargs)
+
+
+   Bases: :py:obj:`BedrockBaseSensor`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentHook`\ ]
+
+   Poll the Knowledge Base status until it reaches a terminal state; fails if creation fails.
+
+   .. seealso::
+       For more information on how to use this sensor, take a look at the guide:
+       :ref:`howto/sensor:BedrockKnowledgeBaseActiveSensor`
+
+   :param knowledge_base_id: The unique identifier of the knowledge base for which to get information. (templated)
+
+   :param deferrable: If True, the sensor will operate in deferrable more. This mode requires aiobotocore
+       module to be installed.
+       (default: False, but can be overridden in config file by setting default_deferrable to True)
+   :param poke_interval: Polling period in seconds to check for the status of the job. (default: 5)
+   :param max_retries: Number of times before returning the current state (default: 24)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('CREATING', 'UPDATING')
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('DELETING', 'FAILED')
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('ACTIVE',)
+
+      
+
+   .. py:attribute:: FAILURE_MESSAGE
+      :value: 'Bedrock Knowledge Base Active sensor failed.'
+
+      
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: get_state()
+
+      Implement in subclasses.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockIngestionJobSensor(*, knowledge_base_id, data_source_id, ingestion_job_id, poke_interval = 60, max_retries = 10, **kwargs)
+
+
+   Bases: :py:obj:`BedrockBaseSensor`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentHook`\ ]
+
+   Poll the ingestion job status until it reaches a terminal state; fails if creation fails.
+
+   .. seealso::
+       For more information on how to use this sensor, take a look at the guide:
+       :ref:`howto/sensor:BedrockIngestionJobSensor`
+
+   :param knowledge_base_id: The unique identifier of the knowledge base for which to get information. (templated)
+   :param data_source_id: The unique identifier of the data source in the ingestion job. (templated)
+   :param ingestion_job_id: The unique identifier of the ingestion job. (templated)
+
+   :param deferrable: If True, the sensor will operate in deferrable more. This mode requires aiobotocore
+       module to be installed.
+       (default: False, but can be overridden in config file by setting default_deferrable to True)
+   :param poke_interval: Polling period in seconds to check for the status of the job. (default: 60)
+   :param max_retries: Number of times before returning the current state (default: 10)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: INTERMEDIATE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('STARTING', 'IN_PROGRESS')
+
+      
+
+   .. py:attribute:: FAILURE_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('FAILED',)
+
+      
+
+   .. py:attribute:: SUCCESS_STATES
+      :type: tuple[str, Ellipsis]
+      :value: ('COMPLETE',)
+
+      
+
+   .. py:attribute:: FAILURE_MESSAGE
+      :value: 'Bedrock ingestion job sensor failed.'
+
+      
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: get_state()
+
+      Implement in subclasses.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

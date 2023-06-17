@@ -1,0 +1,192 @@
+:py:mod:`airflow.providers.google.cloud.transfers.cassandra_to_gcs`
+===================================================================
+
+.. py:module:: airflow.providers.google.cloud.transfers.cassandra_to_gcs
+
+.. autoapi-nested-parse::
+
+   This module contains operator for copying
+   data from Cassandra to Google Cloud Storage in JSON format.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.transfers.cassandra_to_gcs.CassandraToGCSOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.transfers.cassandra_to_gcs.NotSetType
+   airflow.providers.google.cloud.transfers.cassandra_to_gcs.NOT_SET
+
+
+.. py:data:: NotSetType
+   
+
+   
+
+.. py:data:: NOT_SET
+   
+
+   
+
+.. py:class:: CassandraToGCSOperator(*, cql, bucket, filename, schema_filename = None, approx_max_file_size_bytes = 1900000000, gzip = False, cassandra_conn_id = 'cassandra_default', gcp_conn_id = 'google_cloud_default', delegate_to = None, impersonation_chain = None, query_timeout = NOT_SET, encode_uuid = True, **kwargs)
+
+   Bases: :py:obj:`airflow.models.BaseOperator`
+
+   Copy data from Cassandra to Google Cloud Storage in JSON format
+
+   Note: Arrays of arrays are not supported.
+
+   :param cql: The CQL to execute on the Cassandra table.
+   :param bucket: The bucket to upload to.
+   :param filename: The filename to use as the object name when uploading
+       to Google Cloud Storage. A {} should be specified in the filename
+       to allow the operator to inject file numbers in cases where the
+       file is split due to size.
+   :param schema_filename: If set, the filename to use as the object name
+       when uploading a .json file containing the BigQuery schema fields
+       for the table that was dumped from MySQL.
+   :param approx_max_file_size_bytes: This operator supports the ability
+       to split large table dumps into multiple files (see notes in the
+       filename param docs above). This param allows developers to specify the
+       file size of the splits. Check https://cloud.google.com/storage/quotas
+       to see the maximum allowed file size for a single object.
+   :param cassandra_conn_id: Reference to a specific Cassandra hook.
+   :param gzip: Option to compress file for upload
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param delegate_to: The account to impersonate using domain-wide delegation of authority,
+       if any. For this to work, the service account making the request must have
+       domain-wide delegation enabled.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param query_timeout: (Optional) The amount of time, in seconds, used to execute the Cassandra query.
+       If not set, the timeout value will be set in Session.execute() by Cassandra driver.
+       If set to None, there is no timeout.
+   :param encode_uuid: (Optional) Option to encode UUID or not when upload from Cassandra to GCS.
+       Default is to encode UUID.
+
+   .. py:attribute:: template_fields
+      :annotation: :Sequence[str] = ['cql', 'bucket', 'filename', 'schema_filename', 'impersonation_chain']
+
+      
+
+   .. py:attribute:: template_ext
+      :annotation: :Sequence[str] = ['.cql']
+
+      
+
+   .. py:attribute:: ui_color
+      :annotation: = #a0e08c
+
+      
+
+   .. py:attribute:: CQL_TYPE_MAP
+      
+
+      
+
+   .. py:method:: execute(context)
+
+      This is the main method to derive when creating an operator.
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: generate_data_dict(names, values)
+
+      Generates data structure that will be stored as file in GCS.
+
+
+   .. py:method:: convert_value(value)
+
+      Convert value to BQ type.
+
+
+   .. py:method:: convert_array_types(value)
+
+      Maps convert_value over array.
+
+
+   .. py:method:: convert_user_type(value)
+
+      Converts a user type to RECORD that contains n fields, where n is the
+      number of attributes. Each element in the user type class will be converted to its
+      corresponding data type in BQ.
+
+
+   .. py:method:: convert_tuple_type(values)
+
+      Converts a tuple to RECORD that contains n fields, each will be converted
+      to its corresponding data type in bq and will be named 'field_<index>', where
+      index is determined by the order of the tuple elements defined in cassandra.
+
+
+   .. py:method:: convert_map_type(value)
+
+      Converts a map to a repeated RECORD that contains two fields: 'key' and 'value',
+      each will be converted to its corresponding data type in BQ.
+
+
+   .. py:method:: generate_schema_dict(name, type_)
+      :classmethod:
+
+      Generates BQ schema.
+
+
+   .. py:method:: get_bq_fields(type_)
+      :classmethod:
+
+      Converts non simple type value to BQ representation.
+
+
+   .. py:method:: is_simple_type(type_)
+      :staticmethod:
+
+      Check if type is a simple type.
+
+
+   .. py:method:: is_array_type(type_)
+      :staticmethod:
+
+      Check if type is an array type.
+
+
+   .. py:method:: is_record_type(type_)
+      :staticmethod:
+
+      Checks the record type.
+
+
+   .. py:method:: get_bq_type(type_)
+      :classmethod:
+
+      Converts type to equivalent BQ type.
+
+
+   .. py:method:: get_bq_mode(type_)
+      :classmethod:
+
+      Converts type to equivalent BQ mode.
+
+
+

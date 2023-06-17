@@ -1,0 +1,249 @@
+:py:mod:`airflow.providers.google.cloud.hooks.pubsub`
+=====================================================
+
+.. py:module:: airflow.providers.google.cloud.hooks.pubsub
+
+.. autoapi-nested-parse::
+
+   This module contains a Google Pub/Sub Hook.
+
+   .. spelling::
+
+       MessageStoragePolicy
+       ReceivedMessage
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.hooks.pubsub.PubSubHook
+
+
+
+
+.. py:exception:: PubSubException
+
+   Bases: :py:obj:`Exception`
+
+   Alias for Exception.
+
+
+.. py:class:: PubSubHook(gcp_conn_id = 'google_cloud_default', delegate_to = None, impersonation_chain = None)
+
+   Bases: :py:obj:`airflow.providers.google.common.hooks.base_google.GoogleBaseHook`
+
+   Hook for accessing Google Pub/Sub.
+
+   The Google Cloud project against which actions are applied is determined by
+   the project embedded in the Connection referenced by gcp_conn_id.
+
+   .. py:method:: get_conn()
+
+      Retrieves connection to Google Cloud Pub/Sub.
+
+      :return: Google Cloud Pub/Sub client object.
+      :rtype: google.cloud.pubsub_v1.PublisherClient
+
+
+   .. py:method:: subscriber_client()
+
+      Creates SubscriberClient.
+
+      :return: Google Cloud Pub/Sub client object.
+      :rtype: google.cloud.pubsub_v1.SubscriberClient
+
+
+   .. py:method:: publish(topic, messages, project_id = PROVIDE_PROJECT_ID)
+
+      Publishes messages to a Pub/Sub topic.
+
+      :param topic: the Pub/Sub topic to which to publish; do not
+          include the ``projects/{project}/topics/`` prefix.
+      :param messages: messages to publish; if the data field in a
+          message is set, it should be a bytestring (utf-8 encoded)
+          https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage
+      :param project_id: Optional, the Google Cloud project ID in which to publish.
+          If set to None or missing, the default project_id from the Google Cloud connection is used.
+
+
+   .. py:method:: create_topic(topic, project_id = PROVIDE_PROJECT_ID, fail_if_exists = False, labels = None, message_storage_policy = None, kms_key_name = None, retry = DEFAULT, timeout = None, metadata = ())
+
+      Creates a Pub/Sub topic, if it does not already exist.
+
+      :param topic: the Pub/Sub topic name to create; do not
+          include the ``projects/{project}/topics/`` prefix.
+      :param project_id: Optional, the Google Cloud project ID in which to create the topic
+          If set to None or missing, the default project_id from the Google Cloud connection is used.
+      :param fail_if_exists: if set, raise an exception if the topic
+          already exists
+      :param labels: Client-assigned labels; see
+          https://cloud.google.com/pubsub/docs/labels
+      :param message_storage_policy: Policy constraining the set
+          of Google Cloud regions where messages published to
+          the topic may be stored. If not present, then no constraints
+          are in effect.
+          Union[Dict, google.cloud.pubsub_v1.types.MessageStoragePolicy]
+      :param kms_key_name: The resource name of the Cloud KMS CryptoKey
+          to be used to protect access to messages published on this topic.
+          The expected format is
+          ``projects/*/locations/*/keyRings/*/cryptoKeys/*``.
+      :param retry: (Optional) A retry object used to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: (Optional) The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to each
+          individual attempt.
+      :param metadata: (Optional) Additional metadata that is provided to the method.
+
+
+   .. py:method:: delete_topic(topic, project_id = PROVIDE_PROJECT_ID, fail_if_not_exists = False, retry = DEFAULT, timeout = None, metadata = ())
+
+      Deletes a Pub/Sub topic if it exists.
+
+      :param topic: the Pub/Sub topic name to delete; do not
+          include the ``projects/{project}/topics/`` prefix.
+      :param project_id: Optional, the Google Cloud project ID in which to delete the topic.
+          If set to None or missing, the default project_id from the Google Cloud connection is used.
+      :param fail_if_not_exists: if set, raise an exception if the topic
+          does not exist
+      :param retry: (Optional) A retry object used to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: (Optional) The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to each
+          individual attempt.
+      :param metadata: (Optional) Additional metadata that is provided to the method.
+
+
+   .. py:method:: create_subscription(topic, project_id = PROVIDE_PROJECT_ID, subscription = None, subscription_project_id = None, ack_deadline_secs = 10, fail_if_exists = False, push_config = None, retain_acked_messages = None, message_retention_duration = None, labels = None, enable_message_ordering = False, expiration_policy = None, filter_ = None, dead_letter_policy = None, retry_policy = None, retry = DEFAULT, timeout = None, metadata = ())
+
+      Creates a Pub/Sub subscription, if it does not already exist.
+
+      :param topic: the Pub/Sub topic name that the subscription will be bound
+          to create; do not include the ``projects/{project}/subscriptions/`` prefix.
+      :param project_id: Optional, the Google Cloud project ID of the topic that the subscription will be
+          bound to. If set to None or missing, the default project_id from the Google Cloud connection
+          is used.
+      :param subscription: the Pub/Sub subscription name. If empty, a random
+          name will be generated using the uuid module
+      :param subscription_project_id: the Google Cloud project ID where the subscription
+          will be created. If unspecified, ``project_id`` will be used.
+      :param ack_deadline_secs: Number of seconds that a subscriber has to
+          acknowledge each message pulled from the subscription
+      :param fail_if_exists: if set, raise an exception if the topic
+          already exists
+      :param push_config: If push delivery is used with this subscription,
+          this field is used to configure it. An empty ``pushConfig`` signifies
+          that the subscriber will pull and ack messages using API methods.
+      :param retain_acked_messages: Indicates whether to retain acknowledged
+          messages. If true, then messages are not expunged from the subscription's
+          backlog, even if they are acknowledged, until they fall out of the
+          ``message_retention_duration`` window. This must be true if you would
+          like to Seek to a timestamp.
+      :param message_retention_duration: How long to retain unacknowledged messages
+          in the subscription's backlog, from the moment a message is published. If
+          ``retain_acked_messages`` is true, then this also configures the
+          retention of acknowledged messages, and thus configures how far back in
+          time a ``Seek`` can be done. Defaults to 7 days. Cannot be more than 7
+          days or less than 10 minutes.
+      :param labels: Client-assigned labels; see
+          https://cloud.google.com/pubsub/docs/labels
+      :param enable_message_ordering: If true, messages published with the same
+          ordering_key in PubsubMessage will be delivered to the subscribers in the order
+          in which they are received by the Pub/Sub system. Otherwise, they may be
+          delivered in any order.
+      :param expiration_policy: A policy that specifies the conditions for this
+          subscription's expiration. A subscription is considered active as long as any
+          connected subscriber is successfully consuming messages from the subscription or
+          is issuing operations on the subscription. If expiration_policy is not set,
+          a default policy with ttl of 31 days will be used. The minimum allowed value for
+          expiration_policy.ttl is 1 day.
+      :param filter_: An expression written in the Cloud Pub/Sub filter language. If
+          non-empty, then only PubsubMessages whose attributes field matches the filter are
+          delivered on this subscription. If empty, then no messages are filtered out.
+      :param dead_letter_policy: A policy that specifies the conditions for dead lettering
+          messages in this subscription. If dead_letter_policy is not set, dead lettering is
+          disabled.
+      :param retry_policy: A policy that specifies how Pub/Sub retries message delivery
+          for this subscription. If not set, the default retry policy is applied. This
+          generally implies that messages will be retried as soon as possible for healthy
+          subscribers. RetryPolicy will be triggered on NACKs or acknowledgement deadline
+          exceeded events for a given message.
+      :param retry: (Optional) A retry object used to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: (Optional) The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to each
+          individual attempt.
+      :param metadata: (Optional) Additional metadata that is provided to the method.
+      :return: subscription name which will be the system-generated value if
+          the ``subscription`` parameter is not supplied
+      :rtype: str
+
+
+   .. py:method:: delete_subscription(subscription, project_id = PROVIDE_PROJECT_ID, fail_if_not_exists = False, retry = DEFAULT, timeout = None, metadata = ())
+
+      Deletes a Pub/Sub subscription, if it exists.
+
+      :param subscription: the Pub/Sub subscription name to delete; do not
+          include the ``projects/{project}/subscriptions/`` prefix.
+      :param project_id: Optional, the Google Cloud project ID where the subscription exists
+          If set to None or missing, the default project_id from the Google Cloud connection is used.
+      :param fail_if_not_exists: if set, raise an exception if the topic does not exist
+      :param retry: (Optional) A retry object used to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: (Optional) The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to each
+          individual attempt.
+      :param metadata: (Optional) Additional metadata that is provided to the method.
+
+
+   .. py:method:: pull(subscription, max_messages, project_id = PROVIDE_PROJECT_ID, return_immediately = False, retry = DEFAULT, timeout = None, metadata = ())
+
+      Pulls up to ``max_messages`` messages from Pub/Sub subscription.
+
+      :param subscription: the Pub/Sub subscription name to pull from; do not
+          include the 'projects/{project}/topics/' prefix.
+      :param max_messages: The maximum number of messages to return from
+          the Pub/Sub API.
+      :param project_id: Optional, the Google Cloud project ID where the subscription exists.
+          If set to None or missing, the default project_id from the Google Cloud connection is used.
+      :param return_immediately: If set, the Pub/Sub API will immediately
+          return if no messages are available. Otherwise, the request will
+          block for an undisclosed, but bounded period of time
+      :param retry: (Optional) A retry object used to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: (Optional) The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to each
+          individual attempt.
+      :param metadata: (Optional) Additional metadata that is provided to the method.
+      :return: A list of Pub/Sub ReceivedMessage objects each containing
+          an ``ackId`` property and a ``message`` property, which includes
+          the base64-encoded message content. See
+          https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#google.pubsub.v1.ReceivedMessage
+
+
+   .. py:method:: acknowledge(subscription, project_id, ack_ids = None, messages = None, retry = DEFAULT, timeout = None, metadata = ())
+
+      Acknowledges the messages associated with the ``ack_ids`` from Pub/Sub subscription.
+
+      :param subscription: the Pub/Sub subscription name to delete; do not
+          include the 'projects/{project}/topics/' prefix.
+      :param ack_ids: List of ReceivedMessage ackIds from a previous pull response.
+          Mutually exclusive with ``messages`` argument.
+      :param messages: List of ReceivedMessage objects to acknowledge.
+          Mutually exclusive with ``ack_ids`` argument.
+      :param project_id: Optional, the Google Cloud project name or ID in which to create the topic
+          If set to None or missing, the default project_id from the Google Cloud connection is used.
+      :param retry: (Optional) A retry object used to retry requests.
+          If None is specified, requests will not be retried.
+      :param timeout: (Optional) The amount of time, in seconds, to wait for the request
+          to complete. Note that if retry is specified, the timeout applies to each
+          individual attempt.
+      :param metadata: (Optional) Additional metadata that is provided to the method.
+
+
+

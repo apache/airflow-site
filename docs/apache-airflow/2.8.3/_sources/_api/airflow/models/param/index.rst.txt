@@ -1,0 +1,249 @@
+:py:mod:`airflow.models.param`
+==============================
+
+.. py:module:: airflow.models.param
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.param.Param
+   airflow.models.param.ParamsDict
+   airflow.models.param.DagParam
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.param.process_params
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.models.param.logger
+
+
+.. py:data:: logger
+
+   
+
+.. py:class:: Param(default = NOTSET, description = None, **kwargs)
+
+
+   Class to hold the default value of a Param and rule set to do the validations.
+
+   Without the rule set it always validates and returns the default value.
+
+   :param default: The value this Param object holds
+   :param description: Optional help text for the Param
+   :param schema: The validation schema of the Param, if not given then all kwargs except
+       default & description will form the schema
+
+   .. py:property:: has_value
+      :type: bool
+
+
+   .. py:attribute:: __version__
+      :type: ClassVar[int]
+      :value: 1
+
+      
+
+   .. py:attribute:: CLASS_IDENTIFIER
+      :value: '__class'
+
+      
+
+   .. py:method:: __copy__()
+
+
+   .. py:method:: resolve(value = NOTSET, suppress_exception = False)
+
+      Run the validations and returns the Param's final value.
+
+      May raise ValueError on failed validations, or TypeError
+      if no value is passed and no value already exists.
+      We first check that value is json-serializable; if not, warn.
+      In future release we will require the value to be json-serializable.
+
+      :param value: The value to be updated for the Param
+      :param suppress_exception: To raise an exception or not when the validations fails.
+          If true and validations fails, the return value would be None.
+
+
+   .. py:method:: dump()
+
+      Dump the Param as a dictionary.
+
+
+   .. py:method:: serialize()
+
+
+   .. py:method:: deserialize(data, version)
+      :staticmethod:
+
+
+
+.. py:class:: ParamsDict(dict_obj = None, suppress_exception = False)
+
+
+   Bases: :py:obj:`MutableMapping`\ [\ :py:obj:`str`\ , :py:obj:`Any`\ ]
+
+   Class to hold all params for dags or tasks.
+
+   All the keys are strictly string and values are converted into Param's object
+   if they are not already. This class is to replace param's dictionary implicitly
+   and ideally not needed to be used directly.
+
+
+   :param dict_obj: A dict or dict like object to init ParamsDict
+   :param suppress_exception: Flag to suppress value exceptions while initializing the ParamsDict
+
+   .. py:attribute:: __version__
+      :type: ClassVar[int]
+      :value: 1
+
+      
+
+   .. py:attribute:: __slots__
+      :value: ['__dict', 'suppress_exception']
+
+      
+
+   .. py:method:: __bool__()
+
+
+   .. py:method:: __eq__(other)
+
+      Return self==value.
+
+
+   .. py:method:: __copy__()
+
+
+   .. py:method:: __deepcopy__(memo)
+
+
+   .. py:method:: __contains__(o)
+
+
+   .. py:method:: __len__()
+
+
+   .. py:method:: __delitem__(v)
+
+
+   .. py:method:: __iter__()
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: __setitem__(key, value)
+
+      Override for dictionary's ``setitem`` method to ensure all values are of Param's type only.
+
+      :param key: A key which needs to be inserted or updated in the dict
+      :param value: A value which needs to be set against the key. It could be of any
+          type but will be converted and stored as a Param object eventually.
+
+
+   .. py:method:: __getitem__(key)
+
+      Override for dictionary's ``getitem`` method to call the resolve method after fetching the key.
+
+      :param key: The key to fetch
+
+
+   .. py:method:: get_param(key)
+
+      Get the internal :class:`.Param` object for this key.
+
+
+   .. py:method:: items()
+
+      D.items() -> a set-like object providing a view on D's items
+
+
+   .. py:method:: values()
+
+      D.values() -> an object providing a view on D's values
+
+
+   .. py:method:: update(*args, **kwargs)
+
+      D.update([E, ]**F) -> None.  Update D from mapping/iterable E and F.
+      If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
+      If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
+      In either case, this is followed by: for k, v in F.items(): D[k] = v
+
+
+   .. py:method:: dump()
+
+      Dump the ParamsDict object as a dictionary, while suppressing exceptions.
+
+
+   .. py:method:: validate()
+
+      Validate & returns all the Params object stored in the dictionary.
+
+
+   .. py:method:: serialize()
+
+
+   .. py:method:: deserialize(data, version)
+      :staticmethod:
+
+
+
+.. py:class:: DagParam(current_dag, name, default = NOTSET)
+
+
+   Bases: :py:obj:`airflow.utils.mixins.ResolveMixin`
+
+   DAG run parameter reference.
+
+   This binds a simple Param object to a name within a DAG instance, so that it
+   can be resolved during the runtime via the ``{{ context }}`` dictionary. The
+   ideal use case of this class is to implicitly convert args passed to a
+   method decorated by ``@dag``.
+
+   It can be used to parameterize a DAG. You can overwrite its value by setting
+   it on conf when you trigger your DagRun.
+
+   This can also be used in templates by accessing ``{{ context.params }}``.
+
+   **Example**:
+
+       with DAG(...) as dag:
+         EmailOperator(subject=dag.param('subject', 'Hi from Airflow!'))
+
+   :param current_dag: Dag being used for parameter.
+   :param name: key value which is used to set the parameter
+   :param default: Default value used if no parameter was set.
+
+   .. py:method:: resolve(context)
+
+      Pull DagParam value from DagRun context. This method is run during ``op.execute()``.
+
+
+
+.. py:function:: process_params(dag, task, dag_run, *, suppress_exception)
+
+   Merge, validate params, and convert them into a simple dict.
+
+

@@ -1,0 +1,1737 @@
+:py:mod:`airflow.providers.google.cloud.operators.bigquery`
+===========================================================
+
+.. py:module:: airflow.providers.google.cloud.operators.bigquery
+
+.. autoapi-nested-parse::
+
+   This module contains Google BigQuery operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.bigquery.BigQueryUIColors
+   airflow.providers.google.cloud.operators.bigquery.IfExistAction
+   airflow.providers.google.cloud.operators.bigquery.BigQueryConsoleLink
+   airflow.providers.google.cloud.operators.bigquery.BigQueryConsoleIndexableLink
+   airflow.providers.google.cloud.operators.bigquery.BigQueryCheckOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryValueCheckOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryIntervalCheckOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryColumnCheckOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryTableCheckOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryGetDataOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryExecuteQueryOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryCreateEmptyTableOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryCreateExternalTableOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryDeleteDatasetOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryCreateEmptyDatasetOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryGetDatasetOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryGetDatasetTablesOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryPatchDatasetOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryUpdateTableOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryUpdateDatasetOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryDeleteTableOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryUpsertTableOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryUpdateTableSchemaOperator
+   airflow.providers.google.cloud.operators.bigquery.BigQueryInsertJobOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.bigquery.BIGQUERY_JOB_DETAILS_LINK_FMT
+   airflow.providers.google.cloud.operators.bigquery.LABEL_REGEX
+
+
+.. py:data:: BIGQUERY_JOB_DETAILS_LINK_FMT
+   :value: 'https://console.cloud.google.com/bigquery?j={job_id}'
+
+   
+
+.. py:data:: LABEL_REGEX
+
+   
+
+.. py:class:: BigQueryUIColors
+
+
+   Bases: :py:obj:`enum.Enum`
+
+   Hex colors for BigQuery operators.
+
+   .. py:attribute:: CHECK
+      :value: '#C0D7FF'
+
+      
+
+   .. py:attribute:: QUERY
+      :value: '#A1BBFF'
+
+      
+
+   .. py:attribute:: TABLE
+      :value: '#81A0FF'
+
+      
+
+   .. py:attribute:: DATASET
+      :value: '#5F86FF'
+
+      
+
+
+.. py:class:: IfExistAction
+
+
+   Bases: :py:obj:`enum.Enum`
+
+   Action to take if the resource exist.
+
+   .. py:attribute:: IGNORE
+      :value: 'ignore'
+
+      
+
+   .. py:attribute:: LOG
+      :value: 'log'
+
+      
+
+   .. py:attribute:: FAIL
+      :value: 'fail'
+
+      
+
+   .. py:attribute:: SKIP
+      :value: 'skip'
+
+      
+
+
+.. py:class:: BigQueryConsoleLink
+
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`
+
+   Helper class for constructing BigQuery link.
+
+   .. py:attribute:: name
+      :value: 'BigQuery Console'
+
+      
+
+   .. py:method:: get_link(operator, *, ti_key)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: BigQueryConsoleIndexableLink
+
+
+   Bases: :py:obj:`airflow.models.BaseOperatorLink`
+
+   Helper class for constructing BigQuery link.
+
+   .. py:property:: name
+      :type: str
+
+      Name of the link. This will be the button name on the task UI.
+
+
+   .. py:attribute:: index
+      :type: int
+
+      
+
+   .. py:method:: get_link(operator, *, ti_key)
+
+      Link to external system.
+
+      Note: The old signature of this function was ``(self, operator, dttm: datetime)``. That is still
+      supported at runtime but is deprecated.
+
+      :param operator: The Airflow operator object this link is associated to.
+      :param ti_key: TaskInstance ID to return link for.
+      :return: link to external system
+
+
+
+.. py:class:: BigQueryCheckOperator(*, sql, gcp_conn_id = 'google_cloud_default', use_legacy_sql = True, location = None, impersonation_chain = None, labels = None, encryption_configuration = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 4.0, **kwargs)
+
+
+   Bases: :py:obj:`_BigQueryDbHookMixin`, :py:obj:`airflow.providers.common.sql.operators.sql.SQLCheckOperator`, :py:obj:`_BigQueryOperatorsEncryptionConfigurationMixin`
+
+   Performs checks against BigQuery.
+
+   This operator expects a SQL query that returns a single row. Each value on
+   that row is evaluated using a Python ``bool`` cast. If any of the values
+   is falsy, the check errors out.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryCheckOperator`
+
+   Note that Python bool casting evals the following as *False*:
+
+   * ``False``
+   * ``0``
+   * Empty string (``""``)
+   * Empty list (``[]``)
+   * Empty dictionary or set (``{}``)
+
+   Given a query like ``SELECT COUNT(*) FROM foo``, it will fail only if
+   the count equals to zero. You can craft much more complex query that could,
+   for instance, check that the table has the same number of rows as the source
+   table upstream, or that the count of today's partition is greater than
+   yesterday's partition, or that a set of metrics are less than three standard
+   deviation for the 7-day average.
+
+   This operator can be used as a data quality check in your pipeline.
+   Depending on where you put it in your DAG, you have the choice to stop the
+   critical path, preventing from publishing dubious data, or on the side and
+   receive email alerts without stopping the progress of the DAG.
+
+   :param sql: SQL to execute.
+   :param gcp_conn_id: Connection ID for Google Cloud.
+   :param use_legacy_sql: Whether to use legacy SQL (true) or standard SQL (false).
+   :param location: The geographic location of the job. See details at:
+       https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param impersonation_chain: Optional service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the
+       access token of the last account in the list, which will be impersonated
+       in the request. If set as a string, the account must grant the
+       originating account the Service Account Token Creator IAM role. If set
+       as a sequence, the identities from the list must grant Service Account
+       Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account. (templated)
+   :param labels: a dictionary containing labels for the table, passed to BigQuery.
+   :param encryption_configuration: [Optional] Custom encryption configuration (e.g., Cloud KMS keys).
+
+       .. code-block:: python
+
+           encryption_configuration = {
+               "kmsKeyName": "projects/PROJECT/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY",
+           }
+   :param deferrable: Run operator in the deferrable mode.
+   :param poll_interval: (Deferrable mode only) polling period in seconds to
+       check for the status of job.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'gcp_conn_id', 'impersonation_chain', 'labels')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql',)
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: conn_id_field
+      :value: 'gcp_conn_id'
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Act as a callback for when the trigger fires.
+
+      This returns immediately. It relies on trigger to throw an exception,
+      otherwise it assumes execution was successful.
+
+
+
+.. py:class:: BigQueryValueCheckOperator(*, sql, pass_value, tolerance = None, gcp_conn_id = 'google_cloud_default', use_legacy_sql = True, location = None, impersonation_chain = None, labels = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 4.0, **kwargs)
+
+
+   Bases: :py:obj:`_BigQueryDbHookMixin`, :py:obj:`airflow.providers.common.sql.operators.sql.SQLValueCheckOperator`
+
+   Perform a simple value check using sql code.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryValueCheckOperator`
+
+   :param sql: SQL to execute.
+   :param use_legacy_sql: Whether to use legacy SQL (true)
+       or standard SQL (false).
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param location: The geographic location of the job. See details at:
+       https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param impersonation_chain: Optional service account to impersonate using
+       short-term credentials, or chained list of accounts required to get the
+       access token of the last account in the list, which will be impersonated
+       in the request. If set as a string, the account must grant the
+       originating account the Service Account Token Creator IAM role. If set
+       as a sequence, the identities from the list must grant Service Account
+       Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account. (templated)
+   :param labels: a dictionary containing labels for the table, passed to BigQuery.
+   :param deferrable: Run operator in the deferrable mode.
+   :param poll_interval: (Deferrable mode only) polling period in seconds to
+       check for the status of job.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'gcp_conn_id', 'pass_value', 'impersonation_chain', 'labels')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql',)
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: conn_id_field
+      :value: 'gcp_conn_id'
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Act as a callback for when the trigger fires.
+
+      This returns immediately. It relies on trigger to throw an exception,
+      otherwise it assumes execution was successful.
+
+
+
+.. py:class:: BigQueryIntervalCheckOperator(*, table, metrics_thresholds, date_filter_column = 'ds', days_back = -7, gcp_conn_id = 'google_cloud_default', use_legacy_sql = True, location = None, impersonation_chain = None, labels = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 4.0, project_id = PROVIDE_PROJECT_ID, **kwargs)
+
+
+   Bases: :py:obj:`_BigQueryDbHookMixin`, :py:obj:`airflow.providers.common.sql.operators.sql.SQLIntervalCheckOperator`
+
+   Check that the values of metrics given as SQL expressions are within a tolerance of the older ones.
+
+   This method constructs a query like so ::
+
+       SELECT {metrics_threshold_dict_key} FROM {table}
+       WHERE {date_filter_column}=<date>
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryIntervalCheckOperator`
+
+   :param table: the table name
+   :param days_back: number of days between ds and the ds we want to check
+       against. Defaults to 7 days
+   :param metrics_thresholds: a dictionary of ratios indexed by metrics, for
+       example 'COUNT(*)': 1.5 would require a 50 percent or less difference
+       between the current day, and the prior days_back.
+   :param use_legacy_sql: Whether to use legacy SQL (true)
+       or standard SQL (false).
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param location: The geographic location of the job. See details at:
+       https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param labels: a dictionary containing labels for the table, passed to BigQuery
+   :param deferrable: Run operator in the deferrable mode
+   :param poll_interval: (Deferrable mode only) polling period in seconds to check for the status of job.
+       Defaults to 4 seconds.
+   :param project_id: a string represents the BigQuery projectId
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('table', 'gcp_conn_id', 'sql1', 'sql2', 'impersonation_chain', 'labels')
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: conn_id_field
+      :value: 'gcp_conn_id'
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Act as a callback for when the trigger fires.
+
+      This returns immediately. It relies on trigger to throw an exception,
+      otherwise it assumes execution was successful.
+
+
+
+.. py:class:: BigQueryColumnCheckOperator(*, table, column_mapping, partition_clause = None, database = None, accept_none = True, gcp_conn_id = 'google_cloud_default', use_legacy_sql = True, location = None, impersonation_chain = None, labels = None, **kwargs)
+
+
+   Bases: :py:obj:`_BigQueryDbHookMixin`, :py:obj:`airflow.providers.common.sql.operators.sql.SQLColumnCheckOperator`
+
+   Subclasses the SQLColumnCheckOperator in order to provide a job id for OpenLineage to parse.
+
+   See base class docstring for usage.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryColumnCheckOperator`
+
+   :param table: the table name
+   :param column_mapping: a dictionary relating columns to their checks
+   :param partition_clause: a string SQL statement added to a WHERE clause
+       to partition data
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param use_legacy_sql: Whether to use legacy SQL (true)
+       or standard SQL (false).
+   :param location: The geographic location of the job. See details at:
+       https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param labels: a dictionary containing labels for the table, passed to BigQuery
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:attribute:: conn_id_field
+      :value: 'gcp_conn_id'
+
+      
+
+   .. py:method:: execute(context=None)
+
+      Perform checks on the given columns.
+
+
+
+.. py:class:: BigQueryTableCheckOperator(*, table, checks, partition_clause = None, gcp_conn_id = 'google_cloud_default', use_legacy_sql = True, location = None, impersonation_chain = None, labels = None, encryption_configuration = None, **kwargs)
+
+
+   Bases: :py:obj:`_BigQueryDbHookMixin`, :py:obj:`airflow.providers.common.sql.operators.sql.SQLTableCheckOperator`, :py:obj:`_BigQueryOperatorsEncryptionConfigurationMixin`
+
+   Subclasses the SQLTableCheckOperator in order to provide a job id for OpenLineage to parse.
+
+   See base class for usage.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryTableCheckOperator`
+
+   :param table: the table name
+   :param checks: a dictionary of check names and boolean SQL statements
+   :param partition_clause: a string SQL statement added to a WHERE clause
+       to partition data
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param use_legacy_sql: Whether to use legacy SQL (true)
+       or standard SQL (false).
+   :param location: The geographic location of the job. See details at:
+       https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param labels: a dictionary containing labels for the table, passed to BigQuery
+   :param encryption_configuration: [Optional] Custom encryption configuration (e.g., Cloud KMS keys).
+
+       .. code-block:: python
+
+           encryption_configuration = {
+               "kmsKeyName": "projects/PROJECT/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY",
+           }
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:attribute:: conn_id_field
+      :value: 'gcp_conn_id'
+
+      
+
+   .. py:method:: execute(context=None)
+
+      Execute the given checks on the table.
+
+
+
+.. py:class:: BigQueryGetDataOperator(*, dataset_id = None, table_id = None, table_project_id = None, job_id = None, job_project_id = None, project_id = PROVIDE_PROJECT_ID, max_results = 100, selected_fields = None, gcp_conn_id = 'google_cloud_default', location = None, impersonation_chain = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 4.0, as_dict = False, use_legacy_sql = True, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Fetch data and return it, either from a BigQuery table, or results of a query job.
+
+   Data could be narrowed down by specific columns or retrieved as a whole.
+   It is returned in either of the following two formats, based on "as_dict" value:
+   1. False (Default) - A Python list of lists, with the number of nested lists equal to the number of rows
+   fetched. Each nested list represents a row, where the elements within it correspond to the column values
+   for that particular row.
+
+   **Example Result**: ``[['Tony', 10], ['Mike', 20]``
+
+
+   2. True - A Python list of dictionaries, where each dictionary represents a row. In each dictionary,
+   the keys are the column names and the values are the corresponding values for those columns.
+
+   **Example Result**: ``[{'name': 'Tony', 'age': 10}, {'name': 'Mike', 'age': 20}]``
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryGetDataOperator`
+
+   .. note::
+       If you pass fields to ``selected_fields`` which are in different order than the
+       order of columns already in
+       BQ table/job, the data will still be in the order of BQ table.
+       For example if the BQ table has 3 columns as
+       ``[A,B,C]`` and you pass 'B,A' in the ``selected_fields``
+       the data would still be of the form ``'A,B'``.
+
+   .. note::
+       When utilizing job id not in deferrable mode, the job should be in DONE state.
+
+   **Example - Retrieve data from BigQuery using table**::
+
+       get_data = BigQueryGetDataOperator(
+           task_id="get_data_from_bq",
+           dataset_id="test_dataset",
+           table_id="Transaction_partitions",
+           table_project_id="internal-gcp-project",
+           max_results=100,
+           selected_fields="DATE",
+           gcp_conn_id="airflow-conn-id",
+       )
+
+   **Example - Retrieve data from BigQuery using a job id**::
+
+       get_data = BigQueryGetDataOperator(
+           job_id="airflow_8999918812727394_86a1cecc69c5e3028d28247affd7563",
+           job_project_id="internal-gcp-project",
+           max_results=100,
+           selected_fields="DATE",
+           gcp_conn_id="airflow-conn-id",
+       )
+
+   :param dataset_id: The dataset ID of the requested table. (templated)
+   :param table_id: The table ID of the requested table. Mutually exclusive with job_id. (templated)
+   :param table_project_id: (Optional) The project ID of the requested table.
+       If None, it will be derived from the hook's project ID. (templated)
+   :param job_id: The job ID from which query results are retrieved.
+       Mutually exclusive with table_id. (templated)
+   :param job_project_id: (Optional) Google Cloud Project where the job is running.
+       If None, it will be derived from the hook's project ID. (templated)
+   :param project_id: (Deprecated) (Optional) The name of the project where the data
+       will be returned from. If None, it will be derived from the hook's project ID. (templated)
+   :param max_results: The maximum number of records (rows) to be fetched
+       from the table. (templated)
+   :param selected_fields: List of fields to return (comma-separated). If
+       unspecified, all fields are returned.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param location: The location used for the operation.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param deferrable: Run operator in the deferrable mode
+   :param poll_interval: (Deferrable mode only) polling period in seconds to check for the status of job.
+       Defaults to 4 seconds.
+   :param as_dict: if True returns the result as a list of dictionaries, otherwise as list of lists
+       (default: False).
+   :param use_legacy_sql: Whether to use legacy SQL (true) or standard SQL (false).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'table_id', 'table_project_id', 'job_id', 'job_project_id', 'project_id',...
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:method:: generate_query(hook)
+
+      Generate a SELECT query if for the given dataset and table ID.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Act as a callback for when the trigger fires.
+
+      This returns immediately. It relies on trigger to throw an exception,
+      otherwise it assumes execution was successful.
+
+
+
+.. py:class:: BigQueryExecuteQueryOperator(*, sql, destination_dataset_table = None, write_disposition = 'WRITE_EMPTY', allow_large_results = False, flatten_results = None, gcp_conn_id = 'google_cloud_default', udf_config = None, use_legacy_sql = True, maximum_billing_tier = None, maximum_bytes_billed = None, create_disposition = 'CREATE_IF_NEEDED', schema_update_options = None, query_params = None, labels = None, priority = 'INTERACTIVE', time_partitioning = None, api_resource_configs = None, cluster_fields = None, location = None, encryption_configuration = None, impersonation_chain = None, impersonation_scopes = None, job_id = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Executes BigQuery SQL queries in a specific BigQuery database.
+
+   This operator is deprecated. Please use
+   :class:`airflow.providers.google.cloud.operators.bigquery.BigQueryInsertJobOperator`
+   instead.
+
+   This operator does not assert idempotency.
+
+   :param sql: the SQL code to be executed as a single string, or
+       a list of str (sql statements), or a reference to a template file.
+       Template references are recognized by str ending in '.sql'
+   :param destination_dataset_table: A dotted
+       ``(<project>.|<project>:)<dataset>.<table>`` that, if set, will store the results
+       of the query. (templated)
+   :param write_disposition: Specifies the action that occurs if the destination table
+       already exists. (default: 'WRITE_EMPTY')
+   :param create_disposition: Specifies whether the job is allowed to create new tables.
+       (default: 'CREATE_IF_NEEDED')
+   :param allow_large_results: Whether to allow large results.
+   :param flatten_results: If true and query uses legacy SQL dialect, flattens
+       all nested and repeated fields in the query results. ``allow_large_results``
+       must be ``true`` if this is set to ``false``. For standard SQL queries, this
+       flag is ignored and results are never flattened.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param udf_config: The User Defined Function configuration for the query.
+       See https://cloud.google.com/bigquery/user-defined-functions for details.
+   :param use_legacy_sql: Whether to use legacy SQL (true) or standard SQL (false).
+   :param maximum_billing_tier: Positive integer that serves as a multiplier
+       of the basic price.
+       Defaults to None, in which case it uses the value set in the project.
+   :param maximum_bytes_billed: Limits the bytes billed for this job.
+       Queries that will have bytes billed beyond this limit will fail
+       (without incurring a charge). If unspecified, this will be
+       set to your project default.
+   :param api_resource_configs: a dictionary that contain params
+       'configuration' applied for Google BigQuery Jobs API:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs
+       for example, {'query': {'useQueryCache': False}}. You could use it
+       if you need to provide some params that are not supported by BigQueryOperator
+       like args.
+   :param schema_update_options: Allows the schema of the destination
+       table to be updated as a side effect of the load job.
+   :param query_params: a list of dictionary containing query parameter types and
+       values, passed to BigQuery. The structure of dictionary should look like
+       'queryParameters' in Google BigQuery Jobs API:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs.
+       For example, [{ 'name': 'corpus', 'parameterType': { 'type': 'STRING' },
+       'parameterValue': { 'value': 'romeoandjuliet' } }]. (templated)
+   :param labels: a dictionary containing labels for the job/query,
+       passed to BigQuery
+   :param priority: Specifies a priority for the query.
+       Possible values include INTERACTIVE and BATCH.
+       The default value is INTERACTIVE.
+   :param time_partitioning: configure optional time partitioning fields i.e.
+       partition by field, type and expiration as per API specifications.
+   :param cluster_fields: Request that the result of this query be stored sorted
+       by one or more columns. BigQuery supports clustering for both partitioned and
+       non-partitioned tables. The order of columns given determines the sort order.
+   :param location: The geographic location of the job. Required except for
+       US and EU. See details at
+       https://cloud.google.com/bigquery/docs/locations#specifying_your_location
+   :param encryption_configuration: [Optional] Custom encryption configuration (e.g., Cloud KMS keys).
+
+       .. code-block:: python
+
+           encryption_configuration = {
+               "kmsKeyName": "projects/PROJECT/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY",
+           }
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:property:: operator_extra_links
+
+      Return operator extra links.
+
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('sql', 'destination_dataset_table', 'labels', 'query_params', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.sql',)
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance gets killed.
+
+      Any use of the threading, subprocess or multiprocessing module within an
+      operator needs to be cleaned up, or it will leave ghost processes behind.
+
+
+
+.. py:class:: BigQueryCreateEmptyTableOperator(*, dataset_id, table_id, table_resource = None, project_id = PROVIDE_PROJECT_ID, schema_fields = None, gcs_schema_object = None, time_partitioning = None, gcp_conn_id = 'google_cloud_default', google_cloud_storage_conn_id = 'google_cloud_default', labels = None, view = None, materialized_view = None, encryption_configuration = None, location = None, cluster_fields = None, impersonation_chain = None, if_exists = 'log', bigquery_conn_id = None, exists_ok = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Creates a new table in the specified BigQuery dataset, optionally with schema.
+
+   The schema to be used for the BigQuery table may be specified in one of
+   two ways. You may either directly pass the schema fields in, or you may
+   point the operator to a Google Cloud Storage object name. The object in
+   Google Cloud Storage must be a JSON file with the schema fields in it.
+   You can also create a table without schema.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryCreateEmptyTableOperator`
+
+   :param project_id: The project to create the table into. (templated)
+   :param dataset_id: The dataset to create the table into. (templated)
+   :param table_id: The Name of the table to be created. (templated)
+   :param table_resource: Table resource as described in documentation:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#Table
+       If provided all other parameters are ignored. (templated)
+   :param schema_fields: If set, the schema field list as defined here:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schema
+
+       **Example**::
+
+           schema_fields = [
+               {"name": "emp_name", "type": "STRING", "mode": "REQUIRED"},
+               {"name": "salary", "type": "INTEGER", "mode": "NULLABLE"},
+           ]
+
+   :param gcs_schema_object: Full path to the JSON file containing
+       schema (templated). For
+       example: ``gs://test-bucket/dir1/dir2/employee_schema.json``
+   :param time_partitioning: configure optional time partitioning fields i.e.
+       partition by field, type and  expiration as per API specifications.
+
+       .. seealso::
+           https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#timePartitioning
+   :param gcp_conn_id: [Optional] The connection ID used to connect to Google Cloud and
+       interact with the Bigquery service.
+   :param google_cloud_storage_conn_id: [Optional] The connection ID used to connect to Google Cloud.
+       and interact with the Google Cloud Storage service.
+   :param labels: a dictionary containing labels for the table, passed to BigQuery
+
+   **Example (with schema JSON in GCS)**::
+
+       CreateTable = BigQueryCreateEmptyTableOperator(
+           task_id="BigQueryCreateEmptyTableOperator_task",
+           dataset_id="ODS",
+           table_id="Employees",
+           project_id="internal-gcp-project",
+           gcs_schema_object="gs://schema-bucket/employee_schema.json",
+           gcp_conn_id="airflow-conn-id",
+           google_cloud_storage_conn_id="airflow-conn-id",
+       )
+
+   **Corresponding Schema file** (``employee_schema.json``)::
+
+       [
+           {"mode": "NULLABLE", "name": "emp_name", "type": "STRING"},
+           {"mode": "REQUIRED", "name": "salary", "type": "INTEGER"},
+       ]
+
+   **Example (with schema in the DAG)**::
+
+       CreateTable = BigQueryCreateEmptyTableOperator(
+           task_id="BigQueryCreateEmptyTableOperator_task",
+           dataset_id="ODS",
+           table_id="Employees",
+           project_id="internal-gcp-project",
+           schema_fields=[
+               {"name": "emp_name", "type": "STRING", "mode": "REQUIRED"},
+               {"name": "salary", "type": "INTEGER", "mode": "NULLABLE"},
+           ],
+           gcp_conn_id="airflow-conn-id-account",
+           google_cloud_storage_conn_id="airflow-conn-id",
+       )
+
+   :param view: [Optional] A dictionary containing definition for the view.
+       If set, it will create a view instead of a table:
+
+       .. seealso::
+           https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#ViewDefinition
+   :param materialized_view: [Optional] The materialized view definition.
+   :param encryption_configuration: [Optional] Custom encryption configuration (e.g., Cloud KMS keys).
+
+       .. code-block:: python
+
+           encryption_configuration = {
+               "kmsKeyName": "projects/PROJECT/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY",
+           }
+   :param location: The location used for the operation.
+   :param cluster_fields: [Optional] The fields used for clustering.
+           BigQuery supports clustering for both partitioned and
+           non-partitioned tables.
+
+           .. seealso::
+               https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#clustering.fields
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param if_exists: What should Airflow do if the table exists. If set to `log`, the TI will be passed to
+       success and an error message will be logged. Set to `ignore` to ignore the error, set to `fail` to
+       fail the TI, and set to `skip` to skip it.
+   :param exists_ok: Deprecated - use `if_exists="ignore"` instead.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'table_id', 'table_resource', 'project_id', 'gcs_schema_object', 'labels',...
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryCreateExternalTableOperator(*, bucket = None, source_objects = None, destination_project_dataset_table = None, table_resource = None, schema_fields = None, schema_object = None, gcs_schema_bucket = None, source_format = None, autodetect = False, compression = None, skip_leading_rows = None, field_delimiter = None, max_bad_records = 0, quote_character = None, allow_quoted_newlines = False, allow_jagged_rows = False, gcp_conn_id = 'google_cloud_default', google_cloud_storage_conn_id = 'google_cloud_default', src_fmt_configs = None, labels = None, encryption_configuration = None, location = None, impersonation_chain = None, bigquery_conn_id = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Create a new external table with data from Google Cloud Storage.
+
+   The schema to be used for the BigQuery table may be specified in one of
+   two ways. You may either directly pass the schema fields in, or you may
+   point the operator to a Google Cloud Storage object name. The object in
+   Google Cloud Storage must be a JSON file with the schema fields in it.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryCreateExternalTableOperator`
+
+   :param bucket: The bucket to point the external table to. (templated)
+   :param source_objects: List of Google Cloud Storage URIs to point
+       table to. If source_format is 'DATASTORE_BACKUP', the list must only contain a single URI.
+   :param destination_project_dataset_table: The dotted ``(<project>.)<dataset>.<table>``
+       BigQuery table to load data into (templated). If ``<project>`` is not included,
+       project will be the project defined in the connection json.
+   :param schema_fields: If set, the schema field list as defined here:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schema
+
+       **Example**::
+
+           schema_fields = [
+               {"name": "emp_name", "type": "STRING", "mode": "REQUIRED"},
+               {"name": "salary", "type": "INTEGER", "mode": "NULLABLE"},
+           ]
+
+       Should not be set when source_format is 'DATASTORE_BACKUP'.
+   :param table_resource: Table resource as described in documentation:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#Table
+       If provided all other parameters are ignored. External schema from object will be resolved.
+   :param schema_object: If set, a GCS object path pointing to a .json file that
+       contains the schema for the table. (templated)
+   :param gcs_schema_bucket: GCS bucket name where the schema JSON is stored (templated).
+       The default value is self.bucket.
+   :param source_format: File format of the data.
+   :param autodetect: Try to detect schema and format options automatically.
+       The schema_fields and schema_object options will be honored when specified explicitly.
+       https://cloud.google.com/bigquery/docs/schema-detect#schema_auto-detection_for_external_data_sources
+   :param compression: [Optional] The compression type of the data source.
+       Possible values include GZIP and NONE.
+       The default value is NONE.
+       This setting is ignored for Google Cloud Bigtable,
+       Google Cloud Datastore backups and Avro formats.
+   :param skip_leading_rows: Number of rows to skip when loading from a CSV.
+   :param field_delimiter: The delimiter to use for the CSV.
+   :param max_bad_records: The maximum number of bad records that BigQuery can
+       ignore when running the job.
+   :param quote_character: The value that is used to quote data sections in a CSV file.
+   :param allow_quoted_newlines: Whether to allow quoted newlines (true) or not (false).
+   :param allow_jagged_rows: Accept rows that are missing trailing optional columns.
+       The missing values are treated as nulls. If false, records with missing trailing
+       columns are treated as bad records, and if there are too many bad records, an
+       invalid error is returned in the job result. Only applicable to CSV, ignored
+       for other formats.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud and
+       interact with the Bigquery service.
+   :param google_cloud_storage_conn_id: (Optional) The connection ID used to connect to Google Cloud
+       and interact with the Google Cloud Storage service.
+   :param src_fmt_configs: configure optional fields specific to the source format
+   :param labels: a dictionary containing labels for the table, passed to BigQuery
+   :param encryption_configuration: [Optional] Custom encryption configuration (e.g., Cloud KMS keys).
+
+       .. code-block:: python
+
+           encryption_configuration = {
+               "kmsKeyName": "projects/PROJECT/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY",
+           }
+   :param location: The location used for the operation.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('bucket', 'source_objects', 'schema_object', 'gcs_schema_bucket',...
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryDeleteDatasetOperator(*, dataset_id, project_id = PROVIDE_PROJECT_ID, delete_contents = False, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Delete an existing dataset from your Project in BigQuery.
+
+   https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets/delete
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryDeleteDatasetOperator`
+
+   :param project_id: The project id of the dataset.
+   :param dataset_id: The dataset to be deleted.
+   :param delete_contents: (Optional) Whether to force the deletion even if the dataset is not empty.
+       Will delete all tables (if any) in the dataset if set to True.
+       Will raise HttpError 400: "{dataset_id} is still in use" if set to False and dataset is not empty.
+       The default value is False.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   **Example**::
+
+       delete_temp_data = BigQueryDeleteDatasetOperator(
+           dataset_id="temp-dataset",
+           project_id="temp-project",
+           delete_contents=True,  # Force the deletion of the dataset as well as its tables (if any).
+           gcp_conn_id="_my_gcp_conn_",
+           task_id="Deletetemp",
+           dag=dag,
+       )
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryCreateEmptyDatasetOperator(*, dataset_id = None, project_id = PROVIDE_PROJECT_ID, dataset_reference = None, location = None, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, if_exists = 'log', exists_ok = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Create a new dataset for your Project in BigQuery.
+
+   https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#resource
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryCreateEmptyDatasetOperator`
+
+   :param project_id: The name of the project where we want to create the dataset.
+   :param dataset_id: The id of dataset. Don't need to provide, if datasetId in dataset_reference.
+   :param location: The geographic location where the dataset should reside.
+   :param dataset_reference: Dataset reference that could be provided with request body.
+       More info:
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#resource
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param if_exists: What should Airflow do if the dataset exists. If set to `log`, the TI will be passed to
+       success and an error message will be logged. Set to `ignore` to ignore the error, set to `fail` to
+       fail the TI, and set to `skip` to skip it.
+       **Example**::
+
+           create_new_dataset = BigQueryCreateEmptyDatasetOperator(
+               dataset_id='new-dataset',
+               project_id='my-project',
+               dataset_reference={"friendlyName": "New Dataset"}
+               gcp_conn_id='_my_gcp_conn_',
+               task_id='newDatasetCreator',
+               dag=dag)
+   :param exists_ok: Deprecated - use `if_exists="ignore"` instead.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'project_id', 'dataset_reference', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryGetDatasetOperator(*, dataset_id, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Get the dataset specified by ID.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryGetDatasetOperator`
+
+   :param dataset_id: The id of dataset. Don't need to provide,
+       if datasetId in dataset_reference.
+   :param project_id: The name of the project where we want to create the dataset.
+       Don't need to provide, if projectId in dataset_reference.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryGetDatasetTablesOperator(*, dataset_id, project_id = PROVIDE_PROJECT_ID, max_results = None, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Retrieve the list of tables in the specified dataset.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryGetDatasetTablesOperator`
+
+   :param dataset_id: the dataset ID of the requested dataset.
+   :param project_id: (Optional) the project of the requested dataset. If None,
+       self.project_id will be used.
+   :param max_results: (Optional) the maximum number of tables to return.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryPatchDatasetOperator(*, dataset_id, dataset_resource, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Patch a dataset for your Project in BigQuery.
+
+   This operator is deprecated. Please use
+   :class:`airflow.providers.google.cloud.operators.bigquery.BigQueryUpdateTableOperator`
+   instead.
+
+   Only replaces fields that are provided in the submitted dataset resource.
+
+   :param dataset_id: The id of dataset. Don't need to provide,
+       if datasetId in dataset_reference.
+   :param dataset_resource: Dataset resource that will be provided with request body.
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#resource
+   :param project_id: The name of the project where we want to create the dataset.
+       Don't need to provide, if projectId in dataset_reference.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryUpdateTableOperator(*, table_resource, fields = None, dataset_id = None, table_id = None, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Update a table for your Project in BigQuery.
+
+   Use ``fields`` to specify which fields of table to update. If a field
+   is listed in ``fields`` and is ``None`` in table, it will be deleted.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryUpdateTableOperator`
+
+   :param dataset_id: The id of dataset. Don't need to provide,
+       if datasetId in table_reference.
+   :param table_id: The id of table. Don't need to provide,
+       if tableId in table_reference.
+   :param table_resource: Dataset resource that will be provided with request body.
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#resource
+   :param fields: The fields of ``table`` to change, spelled as the Table
+       properties (e.g. "friendly_name").
+   :param project_id: The name of the project where we want to create the table.
+       Don't need to provide, if projectId in table_reference.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'table_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryUpdateDatasetOperator(*, dataset_resource, fields = None, dataset_id = None, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Update a dataset for your Project in BigQuery.
+
+   Use ``fields`` to specify which fields of dataset to update. If a field
+   is listed in ``fields`` and is ``None`` in dataset, it will be deleted.
+   If no ``fields`` are provided then all fields of provided ``dataset_resource``
+   will be used.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryUpdateDatasetOperator`
+
+   :param dataset_id: The id of dataset. Don't need to provide,
+       if datasetId in dataset_reference.
+   :param dataset_resource: Dataset resource that will be provided with request body.
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#resource
+   :param fields: The properties of dataset to change (e.g. "friendly_name").
+   :param project_id: The name of the project where we want to create the dataset.
+       Don't need to provide, if projectId in dataset_reference.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryDeleteTableOperator(*, deletion_dataset_table, gcp_conn_id = 'google_cloud_default', ignore_if_missing = False, location = None, impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Delete a BigQuery table.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryDeleteTableOperator`
+
+   :param deletion_dataset_table: A dotted
+       ``(<project>.|<project>:)<dataset>.<table>`` that indicates which table
+       will be deleted. (templated)
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param ignore_if_missing: if True, then return success even if the
+       requested table does not exist.
+   :param location: The location used for the operation.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('deletion_dataset_table', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryUpsertTableOperator(*, dataset_id, table_resource, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', location = None, impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Upsert to a BigQuery table.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryUpsertTableOperator`
+
+   :param dataset_id: A dotted
+       ``(<project>.|<project>:)<dataset>`` that indicates which dataset
+       will be updated. (templated)
+   :param table_resource: a table resource. see
+       https://cloud.google.com/bigquery/docs/reference/v2/tables#resource
+   :param project_id: The name of the project where we want to update the dataset.
+       Don't need to provide, if projectId in dataset_reference.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param location: The location used for the operation.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('dataset_id', 'table_resource', 'impersonation_chain', 'project_id')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryUpdateTableSchemaOperator(*, schema_fields_updates, dataset_id, table_id, include_policy_tags = False, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Update BigQuery Table Schema.
+
+   Updates fields on a table schema based on contents of the supplied schema_fields_updates
+   parameter. The supplied schema does not need to be complete, if the field
+   already exists in the schema you only need to supply keys & values for the
+   items you want to patch, just ensure the "name" key is set.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryUpdateTableSchemaOperator`
+
+   :param schema_fields_updates: a partial schema resource. see
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableSchema
+
+       .. code-block:: python
+
+           schema_fields_updates = [
+               {"name": "emp_name", "description": "Some New Description"},
+               {
+                   "name": "salary",
+                   "policyTags": {"names": ["some_new_policy_tag"]},
+               },
+               {
+                   "name": "departments",
+                   "fields": [
+                       {"name": "name", "description": "Some New Description"},
+                       {"name": "type", "description": "Some New Description"},
+                   ],
+               },
+           ]
+
+   :param include_policy_tags: (Optional) If set to True policy tags will be included in
+       the update request which requires special permissions even if unchanged (default False)
+       see https://cloud.google.com/bigquery/docs/column-level-security#roles
+   :param dataset_id: A dotted
+       ``(<project>.|<project>:)<dataset>`` that indicates which dataset
+       will be updated. (templated)
+   :param table_id: The table ID of the requested table. (templated)
+   :param project_id: The name of the project where we want to update the dataset.
+       Don't need to provide, if projectId in dataset_reference.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+   :param location: The location used for the operation.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('schema_fields_updates', 'dataset_id', 'table_id', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BigQueryInsertJobOperator(configuration, project_id = PROVIDE_PROJECT_ID, location = None, job_id = None, force_rerun = True, reattach_states = None, gcp_conn_id = 'google_cloud_default', impersonation_chain = None, cancel_on_kill = True, result_retry = DEFAULT_RETRY, result_timeout = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 4.0, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`, :py:obj:`airflow.providers.google.cloud.openlineage.utils._BigQueryOpenLineageMixin`
+
+   Execute a BigQuery job.
+
+   Waits for the job to complete and returns job id.
+   This operator work in the following way:
+
+   - it calculates a unique hash of the job using job's configuration or uuid if ``force_rerun`` is True
+   - creates ``job_id`` in form of
+       ``[provided_job_id | airflow_{dag_id}_{task_id}_{exec_date}]_{uniqueness_suffix}``
+   - submits a BigQuery job using the ``job_id``
+   - if job with given id already exists then it tries to reattach to the job if its not done and its
+       state is in ``reattach_states``. If the job is done the operator will raise ``AirflowException``.
+
+   Using ``force_rerun`` will submit a new job every time without attaching to already existing ones.
+
+   For job definition see here:
+
+       https://cloud.google.com/bigquery/docs/reference/v2/jobs
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BigQueryInsertJobOperator`
+
+
+   :param configuration: The configuration parameter maps directly to BigQuery's
+       configuration field in the job object. For more details see
+       https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#jobconfiguration
+   :param job_id: The ID of the job. It will be suffixed with hash of job configuration
+       unless ``force_rerun`` is True.
+       The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or
+       dashes (-). The maximum length is 1,024 characters. If not provided then uuid will
+       be generated.
+   :param force_rerun: If True then operator will use hash of uuid as job id suffix
+   :param reattach_states: Set of BigQuery job's states in case of which we should reattach
+       to the job. Should be other than final states.
+   :param project_id: Google Cloud Project where the job is running
+   :param location: location the job is running
+   :param gcp_conn_id: The connection ID used to connect to Google Cloud.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+   :param cancel_on_kill: Flag which indicates whether cancel the hook's job or not, when on_kill is called
+   :param result_retry: How to retry the `result` call that retrieves rows
+   :param result_timeout: The number of seconds to wait for `result` method before using `result_retry`
+   :param deferrable: Run operator in the deferrable mode
+   :param poll_interval: (Deferrable mode only) polling period in seconds to check for the status of job.
+       Defaults to 4 seconds.
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('configuration', 'job_id', 'impersonation_chain', 'project_id')
+
+      
+
+   .. py:attribute:: template_ext
+      :type: Sequence[str]
+      :value: ('.json', '.sql')
+
+      
+
+   .. py:attribute:: template_fields_renderers
+
+      
+
+   .. py:attribute:: ui_color
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: sql()
+
+
+   .. py:method:: prepare_template()
+
+      Execute after the templated fields get replaced by their content.
+
+      If you need your object to alter the content of the file before the
+      template is rendered, it should override this method to do so.
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event)
+
+      Act as a callback for when the trigger fires.
+
+      This returns immediately. It relies on trigger to throw an exception,
+      otherwise it assumes execution was successful.
+
+
+   .. py:method:: on_kill()
+
+      Override this method to clean up subprocesses when a task instance gets killed.
+
+      Any use of the threading, subprocess or multiprocessing module within an
+      operator needs to be cleaned up, or it will leave ghost processes behind.
+
+
+
