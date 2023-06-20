@@ -722,16 +722,16 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span>
             <span class="n">uuid</span><span class="o">.</span><span class="n">uuid3</span><span class="p">(</span>
                 <span class="n">uuid</span><span class="o">.</span><span class="n">NAMESPACE_URL</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_DAG_NAMESPACE</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">execution_date</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">try_number</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span></div>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_DAG_NAMESPACE</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">execution_date</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">try_number</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="OpenLineageAdapter.emit"><a class="viewcode-back" href="../../../../../_api/airflow/providers/openlineage/plugins/adapter/index.html#airflow.providers.openlineage.plugins.adapter.OpenLineageAdapter.emit">[docs]</a>    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">RunEvent</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_or_create_openlineage_client</span><span class="p">()</span>
-        <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redacter</span><span class="o">.</span><span class="n">redact</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">redacted_event</span><span class="p">:</span> <span class="n">RunEvent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redacter</span><span class="o">.</span><span class="n">redact</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">redacted_event</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to emit OpenLineage event of id </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">runId</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
@@ -748,10 +748,10 @@
         <span class="n">nominal_end_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">owners</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">task</span><span class="p">:</span> <span class="n">OperatorLineage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">run_facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">[</span><span class="n">BaseFacet</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Custom run facets</span>
+        <span class="n">run_facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseFacet</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Custom run facets</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Emits openlineage event of type START</span>
+<span class="sd">        Emits openlineage event of type START.</span>
 
 <span class="sd">        :param run_id: globally unique identifier of task in dag run</span>
 <span class="sd">        :param job_name: globally unique identifier of task in dag</span>
@@ -783,9 +783,9 @@
             <span class="n">eventTime</span><span class="o">=</span><span class="n">event_time</span><span class="p">,</span>
             <span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_run</span><span class="p">(</span>
                 <span class="n">run_id</span><span class="p">,</span>
+                <span class="n">job_name</span><span class="p">,</span>
                 <span class="n">parent_job_name</span><span class="p">,</span>
                 <span class="n">parent_run_id</span><span class="p">,</span>
-                <span class="n">job_name</span><span class="p">,</span>
                 <span class="n">nominal_start_time</span><span class="p">,</span>
                 <span class="n">nominal_end_time</span><span class="p">,</span>
                 <span class="n">run_facets</span><span class="o">=</span><span class="n">run_facets</span><span class="p">,</span>
@@ -805,7 +805,8 @@
 
 <div class="viewcode-block" id="OpenLineageAdapter.complete_task"><a class="viewcode-back" href="../../../../../_api/airflow/providers/openlineage/plugins/adapter/index.html#airflow.providers.openlineage.plugins.adapter.OpenLineageAdapter.complete_task">[docs]</a>    <span class="k">def</span> <span class="nf">complete_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">OperatorLineage</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Emits openlineage event of type COMPLETE</span>
+<span class="sd">        Emits openlineage event of type COMPLETE.</span>
+
 <span class="sd">        :param run_id: globally unique identifier of task in dag run</span>
 <span class="sd">        :param job_name: globally unique identifier of task between dags</span>
 <span class="sd">        :param end_time: time of task completion</span>
@@ -814,7 +815,7 @@
         <span class="n">event</span> <span class="o">=</span> <span class="n">RunEvent</span><span class="p">(</span>
             <span class="n">eventType</span><span class="o">=</span><span class="n">RunState</span><span class="o">.</span><span class="n">COMPLETE</span><span class="p">,</span>
             <span class="n">eventTime</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span>
-            <span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_run</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">run_facets</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">run_facets</span><span class="p">),</span>
+            <span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_run</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span> <span class="n">run_facets</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">run_facets</span><span class="p">),</span>
             <span class="n">job</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_job</span><span class="p">(</span><span class="n">job_name</span><span class="p">,</span> <span class="n">job_facets</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">job_facets</span><span class="p">),</span>
             <span class="n">inputs</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
             <span class="n">outputs</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
@@ -824,7 +825,8 @@
 
 <div class="viewcode-block" id="OpenLineageAdapter.fail_task"><a class="viewcode-back" href="../../../../../_api/airflow/providers/openlineage/plugins/adapter/index.html#airflow.providers.openlineage.plugins.adapter.OpenLineageAdapter.fail_task">[docs]</a>    <span class="k">def</span> <span class="nf">fail_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">OperatorLineage</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Emits openlineage event of type FAIL</span>
+<span class="sd">        Emits openlineage event of type FAIL.</span>
+
 <span class="sd">        :param run_id: globally unique identifier of task in dag run</span>
 <span class="sd">        :param job_name: globally unique identifier of task between dags</span>
 <span class="sd">        :param end_time: time of task completion</span>
@@ -833,7 +835,7 @@
         <span class="n">event</span> <span class="o">=</span> <span class="n">RunEvent</span><span class="p">(</span>
             <span class="n">eventType</span><span class="o">=</span><span class="n">RunState</span><span class="o">.</span><span class="n">FAIL</span><span class="p">,</span>
             <span class="n">eventTime</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span>
-            <span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_run</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">run_facets</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">run_facets</span><span class="p">),</span>
+            <span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_run</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span> <span class="n">run_facets</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">run_facets</span><span class="p">),</span>
             <span class="n">job</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_job</span><span class="p">(</span><span class="n">job_name</span><span class="p">),</span>
             <span class="n">inputs</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
             <span class="n">outputs</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
@@ -854,6 +856,7 @@
             <span class="n">job</span><span class="o">=</span><span class="n">Job</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">dag_run</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="n">_DAG_NAMESPACE</span><span class="p">),</span>
             <span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_run</span><span class="p">(</span>
                 <span class="n">run_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">build_dag_run_id</span><span class="p">(</span><span class="n">dag_run</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span> <span class="n">dag_run</span><span class="o">.</span><span class="n">run_id</span><span class="p">),</span>
+                <span class="n">job_name</span><span class="o">=</span><span class="n">dag_run</span><span class="o">.</span><span class="n">dag_id</span><span class="p">,</span>
                 <span class="n">nominal_start_time</span><span class="o">=</span><span class="n">nominal_start_time</span><span class="p">,</span>
                 <span class="n">nominal_end_time</span><span class="o">=</span><span class="n">nominal_end_time</span><span class="p">,</span>
             <span class="p">),</span>
@@ -893,14 +896,14 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_build_run</span><span class="p">(</span>
         <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">parent_job_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">parent_run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nominal_start_time</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nominal_end_time</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">run_facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseFacet</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Run</span><span class="p">:</span>
-        <span class="n">facets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseFacet</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">nominal_start_time</span><span class="p">:</span>
             <span class="n">facets</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;nominalTime&quot;</span><span class="p">:</span> <span class="n">NominalTimeRunFacet</span><span class="p">(</span><span class="n">nominal_start_time</span><span class="p">,</span> <span class="n">nominal_end_time</span><span class="p">)})</span>
         <span class="k">if</span> <span class="n">parent_run_id</span><span class="p">:</span>
@@ -929,7 +932,7 @@
         <span class="n">owners</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">job_facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseFacet</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">facets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseFacet</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">job_description</span><span class="p">:</span>
             <span class="n">facets</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;documentation&quot;</span><span class="p">:</span> <span class="n">DocumentationJobFacet</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">job_description</span><span class="p">)})</span>
