@@ -13,6 +13,14 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# June 28, 2023
+
+Airflow PMC welcomes new Airflow Committers:
+
+* **Vincent Beck** ([@vincbeck](https://github.com/vincbeck))
+* **Phani Kumar** ([@phanikumv](https://github.com/phanikumv))
+* **Maciej Obuchowski** ([@mobuchowski](https://github.com/mobuchowski))
+
 # June 27, 2023
 
 We've just released Apache **Airflow Helm chart 1.10.0**.
