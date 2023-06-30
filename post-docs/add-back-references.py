@@ -22,7 +22,6 @@ import tempfile
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
-import semver
 
 log = logging.getLogger(__name__)
 
@@ -81,10 +80,6 @@ def construct_mapping(file_name):
     return old_to_new_map
 
 
-def version_is_less_than(a, baseline):
-    return semver.compare(a, baseline) == -1
-
-
 def get_redirect_content(url: str):
     return f'<html><head><meta http-equiv="refresh" content="0; url={url}"/></head></html>'
 
@@ -104,7 +99,7 @@ def create_back_reference_html(back_ref_url, path):
         logging.warning(f'skipping file:{path}, redirects already exist', path)
         return
 
-    # Creating an HTML file
+    # creating a back reference html file
     with open(path, "w") as f:
         f.write(content)
 
@@ -131,7 +126,7 @@ def generate_back_references(link, base_path):
                 file_name = old_to_new[p].split("/")[-1]
                 dest_dir = r + "/" + "/".join(d[: len(d) - 1])
 
-                # finds relative path of old file wrt new, handles case of different file names too
+                # finds relative path of old file with respect to new and handles case of different file names also
                 relative_path = os.path.relpath(old, new)
                 # remove one directory level because file path was used above
                 relative_path = relative_path.replace("../", "", 1)
@@ -141,7 +136,6 @@ def generate_back_references(link, base_path):
                 create_back_reference_html(relative_path, dest_file_path)
 
 
-# total arguments
 n = len(sys.argv)
 if n != 2:
     log.error("missing required arguments, syntax: python add-back-references.py [airflow | providers | "
@@ -156,7 +150,7 @@ elif gen_type == GenerationType.providers:
     all_providers = [f.path.split("/")[-1] for f in os.scandir(docs_archive_path)
                      if f.is_dir() and "providers" in f.name]
     for p in all_providers:
-        log.info("processing provider: %s", p)
+        log.info("processing airflow provider: %s", p)
         generate_back_references(get_github_redirects_url(p), get_provider_docs_path(p))
 else:
     log.error("invalid type of doc generation required. Pass one of [airflow | providers | "
