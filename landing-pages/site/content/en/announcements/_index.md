@@ -13,6 +13,12 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# July 4, 2023
+
+Airflow PMC welcomes new Airflow Committer:
+
+* **Dennis Ferruzzi** ([@ferruzzi](https://github.com/ferruzzi))
+
 # June 28, 2023
 
 Airflow PMC welcomes new Airflow Committers:
