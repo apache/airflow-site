@@ -328,7 +328,13 @@
 
 
 <div class="toctree" role="navigation" aria-label="main navigation">
-    <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+    <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="user.html">Guides</a></li>
 </ul>
@@ -480,7 +486,13 @@
 
 
 <div class="toctree" role="navigation" aria-label="main navigation">
-    <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+    <p class="caption" role="heading"><span class="caption-text">Basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="user.html">Guides</a></li>
 </ul>
@@ -613,7 +625,7 @@
 <div></div></blockquote>
 <div class="section" id="implementing-openlineage-in-operators">
 <h1>Implementing OpenLineage in Operators<a class="headerlink" href="#implementing-openlineage-in-operators" title="Permalink to this heading">¶</a></h1>
-<p>OpenLineage defines few methods for implementation for Operators.</p>
+<p>OpenLineage defines a few methods for implementation in Operators. Those are referred to as OpenLineage methods.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_openlineage_facets_on_start</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">OperatorLineage</span><span class="p">:</span>
     <span class="o">...</span>
 
@@ -626,8 +638,7 @@
     <span class="o">...</span>
 </pre></div>
 </div>
-<p>Those get called respectively when task instance changes state to RUNNING, SUCCESS and FAILED.
-It’s required to implement <code class="docutils literal notranslate"><span class="pre">on_start</span></code> method.
+<p>OpenLineage methods get called respectively when task instance changes state to RUNNING, SUCCESS and FAILED.
 If there’s no <code class="docutils literal notranslate"><span class="pre">on_complete</span></code> or <code class="docutils literal notranslate"><span class="pre">on_failure</span></code> method, the <code class="docutils literal notranslate"><span class="pre">on_start</span></code> gets called instead.</p>
 <p>Instead of returning complete OpenLineage event, the provider defines <code class="docutils literal notranslate"><span class="pre">OperatorLineage</span></code> structure to be returned by Operators:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@define</span>
@@ -638,7 +649,69 @@ If there’s no <code class="docutils literal notranslate"><span class="pre">on_
     <span class="n">job_facets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseFacet</span><span class="p">]</span> <span class="o">=</span> <span class="n">Factory</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>OpenLineage integration takes care to enrich it with things like general Airflow facets, proper event time and type.</p>
+<p>OpenLineage integration itself takes care to enrich it with things like general Airflow facets, proper event time and type, creating proper OpenLineage RunEvent.</p>
+<div class="section" id="how-to-properly-implement-openlineage-methods">
+<h2>How to properly implement OpenLineage methods?<a class="headerlink" href="#how-to-properly-implement-openlineage-methods" title="Permalink to this heading">¶</a></h2>
+<p>There are a couple of things worth noting when implementing OpenLineage in operators.</p>
+<p>First, do not import OpenLineage methods on top-level, but in OL method itself.
+This allows users to use your provider even if they do not have OpenLineage provider installed.</p>
+<p>Second important point is to make sure your provider returns OpenLineage-compliant dataset names.
+It allows OpenLineage consumers to properly match information about datasets gathered from different sources.
+The naming convention is described in the <a class="reference external" href="https://openlineage.io/docs/spec/naming">OpenLineage docs</a>.</p>
+<p>Third, OpenLineage implementation should not waste time of users that do not use it.
+This means not doing heavy processing or network calls in the <code class="docutils literal notranslate"><span class="pre">execute</span></code> method that aren’t used by it.
+Better option is to save relevant information in Operator attributes - and then use it
+in OpenLineage method.
+Good example is <code class="docutils literal notranslate"><span class="pre">BigQueryExecuteQueryOperator</span></code>. It saves <code class="docutils literal notranslate"><span class="pre">job_ids</span></code> of queries that were executed.
+<code class="docutils literal notranslate"><span class="pre">get_openlineage_facets_on_complete</span></code> then can call BigQuery API, asking for lineage of those tables, and transform it to OpenLineage format.</p>
+<p>Fourth, it’s not necessary to implement all the methods. If all the datasets are known before <code class="docutils literal notranslate"><span class="pre">execute</span></code> is
+called, and there’s no relevant runtime data, there might be no point to implementing <code class="docutils literal notranslate"><span class="pre">get_openlineage_facets_on_complete</span></code>
+- the <code class="docutils literal notranslate"><span class="pre">get_openlineage_facets_on_start</span></code> method can provide all the data. And in reverse, if everything is unknown
+before execute, there might be no point in writing <code class="docutils literal notranslate"><span class="pre">_on_start</span></code> method.
+Similarly, if there’s no relevant failure data - or the failure conditions are unknown,
+implementing <code class="docutils literal notranslate"><span class="pre">get_openlineage_facets_on_failure</span></code> is probably not worth it.</p>
+<p>Here’s example of properly implemented <code class="docutils literal notranslate"><span class="pre">get_openlineage_facets_on_complete</span></code> method, for <code class="docutils literal notranslate"><span class="pre">GcsToGcsOperator</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_openlineage_events_on_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_instance</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implementing _on_complete because execute method does preprocessing on internals.</span>
+<span class="sd">    This means we won&#39;t have to normalize self.source_object and self.source_objects,</span>
+<span class="sd">    destination bucket and so on.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">openlineage.client.run</span> <span class="kn">import</span> <span class="n">Dataset</span>
+    <span class="kn">from</span> <span class="nn">airflow.providers.openlineage.extractors</span> <span class="kn">import</span> <span class="n">OperatorLineage</span>
+
+    <span class="k">return</span> <span class="n">OperatorLineage</span><span class="p">(</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">Dataset</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">source_bucket</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resolved_source_objects</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">outputs</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">Dataset</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">destination_bucket</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resolved_target_objects</span><span class="p">)</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-add-tests-to-openlineage-integration">
+<h2>How to add tests to OpenLineage integration?<a class="headerlink" href="#how-to-add-tests-to-openlineage-integration" title="Permalink to this heading">¶</a></h2>
+<p>Unit testing OpenLineage integration in operators is very similar to testing operators itself.
+Objective of those tests is making sure the <code class="docutils literal notranslate"><span class="pre">get_openlineage_*</span></code> methods return proper <code class="docutils literal notranslate"><span class="pre">OperatorLineage</span></code>
+data structure with relevant fields filled. It’s recommended to mock any external calls.
+Authors of tests need to remember the condition of calling different OL methods is different.
+<code class="docutils literal notranslate"><span class="pre">get_openlineage_facets_on_start</span></code> is called before <code class="docutils literal notranslate"><span class="pre">execute</span></code>, and as such, must not depend on values
+that are set there.</p>
+<p>System testing OpenLineage integration relies on the existing system test framework.
+There is special <code class="docutils literal notranslate"><span class="pre">VariableTransport</span></code> that gathers OpenLineage events in Airflow database,
+and <code class="docutils literal notranslate"><span class="pre">OpenLineageTestOperator</span></code> that compares those events to expected ones. Objective of author
+of OpenLineage system test is to provide expected dictionary of event keys and events to <code class="docutils literal notranslate"><span class="pre">OpenLineageTestOperator</span></code>.</p>
+<p>Event keys identify event send from particular operator and method: they have structure <code class="docutils literal notranslate"><span class="pre">&lt;dag_id&gt;.&lt;task_id&gt;.event.&lt;event_type&gt;</span></code>;
+it’s always possible to identify particular event send from particular task this way.</p>
+<p>The provided event structure does not have to contain all the fields that are in the resulting event.
+Only the fields provided by test author are compared; this allows to check only for fields particular
+test cares about. It also allows to skip fields that are (semi) randomly generated, like <code class="docutils literal notranslate"><span class="pre">runId</span></code> or <code class="docutils literal notranslate"><span class="pre">eventTime</span></code>,
+or just always the same in context of OpenLineage in Airflow, like <code class="docutils literal notranslate"><span class="pre">producer</span></code>.</p>
+</div>
 </div>
 
 
@@ -716,7 +789,11 @@ If there’s no <code class="docutils literal notranslate"><span class="pre">on_
     <nav class="wy-nav-side-toc">
         <div class="wy-menu-vertical">
             <ul>
-<li><a class="reference internal" href="#">Implementing OpenLineage in Operators</a></li>
+<li><a class="reference internal" href="#">Implementing OpenLineage in Operators</a><ul>
+<li><a class="reference internal" href="#how-to-properly-implement-openlineage-methods">How to properly implement OpenLineage methods?</a></li>
+<li><a class="reference internal" href="#how-to-add-tests-to-openlineage-integration">How to add tests to OpenLineage integration?</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
