@@ -7,3 +7,6 @@ To generate these back referencing (refresh HTMLs), run the script in the follow
 ```commandline
 python add-back-reference.py [airflow | providers | helm]
 ```
+
+Before running the script, make sure to install requirements from `requirements.txt` file into
+your virtual environment. For example by `pip install -r requirements.txt`.
