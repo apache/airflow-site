@@ -53,8 +53,9 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Self-Managed Airflow via CNDI](https://github.com/polyseam/cndi) - Toolkit for deploying Airflow Kubernetes clusters, with support for AWS, GCP, Azure, VMWare, Bare-Metal, and even multi/hybrid cloud support. See [docs](https://docs.cndi.run) for more details.
 
-[Self-managed Airflow on Amazon EKS](https://github.com/awslabs/data-on-eks/tree/main/schedulers/terraform/managed-airflow-mwaa) - Self-managed Apache Airflow deployment on Amazon EKS using [Terraform](https://www.terraform.io/). See [docs](https://aws-ia.github.io/terraform-aws-eks-blueprints/main/add-ons/apache-airflow/) for more details.
-A [Teraform module for MWAA](https://github.com/aws-ia/terraform-aws-mwaa) is also available.
+[Self-managed Airflow on Amazon EKS](https://github.com/awslabs/data-on-eks/tree/main/schedulers/terraform/managed-airflow-mwaa) - Self-managed Airflow on Amazon EKS provides a guide for deploying self-managed Apache Airflow on [Amazon EKS](https://aws.amazon.com/eks/) with [Terraform](https://www.terraform.io/) using Data on EKS Blueprints with the [Terraform Data add-ons](https://registry.terraform.io/modules/aws-ia/eks-data-addons/aws/latest) module.
+
+[Amazon MWAA Terraform Module](https://github.com/aws-ia/terraform-aws-mwaa) allows you to deploy Amazon Managed Workflows for Apache Airflow using the official Terraform module. For a full example on how to use Amazon MWAA, check out the [Data on EKS MWAA blueprint](https://awslabs.github.io/data-on-eks/docs/blueprints/job-schedulers/aws-managed-airflow).
 
 &nbsp;
 
