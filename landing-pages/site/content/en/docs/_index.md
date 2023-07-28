@@ -16,7 +16,7 @@ Apache Airflow Core, which includes webserver, scheduler, CLI and other componen
 
 ## [Providers packages](/docs/apache-airflow-providers/index.html)
 
-Providers packages include integrations with third party projects. They are updated independently of the Apache Airflow core.
+Providers packages include integrations with third party projects. They are versioned and released independently of the Apache Airflow core.
 [Read the documentation >>](/docs/apache-airflow-providers/index.html)
 
 {{< rawhtml >}}
