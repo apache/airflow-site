@@ -13,6 +13,13 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# July 29, 2023
+
+Airflow PMC welcomes new Airflow PMC Member:
+
+* **Hussein Awala** ([@hussein-awala](https://github.com/hussein-awala))
+
+
 # July 10, 2023
 
 We’ve just released Apache **Airflow 2.6.3**.
