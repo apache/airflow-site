@@ -646,11 +646,11 @@
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 
 <span class="kn">from</span> <span class="nn">attrs</span> <span class="kn">import</span> <span class="n">Factory</span><span class="p">,</span> <span class="n">define</span>
+<span class="kn">from</span> <span class="nn">openlineage.client.facet</span> <span class="kn">import</span> <span class="n">BaseFacet</span>
+<span class="kn">from</span> <span class="nn">openlineage.client.run</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
 <span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="kn">import</span> <span class="n">LoggingMixin</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.state</span> <span class="kn">import</span> <span class="n">TaskInstanceState</span>
-<span class="kn">from</span> <span class="nn">openlineage.client.facet</span> <span class="kn">import</span> <span class="n">BaseFacet</span>
-<span class="kn">from</span> <span class="nn">openlineage.client.run</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
 
 <span class="nd">@define</span>
@@ -709,6 +709,7 @@
         <span class="k">return</span> <span class="p">[]</span></div>
 
 <div class="viewcode-block" id="DefaultExtractor.extract"><a class="viewcode-back" href="../../../../../_api/airflow/providers/openlineage/extractors/base/index.html#airflow.providers.openlineage.extractors.base.DefaultExtractor.extract">[docs]</a>    <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorLineage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># OpenLineage methods are optional - if there&#39;s no method, return None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_openlineage_facets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="o">.</span><span class="n">get_openlineage_facets_on_start</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -726,7 +727,15 @@
 
     <span class="k">def</span> <span class="nf">_get_openlineage_facets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_facets_method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorLineage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">facets</span> <span class="o">=</span> <span class="n">get_facets_method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">facets</span><span class="p">:</span> <span class="n">OperatorLineage</span> <span class="o">=</span> <span class="n">get_facets_method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="c1"># &quot;rewrite&quot; OperatorLineage to safeguard against different version of the same class</span>
+            <span class="c1"># that was existing in openlineage-airflow package outside of Airflow repo</span>
+            <span class="k">return</span> <span class="n">OperatorLineage</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
+                <span class="n">outputs</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
+                <span class="n">run_facets</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">run_facets</span><span class="p">,</span>
+                <span class="n">job_facets</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">job_facets</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
                 <span class="s2">&quot;OpenLineage provider method failed to import OpenLineage integration. &quot;</span>
@@ -734,13 +743,6 @@
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;OpenLineage provider method failed to extract data from provider. &quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">OperatorLineage</span><span class="p">(</span>
-                <span class="n">inputs</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
-                <span class="n">outputs</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
-                <span class="n">run_facets</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">run_facets</span><span class="p">,</span>
-                <span class="n">job_facets</span><span class="o">=</span><span class="n">facets</span><span class="o">.</span><span class="n">job_facets</span><span class="p">,</span>
-            <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 </pre></div>
 
