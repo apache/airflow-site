@@ -69,7 +69,7 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-common-daskexecutor/stable/index.html"><code>Dask Executor</code></a></li>
+  <li><a href="/docs/apache-airflow-providers-daskexecutor/stable/index.html"><code>Dask Executor</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-databricks/stable/index.html"><code>Databricks</code></a></li>
 
