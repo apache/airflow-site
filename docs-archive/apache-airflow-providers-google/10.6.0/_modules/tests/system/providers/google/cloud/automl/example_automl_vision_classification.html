@@ -644,7 +644,10 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span>
 
+<span class="kn">from</span> <span class="nn">google.cloud</span> <span class="kn">import</span> <span class="n">storage</span>
+
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">airflow.models.xcom_arg</span> <span class="kn">import</span> <span class="n">XComArg</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.hooks.automl</span> <span class="kn">import</span> <span class="n">CloudAutoMLHook</span>
 <span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.operators.automl</span> <span class="kn">import</span> <span class="p">(</span>
@@ -657,32 +660,35 @@
 <span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.operators.gcs</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">GCSCreateBucketOperator</span><span class="p">,</span>
     <span class="n">GCSDeleteBucketOperator</span><span class="p">,</span>
-    <span class="n">GCSSynchronizeBucketsOperator</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">airflow.providers.google.cloud.transfers.gcs_to_gcs</span> <span class="kn">import</span> <span class="n">GCSToGCSOperator</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.trigger_rule</span> <span class="kn">import</span> <span class="n">TriggerRule</span>
 
-<div class="viewcode-block" id="ENV_ID"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.ENV_ID">[docs]</a><span class="n">ENV_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_ENV_ID&quot;</span><span class="p">)</span></div>
-<div class="viewcode-block" id="DAG_ID"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DAG_ID">[docs]</a><span class="n">DAG_ID</span> <span class="o">=</span> <span class="s2">&quot;example_automl_vision&quot;</span></div>
+<div class="viewcode-block" id="DAG_ID"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DAG_ID">[docs]</a><span class="n">DAG_ID</span> <span class="o">=</span> <span class="s2">&quot;example_automl_vision_clss&quot;</span></div>
+<div class="viewcode-block" id="ENV_ID"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.ENV_ID">[docs]</a><span class="n">ENV_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_ENV_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span></div>
 <div class="viewcode-block" id="GCP_PROJECT_ID"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.GCP_PROJECT_ID">[docs]</a><span class="n">GCP_PROJECT_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_GCP_PROJECT&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span></div>
-
 <div class="viewcode-block" id="GCP_AUTOML_LOCATION"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.GCP_AUTOML_LOCATION">[docs]</a><span class="n">GCP_AUTOML_LOCATION</span> <span class="o">=</span> <span class="s2">&quot;us-central1&quot;</span></div>
+<div class="viewcode-block" id="DATA_SAMPLE_GCS_BUCKET_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DATA_SAMPLE_GCS_BUCKET_NAME">[docs]</a><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bucket_</span><span class="si">{</span><span class="n">DAG_ID</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">ENV_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="RESOURCE_DATA_BUCKET"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.RESOURCE_DATA_BUCKET">[docs]</a><span class="n">RESOURCE_DATA_BUCKET</span> <span class="o">=</span> <span class="s2">&quot;airflow-system-tests-resources&quot;</span></div>
 
-<div class="viewcode-block" id="DATA_SAMPLE_GCS_BUCKET_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DATA_SAMPLE_GCS_BUCKET_NAME">[docs]</a><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bucket_</span><span class="si">{</span><span class="n">DAG_ID</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">ENV_ID</span><span class="si">}</span><span class="s2">&quot;</span></div>
-<div class="viewcode-block" id="RESOURCE_DATA_BUCKET"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.RESOURCE_DATA_BUCKET">[docs]</a><span class="n">RESOURCE_DATA_BUCKET</span> <span class="o">=</span> <span class="s2">&quot;system-tests-resources&quot;</span></div>
 
-<div class="viewcode-block" id="DATASET_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DATASET_NAME">[docs]</a><span class="n">DATASET_NAME</span> <span class="o">=</span> <span class="s2">&quot;test_dataset_vision&quot;</span></div>
+<div class="viewcode-block" id="DATASET_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DATASET_NAME">[docs]</a><span class="n">DATASET_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ds_vision_clss_</span><span class="si">{</span><span class="n">ENV_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span></div>
 <div class="viewcode-block" id="DATASET"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DATASET">[docs]</a><span class="n">DATASET</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;display_name&quot;</span><span class="p">:</span> <span class="n">DATASET_NAME</span><span class="p">,</span>
     <span class="s2">&quot;image_classification_dataset_metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;classification_type&quot;</span><span class="p">:</span> <span class="s2">&quot;MULTILABEL&quot;</span><span class="p">},</span>
 <span class="p">}</span></div>
-<div class="viewcode-block" id="AUTOML_DATASET_BUCKET"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.AUTOML_DATASET_BUCKET">[docs]</a><span class="n">AUTOML_DATASET_BUCKET</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span><span class="si">}</span><span class="s2">/automl-vision/data.csv&quot;</span></div>
+<div class="viewcode-block" id="AUTOML_DATASET_BUCKET"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.AUTOML_DATASET_BUCKET">[docs]</a><span class="n">AUTOML_DATASET_BUCKET</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span><span class="si">}</span><span class="s2">/automl/vision_classification.csv&quot;</span></div>
 <div class="viewcode-block" id="IMPORT_INPUT_CONFIG"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.IMPORT_INPUT_CONFIG">[docs]</a><span class="n">IMPORT_INPUT_CONFIG</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gcs_source&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;input_uris&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">AUTOML_DATASET_BUCKET</span><span class="p">]}}</span></div>
 
-<div class="viewcode-block" id="MODEL_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.MODEL_NAME">[docs]</a><span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;test_model&quot;</span></div>
+<div class="viewcode-block" id="MODEL_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.MODEL_NAME">[docs]</a><span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;vision_clss_test_model&quot;</span></div>
 <div class="viewcode-block" id="MODEL"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.MODEL">[docs]</a><span class="n">MODEL</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;display_name&quot;</span><span class="p">:</span> <span class="n">MODEL_NAME</span><span class="p">,</span>
     <span class="s2">&quot;image_classification_model_metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;train_budget&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
 <span class="p">}</span></div>
+
+<div class="viewcode-block" id="CSV_FILE_NAME"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.CSV_FILE_NAME">[docs]</a><span class="n">CSV_FILE_NAME</span> <span class="o">=</span> <span class="s2">&quot;vision_classification.csv&quot;</span></div>
+<div class="viewcode-block" id="GCS_FILE_PATH"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.GCS_FILE_PATH">[docs]</a><span class="n">GCS_FILE_PATH</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;automl/datasets/vision/</span><span class="si">{</span><span class="n">CSV_FILE_NAME</span><span class="si">}</span><span class="s2">&quot;</span></div>
+<div class="viewcode-block" id="DESTINATION_FILE_PATH"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.DESTINATION_FILE_PATH">[docs]</a><span class="n">DESTINATION_FILE_PATH</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/tmp/</span><span class="si">{</span><span class="n">CSV_FILE_NAME</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 <div class="viewcode-block" id="extract_object_id"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.extract_object_id">[docs]</a><span class="n">extract_object_id</span> <span class="o">=</span> <span class="n">CloudAutoMLHook</span><span class="o">.</span><span class="n">extract_object_id</span></div>
 
@@ -693,7 +699,7 @@
     <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">user_defined_macros</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;extract_object_id&quot;</span><span class="p">:</span> <span class="n">extract_object_id</span><span class="p">},</span>
-    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="s2">&quot;automl&quot;</span><span class="p">],</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="s2">&quot;automl&quot;</span><span class="p">,</span> <span class="s2">&quot;vision-clss&quot;</span><span class="p">],</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
 <div class="viewcode-block" id="create_bucket"><a class="viewcode-back" href="../../../../../../../_api/tests/system/providers/google/cloud/automl/example_automl_vision_classification/index.html#tests.system.providers.google.cloud.automl.example_automl_vision_classification.create_bucket">[docs]</a>    <span class="n">create_bucket</span> <span class="o">=</span> <span class="n">GCSCreateBucketOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;create_bucket&quot;</span><span class="p">,</span>
@@ -702,14 +708,43 @@
         <span class="n">location</span><span class="o">=</span><span class="n">GCP_AUTOML_LOCATION</span><span class="p">,</span>
     <span class="p">)</span></div>
 
-    <span class="n">move_dataset_file</span> <span class="o">=</span> <span class="n">GCSSynchronizeBucketsOperator</span><span class="p">(</span>
-        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;move_data_to_bucket&quot;</span><span class="p">,</span>
-        <span class="n">source_bucket</span><span class="o">=</span><span class="n">RESOURCE_DATA_BUCKET</span><span class="p">,</span>
-        <span class="n">source_object</span><span class="o">=</span><span class="s2">&quot;automl-vision&quot;</span><span class="p">,</span>
-        <span class="n">destination_bucket</span><span class="o">=</span><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span><span class="p">,</span>
-        <span class="n">destination_object</span><span class="o">=</span><span class="s2">&quot;automl-vision&quot;</span><span class="p">,</span>
-        <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">upload_csv_file_to_gcs</span><span class="p">():</span>
+        <span class="c1"># download file to local storage</span>
+        <span class="n">storage_client</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">storage_client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">RESOURCE_DATA_BUCKET</span><span class="p">)</span>
+        <span class="n">blob</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">blob</span><span class="p">(</span><span class="n">GCS_FILE_PATH</span><span class="p">)</span>
+        <span class="n">blob</span><span class="o">.</span><span class="n">download_to_filename</span><span class="p">(</span><span class="n">DESTINATION_FILE_PATH</span><span class="p">)</span>
+
+        <span class="c1"># update file content</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">DESTINATION_FILE_PATH</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="n">updated_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;template-bucket&quot;</span><span class="p">,</span> <span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">DESTINATION_FILE_PATH</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">updated_lines</span><span class="p">)</span>
+
+        <span class="c1"># upload updated file to bucket storage</span>
+        <span class="n">destination_bucket</span> <span class="o">=</span> <span class="n">storage_client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span><span class="p">)</span>
+        <span class="n">destination_blob</span> <span class="o">=</span> <span class="n">destination_bucket</span><span class="o">.</span><span class="n">blob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;automl/</span><span class="si">{</span><span class="n">CSV_FILE_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">generation_match_precondition</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">destination_blob</span><span class="o">.</span><span class="n">upload_from_filename</span><span class="p">(</span>
+            <span class="n">DESTINATION_FILE_PATH</span><span class="p">,</span> <span class="n">if_generation_match</span><span class="o">=</span><span class="n">generation_match_precondition</span>
+        <span class="p">)</span>
+
+    <span class="n">upload_csv_file_to_gcs_task</span> <span class="o">=</span> <span class="n">upload_csv_file_to_gcs</span><span class="p">()</span>
+
+    <span class="n">copy_folder_tasks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">GCSToGCSOperator</span><span class="p">(</span>
+            <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;copy_dataset_folder_</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">source_bucket</span><span class="o">=</span><span class="n">RESOURCE_DATA_BUCKET</span><span class="p">,</span>
+            <span class="n">source_object</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;automl/datasets/vision/</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">destination_bucket</span><span class="o">=</span><span class="n">DATA_SAMPLE_GCS_BUCKET_NAME</span><span class="p">,</span>
+            <span class="n">destination_object</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;automl/</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;cirrus&quot;</span><span class="p">,</span> <span class="s2">&quot;cumulonimbus&quot;</span><span class="p">,</span> <span class="s2">&quot;cumulus&quot;</span><span class="p">)</span>
+    <span class="p">]</span>
 
     <span class="n">create_dataset_task</span> <span class="o">=</span> <span class="n">AutoMLCreateDatasetOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;create_dataset_task&quot;</span><span class="p">,</span>
@@ -730,16 +765,16 @@
     <span class="n">create_model</span> <span class="o">=</span> <span class="n">AutoMLTrainModelOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;create_model&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">GCP_AUTOML_LOCATION</span><span class="p">)</span>
     <span class="n">model_id</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">(</span><span class="n">create_model</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;model_id&quot;</span><span class="p">))</span>
 
-    <span class="n">delete_model_task</span> <span class="o">=</span> <span class="n">AutoMLDeleteModelOperator</span><span class="p">(</span>
-        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;delete_model_task&quot;</span><span class="p">,</span>
+    <span class="n">delete_model</span> <span class="o">=</span> <span class="n">AutoMLDeleteModelOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;delete_model&quot;</span><span class="p">,</span>
         <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
         <span class="n">location</span><span class="o">=</span><span class="n">GCP_AUTOML_LOCATION</span><span class="p">,</span>
         <span class="n">project_id</span><span class="o">=</span><span class="n">GCP_PROJECT_ID</span><span class="p">,</span>
         <span class="n">trigger_rule</span><span class="o">=</span><span class="n">TriggerRule</span><span class="o">.</span><span class="n">ALL_DONE</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">delete_datasets_task</span> <span class="o">=</span> <span class="n">AutoMLDeleteDatasetOperator</span><span class="p">(</span>
-        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;delete_datasets_task&quot;</span><span class="p">,</span>
+    <span class="n">delete_dataset</span> <span class="o">=</span> <span class="n">AutoMLDeleteDatasetOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;delete_dataset&quot;</span><span class="p">,</span>
         <span class="n">dataset_id</span><span class="o">=</span><span class="n">dataset_id</span><span class="p">,</span>
         <span class="n">location</span><span class="o">=</span><span class="n">GCP_AUTOML_LOCATION</span><span class="p">,</span>
         <span class="n">project_id</span><span class="o">=</span><span class="n">GCP_PROJECT_ID</span><span class="p">,</span>
@@ -755,14 +790,15 @@
     <span class="p">(</span>
         <span class="c1"># TEST SETUP</span>
         <span class="n">create_bucket</span>
-        <span class="o">&gt;&gt;</span> <span class="n">move_dataset_file</span>
+        <span class="o">&gt;&gt;</span> <span class="n">upload_csv_file_to_gcs_task</span>
+        <span class="o">&gt;&gt;</span> <span class="n">copy_folder_tasks</span>
+        <span class="c1"># TEST BODY</span>
         <span class="o">&gt;&gt;</span> <span class="n">create_dataset_task</span>
         <span class="o">&gt;&gt;</span> <span class="n">import_dataset_task</span>
-        <span class="c1"># TEST BODY</span>
         <span class="o">&gt;&gt;</span> <span class="n">create_model</span>
         <span class="c1"># TEST TEARDOWN</span>
-        <span class="o">&gt;&gt;</span> <span class="n">delete_model_task</span>
-        <span class="o">&gt;&gt;</span> <span class="n">delete_datasets_task</span>
+        <span class="o">&gt;&gt;</span> <span class="n">delete_model</span>
+        <span class="o">&gt;&gt;</span> <span class="n">delete_dataset</span>
         <span class="o">&gt;&gt;</span> <span class="n">delete_bucket</span>
     <span class="p">)</span>
 
