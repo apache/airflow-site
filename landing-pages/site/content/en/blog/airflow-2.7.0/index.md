@@ -73,7 +73,10 @@ Here are just a few interesting new features, since there are too many to list i
 * chain_linear, like chain but allowing sequential tasks (#31927)
 * Grid view now supports keyboard shortcuts! (#30950)
 * Mark task groups as success or failed (#30478)
-* fail_stop, allowing all remaining and running tasks to be failed on the first failure in a DAG (#29406)
+* Fail_stop, allowing all remaining and running tasks to be failed on the first failure in a DAG (#29406)
+* Airflow 2.7.0 is the first release that drops support for end-of-life Python 3.7. This allows Airflow users and maintainer to make use of features and improvements in Python 3.8, and newer versions of our dependencies (#30963)
+* Airflow 2.7.0 is the release that focuses on security. The Airflow security team, working together with security researchers identified a number of areas that required strenghtening of security. This resulted, among others, in improved description of [Airflow security model](https://airflow.apache.org/docs/apache-airflow/stable/security/security_model/), better explanation of our [security policy](https://github.com/apache/airflow/security/policy) and disabling certain, potentially dangerous, features by default - like, for example, connection testing (#32052)
+
 
 ## Contributors
 
