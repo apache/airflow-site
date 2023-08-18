@@ -68,4 +68,3 @@ Curious to know what else is new in Airflow 2.7? Head over to the main [Airflow 
 ## Acknowledgements
 
 Setup and Teardown was the product of AIP-52. Thanks to everyone who contributed to it, including those that read and voted on the AIP. Special thanks to Ash Berlin-Taylor, Brent Bovenzi, Daniel Standish, Ephraim Anierobi, Jed Cunningham, Rahul Vats, and Vikram Koka.
-
