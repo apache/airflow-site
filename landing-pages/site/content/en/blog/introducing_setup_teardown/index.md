@@ -4,8 +4,7 @@ linkTitle: "Introducing Setup and Teardown tasks"
 author: "Daniel Standish"
 github: "dstandish"
 linkedin: "daniel-standish-12197714"
-description: "An introduction to Setup and Teardown tasks"
-tags: [Release]
+description: "An introduction to Setup and Teardown tasks, which are new in Apache Airflow 2.7.0"
 date: "2023-08-18"
 ---
 
