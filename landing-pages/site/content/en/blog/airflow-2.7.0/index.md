@@ -47,7 +47,7 @@ The graph and gantt views have been rewritten and moved into the now familiar gr
 
 Airflow 2.7.0 comes with a new config option, `default_deferrable`, which allows admins to enable deferrable mode for all deferrable tasks without requiring any DAG modifications. Simply set it in your config and enjoy async tasks!
 
-## OpenLineage provider
+## OpenLineage built-in integration
 
 [OpenLineage](https://openlineage.io/) provides a spec standardizing operational lineage collection and distribution across the data ecosystem that projects – open source or proprietary – implement.
 
