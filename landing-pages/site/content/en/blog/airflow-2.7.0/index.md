@@ -55,8 +55,7 @@ With 2.7.0, OpenLineage changes from a plugin implementation maintained in the O
 
 ## Some executors moved into providers
 
-Some of the executors that were shipped in core Airflow have moved into their respective providers for Airflow 2.7.0.
-
+Some of the executors that were shipped in core Airflow have moved into their respective providers for Airflow 2.7.0. The great benefit of this is to allow faster bug-fix releases as providers are released independently from core.
 The following providers have been moved and require certain minimum providers versions:
 
 * In order to use Celery executors, install the celery provider version 3.3.0+
