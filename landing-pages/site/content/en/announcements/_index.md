@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# August 18, 2023
+
+We’ve just released Apache **Airflow 2.7.0**. You can read all about it in our [Apache Airflow 2.7.0 is here]({{< ref "blog/airflow-2.7.0/index.md" >}}) blog post.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.7.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.7.0 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.7.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.7.0/installation/installing-from-sources.html
+
 # July 29, 2023
 
 Airflow PMC welcomes new Airflow PMC Member:
