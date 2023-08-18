@@ -62,9 +62,9 @@ With 2.7.0, OpenLineage changes from a plugin implementation maintained in the O
 Some of the executors that were shipped in core Airflow have moved into their respective providers for Airflow 2.7.0. The great benefit of this is to allow faster bug-fix releases as providers are released independently from core.
 The following providers have been moved and require certain minimum providers versions:
 
-* In order to use Celery executors, install the celery provider version 3.3.0+
-* In order to use the Kubernetes executor, install the kubernetes provider version 7.4.0+
-* In order to use the Dask executor, install any version of the daskexecutor provider
+* In order to use Celery executors, install the [celery provider version 3.3.0+](https://pypi.org/project/apache-airflow-providers-celery/)
+* In order to use the Kubernetes executor, install the [kubernetes provider version 7.4.0+](https://pypi.org/project/apache-airflow-providers-cncf-kubernetes/)
+* In order to use the Dask executor, install any version of the [daskexecutor provider](https://pypi.org/project/apache-airflow-providers-daskexecutor/)
 
 If you use the official docker images, all of these providers come preinstalled.
 
