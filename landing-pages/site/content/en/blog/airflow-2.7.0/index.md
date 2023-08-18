@@ -21,6 +21,10 @@ Apache Airflow 2.7.0 contains over 500 commits, which include 40 new features, 4
 🐳 Docker Image: "docker pull apache/airflow:2.7.0" \
 🚏 Constraints: https://github.com/apache/airflow/tree/constraints-2.7.0
 
+Airflow 2.7.0 is a release that focuses on security. The Airflow security team, working together with security researchers, identified a number of areas that required strengthening of security. This resulted in, among others things, an improved description of the [Airflow security model](https://airflow.apache.org/docs/apache-airflow/stable/security/security_model/), a better explanation of our [security policy](https://github.com/apache/airflow/security/policy) and the disabling of certain, potentially dangerous, features by default - like, for example, connection testing (#32052).
+
+Airflow 2.7.0 is also the first release that drops support for end-of-life Python 3.7. This allows Airflow users and maintainers to make use of features and improvements in Python 3.8, and unlocks newer versions of our dependencies.
+
 ## Setup and Teardown (AIP-52)
 
 Airflow now has first class support for the concept of setup and teardown tasks. These tasks have special behavior in that:
@@ -73,8 +77,6 @@ Here are just a few interesting new features, since there are too many to list i
 * Grid view now supports keyboard shortcuts! (#30950)
 * Mark task groups as success or failed (#30478)
 * Fail_stop, allowing all remaining and running tasks to be failed on the first failure in a DAG (#29406)
-* Airflow 2.7.0 is the first release that drops support for end-of-life Python 3.7. This allows Airflow users and maintainer to make use of features and improvements in Python 3.8, and newer versions of our dependencies (#30963)
-* Airflow 2.7.0 is the release that focuses on security. The Airflow security team, working together with security researchers identified a number of areas that required strenghtening of security. This resulted, among others, in improved description of [Airflow security model](https://airflow.apache.org/docs/apache-airflow/stable/security/security_model/), better explanation of our [security policy](https://github.com/apache/airflow/security/policy) and disabling certain, potentially dangerous, features by default - like, for example, connection testing (#32052)
 
 
 ## Contributors
