@@ -83,6 +83,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Pulumi Provider](https://github.com/astronomer/airflow-provider-pulumi) - Provides Hooks and Operators to manage Infrastructure-as-Code with Pulumi
 
+[Airflow DolphinDB Provider](https://github.com/dolphindb/airflow-provider-dolphindb) - Provides Hooks and Operators to run scripts with [DolphinDB](https://www.dolphindb.com).
 
 &nbsp;
 
