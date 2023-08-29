@@ -167,6 +167,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Oozie to Airflow](https://github.com/GoogleCloudPlatform/oozie-to-airflow) - A tool to easily convert between [Apache Oozie](http://oozie.apache.org/) workflows and Apache Airflow workflows.
 
+[Open Data Discovery](https://opendatadiscovery.org) - an open source data discovery and observability platform for data-driven organizations looking to democratize their data by making it more discoverable, manageable, observable, reliable, and secure.
+
 [OpenLineage](https://openlineage.io) - An open standard for the collection of data lineage, which can be used to trace the path of datasets as they traverse multiple systems including Apache Airflow.
 
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
