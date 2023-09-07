@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# September 07, 2023
+
+We’ve just released Apache **Airflow 2.7.1**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.7.1/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.7.1 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.7.1/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.7.1/installation/installing-from-sources.html
+
 # August 18, 2023
 
 We’ve just released Apache **Airflow 2.7.0**. You can read all about it in our [Apache Airflow 2.7.0 is here]({{< ref "blog/airflow-2.7.0/index.md" >}}) blog post.
