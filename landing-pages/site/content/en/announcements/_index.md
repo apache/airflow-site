@@ -15,7 +15,7 @@ menu:
 
 # September 07, 2023
 
-We’ve just released Apache **Airflow 2.7.1**. 
+We’ve just released Apache **Airflow 2.7.1**.
 
 📦 PyPI: https://pypi.org/project/apache-airflow/2.7.1/ \
 📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.7.1 \
