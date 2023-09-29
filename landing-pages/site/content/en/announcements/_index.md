@@ -13,6 +13,13 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# September 19, 2023
+
+Airflow PMC welcomes new Airflow Committers:
+
+* **Amogh Desai** ([@amoghrajesh](https://github.com/amoghrajesh))
+* **Pankaj Koti** ([@pankajkoti](https://github.com/pankajkoti))
+
 # September 07, 2023
 
 We’ve just released Apache **Airflow 2.7.1**.
