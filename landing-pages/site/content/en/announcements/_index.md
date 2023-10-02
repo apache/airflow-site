@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# October 02, 2023
+
+We've just released Apache **Airflow Helm chart 1.11.0**.
+
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
+📚 Docs: https://airflow.apache.org/docs/helm-chart/1.11.0/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.11.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.11.0/installing-helm-chart-from-sources.html
+
 # September 19, 2023
 
 Airflow PMC welcomes new Airflow Committers:
