@@ -133,6 +133,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-openlineage/stable/index.html"><code>OpenLineage</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-opensearch/stable/index.html"><code>Open Search</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-opsgenie/stable/index.html"><code>Opsgenie</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-oracle/stable/index.html"><code>Oracle</code></a></li>
