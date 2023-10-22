@@ -241,6 +241,7 @@ shift
 
 # Check commands
 if [[ "${CMD}" == "install-node-deps" ]] ; then
+    npm install --global yarn
     run_command "${MY_DIR}/landing-pages/" yarn install
 elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
