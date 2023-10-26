@@ -67,6 +67,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>CNCF Kubernetes</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-daskexecutor/stable/index.html"><code>Dask Executor</code></a></li>
@@ -110,8 +112,6 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-jdbc/stable/index.html"><code>Java Database Connectivity (JDBC)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-jenkins/stable/index.html"><code>Jenkins</code></a></li>
-
-  <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>Kubernetes</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
 
@@ -166,6 +166,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-singularity/stable/index.html"><code>Singularity</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-slack/stable/index.html"><code>Slack</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-smtp/stable/index.html"><code>SMTP</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-snowflake/stable/index.html"><code>Snowflake</code></a></li>
 
