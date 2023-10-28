@@ -39,8 +39,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Google Cloud Composer](https://cloud.google.com/composer) - Managed Apache Airflow service on Google Cloud Platform
 
-[Qubole](https://qubole.com) - Managed Apache Airflow Service on all major public clouds
-
 [Amazon Managed Workflows for Apache Airflow](https://aws.amazon.com/managed-workflows-for-apache-airflow) - Managed Apache Airflow on Amazon Web Services (AWS)
 
 [Azure Data Factory Managed Airflow](https://learn.microsoft.com/azure/data-factory/concept-managed-airflow) - Managed Apache Airflow service on Azure
