@@ -173,6 +173,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [OpenLineage](https://openlineage.io) - An open standard for the collection of data lineage, which can be used to trace the path of datasets as they traverse multiple systems including Apache Airflow.
 
+[Panda Patrol](https://github.com/aivanzhang/panda_patrol#-panda-patrol) - Test and profile your data right within your Airflow DAGs. With dashboards and alerts already pre-built.
+
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
 [Redactics](https://www.redactics.com) - A managed appliance (built on Airflow) installed next to your databases that powers a growing collection of data management workflows.
