@@ -69,6 +69,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>CNCF Kubernetes</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-cohere/stable/index.html"><code>Cohere</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-daskexecutor/stable/index.html"><code>Dask Executor</code></a></li>
@@ -131,6 +133,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-openfaas/stable/index.html"><code>OpenFaaS</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-openai/stable/index.html"><code>OpenAI</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-openlineage/stable/index.html"><code>OpenLineage</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-opensearch/stable/index.html"><code>Open Search</code></a></li>
@@ -144,6 +148,10 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-papermill/stable/index.html"><code>Papermill</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-plexus/stable/index.html"><code>Plexus</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-pgvector/stable/index.html"><code>PgVector</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-pinecone/stable/index.html"><code>Pinecone</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-postgres/stable/index.html"><code>PostgreSQL</code></a></li>
 
@@ -184,6 +192,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-trino/stable/index.html"><code>Trino</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-weaviate/stable/index.html"><code>Weaviate</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-yandex/stable/index.html"><code>Yandex</code></a></li>
 
