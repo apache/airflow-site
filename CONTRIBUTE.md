@@ -54,10 +54,22 @@ Contributor Guide
     ├── demo
     └── sphinx_airflow_theme
 ```
+**Table of contents**
+
+- [Working with the project](#working-with-the-project)
+- [Static checks](#static-checks)
+- [Clone repository](#clone-repository)
+- [Use site.sh script](#use-sitesh-script)
+- [Adding a new blog post](#adding-a-new-blog-post)
+- [Adding a blog post with images](#adding-a-blog-post-with-images)
+- [Adding a new case study](#adding-a-new-case-study)
+- [Adding a new integration](#adding-a-new-integration)
+- [Adding a new meetup](#adding-a-new-meetup)
+- [Preview changes on pull requests (CI/CD)](#preview-changes-on-pull-requests-cicd)
 
 # Working with the project
 
-Work with the site and documentation requires that your computer be properly prepared. Most tasks can
+You should work with the site and documentation that requires that your computer be properly prepared. Most tasks can
 be done by the site.sh script
 
 ### Prerequisite Tasks
@@ -69,7 +81,7 @@ The following applications must be installed to use the project:
 * Node 16
 * Hugo
 
-It is also worth adding SSH keys for the `github.com` server to trusted ones. It is necessary to clone repositories. You can do this using following command:
+It is also worth adding SSH keys for the `github.com` server to trusted ones. It is necessary to clone repositories. You can do this using the following command:
 ```bash
 ssh-keyscan -t rsa -H github.com >> ~/.ssh/known_hosts
 ```
@@ -87,7 +99,7 @@ curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
 sudo usermod -aG docker $USER
 ```
 
-Git must have commit author information configured, run these commands
+Git must have to commit author information configured, run these commands
 ```bash
 git config --global user.email '<your.email@example.com>'
 git config --global user.name '<you name>'
@@ -112,7 +124,7 @@ To install git on macOS, install the XCode Command Line Tools with the following
 xcode-select --install
 ```
 
-Then, install [Homebrew](https://brew.sh). Once that has completed, you can install Hugo:
+Then, install [Homebrew](https://brew.sh). Once that has been completed, you can install Hugo:
 ```bash
 brew install hugo
 ```
@@ -126,13 +138,13 @@ nvm use 16
 
 ### Static checks
 
-The project uses many static checks using fantastic [pre-commit](https://pre-commit.com/). Every change is checked on CI and if it does not pass the tests it cannot be accepted. If you want to check locally then you should install Python3.6 or newer together with pip and run following command to install pre-commit:
+The project uses many static checks using fantastic [pre-commit](https://pre-commit.com/). Every change is checked on CI and if it does not pass the tests it cannot be accepted. If you want to check locally then you should install Python3.6 or newer together with pip and run the following command to install pre-commit:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-To turn on pre-commit checks for commit operations in git, enter:
+To turn on pre-commit checks for commit operations in Git, enter:
 ```bash
 pre-commit install
 ```
@@ -151,7 +163,7 @@ Pre-commit check results are also attached to your PR through integration with T
 
 ### Clone repository
 
-To clone repository from github.com to local disk, run following command
+To clone the repository from github.com to the local disk, run the following command
 
 ```bash
 git clone git@github.com:apache/airflow-site.git
@@ -166,7 +178,7 @@ In order to manage your local environment for the project, use the `site.sh` scr
 
     build-site            Prepare dist directory with landing pages and documentation
     preview-landing-pages Starts the web server with preview of the website
-    build-landing-pages   Builds a landing pages
+    build-landing-pages   Builds landing pages
     prepare-theme         Prepares and copies files needed for the proper functioning of the sphinx theme.
     install-node-deps     Download all the Node dependencies
     check-site-links      Checks if the links are correct in the website
@@ -174,23 +186,23 @@ In order to manage your local environment for the project, use the `site.sh` scr
     lint-js               Lint Javascript files
     help                  Display usage
 
-### How to add a new blogpost
+### Adding a new blog post
 
-To add a new blogpost with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
+To add a new blog post with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
 ```bash
 hugo new blog/my-new-blogpost.md
 ```
 
 That will create a markdown file `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/blog/my-new-blogpost.md`
-with following content:
+with the following content:
 ```
 ---
 title: "My New Blogpost"
 linkTitle: "My New Blogpost"
 author: "Your Name"
-twitter: "Your Twitter ID (optional, remove if not needed)"
-github: "Your Github ID (optional, remove if not needed)"
-linkedin: "Your LinkedIn ID (optional, remove if not needed)"
+Twitter: "Your Twitter ID (optional, remove if not needed)"
+GitHub: "Your Github ID (optional, remove if not needed)"
+LinkedIn: "Your LinkedIn ID (optional, remove if not needed)"
 description: "Description"
 tags: []
 date: "2019-11-19"
@@ -199,22 +211,22 @@ draft: true
 ```
 Below frontmatter, put your blogpost content.
 
-When you finish your writing blogpost, remember to **remove `draft: true`** from frontmatter.
+When you finish your writing blog post, remember to **remove `draft: true`** from frontmatter.
 
 ---
 
-To add a new blogpost manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/blog/<filename>.md`.
-The filename will also serve as URL for your blogpost.
+To add a new blog post manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/blog/<filename>.md`.
+The filename will also serve as a URL for your blog post.
 
-Then, **at the top of the file**, add frontmatter in following format:
+Then, **at the top of the file**, add frontmatter in the following format:
 ```
 ---
 title: "<blogpost title>"
 linkTitle: "<blogpost link title>"
 author: "<author's name>"
-twitter: "<optional - author's Twitter ID>"
-github: "<optional - author's Github ID>"
-linkedin: "<optional - author's Linkedin ID>"
+Twitter: "<optional - author's Twitter ID>"
+GitHub: "<optional - author's Github ID>"
+LinkedIn: "<optional - author's Linkedin ID>"
 description: "<short description>"
 tags: ["<tag1>", "<tag2>", ...]
 date: <date in YYYY-MM-DD format>
@@ -222,9 +234,9 @@ date: <date in YYYY-MM-DD format>
 ```
 Below frontmatter, put your blogpost content.
 
-### How to add a blog post with images
+### Adding a blog post with images
 
-In order to add a new blog post with images, you need to add it in sub-folder of the "blog" folder and
+In order to add a new blog post with images, you need to add it in the sub-folder of the "blog" folder and
 name your markdown file "index.md". Images placed  in this folder can be referred to directly from
 the markdown file using this directive:
 
@@ -232,7 +244,7 @@ the markdown file using this directive:
 ![Alt text](image.png)
 ```
 
-### How to add a new case study
+### Adding a new case study
 
 To add a new case study with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
 ```bash
@@ -240,7 +252,7 @@ hugo new use-cases/my-use-case.md
 ```
 
 That will create a markdown file `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/my-use-case.md`
-with following content:
+with the following content:
 ```
 ---
 title: "My Use Case"
@@ -261,14 +273,14 @@ text
 ##### What are the results?
 text
 ```
-When you finish your writing blogpost, remember to **remove `draft: true`** from frontmatter.
+When you finish your writing blog post, remember to **remove `draft: true`** from frontmatter.
 
 ---
 
 To add a new case study manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/<filename>.md`.
 The filename will also serve as URL for the case study.
 
-Then, **at the top of the file**, add frontmatter in following format:
+Then, **at the top of the file**, add frontmatter in the following format:
 
 ```
 ---
@@ -280,7 +292,7 @@ quote:
 logo: "<logo filename (with extension)>"
 ---
 ```
-Below frontmatter, put your blogpost content in following format:
+Below frontmatter, put your blog post content in the following format:
 
 ```
 #### What was the problem?
@@ -324,7 +336,7 @@ logo: "my-case-study.svg"
 <text>
 ```
 
-### How to add a new integration
+### Adding a new integration
 
 In order to add a new integration, add an entry in `<ROOT DIRECTORY>/landing-pages/site/static/integrations.json` file,
 following the format:
@@ -339,13 +351,13 @@ following the format:
 Integrations are displayed in random order, which might be different on each site reload. To search
 for your integration, use the search functionality.
 
-Providing an integration logo is **optional**. However, please take note that integrations with logo are be promoted
+Providing an integration logo is **optional**. However, please take note that integrations with logo are being promoted
 by being displayed before integrations without a logo.
 
-### How to add a new meetup
+### Adding a new meetup
 
 In order to add an upcoming meetup, find your group in `<ROOT DIRECTORY>/landing-pages/site/static/meetups.json` file
-and put the meetup's date in following format:
+and put the meetup's date in the following format:
 
 `MON, JAN 01, 6:00 PM`
 
@@ -368,13 +380,13 @@ If your meetup group isn't on the list, add it following the format of existing 
   ```
 
 
-# How to release new documentation
+# Releasing new documentation
 
-Building documentation for the Apache Airlfow project also requires Python3.6 with pip and graphviz. You also need to have additional `apache/airflow` repository available.
+Building documentation for the Apache Airlfow project also requires Python3.6 with pip and graphviz. You also need to have an additional `apache/airflow` repository available.
 
 ### Prerequisite Tasks
 
-You should install and set up all software from "Working with the project/Prerequisite tasks" section.
+You should install and set up all software from the "Working with the project/Prerequisite tasks" section.
 
 The following additional application must be installed to use the project:
 
@@ -384,12 +396,12 @@ The following additional application must be installed to use the project:
 
 **Debian installation:**
 
-To install graphviz, pip for Debian, run following commands:
+To install graphviz, pip for Debian, run the following commands:
 ```bash
 sudo apt install graphviz python3-pip -y
 ```
 
-You should also add `$HOME/.local/bin` to `$PATH`, run following command:
+You should also add `$HOME/.local/bin` to `$PATH`, and run the following command:
 ```bash
 export PATH=$HOME/.local/bin:$PATH;
 ```
@@ -397,7 +409,7 @@ export PATH=$HOME/.local/bin:$PATH;
 
 ### Clone repositories
 
-It is necessary to configure 2 variables that point to directories with repositories and one that describe current Airflow version. The next steps will assume that these variables are available.
+It is necessary to configure 2 variables that point to directories with repositories and one that describes the current Airflow version. The next steps will assume that these variables are available.
 ```bash
 AIRFLOW_REPO=$HOME/airflow
 AIRFLOW_SITE_REPO=$HOME/airflow-site
@@ -415,13 +427,13 @@ cd "${AIRFLOW_SITE_REPO}" && git submodule update --init --recursive
 
 To release a new documentation, follow these steps:
 
-1.  To prepare and install Sphinx theme, run following commands:
+1.  To prepare and install Sphinx theme, run the following commands:
     ```bash
     cd "${AIRFLOW_SITE_REPO}" && bash site.sh build-site
     cd "${AIRFLOW_SITE_REPO}" && bash site.sh prepare-theme
     cd "${AIRFLOW_SITE_REPO}/sphinx_airflow_theme" && pip3 install -e .
     ```
-2.  To build documentation, run following commands:
+2.  To build documentation, run the following commands:
     ```bash
     cd "${AIRFLOW_REPO}" && git checkout "${AIRFLOW_VERSION}"
     cd "${AIRFLOW_REPO}" && breeze build-docs'
