@@ -639,6 +639,7 @@
 <span class="kn">from</span> <span class="nn">airflow.decorators.base</span> <span class="kn">import</span> <span class="n">DecoratedOperator</span><span class="p">,</span> <span class="n">TaskDecorator</span><span class="p">,</span> <span class="n">task_decorator_factory</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.operators.python</span> <span class="kn">import</span> <span class="n">PythonOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.providers.apache.spark.hooks.spark_connect</span> <span class="kn">import</span> <span class="n">SparkConnectHook</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">airflow.utils.context</span> <span class="kn">import</span> <span class="n">Context</span>
@@ -689,34 +690,44 @@
         <span class="kn">from</span> <span class="nn">pyspark</span> <span class="kn">import</span> <span class="n">SparkConf</span>
         <span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
 
-        <span class="n">conf</span> <span class="o">=</span> <span class="n">SparkConf</span><span class="p">()</span><span class="o">.</span><span class="n">setAppName</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">SparkConf</span><span class="p">()</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;spark.app.name&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dag_id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">task_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">master</span> <span class="o">=</span> <span class="s2">&quot;local[*]&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;local[*]&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">:</span>
+            <span class="c1"># we handle both spark connect and spark standalone</span>
             <span class="n">conn</span> <span class="o">=</span> <span class="n">BaseHook</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
-                <span class="n">master</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">conn</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">conn</span><span class="o">.</span><span class="n">conn_type</span> <span class="o">==</span> <span class="n">SparkConnectHook</span><span class="o">.</span><span class="n">conn_type</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">SparkConnectHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_connection_url</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">conn</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">conn</span><span class="o">.</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">elif</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span><span class="p">:</span>
-                <span class="n">master</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span>
 
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-        <span class="n">conf</span><span class="o">.</span><span class="n">setMaster</span><span class="p">(</span><span class="n">master</span><span class="p">)</span>
+        <span class="c1"># you cannot have both remote and master</span>
+        <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sc://&quot;</span><span class="p">):</span>
+            <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;spark.remote&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
 
         <span class="c1"># task can override connection config</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spark.remote&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spark.master&quot;</span><span class="p">):</span>
+            <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;spark.master&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+
         <span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">conf</span><span class="o">=</span><span class="n">conf</span><span class="p">)</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
-        <span class="n">sc</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sparkContext</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="n">op_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span><span class="p">)</span>
         <span class="n">op_kwargs</span><span class="p">[</span><span class="s2">&quot;spark&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark</span>
-        <span class="n">op_kwargs</span><span class="p">[</span><span class="s2">&quot;sc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sc</span>
+
+        <span class="c1"># spark context is not available when using spark connect</span>
+        <span class="n">op_kwargs</span><span class="p">[</span><span class="s2">&quot;sc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">sparkContext</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">conf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spark.remote&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">op_kwargs</span> <span class="o">=</span> <span class="n">op_kwargs</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
