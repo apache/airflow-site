@@ -157,6 +157,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [dbt (data build tool)](https://docs.getdbt.com/) - Data transformation tool, [dbt jobs can be scheduled using Airflow](https://docs.getdbt.com/docs/running-a-dbt-project/running-dbt-in-production/#using-airflow).
 
+[Domino](https://github.com/Tauffer-Consulting/domino) - Domino is an open source Graphical User Interface platform for creating data and Machine Learning workflows (DAGs) with no-code, visually intuitive drag-and-drop actions. It is also a standard for publishing and sharing your Python code so it can be automatically used by anyone, directly in the GUI.
+
 [Elyra](https://github.com/elyra-ai/elyra) - Elyra provides a visual editor that enables data scientists to create AI pipelines in a low-code/no-code fashion.
 
 [GeniumCloud](https://geniumcloud.com) - One-Stop-Shop Platform for rapid build, scheduling and control Airflow workflows via completely new UI. Out of the box comprehensive Airflow infrastructure monitoring, integration with alerting systems and service adoption from small to enterprise organizations. The easiest way to manage complex workflows.
