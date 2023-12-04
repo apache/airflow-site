@@ -54,24 +54,7 @@ Contributor Guide
     ├── demo
     └── sphinx_airflow_theme
 ```
-**Table of contents**
 
-- [Working with the project](#working-with-the-project)
-- [Static checks](#static-checks)
-- [Clone repository](#clone-repository)
-- [Use site.sh script](#use-sitesh-script)
-- [Adding a new blog post](#adding-a-new-blog-post)
-- [Adding a blog post with images](#adding-a-blog-post-with-images)
-- [Adding a new case study](#adding-a-new-case-study)
-- [Adding a new integration](#adding-a-new-integration)
-- [Adding a new meetup](#adding-a-new-meetup)
-- [Preview changes on pull requests (CI/CD)](#preview-changes-on-pull-requests-cicd)
-- [Releasing new documentation](#releasing-new-documentation)
-- [Publish site on Apache server (CI/CD)](#publish-site-on-apache-server-cicd)
-- [Publish site on Apache server (manual way)](#publish-site-on-apache-server-manual-way)
-- [Release and publish documentation in one go](#release-and-publish-documentation-in-one-go)
-- [Using VM on GCP](#using-vm-on-gcp)
-- [Use RAM disk for build](#use-ram-disk-for-build)
 # Working with the project
 
 You should work with the site and documentation that requires that your computer be properly prepared. Most tasks can
