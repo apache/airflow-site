@@ -67,6 +67,7 @@ The following applications must be installed to use the project:
 * git
 * docker (for the shell language linter)
 * Node 16
+* Yarn
 * Hugo
 
 It is also worth adding SSH keys for the `github.com` server to trusted ones. It is necessary to clone repositories. You can do this using following command:
@@ -100,6 +101,11 @@ nvm install 16
 nvm use 16
 ```
 
+To install yarn, run the following command:
+```bash
+npm install -g yarn
+```
+
 To install hugo on Debian, run the following command:
 ```bash
 sudo apt install hugo -y
@@ -122,6 +128,11 @@ To install Node 16, first install the [Node version manager](https://github.com/
 ```bash
 nvm install 16
 nvm use 16
+```
+
+To install Yarn, run the following command:
+```bash
+brew install yarn
 ```
 
 ### Static checks
