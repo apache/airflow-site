@@ -103,7 +103,7 @@ nvm use 16
 
 To install yarn, run the following command:
 ```bash
-npm install -g yarn
+npm install -g yarnpkg
 ```
 
 To install hugo on Debian, run the following command:
@@ -132,7 +132,7 @@ nvm use 16
 
 To install Yarn, run the following command:
 ```bash
-brew install yarn
+brew install yarnpkg
 ```
 
 ### Static checks
