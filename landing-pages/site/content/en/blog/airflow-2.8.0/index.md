@@ -109,6 +109,6 @@ Other notable UI improvements include:
 Additional new features and improvements can be found in the [Airflow 2.8.0 release notes](https://airflow.apache.org/docs/apache-airflow/2.8.0/release_notes.html#airflow-2-8-0-2023-12-14).
 
 # Contributors
-Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Bolke de Bruin, Daniel Dyląg, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, mhenc, Miroslav Šedivý, Pankaj Koti, Tzu-ping Chung, Vincent, and everyone else who committed, all 152 of you! You are what makes Airflow the successful project that it is!
+Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Bolke de Bruin, Daniel Dyląg, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, mhenc, Miroslav Šedivý, Pankaj Koti, Tzu-ping Chung, Vincent, and everyone else who committed, all 110 of you! You are what makes Airflow the successful project that it is!
 
 I hope you enjoy using Apache Airflow 2.8.0!
