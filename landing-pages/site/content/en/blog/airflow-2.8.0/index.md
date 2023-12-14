@@ -6,9 +6,10 @@ github: "ephraimbuddy"
 linkedin: "ephraimanierobi"
 description: "Introducing Apache Airflow 2.8.0: Enhanced with New Features and Significant Improvements"
 tags: [Release]
-date: "2023-12-14"
+date: "2023-12-15"
 ---
 
+I am thrilled to announce the release of Apache Airflow 2.8.0, featuring a host of significant enhancements and new features that will greatly benefit our community.
 
 **Details**:
 
@@ -72,6 +73,8 @@ This feature can be toggled, for more information [Look for “enable_task_conte
 This feature enables users to subscribe to Dataset creation and update events using listener hooks.
 It’s particularly useful to trigger external processes based on a Dataset being created or updated.
 
+Please note that listeners are still experimental and subject to change.
+
 ## Using Extra Index URLs with PythonVirtualEnvOperator and Caching
 This feature allows you to specify extra index URLs to PythonVirtualEnvOperator (+corresponding decorator) to be able to install virtualenvs with (private) additional Python package repositories.
 
@@ -80,6 +83,32 @@ can be achieved by setting the ``venv_cache_path`` to a file system folder on yo
 
 For more information: [PythonVirtualenvOperator](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/python.html#pythonvirtualenvoperator)
 
+# Web UI improvements
+
+There are a number of improvements to the Web UI in this release, including:
+
+## Add multiselect to run state in grid view:
+The grid view now supports multiselect for run states. This allows you to select multiple states to filter the dag runs shown in the grid view.
+
+![Multiselect on the run state](multiselect-states.png)
+
+## Improved visibility of task status in the Graph view
+You can now see the status of a task in the graph view through the border color of the task. This makes it easier to see the status of a task at a glance.
+
+![Task status visibility](task_status_visibility.png)
+
+## Raw HTML code in DAG docs and DAG params descriptions is disabled by default
+As part of our continuous quest to make airflow more secure by default, we have disabled raw HTML code in DAG docs and DAG params descriptions by default.
+We care for your security, and "secure by default" is one of the things we follow strongly.
+
+Other notable UI improvements include:
+  - Simplify DAG trigger UI
+  - Hide logical date and run id in trigger UI form
+  - Move external logs links to top of react logs page
+
 Additional new features and improvements can be found in the [Airflow 2.8.0 release notes](https://airflow.apache.org/docs/apache-airflow/2.8.0/release_notes.html#airflow-2-8-0-2023-12-14).
 
 # Contributors
+Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Bolke de Bruin, Daniel Dyląg, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, mhenc, Miroslav Šedivý, Pankaj Koti, Tzu-ping Chung, Vincent, and everyone else who committed, all 152 of you! You are what makes Airflow the successful project that it is!
+
+I hope you enjoy using Apache Airflow 2.8.0!
