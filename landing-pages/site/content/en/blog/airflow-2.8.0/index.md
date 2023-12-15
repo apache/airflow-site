@@ -60,6 +60,7 @@ The support for a specific object storage system depends on the installed provid
 with out-of-the-box support for the file scheme.
 
 ## Ship logs from other components to Task logs
+
 This feature seamlessly integrates task-related messages from various Airflow components, including the Scheduler and
 Executors, into the task logs. This integration allows users to easily track error messages and other relevant
 information within a single log view.
@@ -70,10 +71,11 @@ it becomes feasible to dispatch an error message to the task log for convenient 
 This feature can be toggled, for more information [Look for “enable_task_context_logger” in the logging configuration documentation](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#logging)
 
 ## Listener hooks for Datasets
+
+*Please note that listeners are still experimental and subject to change.*
+
 This feature enables users to subscribe to Dataset creation and update events using listener hooks.
 It’s particularly useful to trigger external processes based on a Dataset being created or updated.
-
-Please note that listeners are still experimental and subject to change.
 
 ## Using Extra Index URLs with PythonVirtualEnvOperator and Caching
 This feature allows you to specify extra index URLs to PythonVirtualEnvOperator (+corresponding decorator) to be able to install virtualenvs with (private) additional Python package repositories.
