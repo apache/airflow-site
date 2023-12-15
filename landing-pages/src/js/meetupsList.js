@@ -51,16 +51,9 @@ const runMeetups = () => {
 
       const createElement = (item) => {
         const element = templateElement.cloneNode(true);
-        const nextMeetupNode = element.querySelector(".box-event__meetup--next-meetup");
         element.querySelector('[data-name="location"]').innerHTML = `${item.city}<br/>${item.country}`;
         element.querySelector('[data-name="members-count"]').innerText = `${item.members} members`;
         element.querySelector("a").href = item.url;
-
-        if (item.date) {
-          element.querySelector('[data-name="date"]').innerText = item.date;
-        } else {
-          nextMeetupNode.innerHTML = "No upcoming meetups";
-        }
 
         return element.firstElementChild;
       };
