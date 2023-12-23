@@ -320,15 +320,3 @@ have a declarative way of creating DAGs. That seems to be something that is “a
 as we always emphasize the possibility of writing workflows in pure python. Stories
 about DAG generators are not new and confirm that there’s a need for a way to
 declare DAGs.
-
-## Data
-
-If you think I missed something and you want to look for insights on your own the data is available
-for you here:
-
- - Original data: https://storage.googleapis.com/airflow-survey/survey.csv
- - Processed: https://storage.googleapis.com/airflow-survey/airflow_survey_processed.csv
-
-The processed data includes multi-choice options one-hot encoded. If you find any interesting
-insight, please update the article ([make PR](https://github.com/apache/airflow-site/blob/master/CONTRIBUTE.md)
-to Airflow site).
