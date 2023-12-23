@@ -64,7 +64,7 @@ setup(
         ]
     },
     install_requires=[
-        'sphinx>=1.8'
+        'sphinx>=7.0.0'
     ],
     tests_require=[],
     extras_require={
