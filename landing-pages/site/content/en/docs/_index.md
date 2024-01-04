@@ -200,10 +200,10 @@ Providers packages include integrations with third party projects. They are vers
 
 ### Suspended providers
 
-Those providers are currently suspended from releases and we are not actively testing their compatibility with
-latest Airflow releases. You can still use released versions of those providers if you need to and in case
+These providers are currently suspended from releases and we are not actively testing their compatibility with
+latest Airflow releases. You can still use the released versions of these providers if you need to and in case
 the reason for suspension is resolved, the provider might be resumed by a PR of a community member who will
-resolve the suspention reason. It the provider is suspended for some time, the community might make
+resolve the suspension reason. It the provider is suspended for quite some time, the community might make a
 decision about removing it.
 
 More about the suspension/resuming process can be found in the
@@ -213,8 +213,8 @@ More about the suspension/resuming process can be found in the
 
 ### Removed providers
 
-Those providers are no longer supported and have been removed from the codebase, you can however still
-use released versions of those providers if you need to.
+These providers are no longer supported and have been removed from the codebase, you can however still
+use the released versions of these providers if you need to.
 
 More about the removal process can be found in the
 [Community provider's lifecycle documentation](https://github.com/apache/airflow/blob/main/PROVIDERS.rst#community-providers-lifecycle) page.
