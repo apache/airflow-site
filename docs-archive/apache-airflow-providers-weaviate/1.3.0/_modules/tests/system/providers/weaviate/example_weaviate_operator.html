@@ -633,8 +633,10 @@
 <span class="kn">import</span> <span class="nn">pendulum</span>
 
 <span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">dag</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">teardown</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.weaviate.operators.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateIngestOperator</span>
+<span class="kn">from</span> <span class="nn">airflow.providers.weaviate.operators.weaviate</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">WeaviateDocumentIngestOperator</span><span class="p">,</span>
+    <span class="n">WeaviateIngestOperator</span><span class="p">,</span>
+<span class="p">)</span>
 
 <div class="viewcode-block" id="sample_data_with_vector"><a class="viewcode-back" href="../../../../../_api/tests/system/providers/weaviate/example_weaviate_operator/index.html#tests.system.providers.weaviate.example_weaviate_operator.sample_data_with_vector">[docs]</a><span class="n">sample_data_with_vector</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">{</span>
@@ -707,16 +709,15 @@
 <span class="sd">    Example Weaviate DAG demonstrating usage of the operator.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Example tasks to create a Weaviate class without vectorizers, store data with custom vectors in XCOM,</span>
-    <span class="c1"># and call WeaviateIngestOperator to ingest data with those custom vectors. There are 2 tasks for</span>
-    <span class="c1"># WeaviateIngestOperator, one of them gets input data from the XCOM and the other gets input data</span>
-    <span class="c1"># from a callable.</span>
+    <span class="c1"># Example tasks to create a Weaviate class without vectorizers, store data with custom vectors in XCOM, and call</span>
+    <span class="c1"># WeaviateIngestOperator to ingest data with those custom vectors.</span>
     <span class="nd">@task</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_class_without_vectorizer</span><span class="p">():</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Example task to create class without any Vectorizer. You&#39;re expected to provide custom vectors</span>
-<span class="sd">         for your data.</span>
+<span class="sd">        Example task to create class without any Vectorizer. You&#39;re expected to provide custom vectors for your data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
+
         <span class="n">weaviate_hook</span> <span class="o">=</span> <span class="n">WeaviateHook</span><span class="p">()</span>
         <span class="c1"># Class definition object. Weaviate&#39;s autoschema feature will infer properties when importing.</span>
         <span class="n">class_obj</span> <span class="o">=</span> <span class="p">{</span>
@@ -751,14 +752,13 @@
 
     <span class="c1"># Example tasks to create class with OpenAI vectorizer, store data without vectors in XCOM, and call</span>
     <span class="c1"># WeaviateIngestOperator to ingest data by internally generating OpenAI vectors while ingesting.</span>
-    <span class="c1"># There are 2 tasks for WeaviateIngestOperator, one of them gets input data from the XCOM and the other</span>
-    <span class="c1"># gets input data from a callable.</span>
     <span class="nd">@task</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_class_with_vectorizer</span><span class="p">():</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Example task to create class with OpenAI Vectorizer responsible for vectorining data using Weaviate</span>
-<span class="sd">         cluster.</span>
+<span class="sd">        Example task to create class with OpenAI Vectorizer responsible for vectorining data using Weaviate cluster.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
+
         <span class="n">weaviate_hook</span> <span class="o">=</span> <span class="n">WeaviateHook</span><span class="p">()</span>
         <span class="n">class_obj</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperator&quot;</span><span class="p">,</span>
@@ -784,16 +784,68 @@
         <span class="p">}</span>
         <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">create_class</span><span class="p">(</span><span class="n">class_obj</span><span class="p">)</span>
 
+    <span class="nd">@task</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_class_for_doc_data_with_vectorizer</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example task to create class with OpenAI Vectorizer responsible for vectorining data using Weaviate cluster.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
+
+        <span class="n">weaviate_hook</span> <span class="o">=</span> <span class="n">WeaviateHook</span><span class="p">()</span>
+        <span class="n">class_obj</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperatorDocs&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Information from a Jeopardy! question&quot;</span><span class="p">,</span>  <span class="c1"># description of the class</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;dataType&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The question&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;question&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;dataType&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The answer&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;answer&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;dataType&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The category&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;category&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;dataType&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;URL for source document&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;docLink&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;vectorizer&quot;</span><span class="p">:</span> <span class="s2">&quot;text2vec-openai&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">create_class</span><span class="p">(</span><span class="n">class_obj</span><span class="p">)</span>
+
     <span class="nd">@task</span><span class="p">(</span><span class="n">trigger_rule</span><span class="o">=</span><span class="s2">&quot;all_done&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">store_data_without_vectors_in_xcom</span><span class="p">():</span>
-        <span class="k">return</span> <span class="n">sample_data_without_vector</span>
+        <span class="kn">import</span> <span class="nn">json</span>
+        <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;jeopardy_data_without_vectors.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="nd">@task</span><span class="p">(</span><span class="n">trigger_rule</span><span class="o">=</span><span class="s2">&quot;all_done&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">store_doc_data_without_vectors_in_xcom</span><span class="p">():</span>
+        <span class="kn">import</span> <span class="nn">json</span>
+        <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;jeopardy_doc_data_without_vectors.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="n">xcom_data_without_vectors</span> <span class="o">=</span> <span class="n">store_data_without_vectors_in_xcom</span><span class="p">()</span>
+    <span class="n">xcom_doc_data_without_vectors</span> <span class="o">=</span> <span class="n">store_doc_data_without_vectors_in_xcom</span><span class="p">()</span>
 
     <span class="c1"># [START howto_operator_weaviate_ingest_xcom_data_without_vectors]</span>
     <span class="n">batch_data_without_vectors_xcom_data</span> <span class="o">=</span> <span class="n">WeaviateIngestOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;batch_data_without_vectors_xcom_data&quot;</span><span class="p">,</span>
         <span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;weaviate_default&quot;</span><span class="p">,</span>
         <span class="n">class_name</span><span class="o">=</span><span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperator&quot;</span><span class="p">,</span>
-        <span class="n">input_json</span><span class="o">=</span><span class="n">store_data_without_vectors_in_xcom</span><span class="p">(),</span>
+        <span class="n">input_json</span><span class="o">=</span><span class="n">xcom_data_without_vectors</span><span class="p">[</span><span class="s2">&quot;return_value&quot;</span><span class="p">],</span>
         <span class="n">trigger_rule</span><span class="o">=</span><span class="s2">&quot;all_done&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># [END howto_operator_weaviate_ingest_xcom_data_without_vectors]</span>
@@ -808,16 +860,33 @@
     <span class="p">)</span>
     <span class="c1"># [END howto_operator_weaviate_ingest_callable_data_without_vectors]</span>
 
+    <span class="n">create_or_replace_document_objects_without_vectors</span> <span class="o">=</span> <span class="n">WeaviateDocumentIngestOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;create_or_replace_document_objects_without_vectors_xcom_data&quot;</span><span class="p">,</span>
+        <span class="n">existing</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">,</span>
+        <span class="n">document_column</span><span class="o">=</span><span class="s2">&quot;docLink&quot;</span><span class="p">,</span>
+        <span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;weaviate_default&quot;</span><span class="p">,</span>
+        <span class="n">class_name</span><span class="o">=</span><span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperatorDocs&quot;</span><span class="p">,</span>
+        <span class="n">batch_config_params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+        <span class="n">input_data</span><span class="o">=</span><span class="n">xcom_doc_data_without_vectors</span><span class="p">[</span><span class="s2">&quot;return_value&quot;</span><span class="p">],</span>
+        <span class="n">trigger_rule</span><span class="o">=</span><span class="s2">&quot;all_done&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="nd">@teardown</span>
     <span class="nd">@task</span>
     <span class="k">def</span> <span class="nf">delete_weaviate_class_Vector</span><span class="p">():</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example task to delete a weaviate class</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
+
         <span class="n">weaviate_hook</span> <span class="o">=</span> <span class="n">WeaviateHook</span><span class="p">()</span>
         <span class="c1"># Class definition object. Weaviate&#39;s autoschema feature will infer properties when importing.</span>
 
-        <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">delete_class</span><span class="p">(</span><span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperator&quot;</span><span class="p">)</span>
+        <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">delete_classes</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperator&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 
     <span class="nd">@teardown</span>
     <span class="nd">@task</span>
@@ -825,18 +894,39 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example task to delete a weaviate class</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
+
         <span class="n">weaviate_hook</span> <span class="o">=</span> <span class="n">WeaviateHook</span><span class="p">()</span>
         <span class="c1"># Class definition object. Weaviate&#39;s autoschema feature will infer properties when importing.</span>
 
-        <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">delete_class</span><span class="p">(</span><span class="s2">&quot;QuestionWithoutVectorizerUsingOperator&quot;</span><span class="p">)</span>
+        <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">delete_classes</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;QuestionWithoutVectorizerUsingOperator&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="nd">@teardown</span>
+    <span class="nd">@task</span>
+    <span class="k">def</span> <span class="nf">delete_weaviate_docs_class_without_Vector</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example task to delete a weaviate class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">airflow.providers.weaviate.hooks.weaviate</span> <span class="kn">import</span> <span class="n">WeaviateHook</span>
+
+        <span class="n">weaviate_hook</span> <span class="o">=</span> <span class="n">WeaviateHook</span><span class="p">()</span>
+        <span class="c1"># Class definition object. Weaviate&#39;s autoschema feature will infer properties when importing.</span>
+
+        <span class="n">weaviate_hook</span><span class="o">.</span><span class="n">delete_classes</span><span class="p">([</span><span class="s2">&quot;QuestionWithOpenAIVectorizerUsingOperatorDocs&quot;</span><span class="p">])</span>
 
     <span class="p">(</span>
         <span class="n">create_class_without_vectorizer</span><span class="p">()</span>
-        <span class="o">&gt;&gt;</span> <span class="p">[</span>
-            <span class="n">batch_data_with_vectors_xcom_data</span><span class="p">,</span>
-            <span class="n">batch_data_with_vectors_callable_data</span><span class="p">,</span>
-        <span class="p">]</span>
+        <span class="o">&gt;&gt;</span> <span class="p">[</span><span class="n">batch_data_with_vectors_xcom_data</span><span class="p">,</span> <span class="n">batch_data_with_vectors_callable_data</span><span class="p">]</span>
         <span class="o">&gt;&gt;</span> <span class="n">delete_weaviate_class_without_Vector</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="p">(</span>
+        <span class="n">create_class_for_doc_data_with_vectorizer</span><span class="p">()</span>
+        <span class="o">&gt;&gt;</span> <span class="p">[</span><span class="n">create_or_replace_document_objects_without_vectors</span><span class="p">]</span>
+        <span class="o">&gt;&gt;</span> <span class="n">delete_weaviate_docs_class_without_Vector</span><span class="p">()</span>
     <span class="p">)</span>
     <span class="p">(</span>
         <span class="n">create_class_with_vectorizer</span><span class="p">()</span>
