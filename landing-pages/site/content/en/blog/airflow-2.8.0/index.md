@@ -68,7 +68,7 @@ information within a single log view.
 Presently, suppose a task is terminated by the scheduler before initiation, times out due to prolonged queuing, or transitions into a zombie state. In that case, it is not recorded in the task log. With this enhancement, in such situations,
 it becomes feasible to dispatch an error message to the task log for convenient visibility on the UI.
 
-This feature can be toggled, for more information [Look for “enable_task_context_logger” in the logging configuration documentation](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#logging)
+This feature can be toggled, for more information [see “enable_task_context_logger” in the logging configuration documentation](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#enable-task-context-logger).
 
 ## Listener hooks for Datasets
 
