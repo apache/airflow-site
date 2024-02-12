@@ -153,6 +153,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-presto/stable/index.html"><code>Presto</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-qdrant/stable/index.html"><code>Qdrant</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-redis/stable/index.html"><code>Redis</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-salesforce/stable/index.html"><code>Salesforce</code></a></li>
