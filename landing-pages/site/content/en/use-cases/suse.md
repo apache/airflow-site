@@ -4,7 +4,7 @@ linkTitle: "RancherBySUSE"
 quote:
     text: "Apache Airflow helps us orchestrate the construction and release of our curated collection of containers"
     author: "Ruben Pardo"
-logo: "suse.svg"
+logo: "rancher-suse.svg"
 ---
 #### What was the problem?
 
