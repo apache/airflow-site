@@ -1,6 +1,6 @@
 ---
-title: "OpenSUSE"
-linkTitle: "OpenSUSE"
+title: "RancherBySUSE"
+linkTitle: "RancherBySUSE"
 quote:
     text: "Apache Airflow helps us orchestrate the construction and release of our curated collection of containers"
     author: "Ruben Pardo"
