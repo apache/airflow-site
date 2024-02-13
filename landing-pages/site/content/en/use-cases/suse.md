@@ -16,7 +16,7 @@ Finally, our building pipeline will be triggered by the release of sources upstr
 
 ##### How did Apache Airflow help to solve this problem?
 
-Apache Airflow has proven to be the perfect solution for implementing and controlling our pipelines. Its capability to orchestrate complex workflows programmatically and monitor their execution is complemented by a comprehensive graphical interface and detailed logs view. 
+Apache Airflow has proven to be the perfect solution for implementing and controlling our pipelines. Its capability to orchestrate complex workflows programmatically and monitor their execution is complemented by a comprehensive graphical interface and detailed logs view.
 
 Being extendable with a high-level language like Python has allowed us to customize our workflows as code with incredible flexibility and quality. Apache Airflow has enabled us to dynamically create and execute tasks derived from external sources, scheduling them to run in batches, thus reliably executing large-scale processes.
 
