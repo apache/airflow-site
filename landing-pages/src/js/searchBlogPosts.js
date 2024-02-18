@@ -79,8 +79,8 @@ if (window.location.pathname.startsWith("/blog") && searchString) {
         $newResultItem.querySelector(".box-event__blogpost--author").innerText = result.post.author;
         $newResultItem.querySelector(".box-event__blogpost--description").innerText = result.post.description;
         $newResultItem.querySelector(".box-event__blogpost--date").innerText = formatDate(result.post.date);
-        setTags($newResultItem.querySelector(".box-event__blogpost--metadata > .tags-container"), result.post.tags);
-        $newResultItem.querySelector(".box-event__blogpost > a").href = `/blog/${result.post.url}/`;
+        setTags($newResultItem.querySelector(".box-event__blogpost--metadata > .tags-container"), Object.hasOwn(result.post, "tag") ? result.post.tag : []);
+        $newResultItem.querySelectorAll(".box-event__blogpost a").forEach((e) => e.href = `/blog/${result.post.url}/`);
         $target.append($newResultItem);
       });
     } else {
