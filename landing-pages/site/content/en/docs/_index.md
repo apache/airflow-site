@@ -45,6 +45,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-impala/stable/index.html"><code>Apache Impala</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-kafka/stable/index.html"><code>Apache Kafka</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-kylin/stable/index.html"><code>Apache Kylin</code></a></li>
@@ -66,6 +68,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-atlassian-jira/stable/index.html"><code>Atlassian Jira</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>Cloudant</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>CNCF Kubernetes</code></a></li>
 
@@ -117,9 +121,9 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-microsoft-azure/stable/index.html"><code>Microsoft Azure</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-microsoft-psrp/stable/index.html"><code>Microsoft PowerShell Remoting Protocol (PSRP)</code></a></li>
-
   <li><a href="/docs/apache-airflow-providers-microsoft-mssql/stable/index.html"><code>Microsoft SQL Server (MSSQL)</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-microsoft-psrp/stable/index.html"><code>Microsoft PowerShell Remoting Protocol (PSRP)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-winrm/stable/index.html"><code>Microsoft Windows Remote Management (WinRM)</code></a></li>
 
@@ -131,9 +135,9 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-odbc/stable/index.html"><code>ODBC</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-openfaas/stable/index.html"><code>OpenFaaS</code></a></li>
-
   <li><a href="/docs/apache-airflow-providers-openai/stable/index.html"><code>OpenAI</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-openfaas/stable/index.html"><code>OpenFaaS</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-openlineage/stable/index.html"><code>OpenLineage</code></a></li>
 
@@ -181,9 +185,9 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-ssh/stable/index.html"><code>SSH</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-tabular/stable/index.html"><code>Tabular</code></a></li>
-
   <li><a href="/docs/apache-airflow-providers-tableau/stable/index.html"><code>Tableau</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-tabular/stable/index.html"><code>Tabular</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
 
