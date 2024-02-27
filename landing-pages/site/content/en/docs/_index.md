@@ -187,6 +187,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-teradata/stable/index.html"><code>Teradata</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-trino/stable/index.html"><code>Trino</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
