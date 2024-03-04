@@ -1,0 +1,335 @@
+:py:mod:`airflow.providers.amazon.aws.executors.ecs.utils`
+==========================================================
+
+.. py:module:: airflow.providers.amazon.aws.executors.ecs.utils
+
+.. autoapi-nested-parse::
+
+   AWS ECS Executor Utilities.
+
+   Data classes and utility functions used by the ECS executor.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.executors.ecs.utils.EcsQueuedTask
+   airflow.providers.amazon.aws.executors.ecs.utils.EcsTaskInfo
+   airflow.providers.amazon.aws.executors.ecs.utils.BaseConfigKeys
+   airflow.providers.amazon.aws.executors.ecs.utils.RunTaskKwargsConfigKeys
+   airflow.providers.amazon.aws.executors.ecs.utils.AllEcsConfigKeys
+   airflow.providers.amazon.aws.executors.ecs.utils.EcsExecutorTask
+   airflow.providers.amazon.aws.executors.ecs.utils.EcsTaskCollection
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.executors.ecs.utils.parse_assign_public_ip
+   airflow.providers.amazon.aws.executors.ecs.utils.camelize_dict_keys
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.executors.ecs.utils.CommandType
+   airflow.providers.amazon.aws.executors.ecs.utils.ExecutorConfigFunctionType
+   airflow.providers.amazon.aws.executors.ecs.utils.ExecutorConfigType
+   airflow.providers.amazon.aws.executors.ecs.utils.CONFIG_GROUP_NAME
+   airflow.providers.amazon.aws.executors.ecs.utils.CONFIG_DEFAULTS
+
+
+.. py:data:: CommandType
+
+   
+
+.. py:data:: ExecutorConfigFunctionType
+
+   
+
+.. py:data:: ExecutorConfigType
+
+   
+
+.. py:data:: CONFIG_GROUP_NAME
+   :value: 'aws_ecs_executor'
+
+   
+
+.. py:data:: CONFIG_DEFAULTS
+
+   
+
+.. py:class:: EcsQueuedTask
+
+
+   Represents an ECS task that is queued. The task will be run in the next heartbeat.
+
+   .. py:attribute:: key
+      :type: airflow.models.taskinstance.TaskInstanceKey
+
+      
+
+   .. py:attribute:: command
+      :type: CommandType
+
+      
+
+   .. py:attribute:: queue
+      :type: str
+
+      
+
+   .. py:attribute:: executor_config
+      :type: ExecutorConfigType
+
+      
+
+   .. py:attribute:: attempt_number
+      :type: int
+
+      
+
+   .. py:attribute:: next_attempt_time
+      :type: datetime.datetime
+
+      
+
+
+.. py:class:: EcsTaskInfo
+
+
+   Contains information about a currently running ECS task.
+
+   .. py:attribute:: cmd
+      :type: CommandType
+
+      
+
+   .. py:attribute:: queue
+      :type: str
+
+      
+
+   .. py:attribute:: config
+      :type: ExecutorConfigType
+
+      
+
+
+.. py:class:: BaseConfigKeys
+
+
+   Base Implementation of the Config Keys class. Implements iteration for child classes to inherit.
+
+   .. py:method:: __iter__()
+
+      Return an iterator of values of non dunder attributes of Config Keys.
+
+
+
+.. py:class:: RunTaskKwargsConfigKeys
+
+
+   Bases: :py:obj:`BaseConfigKeys`
+
+   Keys loaded into the config which are valid ECS run_task kwargs.
+
+   .. py:attribute:: ASSIGN_PUBLIC_IP
+      :value: 'assign_public_ip'
+
+      
+
+   .. py:attribute:: CAPACITY_PROVIDER_STRATEGY
+      :value: 'capacity_provider_strategy'
+
+      
+
+   .. py:attribute:: CLUSTER
+      :value: 'cluster'
+
+      
+
+   .. py:attribute:: LAUNCH_TYPE
+      :value: 'launch_type'
+
+      
+
+   .. py:attribute:: PLATFORM_VERSION
+      :value: 'platform_version'
+
+      
+
+   .. py:attribute:: SECURITY_GROUPS
+      :value: 'security_groups'
+
+      
+
+   .. py:attribute:: SUBNETS
+      :value: 'subnets'
+
+      
+
+   .. py:attribute:: TASK_DEFINITION
+      :value: 'task_definition'
+
+      
+
+   .. py:attribute:: CONTAINER_NAME
+      :value: 'container_name'
+
+      
+
+
+.. py:class:: AllEcsConfigKeys
+
+
+   Bases: :py:obj:`RunTaskKwargsConfigKeys`
+
+   All keys loaded into the config which are related to the ECS Executor.
+
+   .. py:attribute:: MAX_RUN_TASK_ATTEMPTS
+      :value: 'max_run_task_attempts'
+
+      
+
+   .. py:attribute:: AWS_CONN_ID
+      :value: 'conn_id'
+
+      
+
+   .. py:attribute:: RUN_TASK_KWARGS
+      :value: 'run_task_kwargs'
+
+      
+
+   .. py:attribute:: REGION_NAME
+      :value: 'region_name'
+
+      
+
+   .. py:attribute:: CHECK_HEALTH_ON_STARTUP
+      :value: 'check_health_on_startup'
+
+      
+
+
+.. py:exception:: EcsExecutorException
+
+
+   Bases: :py:obj:`Exception`
+
+   Thrown when something unexpected has occurred within the ECS ecosystem.
+
+
+.. py:class:: EcsExecutorTask(task_arn, last_status, desired_status, containers, started_at = None, stopped_reason = None)
+
+
+   Data Transfer Object for an ECS Fargate Task.
+
+   .. py:method:: get_task_state()
+
+      Determine the state of an ECS task based on its status and other relevant attributes.
+
+      It can return one of the following statuses:
+          QUEUED - Task is being provisioned.
+          RUNNING - Task is launched on ECS.
+          REMOVED - Task provisioning has failed for some reason. See `stopped_reason`.
+          FAILED - Task is completed and at least one container has failed.
+          SUCCESS - Task is completed and all containers have succeeded.
+
+
+   .. py:method:: __repr__()
+
+      Return a string representation of the ECS task.
+
+
+
+.. py:class:: EcsTaskCollection
+
+
+   A five-way dictionary between Airflow task ids, Airflow cmds, ECS ARNs, and ECS task objects.
+
+   .. py:method:: add_task(task, airflow_task_key, queue, airflow_cmd, exec_config, attempt_number)
+
+      Add a task to the collection.
+
+
+   .. py:method:: update_task(task)
+
+      Update the state of the given task based on task ARN.
+
+
+   .. py:method:: task_by_key(task_key)
+
+      Get a task by Airflow Instance Key.
+
+
+   .. py:method:: task_by_arn(arn)
+
+      Get a task by AWS ARN.
+
+
+   .. py:method:: pop_by_key(task_key)
+
+      Delete task from collection based off of Airflow Task Instance Key.
+
+
+   .. py:method:: get_all_arns()
+
+      Get all AWS ARNs in collection.
+
+
+   .. py:method:: get_all_task_keys()
+
+      Get all Airflow Task Keys in collection.
+
+
+   .. py:method:: failure_count_by_key(task_key)
+
+      Get the number of times a task has failed given an Airflow Task Key.
+
+
+   .. py:method:: increment_failure_count(task_key)
+
+      Increment the failure counter given an Airflow Task Key.
+
+
+   .. py:method:: info_by_key(task_key)
+
+      Get the Airflow Command given an Airflow task key.
+
+
+   .. py:method:: __getitem__(value)
+
+      Get a task by AWS ARN.
+
+
+   .. py:method:: __len__()
+
+      Determine the number of tasks in collection.
+
+
+
+.. py:function:: parse_assign_public_ip(assign_public_ip)
+
+   Convert "assign_public_ip" from True/False to ENABLE/DISABLE.
+
+
+.. py:function:: camelize_dict_keys(nested_dict)
+
+   Accept a potentially nested dictionary and recursively convert all keys into camelCase.
+
+
