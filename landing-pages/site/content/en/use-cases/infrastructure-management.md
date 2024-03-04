@@ -1,11 +1,11 @@
 ---
-title: "Adobe"
-linkTitle: "Adobe"
+title: "Infrastructure Management"
+linkTitle: "Infrastructure Management"
 quote:
-    text: "Apache Airflow is highly extensible and its plugin interface can be used to meet a variety of use cases. It supports variety of deployment models and has a very active community to scale innovation."
-    author: "Raman Gupta"
+    text: "Infrastructure management use case"
+    author: "Kenten"
 logo: "adobe-logo.svg"
-Type: "testimonial"
+Type: use-case
 ---
 
 ##### What was the problem?
