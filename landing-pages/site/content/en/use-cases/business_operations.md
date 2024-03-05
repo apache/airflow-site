@@ -3,7 +3,6 @@ title: "Business Operations"
 linkTitle: "Business Operations"
 quote:
     text: "Many companies build their core business, data powered applications, on top of Apache Airflow."
-    author: "Kenten Danas"
 logo: "operationalized-analytics.png"
 blocktype: use-case
 ---
@@ -14,8 +13,6 @@ blocktype: use-case
 
 </div>
 
-</br>
-
 
 Airflow can be the starting point for your business idea! For many companies, Airflow delivers the data that powers their core business applications. Whether you need to aggregate user data to power personalized recommendations, display analytics in a user-facing dashboard, or prepare the input data for an LLM, Airflow is the perfect orchestrator.
 
@@ -24,17 +21,14 @@ This video shows an example of using Airflow to run the pipelines that power a c
 
 <div style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
     <video controls style="width: 100%; display: block;">
-        <source src="/usecase-videos/placeholder_video_bops.mp4" type="video/mp4">
+        <source src="/usecase-videos/business_ops_use_case_example.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 </div>
 
 </br>
-</br>
 
 ## Why use Airflow for Business Operations?
-
-</br>
 
 Airflow is trusted and tested by many companies to deliver their data on time. Airflow is a popular choice to build your business upon, because it is:
 
@@ -44,11 +38,8 @@ Airflow is trusted and tested by many companies to deliver their data on time. A
 - **Scalable**: Airflow can be scaled to handle infinite numbers of tasks and workflows, given enough computing power. If you choose Airflow, your business will be able to grow with it.
 
 </br>
-</br>
 
 ## Airflow features for Business Operations
-
-</br>
 
 Airflow has several key features that make it a great option for orchestrating business operations:
 
