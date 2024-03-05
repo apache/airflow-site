@@ -2,17 +2,45 @@
 title: "MLOps"
 linkTitle: "MLOps"
 quote:
-    text: "MLOps use case"
+    text: "Airflow is the heart of the modern MLOps stack, orchestrating the entire machine learning lifecycle."
     author: "Kenten"
 logo: "mlops.png"
 Type: use-case
 ---
 
-##### What was the problem?
-Modern big data platforms need sophisticated data pipelines connecting to many backend services enabling complex workflows. These workflows need to be deployed, monitored, and run either on regular schedules or triggered by external events. Adobe Experience Platform component services architected and built an orchestration service to enable their users to author, schedule, and monitor complex hierarchical (including sequential and parallel) workflows for Apache Spark (TM) and non-Spark jobs.
+<div style="display: flex; justify-content: center; align-items: center;">
 
-##### How did Apache Airflow help to solve this problem?
-Adobe Experience Platform built an orchestration service to meet our user and customer requirements. It is architected based on guiding principles to leverage an off-the-shelf, open-source orchestration engine that is abstracted to other services through an API and extendable to any application through a pluggable framework. Adobe Experience Platform orchestration service leverages Apache Airflow execution engine for scheduling and executing various workflows. Apache Airflow is highly extensible and with support of K8s Executor it can scale to meet our requirements. It has a very rich Airflow Web UI to provide various workflow-related insights. Airflow’s active community that addresses issues and different feature requests also made it additionally attractive for us.
+# Use Airflow for Machine Learning Operations (MLOps)
 
-##### What are the results?
-Adobe Experience Platform is using Apache Airflow's plugin interface to write custom operators to meet our use cases. With K8s Executor, we could scale it to run 1000(s) of concurrent workflows. Adobe and Adobe Experience Platform teams can focus on business use cases because all scheduling, dependency management, and retrying logic is offloaded to Apache Airflow.
+</div>
+
+</br>
+
+Machine Learning Operations (MLOps) is a broad term encompassing everything needed to run machine learning models in production. MLOps is a rapidly evolving field with many different best practices and behavioral patterns, with Apache Airflow providing tool agnostic orchestration capabilities for all steps. An emerging subset of MLOps is Large Language Model Operations (LLMOps), which focuses on developing pipelines around applications of large language models like GPT-4 or Command.
+
+The following video shows the real pipeline powering the Airflow Q&A application [Ask Astro](ask.astronomer.io). The full source code for this example can be found [here](https://github.com/astronomer/ask-astro).
+
+<div style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
+    <video controls style="width: 100%; display: block;">
+        <source src="/usecase-videos/placeholder_video_mlops.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+</br>
+</br>
+
+## Why use Airflow for MLOps?
+
+</br>
+
+Text
+
+</br>
+</br>
+
+## Airflow features for MLOps
+
+</br>
+
+Text

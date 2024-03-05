@@ -38,9 +38,9 @@ shuffleNodeChildren("#pmc-container");
 showMore("#committers-container", "#show-more-committers", 4);
 showMore("#pmc-container", "#show-more-pmcs", 4);
 showMore(
-  "#case-studies-container",
-  "#show-more-case-studies",
-  window.innerWidth < 1920 ? 8 : 15);
+  "#testimonials-container",
+  "#show-more-testimonials",
+  5);
 
 handleActiveVideo();
 
