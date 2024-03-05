@@ -5,7 +5,7 @@ quote:
     text: "With Airflow you can spin up, manage and tear down your infrastructure at the exact time you need it."
     author: "Kenten Danas"
 logo: "infrastructure-management.png"
-Type: use-case
+blocktype: use-case
 ---
 
 <div style="display: flex; justify-content: center; align-items: center;">

@@ -5,7 +5,7 @@ quote:
     text: "Airflow is the open source standard for orchestrating ETL/ELT data pipelines."
     author: "Tamara Fingerlin"
 logo: "etl.png"
-Type: use-case
+blocktype: use-case
 ---
 
 <div style="display: flex; justify-content: center; align-items: center;">
