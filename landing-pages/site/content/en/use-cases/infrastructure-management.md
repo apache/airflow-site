@@ -4,7 +4,7 @@ linkTitle: "Infrastructure Management"
 quote:
     text: "Infrastructure management use case"
     author: "Kenten"
-logo: "adobe-logo.svg"
+logo: "infrastructure-management.png"
 Type: use-case
 ---
 

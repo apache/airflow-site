@@ -4,7 +4,7 @@ linkTitle: "ETL"
 quote:
     text: "ETL use case"
     author: "Kenten"
-logo: "adobe-logo.svg"
+logo: "etl.png"
 Type: use-case
 ---
 

@@ -4,7 +4,7 @@ linkTitle: "MLOps"
 quote:
     text: "MLOps use case"
     author: "Kenten"
-logo: "adobe-logo.svg"
+logo: "mlops.png"
 Type: use-case
 ---
 

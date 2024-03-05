@@ -4,7 +4,7 @@ linkTitle: "Analytics"
 quote:
     text: "Analytics use case"
     author: "Kenten"
-logo: "adobe-logo.svg"
+logo: "operationalized-analytics.png"
 Type: use-case
 ---
 
