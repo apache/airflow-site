@@ -1,16 +1,16 @@
 ---
-title: "ETL Analytics"
-linkTitle: "ETL Analytics"
+title: "ETL/ELT"
+linkTitle: "ETL/ELT"
 quote:
-    text: "Airflow is the standard to orchestrate data pipelines powering analytics like dashboards and reports."
-    author: "Kenten"
+    text: "Airflow is the open source standard for orchestrating ETL/ELT data pipelines."
+    author: "Tamara Fingerlin"
 logo: "etl.png"
 Type: use-case
 ---
 
 <div style="display: flex; justify-content: center; align-items: center;">
 
-# Use Airflow for ETL/ELT analytics pipelines
+# Use Airflow for ETL/ELT pipelines
 
 </div>
 
@@ -31,11 +31,11 @@ The video below shows a simple ETL/ELT pipeline in Airflow that extracts climate
 </br>
 </br>
 
-## Why use Airflow for ETL/ELT analytics pipelines?
+## Why use Airflow for ETL/ELT pipelines?
 
 </br>
 
-Airflow is the de-facto standard for defining ETL/ELT pipelines as Python code. Reasons for the popularity of Airflow for this use case are, that it is:
+Airflow is the de-facto standard for defining ETL/ELT pipelines as Python code. Airflow is popular for this use case because it is:
 
 - **Tool agnostic**: Airflow can be used to orchestrate ETL/ELT pipelines for any data source or destination.
 - **Extensible**: There are many Airflow modules available to connect to any data source or destination, and you can write your own custom operators and hooks for specific use cases.
@@ -45,9 +45,11 @@ Airflow is the de-facto standard for defining ETL/ELT pipelines as Python code. 
 </br>
 </br>
 
-## Airflow features for ETL/ELT analytics pipelines
+## Airflow features for ETL/ELT pipelines
 
 </br>
+
+Airflow has several key features that make it a great option for ETL/ELT:
 
 - **[Datasets](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/datasets.html)**: In Airflow you can schedule your DAGs in a data-driven way, based on updates to Datasets from any other task in your Airflow instance.
 - **[Object Storage](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/objectstorage.html)**: The Airflow Object Storage is an abstraction over the [Path API](https://docs.python.org/3/library/pathlib.html) that simplifies interaction with object storage systems such as Amazon S3, Google Cloud Storage, and Azure Blob Storage.
