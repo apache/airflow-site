@@ -5,7 +5,7 @@ quote:
     text: "Airflow is the heart of the modern MLOps stack, orchestrating the entire machine learning lifecycle."
     author: "Tamara Fingerlin"
 logo: "mlops.png"
-Type: use-case
+blocktype: use-case
 ---
 
 <div style="display: flex; justify-content: center; align-items: center;">

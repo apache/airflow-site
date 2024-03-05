@@ -5,7 +5,7 @@ quote:
     text: "Airflow implementation resulted in significant time savings, increased productivity, and improved operational efficiency for our Map team at Snapp."
     author: "Tadeh Alexani"
 logo: "snapp-logo.svg"
-Type: "testimonial"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?

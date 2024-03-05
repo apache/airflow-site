@@ -5,7 +5,7 @@ quote:
     text: "Many companies build their core business, data powered applications, on top of Apache Airflow."
     author: "Kenten Danas"
 logo: "operationalized-analytics.png"
-Type: use-case
+blocktype: use-case
 ---
 
 <div style="display: flex; justify-content: center; align-items: center;">
