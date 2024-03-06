@@ -1,7 +1,7 @@
 ---
 title: "MLOps"
 linkTitle: "MLOps"
-quote:
+usecasedescription:
     text: "Airflow is the heart of the modern MLOps stack, orchestrating the entire machine learning lifecycle."
 logo: "mlops.png"
 blocktype: use-case
