@@ -1,7 +1,7 @@
 ---
 title: "ETL/ELT"
 linkTitle: "ETL/ELT"
-quote:
+usecasedescription:
     text: "Airflow is the open source standard for orchestrating ETL/ELT data pipelines."
 logo: "etl.png"
 blocktype: use-case

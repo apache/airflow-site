@@ -1,7 +1,7 @@
 ---
 title: "Infrastructure Management"
 linkTitle: "Infrastructure Management"
-quote:
+usecasedescription:
     text: "With Airflow you can spin up, manage and tear down your infrastructure at the exact time you need it."
 logo: "infrastructure-management.png"
 blocktype: use-case
