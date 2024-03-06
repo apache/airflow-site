@@ -3,7 +3,7 @@ title: "Business Operations"
 linkTitle: "Business Operations"
 quote:
     text: "Many companies build their core business, data powered applications, on top of Apache Airflow."
-logo: "operationalized-analytics.png"
+logo: "business-ops.png"
 blocktype: use-case
 ---
 
