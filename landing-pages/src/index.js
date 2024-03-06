@@ -38,8 +38,8 @@ shuffleNodeChildren("#pmc-container");
 showMore("#committers-container", "#show-more-committers", 4);
 showMore("#pmc-container", "#show-more-pmcs", 4);
 showMore(
-  "#testimonials-container",
-  "#show-more-testimonials",
+  "#case-studies-container",
+  "#show-more-case-studies",
   4);
 
 handleActiveVideo();
