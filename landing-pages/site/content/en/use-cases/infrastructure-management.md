@@ -37,6 +37,6 @@ Airflow is a popular choice for pipelines that require managing infrastructure b
 
 ## Airflow features for Infrastructure Management
 
-Airflow has several key features that make it a great option for managing infrastructure:
+Airflow 2.7 implemented a new key feature that makes it an even greater option for managing infrastructure:
 
-- [**Setup/teardown tasks**](https://airflow.apache.org/docs/apache-airflow/stable/howto/setup-and-teardown.html): Setup/ teardown tasks are a special type of task that can be used to manage the infrastructure needed to run other tasks. They have special behavior to support the pattern of setting up resources and configuration (e.g. a Spark cluster or other compute resources) before a task runs, and then tearing down that infrastructure after the task has completed, even if the task fails.
+- [**Setup/teardown tasks**](https://airflow.apache.org/docs/apache-airflow/stable/howto/setup-and-teardown.html): Setup/teardown tasks are a special type of task that can be used to manage the infrastructure needed to run other tasks. They have special behavior to support the pattern of setting up resources and configuration (e.g. a Spark cluster or other compute resources) before a task runs, and then tearing down that infrastructure after the task has completed, even if the task fails.
