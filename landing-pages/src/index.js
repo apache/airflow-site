@@ -40,7 +40,7 @@ showMore("#pmc-container", "#show-more-pmcs", 4);
 showMore(
   "#testimonials-container",
   "#show-more-testimonials",
-  5);
+  4);
 
 handleActiveVideo();
 
