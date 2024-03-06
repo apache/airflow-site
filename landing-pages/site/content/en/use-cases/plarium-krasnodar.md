@@ -5,6 +5,7 @@ quote:
     text: "Apache Airflow helps us efficiently tackle crucial game dev tasks, such as working with churn or sorting bank offers."
     author: "David Manukian"
 logo: "plarium-krasnodar-logo.svg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?

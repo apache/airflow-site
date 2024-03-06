@@ -5,6 +5,7 @@ quote:
     text: "Airflow helped us increase the visibility of our batch processes, decouple our batch jobs, and improve our development cycle, all while building confidence in our ability to scale and grow."
     author: "Christopher Petrino"
 logo: "seniorlink-logo.svg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?

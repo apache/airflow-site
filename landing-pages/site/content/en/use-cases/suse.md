@@ -5,6 +5,7 @@ quote:
     text: "Apache Airflow helps us orchestrate the construction and release of our curated collection of containers"
     author: "Ruben Pardo"
 logo: "rancher-suse.svg"
+blocktype: "testimonial"
 ---
 #### What was the problem?
 

@@ -5,6 +5,7 @@ quote:
     text: "Airflow can be an enterprise scheduling tool if used properly. Its ability to run \"any command, on any node\" is amazing. Handling complex, mixed-mode tasks was easy and scaling out with celery workers is huge. The open source community is great and we can help diagnose and debug our own problems as well as contribute those back to the greater good."
     author: "Luke Bodeen"
 logo: "experity-logo.jpg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?
