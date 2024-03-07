@@ -16,7 +16,7 @@ blocktype: use-case
 
 Airflow can be the starting point for your business idea! For many companies, Airflow delivers the data that powers their core business applications. Whether you need to aggregate user data to power personalized recommendations, display analytics in a user-facing dashboard, or prepare the input data for an LLM, Airflow is the perfect orchestrator.
 
-This video shows an example of using Airflow to run the pipelines that power a customer-facing analytics dashboard. You can find the code shown in this example [here](https://github.com/astronomer/use-case-business-operations-structure).
+This video shows an example of using Airflow to run the pipelines that power a customer-facing analytics dashboard. You can find the code shown in this example [here](https://github.com/astronomer/business-operations-structure-example).
 
 
 <div style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
