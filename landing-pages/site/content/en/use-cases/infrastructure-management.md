@@ -17,12 +17,26 @@ Airflow can interact with any API, which makes it a great tool to manage your in
 
 Infrastructure management is often needed within the context of other use cases, such as MLOps, or implementing data quality checks. This video shows an example of how it might be used for an MLOps pipeline. You can find the code shown in this example [here](https://github.com/astronomer/use-case-setup-teardown-data-quality).
 
-<div style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
-    <video controls style="width: 100%; display: block;">
-        <source src="/usecase-videos/infrastructure_use_case_example.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+<div id="videoContainer" style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
+    <img id="videoPlaceholder" src="/usecase-video-placeholders/placeholder_infra_video.png" style="cursor: pointer; width: 100%; max-width: 560px;" alt="Click to play a one minute video showing the use case" title="Click to play video"/>
 </div>
+
+<script>
+    document.getElementById('videoPlaceholder').addEventListener('click', function() {
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute('src', 'https://www.youtube.com/embed/JkURWnl76GQ?autoplay=1');
+        iframe.setAttribute('width', '100%');
+        iframe.setAttribute('height', '315');
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', 'allowfullscreen');
+        iframe.style.display = 'block';
+
+        var videoContainer = document.getElementById('videoContainer');
+        videoContainer.innerHTML = '';
+        videoContainer.appendChild(iframe); 
+    });
+</script>
 
 </br>
 
