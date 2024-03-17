@@ -18,12 +18,26 @@ Extract-Transform-Load (ETL) and Extract-Load-Transform (ELT) data pipelines are
 The video below shows a simple ETL/ELT pipeline in Airflow that extracts climate data from a CSV file, as well as weather data from an API, runs transformations and then loads the results into a database to power a dashboard. You can find the code for this example [here](https://github.com/astronomer/airflow-quickstart).
 
 
-<div style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
-    <video controls style="width: 100%; display: block;">
-        <source src="/usecase-videos/etl_use_case_example.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+<div id="videoContainer" style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
+    <img id="videoPlaceholder" src="/usecase-video-placeholders/placeholder_etl_video.png" style="cursor: pointer; width: 100%; max-width: 560px;" alt="Click to play a one minute video showing the use case" title="Click to play video"/>
 </div>
+
+<script>
+    document.getElementById('videoPlaceholder').addEventListener('click', function() {
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute('src', 'https://www.youtube.com/embed/ljBU_VyihVQ?autoplay=1');
+        iframe.setAttribute('width', '90%');
+        iframe.setAttribute('height', '315');
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', 'allowfullscreen');
+        iframe.style.display = 'block';
+
+        var videoContainer = document.getElementById('videoContainer');
+        videoContainer.innerHTML = '';
+        videoContainer.appendChild(iframe);
+    });
+</script>
 
 </br>
 
