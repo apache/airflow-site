@@ -5,6 +5,7 @@ quote:
     text: "Airflow is Batteries-Included. A great ecosystem and community that comes together to address about any (batch) data pipeline needs."
     author: "Austin Benett"
 logo: "dish-logo.svg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?

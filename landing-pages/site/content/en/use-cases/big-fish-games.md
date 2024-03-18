@@ -5,6 +5,7 @@ quote:
     text: "Apache Airflow is a great open-source workflow orchestration tool supported by an active community. It provides all the features needed for scheduling workflows out-of-the-box. Additionally, DAGs can be easily programmed in Python. Backfilling historical data and retrying failed jobs based on configuration helps mitigate any upstream issues and better handles the late arrival of data."
     author: "Suganya Varadarajan"
 logo: "big-fish-games-logo.svg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?

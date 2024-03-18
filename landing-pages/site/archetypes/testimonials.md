@@ -5,6 +5,7 @@ quote:
     text: "Quote text"
     author: "Quote's author"
 logo: "logo-name-in-static-icons-directory.svg"
+blocktype: testimonial
 draft: true
 ---
 

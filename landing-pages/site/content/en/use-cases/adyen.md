@@ -5,6 +5,7 @@ quote:
     text: "Apache Airflow helped us scale from 10 to 100+ users across 20+ teams with a variety of use cases. By writing our own plugins and creating custom user roles, we off-loaded our infrastructure team and gave power back to the airflow users."
     author: "Jorrick Sleijster"
 logo: "adyen-logo.svg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?

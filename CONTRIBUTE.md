@@ -243,14 +243,14 @@ the markdown file using this directive:
 ![Alt text](image.png)
 ```
 
-### How to add a new case study
+### How to add a new company testimonial
 
-To add a new case study with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
+To add a new company testimonials with pre-filled frontmatter, in `<ROOT DIRECTORY>/landing-pages/site` run:
 ```bash
-hugo new use-cases/my-use-case.md
+hugo new testimonials/my-testimonial.md
 ```
 
-That will create a markdown file `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/my-use-case.md`
+That will create a markdown file `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/testimonials/my-testimonial.md`
 with following content:
 ```
 ---
@@ -261,6 +261,7 @@ quote:
     author: "Quote's author"
 logo: "logo-name-in-static-icons-directory.svg"
 draft: true
+blocktype: testimonial
 ---
 
 ##### What was the problem?
@@ -272,26 +273,27 @@ text
 ##### What are the results?
 text
 ```
-When you finish your writing blogpost, remember to **remove `draft: true`** from frontmatter.
+When you finish your testimonial, remember to **remove `draft: true`** from frontmatter.
 
 ---
 
-To add a new case study manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/<filename>.md`.
-The filename will also serve as URL for the case study.
+To add a new testimonial manually, create a markdown file in `<ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/testimonials/<filename>.md`.
+The filename will also serve as URL for the testimonial.
 
 Then, **at the top of the file**, add frontmatter in following format:
 
 ```
 ---
-title: "<case study title>"
-linkTitle: "<case study link title>"
+title: "<testimonial title>"
+linkTitle: "<testimonial link title>"
 quote:
     text: "<quote text>"
     author: "<quote author's name>"
 logo: "<logo filename (with extension)>"
+blocktype: testimonial
 ---
 ```
-Below frontmatter, put your blogpost content in following format:
+Below frontmatter, put your testimonial content in the following format:
 
 ```
 #### What was the problem?
@@ -311,18 +313,18 @@ refer to it just by filename.
 
 Example:
 
-Path to logo file: <ROOT DIRECTORY>/landing-pages/site/static/usecase-logos/my-case-study.svg
+Path to logo file: <ROOT DIRECTORY>/landing-pages/site/static/usecase-logos/my-testimonial.svg
 
-Case study in <ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/my-case-study.md
+Testimonial in <ROOT DIRECTORY>/landing-pages/site/content/<LANGUAGE VERSION>/use-cases/my-testimonial.md
 
 ```
 ---
-title: "<case study title>"
-linkTitle: "<case study link title>"
+title: "<testimonial title>"
+linkTitle: "<testimonial link title>"
 quote:
     text: "<quote text>"
     author: "<quote author's name>"
-logo: "my-case-study.svg"
+logo: "my-testimonial.svg"
 ---
 
 #### What was the problem?

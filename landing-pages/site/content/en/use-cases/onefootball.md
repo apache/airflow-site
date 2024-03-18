@@ -5,6 +5,7 @@ quote:
     text: "Airflow is extensible enough for any business to define the custom operators they need. Airflow can help you in your DataOps journey: viewing analytics as code, monitoring, reusing components, being a catalyst of team interactions."
     author: "Louis Guitton"
 logo: "onefootball-logo.svg"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?
