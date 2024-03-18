@@ -5,6 +5,7 @@ quote:
     text: "Airflow helped us to define and organize our ML pipeline dependencies, and empowered us to introduce new, diverse batch processes at increasing scale."
     author: "Handong Park"
 logo: "sift_logo.png"
+blocktype: "testimonial"
 ---
 
 ##### What was the problem?
