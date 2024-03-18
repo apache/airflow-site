@@ -34,7 +34,7 @@ Infrastructure management is often needed within the context of other use cases,
 
         var videoContainer = document.getElementById('videoContainer');
         videoContainer.innerHTML = '';
-        videoContainer.appendChild(iframe); 
+        videoContainer.appendChild(iframe);
     });
 </script>
 
