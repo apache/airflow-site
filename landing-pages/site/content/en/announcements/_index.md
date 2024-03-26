@@ -15,6 +15,15 @@ menu:
 
 # March 25, 2024
 
+We’ve just released Apache **Airflow 2.8.4**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.8.4/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.8.4 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.8.4/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.8.4/installation/installing-from-sources.html
+
+# March 25, 2024
+
 We've just released Apache **Airflow Helm chart 1.13.1**.
 
 📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
