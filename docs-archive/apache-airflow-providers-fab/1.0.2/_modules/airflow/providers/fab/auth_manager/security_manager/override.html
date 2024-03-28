@@ -956,6 +956,43 @@
         <span class="c1"># Setup Flask-Jwt-Extended</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_jwt_manager</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">_get_authentik_jwks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jwks_url</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">requests</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jwks_url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_validate_jwt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_token</span><span class="p">,</span> <span class="n">jwks</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">authlib.jose</span> <span class="kn">import</span> <span class="n">JsonWebKey</span><span class="p">,</span> <span class="n">jwt</span> <span class="k">as</span> <span class="n">authlib_jwt</span>
+
+        <span class="n">keyset</span> <span class="o">=</span> <span class="n">JsonWebKey</span><span class="o">.</span><span class="n">import_key_set</span><span class="p">(</span><span class="n">jwks</span><span class="p">)</span>
+        <span class="n">claims</span> <span class="o">=</span> <span class="n">authlib_jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">id_token</span><span class="p">,</span> <span class="n">keyset</span><span class="p">)</span>
+        <span class="n">claims</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;JWT token is validated&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">claims</span>
+
+    <span class="k">def</span> <span class="nf">_get_authentik_token_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_token</span><span class="p">):</span>
+        <span class="n">me</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">id_token</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;verify_signature&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+        <span class="n">verify_signature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oauth_remotes</span><span class="p">[</span><span class="s2">&quot;authentik&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">client_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verify_signature&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verify_signature</span><span class="p">:</span>
+            <span class="c1"># Validate the token using authentik certificate</span>
+            <span class="n">jwks_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oauth_remotes</span><span class="p">[</span><span class="s2">&quot;authentik&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">server_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;jwks_uri&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jwks_uri</span><span class="p">:</span>
+                <span class="n">jwks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_authentik_jwks</span><span class="p">(</span><span class="n">jwks_uri</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">jwks</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_jwt</span><span class="p">(</span><span class="n">id_token</span><span class="p">,</span> <span class="n">jwks</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;jwks_uri not specified in OAuth Providers, could not verify token signature&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Return the token info without validating</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;JWT token is not validated!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">me</span>
+
+        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;OAuth signature verify failed&quot;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="FabAirflowSecurityManagerOverride.register_views"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.register_views">[docs]</a>    <span class="k">def</span> <span class="nf">register_views</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Register FAB auth manager related views.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">appbuilder</span><span class="o">.</span><span class="n">get_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FAB_ADD_SECURITY_VIEWS&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
@@ -1129,9 +1166,10 @@
 <div class="viewcode-block" id="FabAirflowSecurityManagerOverride.load_user_jwt"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.load_user_jwt">[docs]</a>    <span class="k">def</span> <span class="nf">load_user_jwt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_jwt_header</span><span class="p">,</span> <span class="n">jwt_data</span><span class="p">):</span>
         <span class="n">identity</span> <span class="o">=</span> <span class="n">jwt_data</span><span class="p">[</span><span class="s2">&quot;sub&quot;</span><span class="p">]</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_user</span><span class="p">(</span><span class="n">identity</span><span class="p">)</span>
-        <span class="c1"># Set flask g.user to JWT user, we can&#39;t do it on before request</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
-        <span class="k">return</span> <span class="n">user</span></div>
+        <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+            <span class="c1"># Set flask g.user to JWT user, we can&#39;t do it on before request</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
+            <span class="k">return</span> <span class="n">user</span></div>
 
     <span class="nd">@property</span>
 <div class="viewcode-block" id="FabAirflowSecurityManagerOverride.auth_type"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.auth_type">[docs]</a>    <span class="k">def</span> <span class="nf">auth_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1264,6 +1302,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">appbuilder</span><span class="o">.</span><span class="n">get_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AUTH_USER_REGISTRATION_ROLE_JMESPATH&quot;</span><span class="p">]</span></div>
 
     <span class="nd">@property</span>
+<div class="viewcode-block" id="FabAirflowSecurityManagerOverride.auth_remote_user_env_var"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.auth_remote_user_env_var">[docs]</a>    <span class="k">def</span> <span class="nf">auth_remote_user_env_var</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">appbuilder</span><span class="o">.</span><span class="n">get_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AUTH_REMOTE_USER_ENV_VAR&quot;</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
 <div class="viewcode-block" id="FabAirflowSecurityManagerOverride.api_login_allow_multiple_providers"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.api_login_allow_multiple_providers">[docs]</a>    <span class="k">def</span> <span class="nf">api_login_allow_multiple_providers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">appbuilder</span><span class="o">.</span><span class="n">get_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AUTH_API_LOGIN_ALLOW_MULTIPLE_PROVIDERS&quot;</span><span class="p">]</span></div>
 
@@ -1343,8 +1385,8 @@
         <span class="c1"># If the user does not exist, make a random password and make it</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user_exists</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FlaskAppBuilder Authentication Manager: Creating </span><span class="si">{</span><span class="n">user_name</span><span class="si">}</span><span class="s2"> user&quot;</span><span class="p">)</span>
-            <span class="n">role</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_role</span><span class="p">(</span><span class="s2">&quot;Admin&quot;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">role</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">role</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_role</span><span class="p">(</span><span class="s2">&quot;Admin&quot;</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Unable to find role &#39;Admin&#39;&quot;</span><span class="p">)</span>
             <span class="c1"># password does not contain visually similar characters: ijlIJL1oO0</span>
             <span class="n">password</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="s2">&quot;abcdefghkmnpqrstuvwxyzABCDEFGHKMNPQRSTUVWXYZ23456789&quot;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">16</span><span class="p">))</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">password_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
@@ -1406,6 +1448,9 @@
             <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;AUTH_LDAP_LASTNAME_FIELD&quot;</span><span class="p">,</span> <span class="s2">&quot;sn&quot;</span><span class="p">)</span>
             <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;AUTH_LDAP_EMAIL_FIELD&quot;</span><span class="p">,</span> <span class="s2">&quot;mail&quot;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_type</span> <span class="o">==</span> <span class="n">AUTH_REMOTE_USER</span><span class="p">:</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;AUTH_REMOTE_USER_ENV_VAR&quot;</span><span class="p">,</span> <span class="s2">&quot;REMOTE_USER&quot;</span><span class="p">)</span>
+
         <span class="c1"># Rate limiting</span>
         <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;AUTH_RATE_LIMITED&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;AUTH_RATE_LIMIT&quot;</span><span class="p">,</span> <span class="s2">&quot;5 per 40 second&quot;</span><span class="p">)</span>
@@ -1420,7 +1465,12 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_type</span> <span class="o">==</span> <span class="n">AUTH_OID</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">flask_openid</span> <span class="kn">import</span> <span class="n">OpenID</span>
 
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;AUTH_OID is deprecated and will be removed in version 5. &quot;</span>
+                <span class="s2">&quot;Migrate to other authentication methods.&quot;</span>
+            <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">oid</span> <span class="o">=</span> <span class="n">OpenID</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_type</span> <span class="o">==</span> <span class="n">AUTH_OAUTH</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">authlib.integrations.flask_client</span> <span class="kn">import</span> <span class="n">OAuth</span>
 
@@ -2087,8 +2137,9 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="FabAirflowSecurityManagerOverride.load_user"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.load_user">[docs]</a>    <span class="k">def</span> <span class="nf">load_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load user by ID.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user_by_id</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">user_id</span><span class="p">))</span></div>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user_by_id</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">user_id</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">user</span></div>
 
 <div class="viewcode-block" id="FabAirflowSecurityManagerOverride.get_user_by_id"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/fab/auth_manager/security_manager/override/index.html#airflow.providers.fab.auth_manager.security_manager.override.FabAirflowSecurityManagerOverride.get_user_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span></div>
@@ -2824,6 +2875,19 @@
                 <span class="s2">&quot;last_name&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;family_name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
                 <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
             <span class="p">}</span>
+
+        <span class="c1"># for Authentik</span>
+        <span class="k">if</span> <span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;authentik&quot;</span><span class="p">:</span>
+            <span class="n">id_token</span> <span class="o">=</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;id_token&quot;</span><span class="p">]</span>
+            <span class="n">me</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_authentik_token_info</span><span class="p">(</span><span class="n">id_token</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;User info from authentik: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">me</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">me</span><span class="p">[</span><span class="s2">&quot;preferred_username&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;first_name&quot;</span><span class="p">:</span> <span class="n">me</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">me</span><span class="p">[</span><span class="s2">&quot;nickname&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;role_keys&quot;</span><span class="p">:</span> <span class="n">me</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="p">}</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{}</span></div>
 
@@ -3061,8 +3125,9 @@
 <span class="sd">        :param ldap: The ldap module reference</span>
 <span class="sd">        :param con: The ldap connection</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># always check AUTH_LDAP_BIND_USER is set before calling this method</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_ldap_bind_user</span><span class="p">,</span> <span class="s2">&quot;AUTH_LDAP_BIND_USER must be set&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_ldap_bind_user</span><span class="p">:</span>
+            <span class="c1"># always check AUTH_LDAP_BIND_USER is set before calling this method</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;AUTH_LDAP_BIND_USER must be set&quot;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LDAP bind indirect TRY with username: </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_ldap_bind_user</span><span class="p">)</span>
@@ -3081,8 +3146,9 @@
 <span class="sd">        :param username: username to match with AUTH_LDAP_UID_FIELD</span>
 <span class="sd">        :return: ldap object array</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># always check AUTH_LDAP_SEARCH is set before calling this method</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_ldap_search</span><span class="p">,</span> <span class="s2">&quot;AUTH_LDAP_SEARCH must be set&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_ldap_search</span><span class="p">:</span>
+            <span class="c1"># always check AUTH_LDAP_SEARCH is set before calling this method</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;AUTH_LDAP_SEARCH must be set&quot;</span><span class="p">)</span>
 
         <span class="c1"># build the filter string for the LDAP search</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_ldap_search_filter</span><span class="p">:</span>

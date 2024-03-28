@@ -670,8 +670,6 @@
 <span class="kn">from</span> <span class="nn">airflow.providers.fab.auth_manager.models</span> <span class="kn">import</span> <span class="n">Permission</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">User</span>
 <span class="kn">from</span> <span class="nn">airflow.security</span> <span class="kn">import</span> <span class="n">permissions</span>
 <span class="kn">from</span> <span class="nn">airflow.security.permissions</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ACTION_CAN_ACCESS_MENU</span><span class="p">,</span>
-    <span class="n">ACTION_CAN_READ</span><span class="p">,</span>
     <span class="n">RESOURCE_AUDIT_LOG</span><span class="p">,</span>
     <span class="n">RESOURCE_CLUSTER_ACTIVITY</span><span class="p">,</span>
     <span class="n">RESOURCE_CONFIG</span><span class="p">,</span>
@@ -879,16 +877,19 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_authorized</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">resource_type</span><span class="o">=</span><span class="n">RESOURCE_VARIABLE</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FabAuthManager.is_authorized_view"><a class="viewcode-back" href="../../../../../_api/airflow/providers/fab/auth_manager/fab_auth_manager/index.html#airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager.is_authorized_view">[docs]</a>    <span class="k">def</span> <span class="nf">is_authorized_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">access_view</span><span class="p">:</span> <span class="n">AccessView</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">BaseUser</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># &quot;Docs&quot; are only links in the menu, there is no page associated</span>
+        <span class="n">method</span><span class="p">:</span> <span class="n">ResourceMethod</span> <span class="o">=</span> <span class="s2">&quot;MENU&quot;</span> <span class="k">if</span> <span class="n">access_view</span> <span class="o">==</span> <span class="n">AccessView</span><span class="o">.</span><span class="n">DOCS</span> <span class="k">else</span> <span class="s2">&quot;GET&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_authorized</span><span class="p">(</span>
-            <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="n">resource_type</span><span class="o">=</span><span class="n">_MAP_ACCESS_VIEW_TO_FAB_RESOURCE_TYPE</span><span class="p">[</span><span class="n">access_view</span><span class="p">],</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">resource_type</span><span class="o">=</span><span class="n">_MAP_ACCESS_VIEW_TO_FAB_RESOURCE_TYPE</span><span class="p">[</span><span class="n">access_view</span><span class="p">],</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="FabAuthManager.is_authorized_custom_view"><a class="viewcode-back" href="../../../../../_api/airflow/providers/fab/auth_manager/fab_auth_manager/index.html#airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager.is_authorized_custom_view">[docs]</a>    <span class="k">def</span> <span class="nf">is_authorized_custom_view</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fab_action_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fab_resource_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">BaseUser</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">ResourceMethod</span><span class="p">,</span> <span class="n">resource_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">BaseUser</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
             <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">fab_action_name</span><span class="p">,</span> <span class="n">fab_resource_name</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_user_permissions</span><span class="p">(</span><span class="n">user</span><span class="p">)</span></div>
+        <span class="n">fab_action_name</span> <span class="o">=</span> <span class="n">get_fab_action_from_method_map</span><span class="p">()[</span><span class="n">method</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">fab_action_name</span><span class="p">,</span> <span class="n">resource_name</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_user_permissions</span><span class="p">(</span><span class="n">user</span><span class="p">)</span></div>
 
     <span class="nd">@provide_session</span>
 <div class="viewcode-block" id="FabAuthManager.get_permitted_dag_ids"><a class="viewcode-back" href="../../../../../_api/airflow/providers/fab/auth_manager/fab_auth_manager/index.html#airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager.get_permitted_dag_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_permitted_dag_ids</span><span class="p">(</span>
@@ -966,7 +967,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_manager</span><span class="o">.</span><span class="n">auth_view</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;`auth_view` not defined in the security manager.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="s2">&quot;next_url&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;next_url&quot;</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="n">url_for</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">security_manager</span><span class="o">.</span><span class="n">auth_view</span><span class="o">.</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">.login&quot;</span><span class="p">,</span> <span class="n">next_url</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;next_url&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">url_for</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">security_manager</span><span class="o">.</span><span class="n">auth_view</span><span class="o">.</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">.login&quot;</span><span class="p">,</span> <span class="nb">next</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;next_url&quot;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">url_for</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">security_manager</span><span class="o">.</span><span class="n">auth_view</span><span class="o">.</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">.login&quot;</span><span class="p">)</span></div>
 
@@ -1079,18 +1080,11 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the user permissions.</span>
 
-<span class="sd">        ACTION_CAN_READ and ACTION_CAN_ACCESS_MENU are merged into because they are very similar.</span>
-<span class="sd">        We can assume that if a user has permissions to read variables, they also have permissions to access</span>
-<span class="sd">        the menu &quot;Variables&quot;.</span>
-
 <span class="sd">        :param user: the user to get permissions for</span>
 
 <span class="sd">        :meta private:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">perms</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s2">&quot;perms&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">ACTION_CAN_READ</span> <span class="k">if</span> <span class="n">perm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">ACTION_CAN_ACCESS_MENU</span> <span class="k">else</span> <span class="n">perm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">perm</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">perm</span> <span class="ow">in</span> <span class="n">perms</span>
-        <span class="p">]</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s2">&quot;perms&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">_get_root_dag_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dag_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

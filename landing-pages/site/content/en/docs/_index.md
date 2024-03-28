@@ -95,6 +95,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-exasol/stable/index.html"><code>Exasol</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-fab/stable/index.html"><code>FAB (Flask-AppBuilder)</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-facebook/stable/index.html"><code>Facebook</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html"><code>File Transfer Protocol (FTP)</code></a></li>
