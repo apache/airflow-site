@@ -28,7 +28,7 @@ We've just released Apache **Airflow Helm chart 1.13.1**.
 
 📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
 📚 Docs: https://airflow.apache.org/docs/helm-chart/1.13.1/ \
-🛠️ Release Notes: https://airflow.apache.org/docs/helmrchart/1.13.1/release_notes.html \
+🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.13.1/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.13.1/installing-helm-chart-from-sources.html
 
 # March 11, 2024
@@ -46,7 +46,7 @@ We've just released Apache **Airflow Helm chart 1.13.0**.
 
 📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
 📚 Docs: https://airflow.apache.org/docs/helm-chart/1.13.0/ \
-🛠️ Release Notes: https://airflow.apache.org/docs/helmrchart/1.13.0/release_notes.html \
+🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.13.0/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.13.0/installing-helm-chart-from-sources.html
 
 # February 26, 2024
@@ -65,7 +65,7 @@ We've just released Apache **Airflow Helm chart 1.12.0**.
 
 📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
 📚 Docs: https://airflow.apache.org/docs/helm-chart/1.12.0/ \
-🛠️ Release Notes: https://airflow.apache.org/docs/helmrchart/1.12.0/release_notes.html \
+🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.12.0/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.12.0/installing-helm-chart-from-sources.html
 
 # January 19, 2024
