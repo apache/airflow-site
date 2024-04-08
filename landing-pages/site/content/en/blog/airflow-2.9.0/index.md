@@ -154,7 +154,7 @@ def big_hello():
     greeting = ""
     for c in "Hello Airflow 2.9":
         greeting += c
-        print(f"Adding {c} to out greeting. Current greeting: {greeting}")
+        print(f"Adding {c} to our greeting. Current greeting: {greeting}")
     print("::endgroup::")
     print(greeting)
 ```
