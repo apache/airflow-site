@@ -20,26 +20,10 @@ This video shows an example of using Airflow to run the pipelines that power a c
 
 
 <div id="videoContainer" style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
-    <img id="videoPlaceholder" src="/usecase-video-placeholders/placeholder_business_ops_video.png" style="cursor: pointer; width: 100%; max-width: 560px;" alt="Click to play a one minute video showing the use case" title="Click to play video"/>
+    <a href="https://www.youtube.com/embed/2CEApKN0z1U?autoplay=1">
+        <img id="videoPlaceholder" src="/usecase-video-placeholders/placeholder_business_ops_video.png" style="cursor: pointer; width: 100%; max-width: 560px;" alt="Click to play a one minute video showing the use case" title="Click to play video"/>
+    </a>
 </div>
-
-<script>
-    document.getElementById('videoPlaceholder').addEventListener('click', function() {
-        var iframe = document.createElement('iframe');
-        iframe.setAttribute('src', 'https://www.youtube.com/embed/2CEApKN0z1U?autoplay=1');
-        iframe.setAttribute('width', '100%');
-        iframe.setAttribute('height', '315');
-        iframe.setAttribute('frameborder', '0');
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-        iframe.setAttribute('allowfullscreen', 'allowfullscreen');
-        iframe.style.display = 'block';
-
-        var videoContainer = document.getElementById('videoContainer');
-        videoContainer.innerHTML = '';
-        videoContainer.appendChild(iframe);
-    });
-</script>
-
 
 </br>
 
