@@ -177,6 +177,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Panda Patrol](https://github.com/aivanzhang/panda_patrol#-panda-patrol) - Test and profile your data right within your Airflow DAGs. With dashboards and alerts already pre-built.
 
+[PowerBI-Airflow-Plugin](https://github.com/ambika-garg/PowerBI_Airflow_Plugin) - The Airflow plugin for Power BI includes a custom Airflow operator designed to refresh Power BI datasets.
+
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
 [Redactics](https://www.redactics.com) - A managed appliance (built on Airflow) installed next to your databases that powers a growing collection of data management workflows.
