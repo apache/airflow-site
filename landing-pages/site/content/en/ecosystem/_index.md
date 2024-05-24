@@ -145,6 +145,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [CWL-Airflow](https://github.com/Barski-lab/cwl-airflow) - Python package to extend Apache-Airflow 1.10.11 functionality with CWL v1.2 support.
 
+[DAGify](https://github.com/GoogleCloudPlatform/dagify) - A Python tool which converts Control-M workflows to Airflow DAGs.
+
 [dag-factory](https://github.com/ajbosco/dag-factory) - A library for dynamically generating Apache Airflow DAGs from YAML configuration files.
 
 [Dag Dependencies viewer](https://github.com/ms32035/airflow-dag-dependencies) - A tool which creates a view to visualize dependencies between the Airflow DAGs
