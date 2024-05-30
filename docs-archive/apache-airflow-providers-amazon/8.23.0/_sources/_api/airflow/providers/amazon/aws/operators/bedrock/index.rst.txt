@@ -1,0 +1,453 @@
+:py:mod:`airflow.providers.amazon.aws.operators.bedrock`
+========================================================
+
+.. py:module:: airflow.providers.amazon.aws.operators.bedrock
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.operators.bedrock.BedrockInvokeModelOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockCustomizeModelOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockCreateProvisionedModelThroughputOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockCreateKnowledgeBaseOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockCreateDataSourceOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockIngestDataOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockRaGOperator
+   airflow.providers.amazon.aws.operators.bedrock.BedrockRetrieveOperator
+
+
+
+
+.. py:class:: BedrockInvokeModelOperator(model_id, input_data, content_type = None, accept_type = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockRuntimeHook`\ ]
+
+   Invoke the specified Bedrock model to run inference using the input provided.
+
+   Use InvokeModel to run inference for text models, image models, and embedding models.
+   To see the format and content of the input_data field for different models, refer to
+   `Inference parameters docs <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html>`_.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockInvokeModelOperator`
+
+   :param model_id: The ID of the Bedrock model. (templated)
+   :param input_data: Input data in the format specified in the content-type request header. (templated)
+   :param content_type: The MIME type of the input data in the request. (templated) Default: application/json
+   :param accept: The desired MIME type of the inference body in the response.
+       (templated) Default: application/json
+
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockCustomizeModelOperator(job_name, custom_model_name, role_arn, base_model_id, training_data_uri, output_data_uri, hyperparameters, ensure_unique_job_name = True, customization_job_kwargs = None, wait_for_completion = True, waiter_delay = 120, waiter_max_attempts = 75, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockHook`\ ]
+
+   Create a fine-tuning job to customize a base model.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockCustomizeModelOperator`
+
+   :param job_name: A unique name for the fine-tuning job.
+   :param custom_model_name: A name for the custom model being created.
+   :param role_arn: The Amazon Resource Name (ARN) of an IAM role that Amazon Bedrock can assume
+       to perform tasks on your behalf.
+   :param base_model_id: Name of the base model.
+   :param training_data_uri: The S3 URI where the training data is stored.
+   :param output_data_uri: The S3 URI where the output data is stored.
+   :param hyperparameters: Parameters related to tuning the model.
+   :param ensure_unique_job_name: If set to true, operator will check whether a model customization
+       job already exists for the name in the config and append the current timestamp if there is a
+       name conflict. (Default: True)
+   :param customization_job_kwargs: Any optional parameters to pass to the API.
+
+   :param wait_for_completion: Whether to wait for cluster to stop. (default: True)
+   :param waiter_delay: Time in seconds to wait between status checks. (default: 120)
+   :param waiter_max_attempts: Maximum number of attempts to check for job completion. (default: 75)
+   :param deferrable: If True, the operator will wait asynchronously for the cluster to stop.
+       This implies waiting for completion. This mode requires aiobotocore module to be installed.
+       (default: False)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute_complete(context, event = None)
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockCreateProvisionedModelThroughputOperator(model_units, provisioned_model_name, model_id, create_throughput_kwargs = None, wait_for_completion = True, waiter_delay = 60, waiter_max_attempts = 20, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockHook`\ ]
+
+   Create a fine-tuning job to customize a base model.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockCreateProvisionedModelThroughputOperator`
+
+   :param model_units: Number of model units to allocate. (templated)
+   :param provisioned_model_name: Unique name for this provisioned throughput. (templated)
+   :param model_id: Name or ARN of the model to associate with this provisioned throughput. (templated)
+   :param create_throughput_kwargs: Any optional parameters to pass to the API.
+
+   :param wait_for_completion: Whether to wait for cluster to stop. (default: True)
+   :param waiter_delay: Time in seconds to wait between status checks. (default: 60)
+   :param waiter_max_attempts: Maximum number of attempts to check for job completion. (default: 20)
+   :param deferrable: If True, the operator will wait asynchronously for the cluster to stop.
+       This implies waiting for completion. This mode requires aiobotocore module to be installed.
+       (default: False)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+   .. py:method:: execute_complete(context, event = None)
+
+
+
+.. py:class:: BedrockCreateKnowledgeBaseOperator(name, embedding_model_arn, role_arn, storage_config, create_knowledge_base_kwargs = None, wait_for_indexing = True, indexing_error_retry_delay = 5, indexing_error_max_attempts = 20, wait_for_completion = True, waiter_delay = 60, waiter_max_attempts = 20, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentHook`\ ]
+
+   Create a knowledge base that contains data sources used by Amazon Bedrock LLMs and Agents.
+
+   To create a knowledge base, you must first set up your data sources and configure a supported vector store.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockCreateKnowledgeBaseOperator`
+
+   :param name: The name of the knowledge base. (templated)
+   :param embedding_model_arn: ARN of the model used to create vector embeddings for the knowledge base. (templated)
+   :param role_arn: The ARN of the IAM role with permissions to create the knowledge base. (templated)
+   :param storage_config: Configuration details of the vector database used for the knowledge base. (templated)
+   :param wait_for_indexing: Vector indexing can take some time and there is no apparent way to check the state
+       before trying to create the Knowledge Base.  If this is True, and creation fails due to the index not
+       being available, the operator will wait and retry.  (default: True) (templated)
+   :param indexing_error_retry_delay: Seconds between retries if an index error is encountered. (default 5) (templated)
+   :param indexing_error_max_attempts: Maximum number of times to retry when encountering an index error. (default 20) (templated)
+   :param create_knowledge_base_kwargs: Any additional optional parameters to pass to the API call. (templated)
+
+   :param wait_for_completion: Whether to wait for cluster to stop. (default: True)
+   :param waiter_delay: Time in seconds to wait between status checks. (default: 60)
+   :param waiter_max_attempts: Maximum number of attempts to check for job completion. (default: 20)
+   :param deferrable: If True, the operator will wait asynchronously for the cluster to stop.
+       This implies waiting for completion. This mode requires aiobotocore module to be installed.
+       (default: False)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute_complete(context, event = None)
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockCreateDataSourceOperator(name, knowledge_base_id, bucket_name = None, create_data_source_kwargs = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentHook`\ ]
+
+   Set up an Amazon Bedrock Data Source to be added to an Amazon Bedrock Knowledge Base.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockCreateDataSourceOperator`
+
+   :param name: name for the Amazon Bedrock Data Source being created. (templated).
+   :param bucket_name: The name of the Amazon S3 bucket to use for data source storage. (templated)
+   :param knowledge_base_id: The unique identifier of the knowledge base to which to add the data source. (templated)
+   :param create_data_source_kwargs: Any additional optional parameters to pass to the API call. (templated)
+
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockIngestDataOperator(knowledge_base_id, data_source_id, ingest_data_kwargs = None, wait_for_completion = True, waiter_delay = 60, waiter_max_attempts = 10, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentHook`\ ]
+
+   Begin an ingestion job, in which an Amazon Bedrock data source is added to an Amazon Bedrock knowledge base.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockIngestDataOperator`
+
+   :param knowledge_base_id: The unique identifier of the knowledge base to which to add the data source. (templated)
+   :param data_source_id: The unique identifier of the data source to ingest. (templated)
+   :param ingest_data_kwargs: Any additional optional parameters to pass to the API call. (templated)
+
+   :param wait_for_completion: Whether to wait for cluster to stop. (default: True)
+   :param waiter_delay: Time in seconds to wait between status checks. (default: 60)
+   :param waiter_max_attempts: Maximum number of attempts to check for job completion. (default: 10)
+   :param deferrable: If True, the operator will wait asynchronously for the cluster to stop.
+       This implies waiting for completion. This mode requires aiobotocore module to be installed.
+       (default: False)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
+   :param botocore_config: Configuration dictionary (key-values) for botocore client. See:
+       https://botocore.amazonaws.com/v1/documentation/api/latest/reference/config.html
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute_complete(context, event = None)
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockRaGOperator(input, source_type, model_arn, prompt_template = None, knowledge_base_id = None, vector_search_config = None, sources = None, rag_kwargs = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentRuntimeHook`\ ]
+
+   Query a knowledge base and generate responses based on the retrieved results with sources citations.
+
+   NOTE:  Support for EXTERNAL SOURCES was added in botocore 1.34.90
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockRaGOperator`
+
+   :param input: The query to be made to the knowledge base. (templated)
+   :param source_type: The type of resource that is queried by the request. (templated)
+       Must be one of 'KNOWLEDGE_BASE' or 'EXTERNAL_SOURCES', and the appropriate config values must also be provided.
+       If set to 'KNOWLEDGE_BASE' then `knowledge_base_id` must be provided, and `vector_search_config` may be.
+       If set to `EXTERNAL_SOURCES` then `sources` must also be provided.
+       NOTE:  Support for EXTERNAL SOURCES was added in botocore 1.34.90
+   :param model_arn: The ARN of the foundation model used to generate a response. (templated)
+   :param prompt_template: The template for the prompt that's sent to the model for response generation.
+       You can include prompt placeholders, which are replaced before the prompt is sent to the model
+       to provide instructions and context to the model. In addition, you can include XML tags to delineate
+       meaningful sections of the prompt template. (templated)
+   :param knowledge_base_id: The unique identifier of the knowledge base that is queried. (templated)
+           Can only be specified if source_type='KNOWLEDGE_BASE'.
+   :param vector_search_config: How the results from the vector search should be returned. (templated)
+       Can only be specified if source_type='KNOWLEDGE_BASE'.
+       For more information, see https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html.
+   :param sources: The documents used as reference for the response. (templated)
+       Can only be specified if source_type='EXTERNAL_SOURCES'
+       NOTE:  Support for EXTERNAL SOURCES was added in botocore 1.34.90
+   :param rag_kwargs: Additional keyword arguments to pass to the  API call. (templated)
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: validate_inputs()
+
+
+   .. py:method:: build_rag_config()
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: BedrockRetrieveOperator(retrieval_query, knowledge_base_id, vector_search_config = None, retrieve_kwargs = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.bedrock.BedrockAgentRuntimeHook`\ ]
+
+   Query a knowledge base and retrieve results with source citations.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:BedrockRetrieveOperator`
+
+   :param retrieval_query: The query to be made to the knowledge base. (templated)
+   :param knowledge_base_id: The unique identifier of the knowledge base that is queried. (templated)
+   :param vector_search_config: How the results from the vector search should be returned. (templated)
+       For more information, see https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html.
+   :param retrieve_kwargs: Additional keyword arguments to pass to the  API call. (templated)
+
+   .. py:attribute:: aws_hook_class
+
+      
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
