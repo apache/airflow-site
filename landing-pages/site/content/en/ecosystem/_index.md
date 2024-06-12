@@ -207,4 +207,6 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Amazon provider package health dashboard](https://aws-mwaa.github.io/open-source/system-tests/dashboard.html) - Dashboard listing all system tests within the Amazon provider package and their current health status: last execution status (succeeded/failed, average duration, ...).
 
+[Google provider package health dashboard](https://storage.googleapis.com/providers-dashboard-html/dashboard.html) - Dashboard listing all system tests within the Google provider package and their current health status
+
 [LLM Providers health dashboard](https://astronomer.github.io/llm-dags-dashboard) - Dashboard listing all system tests within the LLM provider packages and their current health status: execution status for last 7 runs(succeeded/failed, Execution date).
