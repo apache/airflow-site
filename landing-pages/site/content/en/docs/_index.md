@@ -77,6 +77,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-cohere/stable/index.html"><code>Cohere</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-common-compat/stable/index.html"><code>Common Compat</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-common-io/stable/index.html"><code>Common IO</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
@@ -204,6 +206,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-weaviate/stable/index.html"><code>Weaviate</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-yandex/stable/index.html"><code>Yandex</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-ydb/stable/index.html"><code>YDB</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-zendesk/stable/index.html"><code>Zendesk</code></a></li>
 
