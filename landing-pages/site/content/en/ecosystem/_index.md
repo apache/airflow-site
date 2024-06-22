@@ -211,4 +211,4 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [LLM Providers health dashboard](https://astronomer.github.io/llm-dags-dashboard) - Dashboard listing all system tests within the LLM provider packages and their current health status: execution status for last 7 runs(succeeded/failed, Execution date).
 
-[Teradata Provider System test dashboard](https://teradata.github.io/airflow/) - Dashboard listing status of system tests for Teradata Provider.
+[Teradata Provider health dashboard](https://teradata.github.io/airflow/) - Dashboard listing status of system tests for Teradata Provider and their current health status for last runs.
