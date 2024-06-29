@@ -91,6 +91,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow TM1 Provider](https://github.com/KnowledgeSeed/airflow-providers-tm1) - Provides Hook and Operators to simplify connecting to the IBM Cognos TM1 / Planning Analytics database over REST API.
 
+[Astronomer Cosmos](https://github.com/astronomer/astronomer-cosmos) - Run your dbt Core projects as Apache Airflow DAGs and Task Groups with a few lines of code.
+
 &nbsp;
 
 ## Async Providers
