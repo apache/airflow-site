@@ -11,7 +11,7 @@ menu:
 
 # Ecosystem
 
-These resources and services are not maintained, nor endorsed by the Apache Airflow™ Community and Apache Airflow project (maintained by the Committers and the Airflow PMC). Use them at your sole discretion. The community does not verify the licences nor validity of those tools, so it's your responsibility to verify them.
+These resources and services are not maintained, nor endorsed by the Apache Airflow® Community and Apache Airflow project (maintained by the Committers and the Airflow PMC). Use them at your sole discretion. The community does not verify the licences nor validity of those tools, so it's your responsibility to verify them.
 
 If you would you like to be included on this page, please reach out to the [Apache Airflow dev or user mailing list](https://airflow.apache.org/community/) and let us know or simply open a Pull Request to that page.
 

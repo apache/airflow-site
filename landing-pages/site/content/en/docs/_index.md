@@ -9,7 +9,7 @@ menu:
 
 # Documentation
 
-## [Apache Airflow&#174;](/docs/apache-airflow/stable/index.html)
+## [Apache Airflow®](/docs/apache-airflow/stable/index.html)
 
 Apache Airflow Core, which includes webserver, scheduler, CLI and other components that are needed for minimal Airflow installation.
 [Read the documentation >>](/docs/apache-airflow/stable/index.html)
