@@ -22,6 +22,13 @@ We’ve just released Apache **Airflow 2.9.3**.
 🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.9.3/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.9.3/installation/installing-from-sources.html
 
+# July 15, 2024
+
+Airflow PMC welcomes new Airflow Committers:
+
+* **Rom Sharon** ([@romsharon98](https://github.com/romsharon98))
+* **Shahar Epstein** ([@shahar1](https://github.com/shahar1))
+
 # June 18, 2024
 
 We've just released Apache **Airflow Helm chart 1.14.0**.
