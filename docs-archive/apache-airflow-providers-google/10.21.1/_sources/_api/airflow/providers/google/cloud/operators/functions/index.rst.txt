@@ -1,0 +1,263 @@
+:py:mod:`airflow.providers.google.cloud.operators.functions`
+============================================================
+
+.. py:module:: airflow.providers.google.cloud.operators.functions
+
+.. autoapi-nested-parse::
+
+   This module contains Google Cloud Functions operators.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.functions.CloudFunctionDeployFunctionOperator
+   airflow.providers.google.cloud.operators.functions.ZipPathPreprocessor
+   airflow.providers.google.cloud.operators.functions.CloudFunctionDeleteFunctionOperator
+   airflow.providers.google.cloud.operators.functions.CloudFunctionInvokeFunctionOperator
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.google.cloud.operators.functions.CLOUD_FUNCTION_VALIDATION
+   airflow.providers.google.cloud.operators.functions.GCF_SOURCE_ARCHIVE_URL
+   airflow.providers.google.cloud.operators.functions.GCF_SOURCE_UPLOAD_URL
+   airflow.providers.google.cloud.operators.functions.SOURCE_REPOSITORY
+   airflow.providers.google.cloud.operators.functions.GCF_ZIP_PATH
+   airflow.providers.google.cloud.operators.functions.FUNCTION_NAME_PATTERN
+   airflow.providers.google.cloud.operators.functions.FUNCTION_NAME_COMPILED_PATTERN
+
+
+.. py:data:: CLOUD_FUNCTION_VALIDATION
+   :type: list[dict[str, Any]]
+
+   
+
+.. py:class:: CloudFunctionDeployFunctionOperator(*, location, body, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', api_version = 'v1', zip_path = None, validate_body = True, impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Create or update a function in Google Cloud Functions.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudFunctionDeployFunctionOperator`
+
+   :param location: Google Cloud region where the function should be created.
+   :param body: Body of the Cloud Functions definition. The body must be a
+       Cloud Functions dictionary as described in:
+       https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions
+       . Different API versions require different variants of the Cloud Functions
+       dictionary.
+   :param project_id: (Optional) Google Cloud project ID where the function
+       should be created.
+   :param gcp_conn_id: (Optional) The connection ID used to connect to Google Cloud.
+       Default 'google_cloud_default'.
+   :param api_version: (Optional) API version used (for example v1 - default -  or
+       v1beta1).
+   :param zip_path: Path to zip file containing source code of the function. If the path
+       is set, the sourceUploadUrl should not be specified in the body or it should
+       be empty. Then the zip file will be uploaded using the upload URL generated
+       via generateUploadUrl from the Cloud Functions API.
+   :param validate_body: If set to False, body validation is not performed.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('body', 'project_id', 'location', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:data:: GCF_SOURCE_ARCHIVE_URL
+   :value: 'sourceArchiveUrl'
+
+   
+
+.. py:data:: GCF_SOURCE_UPLOAD_URL
+   :value: 'sourceUploadUrl'
+
+   
+
+.. py:data:: SOURCE_REPOSITORY
+   :value: 'sourceRepository'
+
+   
+
+.. py:data:: GCF_ZIP_PATH
+   :value: 'zip_path'
+
+   
+
+.. py:class:: ZipPathPreprocessor(body, zip_path = None)
+
+
+   Pre-processes zip path parameter.
+
+   Responsible for checking if the zip path parameter is correctly specified in
+   relation with source_code body fields. Non empty zip path parameter is special because
+   it is mutually exclusive with sourceArchiveUrl and sourceRepository body fields.
+   It is also mutually exclusive with non-empty sourceUploadUrl.
+   The pre-process modifies sourceUploadUrl body field in special way when zip_path
+   is not empty. An extra step is run when execute method is called and sourceUploadUrl
+   field value is set in the body with the value returned by generateUploadUrl Cloud
+   Function API method.
+
+   :param body: Body passed to the create/update method calls.
+   :param zip_path: (optional) Path to zip file containing source code of the function. If the path
+       is set, the sourceUploadUrl should not be specified in the body or it should
+       be empty. Then the zip file will be uploaded using the upload URL generated
+       via generateUploadUrl from the Cloud Functions API.
+
+
+   .. py:attribute:: upload_function
+      :type: bool | None
+
+      
+
+   .. py:method:: should_upload_function()
+
+      Check if function source should be uploaded.
+
+
+   .. py:method:: preprocess_body()
+
+      Modify sourceUploadUrl body field in special way when zip_path is not empty.
+
+
+
+.. py:data:: FUNCTION_NAME_PATTERN
+   :value: '^projects/[^/]+/locations/[^/]+/functions/[^/]+$'
+
+   
+
+.. py:data:: FUNCTION_NAME_COMPILED_PATTERN
+
+   
+
+.. py:class:: CloudFunctionDeleteFunctionOperator(*, name, gcp_conn_id = 'google_cloud_default', api_version = 'v1', impersonation_chain = None, project_id = PROVIDE_PROJECT_ID, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Deletes the specified function from Google Cloud Functions.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudFunctionDeleteFunctionOperator`
+
+   :param name: A fully-qualified function name, matching
+       the pattern: `^projects/[^/]+/locations/[^/]+/functions/[^/]+$`
+   :param gcp_conn_id: The connection ID to use to connect to Google Cloud.
+   :param api_version: API version used (for example v1 or v1beta1).
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('name', 'gcp_conn_id', 'api_version', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
+.. py:class:: CloudFunctionInvokeFunctionOperator(*, function_id, input_data, location, project_id = PROVIDE_PROJECT_ID, gcp_conn_id = 'google_cloud_default', api_version = 'v1', impersonation_chain = None, **kwargs)
+
+
+   Bases: :py:obj:`airflow.providers.google.cloud.operators.cloud_base.GoogleCloudBaseOperator`
+
+   Invokes a deployed Cloud Function. To be used for testing purposes as very limited traffic is allowed.
+
+   .. seealso::
+       For more information on how to use this operator, take a look at the guide:
+       :ref:`howto/operator:CloudFunctionDeployFunctionOperator`
+
+   :param function_id: ID of the function to be called
+   :param input_data: Input to be passed to the function
+   :param location: The location where the function is located.
+   :param project_id: Optional, Google Cloud Project project_id where the function belongs.
+       If set to None or missing, the default project_id from the Google Cloud connection is used.
+   :param impersonation_chain: Optional service account to impersonate using short-term
+       credentials, or chained list of accounts required to get the access_token
+       of the last account in the list, which will be impersonated in the request.
+       If set as a string, the account must grant the originating account
+       the Service Account Token Creator IAM role.
+       If set as a sequence, the identities from the list must grant
+       Service Account Token Creator IAM role to the directly preceding identity, with first
+       account from the list granting this role to the originating account (templated).
+
+   :return: None
+
+   .. py:attribute:: template_fields
+      :type: Sequence[str]
+      :value: ('function_id', 'input_data', 'location', 'project_id', 'impersonation_chain')
+
+      
+
+   .. py:attribute:: operator_extra_links
+      :value: ()
+
+      
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+
