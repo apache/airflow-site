@@ -114,6 +114,11 @@ with DAG(dag_id="dataset-consumer", schedule=Dataset("s3://bucket/my-task")):
 with DAG(dag_id="dataset-alias-consumer", schedule=DatasetAlias("example-alias")):
     ...
 ```
+### Dataset aliases UI Enhancements
+
+Now users can see Dataset Aliases in legend of each cross-dag dependency graph with a corresponded icon/color.
+
+![DAG Dependencies graph](dag_dependencies_1.png)
 
 ## Dark mode for Airflow UI
 
@@ -132,6 +137,25 @@ In Apache Airflow 2.10.0, when a task instance is retried or cleared, its execut
 The history displays the final values of the task instance attributes for each specific run. On the log page, you can also access the logs for each attempt of the task instance. This information is valuable for debugging purposes.
 
 ![Task instance history](task_instance_history_log.png)
+
+## Dataset UI Enhancements
+
+### Toggle datasets in Graph
+
+We can now toggle the datasets in the DAG graph
+
+![Dataset toggle button on](dataset_toggle_on.png)
+![Dataset toggle button off](dataset_toggle_off.png)
+
+### Dataset Conditions in DAG Graph view
+We now display the graph view with logical gates. Datasets with actual events are highlighted with a different border, making it easier to see what triggered the selected run.
+
+![Render dataset conditions in graph view](render_dataset_conditions.png)
+
+### Dataset event info in DAG Graph
+For a DAG run, users can now view the dataset events connected to it directly in the graph view.
+
+![Dataset event info](dataset_info.png)
 
 ## Contributors
 Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Brent Bovenzi, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, Tzu-ping Chung, Vincent Beck, Wei Lee, and over 120 others!
