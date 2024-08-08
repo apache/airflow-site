@@ -128,6 +128,8 @@ Airflow 2.10 comes with new Dark Mode feature which is designed to enhance user 
 
 ![Airflow Light mode](airflow_light_mode.png)
 
+
+
 ## Task Instance History
 
 In Apache Airflow 2.10.0, when a task instance is retried or cleared, its execution history is maintained. You can view this history by clicking on the task instance in the Grid view, allowing you to access information about each attempt, such as logs, execution durations, and any failures. This feature improves transparency into the task's execution process, making it easier to troubleshoot and analyze your DAGs.
@@ -139,6 +141,15 @@ The history displays the final values of the task instance attributes for each s
 ![Task instance history](task_instance_history_log.png)
 
 ## Dataset UI Enhancements
+
+### Dataset Events list
+We now have Dataset Events list to show all dataset events across all datasets.
+![Dataset list](dataset_list.png)
+
+### Dataset Detail
+Users can now look at more details of a dataset like extra, consuming dags and producing tasks.
+![Dataset list](dataset_details.png)
+
 
 ### Toggle datasets in Graph
 
