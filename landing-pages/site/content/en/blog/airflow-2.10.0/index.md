@@ -123,6 +123,16 @@ Airflow 2.10 comes with new Dark Mode feature which is designed to enhance user 
 
 ![Airflow Light mode](airflow_light_mode.png)
 
+## Task Instance History
+
+In Apache Airflow 2.10.0, when a task instance is retried or cleared, its execution history is maintained. You can view this history by clicking on the task instance in the Grid view, allowing you to access information about each attempt, such as logs, execution durations, and any failures. This feature improves transparency into the task's execution process, making it easier to troubleshoot and analyze your DAGs.
+
+![Task instance history](task_instance_history.png)
+
+The history displays the final values of the task instance attributes for each specific run. On the log page, you can also access the logs for each attempt of the task instance. This information is valuable for debugging purposes.
+
+![Task instance history](task_instance_history_log.png)
+
 ## Contributors
 Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Brent Bovenzi, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, Tzu-ping Chung, Vincent Beck, Wei Lee, and over 120 others!
 
