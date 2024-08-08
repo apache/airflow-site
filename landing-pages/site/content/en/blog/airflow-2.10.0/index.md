@@ -9,7 +9,7 @@ tags: [Release]
 date: "2024-08-08"
 ---
 
-'m happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.
+I'm happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.
 
 Apache Airflow 2.10.0 contains over 135 commits, which include 43 new features,  85 improvements, 43 bug fixes, and 26 documentation changes.
 
