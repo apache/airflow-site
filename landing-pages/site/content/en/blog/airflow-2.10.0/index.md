@@ -35,20 +35,21 @@ To configure multiple executors we can pass comma separated list in airflow conf
 executor = 'LocalExecutor,CeleryExecutor'
 ```
 To make it easier for dag authors, we can also specify aliases for executors that can be specified in the executor configuration
+
 ```commandline
 [core]
-executor = 'LocalExecutor,my.custom.module.ExecutorClass:ShortName'
+executor = 'LocalExecutor,KubernetesExecutor,my.custom.module.ExecutorClass:ShortName'
 ```
 
 DAG authors can specify executors to use at the task
 ```python
 BashOperator(
     task_id="hello_world",
-    executor="LocalExecutor",
+    executor="ShortName",
     bash_command="echo 'hello world!'",
 )
 
-@task(executor="LocalExecutor")
+@task(executor="KubernetesExecutor")
 def hello_world():
     print("hello world!")
 ```
@@ -64,7 +65,7 @@ def hello_world_again():
 
 with DAG(
     dag_id="hello_worlds",
-    default_args={"executor": "LocalExecutor"},  # Applies to all tasks in the DAG
+    default_args={"executor": "ShortName"},  # Applies to all tasks in the DAG
 ) as dag:
     # All tasks will use the executor from default args automatically
     hw = hello_world()
@@ -92,17 +93,12 @@ from airflow.datasets.metadata import Metadata
 @task(outlets=[DatasetAlias("my-task-outputs")])
 def my_task_with_metadata():
     s3_dataset = Dataset("s3://bucket/my-task}")
-    yield Metadata(s3_dataset, extra={"k": "v"}, alias="my-task-outputs")
+    yield Metadata(s3_dataset, alias="my-task-outputs")
 ```
 
 There are two options for scheduling based on dataset aliases. Schedule based on `DatasetAlias` or real datasets.
 
 ```python
-with DAG(dag_id="dataset-producer"):
-    @task(outlets=[Dataset("example-alias")])
-    def produce_dataset_events():
-        pass
-
 with DAG(dag_id="dataset-alias-producer"):
     @task(outlets=[DatasetAlias("example-alias")])
     def produce_dataset_events(*, outlet_events):
