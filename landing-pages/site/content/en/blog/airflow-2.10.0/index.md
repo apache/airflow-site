@@ -84,7 +84,7 @@ from airflow.datasets import DatasetAlias
 
 @task(outlets=[DatasetAlias("my-task-outputs")])
 def my_task_with_outlet_events(*, outlet_events):
-    outlet_events["my-task-outputs"].add(Dataset("s3://bucket/my-task"), extra={"k": "v"})
+    outlet_events["my-task-outputs"].add(Dataset("s3://bucket/my-task"))
 ```
 ### Emit a dataset event during task execution by yielding Metadata
 ```python
@@ -110,13 +110,13 @@ with DAG(dag_id="dataset-consumer", schedule=Dataset("s3://bucket/my-task")):
 with DAG(dag_id="dataset-alias-consumer", schedule=DatasetAlias("example-alias")):
     ...
 ```
-### Dataset aliases UI Enhancements
+### Dataset Aliases UI Enhancements
 
 Now users can see Dataset Aliases in legend of each cross-dag dependency graph with a corresponded icon/color.
 
 ![DAG Dependencies graph](dag_dependencies_1.png)
 
-## Dark mode for Airflow UI
+## Dark Mode for Airflow UI
 
 Airflow 2.10 comes with new Dark Mode feature which is designed to enhance user experience by offering an alternative visual theme that is easier on the eyes, especially in low-light conditions. You can toggle the crescent icon on the right side of the navigation bar to switch between light and dark mode.
 
@@ -138,12 +138,15 @@ The history displays the final values of the task instance attributes for each s
 
 ## Dataset UI Enhancements
 
-### Dataset Events list
-We now have Dataset Events list to show all dataset events across all datasets.
+The dataset page has been revamped to include a focused dataset events section with additional details such as extras, consuming DAGs, and producing tasks.
 ![Dataset list](dataset_list.png)
 
-### Dataset Detail
-Users can now look at more details of a dataset like extra, consuming dags and producing tasks.
+We now have separate dependency graph and dataset list pages in new tabs, enhancing the user experience.
+
+![Dataset dependency graph](dependency_graph.png)
+
+Dataset events are now displayed in both the Details tab of each DAG run and within the DAG graph.
+
 ![Dataset list](dataset_details.png)
 
 
@@ -164,7 +167,16 @@ For a DAG run, users can now view the dataset events connected to it directly in
 
 ![Dataset event info](dataset_info.png)
 
+## Additional new features
+
+Here are just a few interesting new features since there are too many to list in full:
+
+* Deferrable operators can now execute directly from the triggerer without needing to go through the worker. This is especially efficient for certain operators, like sensors, and can help teams save both time and money.
+* Airflow 2.10 introduces a new button for on-demand DAG reparsing.
+* Crucial executor logs are now integrated into the task logs. If the executor fails to start a task, the relevant error messages will be available in the task logs, simplifying the debugging process.
+
 ## Contributors
+
 Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Brent Bovenzi, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, Tzu-ping Chung, Vincent Beck, Wei Lee, and over 120 others!
 
 I hope you enjoy using Apache Airflow 2.10.0!
