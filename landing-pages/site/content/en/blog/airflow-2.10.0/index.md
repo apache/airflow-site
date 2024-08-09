@@ -22,7 +22,7 @@ Apache Airflow 2.10.0 contains over 135 commits, which include 43 new features, 
 🚏 Constraints: https://github.com/apache/airflow/tree/constraints-2.10.0
 
 
-## Hybrid Execution
+## Multiple Executor Configuration (formerly "Hybrid Execution")
 
 Each executor comes with its unique set of strengths and weaknesses, typically balancing latency, isolation, and compute efficiency. Traditionally, an Airflow environment is limited to a single executor, requiring users to make trade-offs, as no single executor is perfectly suited for all types of tasks.
 
