@@ -11,7 +11,7 @@ date: "2024-08-08"
 
 I'm happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.
 
-Apache Airflow 2.10.0 contains over 135 commits, which include 43 new features,  85 improvements, 43 bug fixes, and 26 documentation changes.
+Apache Airflow 2.10.0 contains over 1617 commits, which include 41 new features,  78 improvements, 47 bug fixes, and 16 documentation changes.
 
 **Details**:
 
@@ -114,7 +114,7 @@ with DAG(dag_id="dataset-alias-consumer", schedule=DatasetAlias("example-alias")
 
 Now users can see Dataset Aliases in legend of each cross-dag dependency graph with a corresponded icon/color.
 
-![DAG Dependencies graph](dag_dependencies_1.png)
+![DAG Dependencies graph](dag_dependencies_legend.png)
 
 ## Dark Mode for Airflow UI
 
@@ -167,16 +167,22 @@ For a DAG run, users can now view the dataset events connected to it directly in
 
 ![Dataset event info](dataset_info.png)
 
+## On-demand DAG Re-parsing
+
+In 2.10 users can now reparse the DAGs on demand using below button on DAG list and DAG detail pages
+
+![DAG Reparsing button on DAG list page](DAG_reparsing_button_list.png)
+![DAG Reparsing button on DAG detail page](DAG_reparse_button_detail.png)
+
 ## Additional new features
 
 Here are just a few interesting new features since there are too many to list in full:
 
 * Deferrable operators can now execute directly from the triggerer without needing to go through the worker. This is especially efficient for certain operators, like sensors, and can help teams save both time and money.
-* Airflow 2.10 introduces a new button for on-demand DAG reparsing.
 * Crucial executor logs are now integrated into the task logs. If the executor fails to start a task, the relevant error messages will be available in the task logs, simplifying the debugging process.
 
 ## Contributors
 
-Thanks to everyone who contributed to this release, including Amogh Desai, Andrey Anshin, Brent Bovenzi, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, Tzu-ping Chung, Vincent Beck, Wei Lee, and over 120 others!
+Thanks to everyone who contributed to this release, including Jarek Potiuk, Andrey Anshin, Hussein Awala, Daniel Standish, Brent Bovenzi, Ephraim Anierobi, Tzu-ping Chung, Jens Scheffler, Vincent, Jed Cunningham and over 63 others!
 
 I hope you enjoy using Apache Airflow 2.10.0!
