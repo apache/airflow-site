@@ -27,7 +27,7 @@ jobs:
     runs-on: ["ubuntu-22.04"]
     defaults:
       run:
-        working-directory: /mnt/
+        working-directory: /mnt/airflow-site
     steps:
       # Based on https://github.com/actions/runner-images/issues/2840
       - name: 🪓 Remove some stuff we don't need
@@ -50,8 +50,12 @@ jobs:
           submodules: recursive
           lfs: true
           fetch-depth: 1
+      - name: Move repository to /mnt
+        run: |
+          mv /home/runner/work/airflow-site/airflow-site /mnt/airflow-site
       - name: Display disk free
-        run: /home/runner/work/airflow-site/airflow-site/.github/scripts/print_df.sh
+        run: /mnt/airflow-site/.github/scripts/print_df.sh
+        
       - name: 🐍 Setup Python
         uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0  # v4.6.1
         with:
@@ -67,12 +71,12 @@ jobs:
           extended: true
       - name: 🟢 Install node dependencies
         run: |
-          ./site.sh install-node-deps
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/site.sh install-node-deps
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🐍 Install Python dependencies
         run: |
           pip install -r requirements.txt
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🔎 Lint
         uses: apache/airflow-pre-commit-action@0764670bf370aab253130d534e1eda7ff497dc60  # v2.0.0
       - name: 🗂 Checkout gh-pages branch with minimum depth
@@ -84,12 +88,12 @@ jobs:
           path: dist
       - name: 🔧 Build site
         run: |
-          ./site.sh build-site
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/site.sh build-site
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - run: |
           rm -rf ./docs-archive/*
           echo "docs-archive directory files are deleted as they are no longer needed after the site is built in the above step"
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🐅 Optimize artifacts
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -97,7 +101,7 @@ jobs:
           echo "These files have been deleted to optimize the size of the artifacts." > ./dist/docs/index.html
           echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
           find ./dist/
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
@@ -112,12 +116,12 @@ jobs:
           # The asf.yaml file must be in the branch from which the files are published.
           # Otherwise, ASF publising tools cannot detect it.
           cp .asf.yaml ./dist/
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🪓 Remove node and node modules
         run: |
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🚀 Amend gh-pages branch and deploy it with force (replacing previous pages)
         if: ${{ github.event_name == 'push' }}
         working-directory: dist
