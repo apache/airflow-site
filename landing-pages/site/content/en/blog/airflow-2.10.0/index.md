@@ -11,7 +11,6 @@ date: "2024-08-08"
 
 I'm happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.
 
-Apache Airflow 2.10.0 contains over 1617 commits, which include 41 new features,  78 improvements, 47 bug fixes, and 16 documentation changes.
 
 **Details**:
 
@@ -183,6 +182,6 @@ Here are just a few interesting new features since there are too many to list in
 
 ## Contributors
 
-Thanks to everyone who contributed to this release, including Jarek Potiuk, Andrey Anshin, Hussein Awala, Daniel Standish, Brent Bovenzi, Ephraim Anierobi, Tzu-ping Chung, Jens Scheffler, Vincent, Jed Cunningham and over 63 others!
+Thanks to everyone who contributed to this release, including Andrey Anshin, Brent Bovenzi, Daniel Standish, Ephraim Anierobi, Hussein Awala, Jarek Potiuk, Jed Cunningham, Jens Scheffler, Tzu-ping Chung, Vincent, and over 63 others!
 
 I hope you enjoy using Apache Airflow 2.10.0!
