@@ -1,0 +1,200 @@
+:py:mod:`airflow.triggers.base`
+===============================
+
+.. py:module:: airflow.triggers.base
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.triggers.base.StartTriggerArgs
+   airflow.triggers.base.BaseTrigger
+   airflow.triggers.base.TriggerEvent
+   airflow.triggers.base.TaskSuccessEvent
+   airflow.triggers.base.TaskFailedEvent
+   airflow.triggers.base.TaskSkippedEvent
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.triggers.base.log
+
+
+.. py:data:: log
+
+   
+
+.. py:class:: StartTriggerArgs
+
+
+   Arguments required for start task execution from triggerer.
+
+   .. py:attribute:: trigger_cls
+      :type: str
+
+      
+
+   .. py:attribute:: next_method
+      :type: str
+
+      
+
+   .. py:attribute:: trigger_kwargs
+      :type: dict[str, Any] | None
+
+      
+
+   .. py:attribute:: next_kwargs
+      :type: dict[str, Any] | None
+
+      
+
+   .. py:attribute:: timeout
+      :type: datetime.timedelta | None
+
+      
+
+
+.. py:class:: BaseTrigger(**kwargs)
+
+
+   Bases: :py:obj:`abc.ABC`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   Base class for all triggers.
+
+   A trigger has two contexts it can exist in:
+
+    - Inside an Operator, when it's passed to TaskDeferred
+    - Actively running in a trigger worker
+
+   We use the same class for both situations, and rely on all Trigger classes
+   to be able to return the arguments (possible to encode with Airflow-JSON) that will
+   let them be re-instantiated elsewhere.
+
+   .. py:method:: serialize()
+      :abstractmethod:
+
+      Return the information needed to reconstruct this Trigger.
+
+      :return: Tuple of (class path, keyword arguments needed to re-instantiate).
+
+
+   .. py:method:: run()
+      :abstractmethod:
+      :async:
+
+      Run the trigger in an asynchronous context.
+
+      The trigger should yield an Event whenever it wants to fire off
+      an event, and return None if it is finished. Single-event triggers
+      should thus yield and then immediately return.
+
+      If it yields, it is likely that it will be resumed very quickly,
+      but it may not be (e.g. if the workload is being moved to another
+      triggerer process, or a multi-event trigger was being used for a
+      single-event task defer).
+
+      In either case, Trigger classes should assume they will be persisted,
+      and then rely on cleanup() being called when they are no longer needed.
+
+
+   .. py:method:: cleanup()
+      :async:
+
+      Cleanup the trigger.
+
+      Called when the trigger is no longer needed, and it's being removed
+      from the active triggerer process.
+
+      This method follows the async/await pattern to allow to run the cleanup
+      in triggerer main event loop. Exceptions raised by the cleanup method
+      are ignored, so if you would like to be able to debug them and be notified
+      that cleanup method failed, you should wrap your code with try/except block
+      and handle it appropriately (in async-compatible way).
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: TriggerEvent(payload)
+
+
+   Something that a trigger can fire when its conditions are met.
+
+   Events must have a uniquely identifying value that would be the same
+   wherever the trigger is run; this is to ensure that if the same trigger
+   is being run in two locations (for HA reasons) that we can deduplicate its
+   events.
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+   .. py:method:: __eq__(other)
+
+      Return self==value.
+
+
+   .. py:method:: handle_submit(*, task_instance, session = NEW_SESSION)
+
+      Handle the submit event for a given task instance.
+
+      This function sets the next method and next kwargs of the task instance,
+      as well as its state to scheduled. It also adds the event's payload
+      into the kwargs for the task.
+
+      :param task_instance: The task instance to handle the submit event for.
+      :param session: The session to be used for the database callback sink.
+
+
+
+.. py:class:: TaskSuccessEvent(*, xcoms = None, **kwargs)
+
+
+   Bases: :py:obj:`BaseTaskEndEvent`
+
+   Yield this event in order to end the task successfully.
+
+   .. py:attribute:: task_instance_state
+
+      
+
+
+.. py:class:: TaskFailedEvent(*, xcoms = None, **kwargs)
+
+
+   Bases: :py:obj:`BaseTaskEndEvent`
+
+   Yield this event in order to end the task with failure.
+
+   .. py:attribute:: task_instance_state
+
+      
+
+
+.. py:class:: TaskSkippedEvent(*, xcoms = None, **kwargs)
+
+
+   Bases: :py:obj:`BaseTaskEndEvent`
+
+   Yield this event in order to end the task with status 'skipped'.
+
+   .. py:attribute:: task_instance_state
+
+      
+
+
