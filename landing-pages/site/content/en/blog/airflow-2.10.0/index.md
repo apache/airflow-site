@@ -11,15 +11,13 @@ date: "2024-08-08"
 
 I'm happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.
 
-
 **Details**:
 
-📦 PyPI: https://pypi.org/project/apache-airflow/2.10.0/ \
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.10.0/ \
-🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/2.10.0/release_notes.html \
+📦 PyPI: <https://pypi.org/project/apache-airflow/2.10.0/> \
+📚 Docs: <https://airflow.apache.org/docs/apache-airflow/2.10.0/> \
+🛠 Release Notes: <https://airflow.apache.org/docs/apache-airflow/2.10.0/release_notes.html> \
 🐳 Docker Image: "docker pull apache/airflow:2.10.0" \
-🚏 Constraints: https://github.com/apache/airflow/tree/constraints-2.10.0
-
+🚏 Constraints: <https://github.com/apache/airflow/tree/constraints-2.10.0>
 
 ## Multiple Executor Configuration (formerly "Hybrid Execution")
 
@@ -33,6 +31,7 @@ To configure multiple executors we can pass comma separated list in airflow conf
 [core]
 executor = 'LocalExecutor,CeleryExecutor'
 ```
+
 To make it easier for dag authors, we can also specify aliases for executors that can be specified in the executor configuration
 
 ```commandline
@@ -41,6 +40,7 @@ executor = 'LocalExecutor,KubernetesExecutor,my.custom.module.ExecutorClass:Shor
 ```
 
 DAG authors can specify executors to use at the task
+
 ```python
 BashOperator(
     task_id="hello_world",
@@ -57,10 +57,10 @@ We can also specify executors on the DAG level
 
 ```python
 def hello_world():
-	print("hello world!")
+    print("hello world!")
 
 def hello_world_again():
-	print("hello world again!")
+    print("hello world again!")
 
 with DAG(
     dag_id="hello_worlds",
@@ -78,6 +78,7 @@ Airflow 2.10 comes with `DatasetAlias` class which can be passed as a value in t
 `DatasetAlias` has one argument `name` that uniquely identifies the dataset. The task must first declare the alias as an outlet, and use `outlet_events` or `yield Metadata` to add events to it.
 
 ### Emit a dataset event during task execution through outlet_events
+
 ```python
 from airflow.datasets import DatasetAlias
 
@@ -85,7 +86,9 @@ from airflow.datasets import DatasetAlias
 def my_task_with_outlet_events(*, outlet_events):
     outlet_events["my-task-outputs"].add(Dataset("s3://bucket/my-task"))
 ```
+
 ### Emit a dataset event during task execution by yielding Metadata
+
 ```python
 from airflow.datasets.metadata import Metadata
 
@@ -109,6 +112,7 @@ with DAG(dag_id="dataset-consumer", schedule=Dataset("s3://bucket/my-task")):
 with DAG(dag_id="dataset-alias-consumer", schedule=DatasetAlias("example-alias")):
     ...
 ```
+
 ### Dataset Aliases UI Enhancements
 
 Now users can see Dataset Aliases in legend of each cross-dag dependency graph with a corresponded icon/color.
@@ -122,8 +126,6 @@ Airflow 2.10 comes with new Dark Mode feature which is designed to enhance user 
 ![Airflow Dark mode](airflow_dark_mode.png)
 
 ![Airflow Light mode](airflow_light_mode.png)
-
-
 
 ## Task Instance History
 
@@ -148,7 +150,6 @@ Dataset events are now displayed in both the Details tab of each DAG run and wit
 
 ![Dataset list](dataset_details.png)
 
-
 ### Toggle datasets in Graph
 
 We can now toggle the datasets in the DAG graph
@@ -157,11 +158,13 @@ We can now toggle the datasets in the DAG graph
 ![Dataset toggle button off](dataset_toggle_off.png)
 
 ### Dataset Conditions in DAG Graph view
+
 We now display the graph view with logical gates. Datasets with actual events are highlighted with a different border, making it easier to see what triggered the selected run.
 
 ![Render dataset conditions in graph view](render_dataset_conditions.png)
 
 ### Dataset event info in DAG Graph
+
 For a DAG run, users can now view the dataset events connected to it directly in the graph view.
 
 ![Dataset event info](dataset_info.png)
