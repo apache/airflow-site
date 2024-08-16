@@ -47,8 +47,21 @@ jobs:
           submodules: recursive
           lfs: true
           fetch-depth: 1
+      - name: Create /mnt/airflow-site directory
+        run: sudo mkdir -p /mnt/airflow-site
+      - name: Move repository to /mnt
+        run: |
+          sudo mv /home/runner/work/airflow-site/airflow-site /mnt/
+          # Create symbolic link
+          sudo mkdir -p /home/runner/work/airflow-site
+          sudo ln -s /mnt/airflow-site /home/runner/work/airflow-site/airflow-site
+      - name: Set working directory to /mnt/airflow-site
+        working-directory: /mnt/airflow-site
+        run: echo "Working directory set to /mnt/airflow-site"
+
       - name: Display disk free
-        run: ./.github/scripts/print_df.sh
+        run: /mnt/airflow-site/.github/scripts/print_df.sh
+        working-directory: /mnt/airflow-site
       - name: 🐍 Setup Python
         uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0  # v4.6.1
         with:
@@ -64,14 +77,20 @@ jobs:
           extended: true
       - name: 🟢 Install node dependencies
         run: |
-          ./site.sh install-node-deps
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/site.sh install-node-deps
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🐍 Install Python dependencies
         run: |
           pip install -r requirements.txt
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
+      - name: Ensure cache directory exists and adjust permissions
+        run: |
+          mkdir -p /mnt/airflow-site/.cache/pre-commit
+          sudo chmod -R 777 /mnt/airflow-site/.cache/pre-commit
       - name: 🔎 Lint
         uses: apache/airflow-pre-commit-action@0764670bf370aab253130d534e1eda7ff497dc60  # v2.0.0
+        env:
+          PRE_COMMIT_HOME: /mnt/airflow-site/.cache/pre-commit
       - name: 🗂 Checkout gh-pages branch with minimum depth
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
         if: ${{ github.event_name == 'push' }}
@@ -81,12 +100,12 @@ jobs:
           path: dist
       - name: 🔧 Build site
         run: |
-          ./site.sh build-site
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/site.sh build-site
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - run: |
           rm -rf ./docs-archive/*
           echo "docs-archive directory files are deleted as they are no longer needed after the site is built in the above step"
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🐅 Optimize artifacts
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -94,7 +113,7 @@ jobs:
           echo "These files have been deleted to optimize the size of the artifacts." > ./dist/docs/index.html
           echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
           find ./dist/
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
@@ -109,12 +128,12 @@ jobs:
           # The asf.yaml file must be in the branch from which the files are published.
           # Otherwise, ASF publising tools cannot detect it.
           cp .asf.yaml ./dist/
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🪓 Remove node and node modules
         run: |
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
-          ./.github/scripts/print_df.sh
+          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🚀 Amend gh-pages branch and deploy it with force (replacing previous pages)
         if: ${{ github.event_name == 'push' }}
         working-directory: dist
