@@ -203,6 +203,12 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Airflow Template](https://github.com/angreal/airflow) - Template and commands for creating minimal airflow environments for rapid testing and prototyping.
 
+[airflow-priority](https://github.com/airflow-laminar/airflow-priority) - Priority Tags (P1, P2, etc) for Airflow DAGs with automated alerting to Datadog, New Relic, Slack, Discord, and more
+
+[airflow-config](https://github.com/airflow-laminar/airflow-config) - [Pydantic](https://pydantic.dev) / [Hydra](https://hydra.cc) based configuration system for DAG and Task arguments
+
+[airflow-supervisor](https://github.com/airflow-laminar/airflow-supervisor) - Easy-to-use [supervisor](http://supervisord.org) integration for long running or "always on" DAGs
+
 &nbsp;
 
 ## Airflow Provider System Test Dashboards
