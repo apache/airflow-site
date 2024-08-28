@@ -193,8 +193,6 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-tableau/stable/index.html"><code>Tableau</code></a></li>
 
-  <li><a href="/docs/apache-airflow-providers-tabular/stable/index.html"><code>Tabular</code></a></li>
-
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-teradata/stable/index.html"><code>Teradata</code></a></li>
@@ -248,6 +246,8 @@ More about the removal process can be found in the
   <li><a href="/docs/apache-airflow-providers-plexus/stable/index.html"><code>Plexus</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-qubole/stable/index.html"><code>Qubole</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-tabular/stable/index.html"><code>Tabular</code></a></li>
 
 </ul>
 
