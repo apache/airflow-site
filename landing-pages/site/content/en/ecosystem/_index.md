@@ -31,6 +31,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache Airflow: Complete Hands-On Beginner to Advanced Class](https://www.udemy.com/course/apache-airflow-course) by Alexandra Abbas on Udemy
 
+[Data Pipelines with Apache Airflow](https://www.manning.com/books/data-pipelines-with-apache-airflow) Apache Airflow Book by Bas P. Harenslak and Julian Rutger de Ruiter on Amazon
+
 &nbsp;
 
 ## Airflow as a Service
@@ -92,8 +94,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 [Airflow TM1 Provider](https://github.com/KnowledgeSeed/airflow-providers-tm1) - Provides Hook and Operators to simplify connecting to the IBM Cognos TM1 / Planning Analytics database over REST API.
 
 [Astronomer Cosmos](https://github.com/astronomer/astronomer-cosmos) - Run your dbt Core projects as Apache Airflow DAGs and Task Groups with a few lines of code.
-
-[Airflow OpenTelemetry Provider](https://github.com/howardyoo/airflow_otel_provider) - Provides Hook and EventListener which will generate traces, metrics, and logs in [OpenTelemetry](https://opentelemetry.io/) for your DAG runs.
 
 &nbsp;
 
