@@ -95,6 +95,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Astronomer Cosmos](https://github.com/astronomer/astronomer-cosmos) - Run your dbt Core projects as Apache Airflow DAGs and Task Groups with a few lines of code.
 
+[Airflow OpenTelemetry Provider](https://github.com/howardyoo/airflow_otel_provider) - Provides Hook and EventListener which will generate traces, metrics, and logs in [OpenTelemetry](https://opentelemetry.io/) for your DAG runs.
+
 &nbsp;
 
 ## Async Providers
