@@ -22,7 +22,6 @@ We’ve just released Apache **Airflow 2.10.1**.
 🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.10.1/release_notes.html \
 🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.10.1/installation/installing-from-sources.html
 
-
 # August 15, 2024
 
 We’ve just released Apache **Airflow 2.10.0**.
