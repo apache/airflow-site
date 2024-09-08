@@ -31,7 +31,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache Airflow: Complete Hands-On Beginner to Advanced Class](https://www.udemy.com/course/apache-airflow-course) by Alexandra Abbas on Udemy
 
-[Data Pipelines with Apache Airflow](https://www.manning.com/books/data-pipelines-with-apache-airflow) Apache Airflow Book by Bas P. Harenslak and Julian Rutger de Ruiter on Amazon
+[Data Pipelines with Apache Airflow](https://www.manning.com/books/data-pipelines-with-apache-airflow) Apache Airflow Book on Amazon
 
 &nbsp;
 
