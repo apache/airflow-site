@@ -19,6 +19,13 @@ I'm happy to announce that Apache Airflow 2.10.0 is now available, bringing an a
 🐳 Docker Image: "docker pull apache/airflow:2.10.0" \
 🚏 Constraints: <https://github.com/apache/airflow/tree/constraints-2.10.0>
 
+## Airflow now collects Telemetry data by default
+
+With the release of Airflow 2.10.0, we’ve introduced the collection of basic telemetry data, as outlined [here](https://airflow.apache.org/docs/apache-airflow/2.10.0/faq.html#does-airflow-collect-any-telemetry-data). This data will play a crucial role in helping Airflow maintainers gain a deeper understanding of how Airflow is utilized across various deployments. The insights derived from this information are invaluable in guiding the prioritization of patches, minor releases, and security fixes. Moreover, this data will inform key decisions regarding the development roadmap, ensuring that Airflow continues to evolve in line with community needs.
+
+For those who prefer not to participate in data collection, deployments can easily opt-out by setting the `[usage_data_collection] enabled` option to `False` or by using the `SCARF_ANALYTICS=false` environment variable.
+
+
 ## Multiple Executor Configuration (formerly "Hybrid Execution")
 
 Each executor comes with its unique set of strengths and weaknesses, typically balancing latency, isolation, and compute efficiency. Traditionally, an Airflow environment is limited to a single executor, requiring users to make trade-offs, as no single executor is perfectly suited for all types of tasks.
