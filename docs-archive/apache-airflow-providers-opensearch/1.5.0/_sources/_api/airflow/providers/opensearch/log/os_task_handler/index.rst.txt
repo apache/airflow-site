@@ -1,0 +1,136 @@
+:py:mod:`airflow.providers.opensearch.log.os_task_handler`
+==========================================================
+
+.. py:module:: airflow.providers.opensearch.log.os_task_handler
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.opensearch.log.os_task_handler.OpensearchTaskHandler
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.opensearch.log.os_task_handler.get_os_kwargs_from_config
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   airflow.providers.opensearch.log.os_task_handler.USE_PER_RUN_LOG_ID
+   airflow.providers.opensearch.log.os_task_handler.OsLogMsgType
+   airflow.providers.opensearch.log.os_task_handler.LOG_LINE_DEFAULTS
+
+
+.. py:data:: USE_PER_RUN_LOG_ID
+
+   
+
+.. py:data:: OsLogMsgType
+
+   
+
+.. py:data:: LOG_LINE_DEFAULTS
+
+   
+
+.. py:function:: get_os_kwargs_from_config()
+
+
+.. py:class:: OpensearchTaskHandler(base_log_folder, end_of_log_mark, write_stdout, json_format, json_fields, host, port, username, password, host_field = 'host', offset_field = 'offset', index_patterns = conf.get('opensearch', 'index_patterns', fallback='_all'), index_patterns_callable = conf.get('opensearch', 'index_patterns_callable', fallback=''), os_kwargs = 'default_os_kwargs')
+
+
+   Bases: :py:obj:`airflow.utils.log.file_task_handler.FileTaskHandler`, :py:obj:`airflow.utils.log.logging_mixin.ExternalLoggingMixin`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+   OpensearchTaskHandler is a Python log handler that reads and writes logs to OpenSearch.
+
+   Like the ElasticsearchTaskHandler, Airflow itself does not handle the indexing of logs.
+   Instead, logs are flushed to local files, and additional software (e.g., Filebeat, Logstash)
+   may be required to ship logs to OpenSearch. This handler then enables fetching and displaying
+   logs from OpenSearch.
+
+   To efficiently query and sort Elasticsearch results, this handler assumes each
+   log message has a field `log_id` consists of ti primary keys:
+   `log_id = {dag_id}-{task_id}-{execution_date}-{try_number}`
+   Log messages with specific log_id are sorted based on `offset`,
+   which is a unique integer indicates log message's order.
+   Timestamps here are unreliable because multiple log messages
+   might have the same timestamp.
+
+   :param base_log_folder: Base folder to store logs locally.
+   :param end_of_log_mark: A marker string to signify the end of logs.
+   :param write_stdout: Whether to also write logs to stdout.
+   :param json_format: Whether to format logs as JSON.
+   :param json_fields: Comma-separated list of fields to include in the JSON log output.
+   :param host: OpenSearch host name.
+   :param port: OpenSearch port.
+   :param username: Username for OpenSearch authentication.
+   :param password: Password for OpenSearch authentication.
+   :param host_field: The field name for the host in the logs (default is "host").
+   :param offset_field: The field name for the log offset (default is "offset").
+   :param index_patterns: Index pattern or template for storing logs.
+   :param index_patterns_callable: Callable that dynamically generates index patterns based on context.
+   :param os_kwargs: Additional OpenSearch client options. This can be set to "default_os_kwargs" to
+                     load the default configuration from Airflow's settings.
+
+   .. py:attribute:: PAGE
+      :value: 0
+
+      
+
+   .. py:attribute:: MAX_LINE_PER_PAGE
+      :value: 1000
+
+      
+
+   .. py:attribute:: LOG_NAME
+      :value: 'Opensearch'
+
+      
+
+   .. py:attribute:: trigger_should_wrap
+      :value: True
+
+      
+
+   .. py:method:: set_context(ti, *, identifier = None)
+
+      Provide task_instance context to airflow task handler.
+
+      :param ti: task instance object
+      :param identifier: if set, identifies the Airflow component which is relaying logs from
+          exceptional scenarios related to the task instance
+
+
+   .. py:method:: emit(record)
+
+      Do whatever it takes to actually log the specified logging record.
+
+      This version is intended to be implemented by subclasses and so
+      raises a NotImplementedError.
+
+
+   .. py:method:: close()
+
+      Tidy up any resources used by the handler.
+
+      This version removes the handler from an internal map of handlers,
+      _handlers, which is used for handler lookup by name. Subclasses
+      should ensure that this gets called from overridden close()
+      methods.
+
+
+
