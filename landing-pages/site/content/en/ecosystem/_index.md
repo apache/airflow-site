@@ -97,6 +97,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow OpenTelemetry Provider](https://github.com/howardyoo/airflow_otel_provider) - Provides Hook and EventListener which will generate traces, metrics, and logs in [OpenTelemetry](https://opentelemetry.io/) for your DAG runs.
 
+[Airflow Couchbase Provider](https://github.com/Couchbase-Ecosystem/airflow-providers-couchbase) - Provides Hook to seamlessly interact with Couchbase databases, execute queries, manage documents, and more.
+
 &nbsp;
 
 ## Async Providers
