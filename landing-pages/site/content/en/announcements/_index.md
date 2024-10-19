@@ -13,6 +13,10 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# October 19, 2024
+
+Airflow PMC welcomes new Airflow PMC Member: **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka)
+
 # September 20, 2024
 
 We’ve just released Apache **Airflow 2.10.2**.
