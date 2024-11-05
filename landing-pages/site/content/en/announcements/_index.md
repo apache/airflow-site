@@ -13,6 +13,15 @@ menu:
 
 **Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
 
+# November 5, 2024
+
+We’ve just released Apache **Airflow 2.10.3**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.10.3/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.10.3 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.10.3/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.10.3/installation/installing-from-sources.html
+
 # October 19, 2024
 
 Airflow PMC welcomes new Airflow PMC Member: **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka)
