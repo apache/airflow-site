@@ -179,6 +179,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-sftp/stable/index.html"><code>SFTP</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-standard/stable/index.html"><code>Standard</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-singularity/stable/index.html"><code>Singularity</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-slack/stable/index.html"><code>Slack</code></a></li>
