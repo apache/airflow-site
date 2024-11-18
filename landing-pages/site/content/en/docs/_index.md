@@ -191,6 +191,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-ssh/stable/index.html"><code>SSH</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-standard/stable/index.html"><code>Standard</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-tableau/stable/index.html"><code>Tableau</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-telegram/stable/index.html"><code>Telegram</code></a></li>
