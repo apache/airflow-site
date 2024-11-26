@@ -91,7 +91,7 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow DolphinDB Provider](https://github.com/dolphindb/airflow-provider-dolphindb) - Provides Hooks and Operators to run scripts with [DolphinDB](https://www.dolphindb.com).
 
-[Airflow TM1 Provider](https://github.com/KnowledgeSeed/airflow-providers-tm1) - Provides Hook and Operators to simplify connecting to the IBM Cognos TM1 / Planning Analytics database over REST API.
+[Airflow TM1 Provider](https://github.com/airflow-provider-tm1/airflow-provider-tm1) - Provides Hook and Operators to simplify connecting to the IBM Cognos TM1 / Planning Analytics database over REST API.
 
 [Astronomer Cosmos](https://github.com/astronomer/astronomer-cosmos) - Run your dbt Core projects as Apache Airflow DAGs and Task Groups with a few lines of code.
 
