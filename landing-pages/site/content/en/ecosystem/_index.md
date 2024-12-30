@@ -99,6 +99,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Couchbase Provider](https://github.com/Couchbase-Ecosystem/airflow-providers-couchbase) - Provides Hook to seamlessly interact with Couchbase databases, execute queries, manage documents, and more.
 
+[Airflow SAP HANA Provider](https://github.com/j6takish/airflow-provider-sap-hana) - Provides Hook to interact with SAP HANA. Allows the use of the Airflow SQL Operators and database hook methods, including methods which interact with sqlalchemy.
+
 &nbsp;
 
 ## Async Providers
