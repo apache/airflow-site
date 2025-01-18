@@ -25,7 +25,7 @@
 # debugging/analysis.
 function group_df_logs {
     echo "::group::df -h"
-    df -h
+    df -hs
     echo "::endgroup::"
 }
 
