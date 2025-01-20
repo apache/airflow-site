@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM debian:stretch-slim
+FROM python:3.9-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
@@ -26,9 +26,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_CTYPE=C.UTF-8 \
     LC_MESSAGES=C.UTF-8
 
+# Update and install dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        ca-certificates \
         curl \
         git \
         gnupg2 \
@@ -38,6 +38,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js for potential front-end dependencies
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -46,6 +47,7 @@ RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Yarn for package management
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
@@ -54,9 +56,11 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install jq for JSON processing (if needed in your Python scripts)
 RUN curl -sL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" > /usr/local/bin/jq \
     && chmod +x /usr/local/bin/jq
 
+# Install Hugo for static site generation (if relevant for the project)
 RUN HUGOHOME="$(mktemp -d)" \
     && export HUGOHOME \
     && curl -sL https://github.com/gohugoio/hugo/releases/download/v0.58.3/hugo_extended_0.58.3_Linux-64bit.tar.gz > "${HUGOHOME}/hugo.tar.gz" \
@@ -65,4 +69,14 @@ RUN HUGOHOME="$(mktemp -d)" \
     && chmod +x /usr/local/bin/hugo \
     && rm -r "${HUGOHOME}"
 
-WORKDIR /opt/site/
+# Set working directory for the Python site
+WORKDIR /opt/site
+
+# Copy the Python application files into the container
+COPY . /opt/site/
+
+# Install Python dependencies (assuming there's a requirements.txt)
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set the default command to run the Python app (site.py)
+CMD ["python", "site.py"]
