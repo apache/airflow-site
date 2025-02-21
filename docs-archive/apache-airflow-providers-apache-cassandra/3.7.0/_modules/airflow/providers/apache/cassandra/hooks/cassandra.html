@@ -11,14 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>airflow.providers.apache.cassandra.hooks.cassandra &mdash; apache-airflow-providers-apache-cassandra Documentation</title>
     <link rel="stylesheet" href="../../../../../../_static/_gen/css/main.min.css" type="text/css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css" />
-            <link rel="shortcut icon" href="../../../../../../_static/pin_32.png"/>
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main.min.css?v=016086f5" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=fd3f3429" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=101b2490" />
             <link rel="index" title="Index" href="../../../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../../../search.html" />
 
@@ -349,7 +348,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-apache-cassandra/3.7.0/providers/tests/system/apache/cassandra">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-apache-cassandra/3.7.0/providers/apache/cassandra/tests/system/apache/cassandra">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-apache-cassandra/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -501,7 +500,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-apache-cassandra/3.7.0/providers/tests/system/apache/cassandra">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-apache-cassandra/3.7.0/providers/apache/cassandra/tests/system/apache/cassandra">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-apache-cassandra/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -633,27 +632,31 @@
 <span class="c1"># under the License.</span>
 <span class="sd">&quot;&quot;&quot;This module contains hook to integrate with Apache Cassandra.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">cassandra.auth</span> <span class="kn">import</span> <span class="n">PlainTextAuthProvider</span>
-<span class="kn">from</span> <span class="nn">cassandra.cluster</span> <span class="kn">import</span> <span class="n">Cluster</span><span class="p">,</span> <span class="n">Session</span>
-<span class="kn">from</span> <span class="nn">cassandra.policies</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.hooks.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseHook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.utils.log.logging_mixin</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cassandra.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlainTextAuthProvider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cassandra.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cluster</span><span class="p">,</span> <span class="n">Session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cassandra.policies</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DCAwareRoundRobinPolicy</span><span class="p">,</span>
     <span class="n">RoundRobinPolicy</span><span class="p">,</span>
     <span class="n">TokenAwarePolicy</span><span class="p">,</span>
     <span class="n">WhiteListRoundRobinPolicy</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.log.logging_mixin</span> <span class="kn">import</span> <span class="n">LoggingMixin</span>
+<div class="viewcode-block" id="Policy">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.Policy">[docs]</a>
+<span class="n">Policy</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">DCAwareRoundRobinPolicy</span><span class="p">,</span> <span class="n">RoundRobinPolicy</span><span class="p">,</span> <span class="n">TokenAwarePolicy</span><span class="p">,</span> <span class="n">WhiteListRoundRobinPolicy</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Policy"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.Policy">[docs]</a><span class="n">Policy</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">DCAwareRoundRobinPolicy</span><span class="p">,</span> <span class="n">RoundRobinPolicy</span><span class="p">,</span> <span class="n">TokenAwarePolicy</span><span class="p">,</span> <span class="n">WhiteListRoundRobinPolicy</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="CassandraHook"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook">[docs]</a><span class="k">class</span> <span class="nc">CassandraHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="CassandraHook">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CassandraHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">,</span> <span class="n">LoggingMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Hook used to interact with Cassandra.</span>
 
@@ -697,12 +700,24 @@
 <span class="sd">    For details of the Cluster config, see cassandra.cluster.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CassandraHook.conn_name_attr"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.conn_name_attr">[docs]</a>    <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s2">&quot;cassandra_conn_id&quot;</span></div>
-<div class="viewcode-block" id="CassandraHook.default_conn_name"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.default_conn_name">[docs]</a>    <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s2">&quot;cassandra_default&quot;</span></div>
-<div class="viewcode-block" id="CassandraHook.conn_type"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.conn_type">[docs]</a>    <span class="n">conn_type</span> <span class="o">=</span> <span class="s2">&quot;cassandra&quot;</span></div>
-<div class="viewcode-block" id="CassandraHook.hook_name"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.hook_name">[docs]</a>    <span class="n">hook_name</span> <span class="o">=</span> <span class="s2">&quot;Cassandra&quot;</span></div>
+<div class="viewcode-block" id="CassandraHook.conn_name_attr">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.conn_name_attr">[docs]</a>
+    <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s2">&quot;cassandra_conn_id&quot;</span></div>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cassandra_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">default_conn_name</span><span class="p">):</span>
+<div class="viewcode-block" id="CassandraHook.default_conn_name">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.default_conn_name">[docs]</a>
+    <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s2">&quot;cassandra_default&quot;</span></div>
+
+<div class="viewcode-block" id="CassandraHook.conn_type">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.conn_type">[docs]</a>
+    <span class="n">conn_type</span> <span class="o">=</span> <span class="s2">&quot;cassandra&quot;</span></div>
+
+<div class="viewcode-block" id="CassandraHook.hook_name">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.hook_name">[docs]</a>
+    <span class="n">hook_name</span> <span class="o">=</span> <span class="s2">&quot;Cassandra&quot;</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cassandra_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">default_conn_name</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">cassandra_conn_id</span><span class="p">)</span>
 
@@ -734,28 +749,48 @@
         <span class="k">if</span> <span class="n">protocol_version</span><span class="p">:</span>
             <span class="n">conn_config</span><span class="p">[</span><span class="s2">&quot;protocol_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">protocol_version</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">Cluster</span><span class="p">(</span><span class="o">**</span><span class="n">conn_config</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keyspace</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
+<div class="viewcode-block" id="CassandraHook.cluster">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.cluster">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">Cluster</span><span class="p">(</span><span class="o">**</span><span class="n">conn_config</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CassandraHook.get_conn"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Session</span><span class="p">:</span>
+<div class="viewcode-block" id="CassandraHook.keyspace">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.keyspace">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keyspace</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">schema</span></div>
+
+<div class="viewcode-block" id="CassandraHook.session">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="CassandraHook.get_conn">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.get_conn">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Session</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a cassandra Session object.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">is_shutdown</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keyspace</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span></div>
 
-<div class="viewcode-block" id="CassandraHook.get_cluster"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.get_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">get_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cluster</span><span class="p">:</span>
+
+<div class="viewcode-block" id="CassandraHook.get_cluster">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.get_cluster">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cluster</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return Cassandra cluster.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span></div>
 
-<div class="viewcode-block" id="CassandraHook.shutdown_cluster"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.shutdown_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="CassandraHook.shutdown_cluster">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.shutdown_cluster">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shutdown_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Close all sessions and connections associated with this Cluster.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">is_shutdown</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span></div>
 
+
     <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="CassandraHook.get_lb_policy"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.get_lb_policy">[docs]</a>    <span class="k">def</span> <span class="nf">get_lb_policy</span><span class="p">(</span><span class="n">policy_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">policy_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Policy</span><span class="p">:</span>
+<div class="viewcode-block" id="CassandraHook.get_lb_policy">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.get_lb_policy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_lb_policy</span><span class="p">(</span><span class="n">policy_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">policy_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Policy</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create load balancing policy.</span>
 
@@ -789,7 +824,10 @@
         <span class="c1"># Fallback to default RoundRobinPolicy</span>
         <span class="k">return</span> <span class="n">RoundRobinPolicy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="CassandraHook.table_exists"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.table_exists">[docs]</a>    <span class="k">def</span> <span class="nf">table_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="CassandraHook.table_exists">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.table_exists">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">table_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if a table exists in Cassandra.</span>
 
@@ -802,14 +840,17 @@
         <span class="n">cluster_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">metadata</span>
         <span class="k">return</span> <span class="n">keyspace</span> <span class="ow">in</span> <span class="n">cluster_metadata</span><span class="o">.</span><span class="n">keyspaces</span> <span class="ow">and</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">cluster_metadata</span><span class="o">.</span><span class="n">keyspaces</span><span class="p">[</span><span class="n">keyspace</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span></div>
 
+
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_sanitize_input</span><span class="p">(</span><span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sanitize_input</span><span class="p">(</span><span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\w+$&quot;</span><span class="p">,</span> <span class="n">input_string</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">input_string</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid input: </span><span class="si">{</span><span class="n">input_string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CassandraHook.record_exists"><a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.record_exists">[docs]</a>    <span class="k">def</span> <span class="nf">record_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="CassandraHook.record_exists">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/apache/cassandra/hooks/cassandra/index.html#airflow.providers.apache.cassandra.hooks.cassandra.CassandraHook.record_exists">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">record_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if a record exists in Cassandra.</span>
 
@@ -828,7 +869,9 @@
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">one</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span></div></div>
+            <span class="k">return</span> <span class="kc">False</span></div>
+</div>
+
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>
@@ -1037,18 +1080,15 @@
 </footer>
     <script type="text/javascript" src="../../../../../../_static/_gen/js/docs.js"></script>
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../../../" src="../../../../../../_static/documentation_options.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <script data-url_root="../../../../../../" id="documentation_options" src="../../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../../_static/jquery.js"></script>
-        <script src="../../../../../../_static/underscore.js"></script>
-        <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../../_static/doctools.js"></script>
-        <script src="../../../../../../_static/sphinx_highlight.js"></script>
-        <script src="../../../../../../_static/clipboard.min.js"></script>
-        <script src="../../../../../../_static/copybutton.js"></script>
-        <script src="../../../../../../_static/js/globaltoc.js"></script>
-        <script src="../../../../../../_static/design-tabs.js"></script>
+    <script src="/external/js/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="/external/js/cdnjs.cloudflare.com-1.14.3-popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="/external/js/stackpath.bootstrapcdn.com-4.1.3-bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="../../../../../../_static/documentation_options.js?v=229cbe3b"></script>
+        <script src="../../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../../../../../_static/copybutton.js?v=f281be69"></script>
+        <script src="../../../../../../_static/js/globaltoc.js?v=32f50df6"></script>
+        <script src="../../../../../../_static/design-tabs.js?v=f930bc37"></script>
 </body>
 </html>
