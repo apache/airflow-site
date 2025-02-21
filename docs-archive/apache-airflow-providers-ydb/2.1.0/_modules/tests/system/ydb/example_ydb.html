@@ -11,14 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>tests.system.ydb.example_ydb &mdash; apache-airflow-providers-ydb Documentation</title>
     <link rel="stylesheet" href="../../../../_static/_gen/css/main.min.css" type="text/css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/_gen/css/main.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/_gen/css/main-custom.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css" />
-            <link rel="shortcut icon" href="../../../../_static/pin_32.png"/>
+            <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+            <link rel="stylesheet" type="text/css" href="../../../../_static/_gen/css/main.min.css?v=016086f5" />
+            <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+            <link rel="stylesheet" type="text/css" href="../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=fd3f3429" />
+            <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+            <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=101b2490" />
             <link rel="index" title="Index" href="../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../search.html" />
 
@@ -349,7 +348,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/tests/system/ydb">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/ydb/tests/system/ydb">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-ydb/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -501,7 +500,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/tests/system/ydb">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/ydb/tests/system/ydb">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-ydb/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -628,17 +627,19 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
-<span class="kn">import</span> <span class="nn">ydb</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ydb</span>
 
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.ydb.hooks.ydb</span> <span class="kn">import</span> <span class="n">YDBHook</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.ydb.operators.ydb</span> <span class="kn">import</span> <span class="n">YDBExecuteQueryOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.operators.python</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.ydb.hooks.ydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">YDBHook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.ydb.operators.ydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">YDBExecuteQueryOperator</span>
 
 <span class="c1"># [START ydb_operator_howto_guide]</span>
 
@@ -646,12 +647,20 @@
 <span class="c1"># create_pet_table, populate_pet_table, get_all_pets, and get_birth_date are examples of tasks created by</span>
 <span class="c1"># instantiating the YDB Operator</span>
 
-<div class="viewcode-block" id="ENV_ID"><a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.ENV_ID">[docs]</a><span class="n">ENV_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_ENV_ID&quot;</span><span class="p">)</span></div>
-<div class="viewcode-block" id="DAG_ID"><a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.DAG_ID">[docs]</a><span class="n">DAG_ID</span> <span class="o">=</span> <span class="s2">&quot;ydb_operator_dag&quot;</span></div>
+<div class="viewcode-block" id="ENV_ID">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.ENV_ID">[docs]</a>
+<span class="n">ENV_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_ENV_ID&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DAG_ID">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.DAG_ID">[docs]</a>
+<span class="n">DAG_ID</span> <span class="o">=</span> <span class="s2">&quot;ydb_operator_dag&quot;</span></div>
+
 
 
 <span class="nd">@task</span>
-<div class="viewcode-block" id="populate_pet_table_via_bulk_upsert"><a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.populate_pet_table_via_bulk_upsert">[docs]</a><span class="k">def</span> <span class="nf">populate_pet_table_via_bulk_upsert</span><span class="p">():</span>
+<div class="viewcode-block" id="populate_pet_table_via_bulk_upsert">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.populate_pet_table_via_bulk_upsert">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">populate_pet_table_via_bulk_upsert</span><span class="p">():</span>
     <span class="n">hook</span> <span class="o">=</span> <span class="n">YDBHook</span><span class="p">()</span>
     <span class="n">column_types</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">ydb</span><span class="o">.</span><span class="n">BulkUpsertColumns</span><span class="p">()</span>
@@ -669,6 +678,26 @@
     <span class="n">hook</span><span class="o">.</span><span class="n">bulk_upsert</span><span class="p">(</span><span class="s2">&quot;pet&quot;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">column_types</span><span class="o">=</span><span class="n">column_types</span><span class="p">)</span></div>
 
 
+
+<div class="viewcode-block" id="sanitize_date">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.sanitize_date">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sanitize_date</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure the value is a valid date format&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d</span><span class="si">{4}</span><span class="s2">-\d</span><span class="si">{2}</span><span class="s2">-\d</span><span class="si">{2}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid date format: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="transform_dates">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.transform_dates">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">transform_dates</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">begin_date</span> <span class="o">=</span> <span class="n">sanitize_date</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;begin_date&quot;</span><span class="p">))</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">sanitize_date</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;end_date&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span><span class="p">}</span></div>
+
+
+
 <span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
     <span class="n">dag_id</span><span class="o">=</span><span class="n">DAG_ID</span><span class="p">,</span>
     <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2020</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
@@ -676,7 +705,9 @@
     <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
     <span class="c1"># [START ydb_operator_howto_guide_create_pet_table]</span>
-<div class="viewcode-block" id="create_pet_table"><a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.create_pet_table">[docs]</a>    <span class="n">create_pet_table</span> <span class="o">=</span> <span class="n">YDBExecuteQueryOperator</span><span class="p">(</span>
+<div class="viewcode-block" id="create_pet_table">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.create_pet_table">[docs]</a>
+    <span class="n">create_pet_table</span> <span class="o">=</span> <span class="n">YDBExecuteQueryOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;create_pet_table&quot;</span><span class="p">,</span>
         <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">            CREATE TABLE pet (</span>
@@ -690,6 +721,7 @@
 <span class="s2">          &quot;&quot;&quot;</span><span class="p">,</span>
         <span class="n">is_ddl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># must be specified for DDL queries</span>
     <span class="p">)</span></div>
+
 
     <span class="c1"># [END ydb_operator_howto_guide_create_pet_table]</span>
     <span class="c1"># [START ydb_operator_howto_guide_populate_pet_table]</span>
@@ -707,11 +739,18 @@
     <span class="c1"># [START ydb_operator_howto_guide_get_all_pets]</span>
     <span class="n">get_all_pets</span> <span class="o">=</span> <span class="n">YDBExecuteQueryOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;get_all_pets&quot;</span><span class="p">,</span> <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;SELECT * FROM pet;&quot;</span><span class="p">)</span>
     <span class="c1"># [END ydb_operator_howto_guide_get_all_pets]</span>
+    <span class="n">transform_dates</span> <span class="o">=</span> <span class="n">PythonOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;transform_dates&quot;</span><span class="p">,</span>
+        <span class="n">python_callable</span><span class="o">=</span><span class="n">transform_dates</span><span class="p">,</span>
+        <span class="n">op_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="s2">&quot;{{params.begin_date}}&quot;</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="s2">&quot;{{params.end_date}}&quot;</span><span class="p">},</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-12-31&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
     <span class="c1"># [START ydb_operator_howto_guide_get_birth_date]</span>
     <span class="n">get_birth_date</span> <span class="o">=</span> <span class="n">YDBExecuteQueryOperator</span><span class="p">(</span>
         <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;get_birth_date&quot;</span><span class="p">,</span>
-        <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;SELECT * FROM pet WHERE birth_date BETWEEN &#39;{{params.begin_date}}&#39; AND &#39;{{params.end_date}}&#39;&quot;</span><span class="p">,</span>
-        <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-12-31&quot;</span><span class="p">},</span>
+        <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        SELECT * FROM pet WHERE birth_date BETWEEN &#39;{{ ti.xcom_pull(task_ids=&quot;transform_dates&quot;)[&quot;begin_date&quot;] }}&#39; AND &#39;{{ ti.xcom_pull(task_ids=&quot;transform_dates&quot;)[&quot;end_date&quot;] }}&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># [END ydb_operator_howto_guide_get_birth_date]</span>
 
@@ -720,20 +759,24 @@
         <span class="o">&gt;&gt;</span> <span class="n">populate_pet_table</span>
         <span class="o">&gt;&gt;</span> <span class="n">populate_pet_table_via_bulk_upsert</span><span class="p">()</span>
         <span class="o">&gt;&gt;</span> <span class="n">get_all_pets</span>
+        <span class="o">&gt;&gt;</span> <span class="n">transform_dates</span>
         <span class="o">&gt;&gt;</span> <span class="n">get_birth_date</span>
     <span class="p">)</span>
     <span class="c1"># [END ydb_operator_howto_guide]</span>
 
-    <span class="kn">from</span> <span class="nn">tests_common.test_utils.watcher</span> <span class="kn">import</span> <span class="n">watcher</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tests_common.test_utils.watcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">watcher</span>
 
     <span class="c1"># This test needs watcher in order to properly mark success/failure</span>
     <span class="c1"># when &quot;tearDown&quot; task with trigger rule is part of the DAG</span>
     <span class="nb">list</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">watcher</span><span class="p">()</span>
 
-<span class="kn">from</span> <span class="nn">tests_common.test_utils.system_tests</span> <span class="kn">import</span> <span class="n">get_test_run</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tests_common.test_utils.system_tests</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_test_run</span>  <span class="c1"># noqa: E402</span>
 
 <span class="c1"># Needed to run the example DAG with pytest (see: tests/system/README.md#run_via_pytest)</span>
-<div class="viewcode-block" id="test_run"><a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.test_run">[docs]</a><span class="n">test_run</span> <span class="o">=</span> <span class="n">get_test_run</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span></div>
+<div class="viewcode-block" id="test_run">
+<a class="viewcode-back" href="../../../../_api/tests/system/ydb/example_ydb/index.html#tests.system.ydb.example_ydb.test_run">[docs]</a>
+<span class="n">test_run</span> <span class="o">=</span> <span class="n">get_test_run</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span></div>
+
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>
@@ -942,18 +985,15 @@
 </footer>
     <script type="text/javascript" src="../../../../_static/_gen/js/docs.js"></script>
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
-        <script src="../../../../_static/clipboard.min.js"></script>
-        <script src="../../../../_static/copybutton.js"></script>
-        <script src="../../../../_static/js/globaltoc.js"></script>
-        <script src="../../../../_static/design-tabs.js"></script>
+    <script src="/external/js/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="/external/js/cdnjs.cloudflare.com-1.14.3-popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="/external/js/stackpath.bootstrapcdn.com-4.1.3-bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="../../../../_static/documentation_options.js?v=20623aea"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+        <script src="../../../../_static/js/globaltoc.js?v=32f50df6"></script>
+        <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
 </body>
 </html>

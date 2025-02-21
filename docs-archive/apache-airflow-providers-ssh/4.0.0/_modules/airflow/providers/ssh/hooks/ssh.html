@@ -11,14 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>airflow.providers.ssh.hooks.ssh &mdash; apache-airflow-providers-ssh Documentation</title>
     <link rel="stylesheet" href="../../../../../_static/_gen/css/main.min.css" type="text/css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main-custom.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css" />
-            <link rel="shortcut icon" href="../../../../../_static/pin_32.png"/>
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main.min.css?v=016086f5" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=101b2490" />
             <link rel="index" title="Index" href="../../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../../search.html" />
 
@@ -621,31 +620,35 @@
 <span class="c1"># under the License.</span>
 <span class="sd">&quot;&quot;&quot;Hook for SSH connections.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">base64</span> <span class="kn">import</span> <span class="n">decodebytes</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Sequence</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
-<span class="kn">from</span> <span class="nn">select</span> <span class="kn">import</span> <span class="n">select</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">base64</span><span class="w"> </span><span class="kn">import</span> <span class="n">decodebytes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">select</span><span class="w"> </span><span class="kn">import</span> <span class="n">select</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">paramiko</span>
-<span class="kn">from</span> <span class="nn">paramiko.config</span> <span class="kn">import</span> <span class="n">SSH_PORT</span>
-<span class="kn">from</span> <span class="nn">sshtunnel</span> <span class="kn">import</span> <span class="n">SSHTunnelForwarder</span>
-<span class="kn">from</span> <span class="nn">tenacity</span> <span class="kn">import</span> <span class="n">Retrying</span><span class="p">,</span> <span class="n">stop_after_attempt</span><span class="p">,</span> <span class="n">wait_fixed</span><span class="p">,</span> <span class="n">wait_random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">paramiko</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">paramiko.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">SSH_PORT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sshtunnel</span><span class="w"> </span><span class="kn">import</span> <span class="n">SSHTunnelForwarder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tenacity</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retrying</span><span class="p">,</span> <span class="n">stop_after_attempt</span><span class="p">,</span> <span class="n">wait_fixed</span><span class="p">,</span> <span class="n">wait_random</span>
 
-<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.platform</span> <span class="kn">import</span> <span class="n">getuser</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.types</span> <span class="kn">import</span> <span class="n">NOTSET</span><span class="p">,</span> <span class="n">ArgNotSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.hooks.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseHook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.utils.platform</span><span class="w"> </span><span class="kn">import</span> <span class="n">getuser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">NOTSET</span><span class="p">,</span> <span class="n">ArgNotSet</span>
 
-<div class="viewcode-block" id="TIMEOUT_DEFAULT"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.TIMEOUT_DEFAULT">[docs]</a><span class="n">TIMEOUT_DEFAULT</span> <span class="o">=</span> <span class="mi">10</span></div>
-<div class="viewcode-block" id="CMD_TIMEOUT"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.CMD_TIMEOUT">[docs]</a><span class="n">CMD_TIMEOUT</span> <span class="o">=</span> <span class="mi">10</span></div>
+<div class="viewcode-block" id="CMD_TIMEOUT">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.CMD_TIMEOUT">[docs]</a>
+<span class="n">CMD_TIMEOUT</span> <span class="o">=</span> <span class="mi">10</span></div>
 
 
-<div class="viewcode-block" id="SSHHook"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook">[docs]</a><span class="k">class</span> <span class="nc">SSHHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SSHHook">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SSHHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute remote commands with Paramiko.</span>
 
@@ -693,13 +696,27 @@
         <span class="s2">&quot;ed25519&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Ed25519Key</span><span class="p">,</span>
     <span class="p">}</span>
 
-<div class="viewcode-block" id="SSHHook.conn_name_attr"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.conn_name_attr">[docs]</a>    <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s2">&quot;ssh_conn_id&quot;</span></div>
-<div class="viewcode-block" id="SSHHook.default_conn_name"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.default_conn_name">[docs]</a>    <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s2">&quot;ssh_default&quot;</span></div>
-<div class="viewcode-block" id="SSHHook.conn_type"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.conn_type">[docs]</a>    <span class="n">conn_type</span> <span class="o">=</span> <span class="s2">&quot;ssh&quot;</span></div>
-<div class="viewcode-block" id="SSHHook.hook_name"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.hook_name">[docs]</a>    <span class="n">hook_name</span> <span class="o">=</span> <span class="s2">&quot;SSH&quot;</span></div>
+<div class="viewcode-block" id="SSHHook.conn_name_attr">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.conn_name_attr">[docs]</a>
+    <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s2">&quot;ssh_conn_id&quot;</span></div>
+
+<div class="viewcode-block" id="SSHHook.default_conn_name">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.default_conn_name">[docs]</a>
+    <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s2">&quot;ssh_default&quot;</span></div>
+
+<div class="viewcode-block" id="SSHHook.conn_type">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.conn_type">[docs]</a>
+    <span class="n">conn_type</span> <span class="o">=</span> <span class="s2">&quot;ssh&quot;</span></div>
+
+<div class="viewcode-block" id="SSHHook.hook_name">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.hook_name">[docs]</a>
+    <span class="n">hook_name</span> <span class="o">=</span> <span class="s2">&quot;SSH&quot;</span></div>
+
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="SSHHook.get_ui_field_behaviour"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.get_ui_field_behaviour">[docs]</a>    <span class="k">def</span> <span class="nf">get_ui_field_behaviour</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SSHHook.get_ui_field_behaviour">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.get_ui_field_behaviour">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ui_field_behaviour</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return custom UI field behaviour for SSH connection.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;hidden_fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;schema&quot;</span><span class="p">],</span>
@@ -708,7 +725,8 @@
             <span class="p">},</span>
         <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">ssh_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remote_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -717,7 +735,7 @@
         <span class="n">key_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conn_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">cmd_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
+        <span class="n">cmd_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">keepalive_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
         <span class="n">banner_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30.0</span><span class="p">,</span>
         <span class="n">disabled_algorithms</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -726,31 +744,94 @@
         <span class="n">host_proxy_cmd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="o">=</span> <span class="n">ssh_conn_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="n">remote_host</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">key_file</span> <span class="o">=</span> <span class="n">key_file</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pkey</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conn_timeout</span> <span class="o">=</span> <span class="n">conn_timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span> <span class="o">=</span> <span class="n">cmd_timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keepalive_interval</span> <span class="o">=</span> <span class="n">keepalive_interval</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">banner_timeout</span> <span class="o">=</span> <span class="n">banner_timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">disabled_algorithms</span> <span class="o">=</span> <span class="n">disabled_algorithms</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ciphers</span> <span class="o">=</span> <span class="n">ciphers</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">host_proxy_cmd</span> <span class="o">=</span> <span class="n">host_proxy_cmd</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">auth_timeout</span> <span class="o">=</span> <span class="n">auth_timeout</span>
+<div class="viewcode-block" id="SSHHook.ssh_conn_id">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.ssh_conn_id">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="o">=</span> <span class="n">ssh_conn_id</span></div>
+
+<div class="viewcode-block" id="SSHHook.remote_host">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.remote_host">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="n">remote_host</span></div>
+
+<div class="viewcode-block" id="SSHHook.username">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.username">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span></div>
+
+<div class="viewcode-block" id="SSHHook.password">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.password">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span></div>
+
+<div class="viewcode-block" id="SSHHook.key_file">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.key_file">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_file</span> <span class="o">=</span> <span class="n">key_file</span></div>
+
+<div class="viewcode-block" id="SSHHook.pkey">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.pkey">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pkey</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SSHHook.port">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.port">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span></div>
+
+<div class="viewcode-block" id="SSHHook.conn_timeout">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.conn_timeout">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn_timeout</span> <span class="o">=</span> <span class="n">conn_timeout</span></div>
+
+<div class="viewcode-block" id="SSHHook.cmd_timeout">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.cmd_timeout">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span> <span class="o">=</span> <span class="n">cmd_timeout</span></div>
+
+<div class="viewcode-block" id="SSHHook.keepalive_interval">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.keepalive_interval">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keepalive_interval</span> <span class="o">=</span> <span class="n">keepalive_interval</span></div>
+
+<div class="viewcode-block" id="SSHHook.banner_timeout">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.banner_timeout">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">banner_timeout</span> <span class="o">=</span> <span class="n">banner_timeout</span></div>
+
+<div class="viewcode-block" id="SSHHook.disabled_algorithms">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.disabled_algorithms">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled_algorithms</span> <span class="o">=</span> <span class="n">disabled_algorithms</span></div>
+
+<div class="viewcode-block" id="SSHHook.ciphers">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.ciphers">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ciphers</span> <span class="o">=</span> <span class="n">ciphers</span></div>
+
+<div class="viewcode-block" id="SSHHook.host_proxy_cmd">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.host_proxy_cmd">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host_proxy_cmd</span> <span class="o">=</span> <span class="n">host_proxy_cmd</span></div>
+
+<div class="viewcode-block" id="SSHHook.auth_timeout">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.auth_timeout">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_timeout</span> <span class="o">=</span> <span class="n">auth_timeout</span></div>
+
 
         <span class="c1"># Default values, overridable from Connection</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">compress</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">no_host_key_check</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">allow_host_key_change</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">host_key</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">look_for_keys</span> <span class="o">=</span> <span class="kc">True</span>
+<div class="viewcode-block" id="SSHHook.compress">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.compress">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compress</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="SSHHook.no_host_key_check">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.no_host_key_check">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_host_key_check</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="SSHHook.allow_host_key_change">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.allow_host_key_change">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_host_key_change</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="SSHHook.host_key">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.host_key">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host_key</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SSHHook.look_for_keys">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.look_for_keys">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">look_for_keys</span> <span class="o">=</span> <span class="kc">True</span></div>
+
 
         <span class="c1"># Placeholder for future cached connection</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<div class="viewcode-block" id="SSHHook.client">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.client">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
 
         <span class="c1"># Use connection to override defaults</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_conn_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -779,7 +860,7 @@
 
                 <span class="k">if</span> <span class="s2">&quot;cmd_timeout&quot;</span> <span class="ow">in</span> <span class="n">extra_options</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span> <span class="ow">is</span> <span class="n">NOTSET</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">extra_options</span><span class="p">[</span><span class="s2">&quot;cmd_timeout&quot;</span><span class="p">]:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">extra_options</span><span class="p">[</span><span class="s2">&quot;cmd_timeout&quot;</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">extra_options</span><span class="p">[</span><span class="s2">&quot;cmd_timeout&quot;</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -861,11 +942,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="ow">or</span> <span class="n">SSH_PORT</span>
 
     <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="SSHHook.host_proxy"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.host_proxy">[docs]</a>    <span class="k">def</span> <span class="nf">host_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">ProxyCommand</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SSHHook.host_proxy">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.host_proxy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">host_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">ProxyCommand</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_proxy_cmd</span>
         <span class="k">return</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">ProxyCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="k">if</span> <span class="n">cmd</span> <span class="k">else</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="SSHHook.get_conn"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
+
+<div class="viewcode-block" id="SSHHook.get_conn">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.get_conn">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Establish an SSH connection to the remote host.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span>
             <span class="n">transport</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_transport</span><span class="p">()</span>
@@ -929,7 +1015,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled_algorithms</span><span class="p">:</span>
             <span class="n">connect_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">disabled_algorithms</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">disabled_algorithms</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">log_before_sleep</span><span class="p">(</span><span class="n">retry_state</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">log_before_sleep</span><span class="p">(</span><span class="n">retry_state</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;Failed to connect. Sleeping before retry attempt </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">retry_state</span><span class="o">.</span><span class="n">attempt_number</span>
             <span class="p">)</span>
@@ -956,7 +1042,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">client</span>
         <span class="k">return</span> <span class="n">client</span></div>
 
-<div class="viewcode-block" id="SSHHook.get_tunnel"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.get_tunnel">[docs]</a>    <span class="k">def</span> <span class="nf">get_tunnel</span><span class="p">(</span>
+
+<div class="viewcode-block" id="SSHHook.get_tunnel">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.get_tunnel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tunnel</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">remote_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">remote_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">local_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SSHTunnelForwarder</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -999,7 +1088,8 @@
 
         <span class="k">return</span> <span class="n">client</span></div>
 
-    <span class="k">def</span> <span class="nf">_pkey_from_private_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">private_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">passphrase</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">PKey</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pkey_from_private_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">private_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">passphrase</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">PKey</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an appropriate Paramiko key for a given private key.</span>
 
@@ -1025,17 +1115,19 @@
             <span class="s2">&quot;key formats: RSA, DSS, ECDSA, or Ed25519&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="SSHHook.exec_ssh_client_command"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.exec_ssh_client_command">[docs]</a>    <span class="k">def</span> <span class="nf">exec_ssh_client_command</span><span class="p">(</span>
+<div class="viewcode-block" id="SSHHook.exec_ssh_client_command">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.exec_ssh_client_command">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exec_ssh_client_command</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">ssh_client</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">,</span>
         <span class="n">command</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">get_pty</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">environment</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running command: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
 
-        <span class="n">cmd_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+        <span class="n">cmd_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="n">ArgNotSet</span><span class="p">):</span>
             <span class="n">cmd_timeout</span> <span class="o">=</span> <span class="n">timeout</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd_timeout</span><span class="p">,</span> <span class="n">ArgNotSet</span><span class="p">):</span>
@@ -1110,14 +1202,19 @@
 
         <span class="k">return</span> <span class="n">exit_status</span><span class="p">,</span> <span class="n">agg_stdout</span><span class="p">,</span> <span class="n">agg_stderr</span></div>
 
-<div class="viewcode-block" id="SSHHook.test_connection"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.test_connection">[docs]</a>    <span class="k">def</span> <span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+
+<div class="viewcode-block" id="SSHHook.test_connection">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ssh/hooks/ssh/index.html#airflow.providers.ssh.hooks.ssh.SSHHook.test_connection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Test the ssh connection by execute remote bash commands.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
                 <span class="n">conn</span><span class="o">.</span><span class="n">exec_command</span><span class="p">(</span><span class="s2">&quot;pwd&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Connection successfully tested&quot;</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>
@@ -1326,18 +1423,15 @@
 </footer>
     <script type="text/javascript" src="../../../../../_static/_gen/js/docs.js"></script>
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
-        <script src="../../../../../_static/clipboard.min.js"></script>
-        <script src="../../../../../_static/copybutton.js"></script>
-        <script src="../../../../../_static/js/globaltoc.js"></script>
-        <script src="../../../../../_static/design-tabs.js"></script>
+    <script src="/external/js/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="/external/js/cdnjs.cloudflare.com-1.14.3-popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="/external/js/stackpath.bootstrapcdn.com-4.1.3-bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="../../../../../_static/documentation_options.js?v=3304f9e4"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+        <script src="../../../../../_static/js/globaltoc.js?v=32f50df6"></script>
+        <script src="../../../../../_static/design-tabs.js?v=f930bc37"></script>
 </body>
 </html>

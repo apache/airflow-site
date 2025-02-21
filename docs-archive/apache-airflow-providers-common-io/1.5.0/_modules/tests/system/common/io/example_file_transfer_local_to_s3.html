@@ -11,14 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>tests.system.common.io.example_file_transfer_local_to_s3 &mdash; apache-airflow-providers-common-io Documentation</title>
     <link rel="stylesheet" href="../../../../../_static/_gen/css/main.min.css" type="text/css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main-custom.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css" />
-            <link rel="shortcut icon" href="../../../../../_static/pin_32.png"/>
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main.min.css?v=016086f5" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=101b2490" />
             <link rel="index" title="Index" href="../../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../../search.html" />
 
@@ -351,7 +350,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-common-io/1.5.0/providers/tests/system/common/io">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-common-io/1.5.0/providers/common/io/tests/system/common/io">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-common-io/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -505,7 +504,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-common-io/1.5.0/providers/tests/system/common/io">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-common-io/1.5.0/providers/common/io/tests/system/common/io">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-common-io/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -632,34 +631,57 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast</span>
 
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">airflow.io.path</span> <span class="kn">import</span> <span class="n">ObjectStoragePath</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.common.io.operators.file_transfer</span> <span class="kn">import</span> <span class="n">FileTransferOperator</span>
-<span class="kn">from</span> <span class="nn">airflow.utils.trigger_rule</span> <span class="kn">import</span> <span class="n">TriggerRule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.io.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectStoragePath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.common.io.operators.file_transfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileTransferOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.utils.trigger_rule</span><span class="w"> </span><span class="kn">import</span> <span class="n">TriggerRule</span>
 
-<div class="viewcode-block" id="ENV_ID"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.ENV_ID">[docs]</a><span class="n">ENV_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_ENV_ID&quot;</span><span class="p">)</span></div>
-<div class="viewcode-block" id="DAG_ID"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.DAG_ID">[docs]</a><span class="n">DAG_ID</span> <span class="o">=</span> <span class="s2">&quot;example_file_transfer_local_to_s3&quot;</span></div>
+<div class="viewcode-block" id="ENV_ID">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.ENV_ID">[docs]</a>
+<span class="n">ENV_ID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SYSTEM_TESTS_ENV_ID&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SAMPLE_TEXT"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.SAMPLE_TEXT">[docs]</a><span class="n">SAMPLE_TEXT</span> <span class="o">=</span> <span class="s2">&quot;This is some sample text.&quot;</span></div>
+<div class="viewcode-block" id="DAG_ID">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.DAG_ID">[docs]</a>
+<span class="n">DAG_ID</span> <span class="o">=</span> <span class="s2">&quot;example_file_transfer_local_to_s3&quot;</span></div>
 
-<div class="viewcode-block" id="TEMP_FILE_PATH"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.TEMP_FILE_PATH">[docs]</a><span class="n">TEMP_FILE_PATH</span> <span class="o">=</span> <span class="n">ObjectStoragePath</span><span class="p">(</span><span class="s2">&quot;file:///tmp&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AWS_BUCKET_NAME"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.AWS_BUCKET_NAME">[docs]</a><span class="n">AWS_BUCKET_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bucket-aws-</span><span class="si">{</span><span class="n">DAG_ID</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">ENV_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span></div>
-<div class="viewcode-block" id="AWS_BUCKET"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.AWS_BUCKET">[docs]</a><span class="n">AWS_BUCKET</span> <span class="o">=</span> <span class="n">ObjectStoragePath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">AWS_BUCKET_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="SAMPLE_TEXT">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.SAMPLE_TEXT">[docs]</a>
+<span class="n">SAMPLE_TEXT</span> <span class="o">=</span> <span class="s2">&quot;This is some sample text.&quot;</span></div>
 
-<div class="viewcode-block" id="AWS_FILE_PATH"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.AWS_FILE_PATH">[docs]</a><span class="n">AWS_FILE_PATH</span> <span class="o">=</span> <span class="n">AWS_BUCKET</span></div>
+
+<div class="viewcode-block" id="TEMP_FILE_PATH">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.TEMP_FILE_PATH">[docs]</a>
+<span class="n">TEMP_FILE_PATH</span> <span class="o">=</span> <span class="n">ObjectStoragePath</span><span class="p">(</span><span class="s2">&quot;file:///tmp&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AWS_BUCKET_NAME">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.AWS_BUCKET_NAME">[docs]</a>
+<span class="n">AWS_BUCKET_NAME</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bucket-aws-</span><span class="si">{</span><span class="n">DAG_ID</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">ENV_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AWS_BUCKET">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.AWS_BUCKET">[docs]</a>
+<span class="n">AWS_BUCKET</span> <span class="o">=</span> <span class="n">ObjectStoragePath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">AWS_BUCKET_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AWS_FILE_PATH">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.AWS_FILE_PATH">[docs]</a>
+<span class="n">AWS_FILE_PATH</span> <span class="o">=</span> <span class="n">AWS_BUCKET</span></div>
+
 
 
 <span class="nd">@task</span>
-<div class="viewcode-block" id="create_temp_file"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.create_temp_file">[docs]</a><span class="k">def</span> <span class="nf">create_temp_file</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ObjectStoragePath</span><span class="p">:</span>
+<div class="viewcode-block" id="create_temp_file">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.create_temp_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_temp_file</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ObjectStoragePath</span><span class="p">:</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">ObjectStoragePath</span><span class="p">(</span><span class="n">TEMP_FILE_PATH</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()))</span>
 
     <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
@@ -668,14 +690,21 @@
     <span class="k">return</span> <span class="n">path</span></div>
 
 
+
 <span class="nd">@task</span><span class="p">(</span><span class="n">trigger_rule</span><span class="o">=</span><span class="n">TriggerRule</span><span class="o">.</span><span class="n">ALL_DONE</span><span class="p">)</span>
-<div class="viewcode-block" id="delete_temp_file"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.delete_temp_file">[docs]</a><span class="k">def</span> <span class="nf">delete_temp_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">ObjectStoragePath</span><span class="p">):</span>
+<div class="viewcode-block" id="delete_temp_file">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.delete_temp_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_temp_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">ObjectStoragePath</span><span class="p">):</span>
     <span class="n">path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span></div>
 
 
+
 <span class="nd">@task</span>
-<div class="viewcode-block" id="remove_bucket"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.remove_bucket">[docs]</a><span class="k">def</span> <span class="nf">remove_bucket</span><span class="p">():</span>
+<div class="viewcode-block" id="remove_bucket">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.remove_bucket">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_bucket</span><span class="p">():</span>
     <span class="n">AWS_BUCKET</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
 
 
 <span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
@@ -685,7 +714,10 @@
     <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;example&quot;</span><span class="p">],</span>
     <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
-<div class="viewcode-block" id="temp_file"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.temp_file">[docs]</a>    <span class="n">temp_file</span> <span class="o">=</span> <span class="n">create_temp_file</span><span class="p">()</span></div>
+<div class="viewcode-block" id="temp_file">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.temp_file">[docs]</a>
+    <span class="n">temp_file</span> <span class="o">=</span> <span class="n">create_temp_file</span><span class="p">()</span></div>
+
     <span class="n">temp_file_path</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">ObjectStoragePath</span><span class="p">,</span> <span class="n">temp_file</span><span class="p">)</span>
 
     <span class="c1"># [START howto_transfer_local_to_s3]</span>
@@ -694,15 +726,18 @@
 
     <span class="n">temp_file</span> <span class="o">&gt;&gt;</span> <span class="n">transfer</span> <span class="o">&gt;&gt;</span> <span class="n">remove_bucket</span><span class="p">()</span> <span class="o">&gt;&gt;</span> <span class="n">delete_temp_file</span><span class="p">(</span><span class="n">temp_file_path</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">tests_common.test_utils.watcher</span> <span class="kn">import</span> <span class="n">watcher</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tests_common.test_utils.watcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">watcher</span>
 
     <span class="nb">list</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">watcher</span><span class="p">()</span>
 
 
-<span class="kn">from</span> <span class="nn">tests_common.test_utils.system_tests</span> <span class="kn">import</span> <span class="n">get_test_run</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tests_common.test_utils.system_tests</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_test_run</span>  <span class="c1"># noqa: E402</span>
 
 <span class="c1"># Needed to run the example DAG with pytest (see: tests/system/README.md#run_via_pytest)</span>
-<div class="viewcode-block" id="test_run"><a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.test_run">[docs]</a><span class="n">test_run</span> <span class="o">=</span> <span class="n">get_test_run</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span></div>
+<div class="viewcode-block" id="test_run">
+<a class="viewcode-back" href="../../../../../_api/tests/system/common/io/example_file_transfer_local_to_s3/index.html#tests.system.common.io.example_file_transfer_local_to_s3.test_run">[docs]</a>
+<span class="n">test_run</span> <span class="o">=</span> <span class="n">get_test_run</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span></div>
+
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>
@@ -911,18 +946,15 @@
 </footer>
     <script type="text/javascript" src="../../../../../_static/_gen/js/docs.js"></script>
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
-        <script src="../../../../../_static/clipboard.min.js"></script>
-        <script src="../../../../../_static/copybutton.js"></script>
-        <script src="../../../../../_static/js/globaltoc.js"></script>
-        <script src="../../../../../_static/design-tabs.js"></script>
+    <script src="/external/js/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="/external/js/cdnjs.cloudflare.com-1.14.3-popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="/external/js/stackpath.bootstrapcdn.com-4.1.3-bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="../../../../../_static/documentation_options.js?v=e0a75244"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+        <script src="../../../../../_static/js/globaltoc.js?v=32f50df6"></script>
+        <script src="../../../../../_static/design-tabs.js?v=f930bc37"></script>
 </body>
 </html>
