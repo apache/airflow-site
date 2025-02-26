@@ -11,14 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>airflow.providers.ydb.hooks.ydb &mdash; apache-airflow-providers-ydb Documentation</title>
     <link rel="stylesheet" href="../../../../../_static/_gen/css/main.min.css" type="text/css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main-custom.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
-            <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css" />
-            <link rel="shortcut icon" href="../../../../../_static/pin_32.png"/>
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main.min.css?v=016086f5" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+            <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=101b2490" />
             <link rel="index" title="Index" href="../../../../../genindex.html" />
             <link rel="search" title="Search" href="../../../../../search.html" />
 
@@ -349,7 +348,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/tests/system/ydb">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/ydb/tests/system/ydb">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-ydb/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -501,7 +500,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Resources</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/tests/system/ydb">Example DAGs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/apache/airflow/tree/providers-ydb/2.1.0/providers/ydb/tests/system/ydb">Example DAGs</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/apache-airflow-providers-ydb/">PyPI Repository</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installing-providers-from-sources.html">Installing from sources</a></li>
 </ul>
@@ -630,36 +629,49 @@
 <span class="c1"># KIND, either express or implied.  See the License for the</span>
 <span class="c1"># specific language governing permissions and limitations</span>
 <span class="c1"># under the License.</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">ydb</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.engine</span> <span class="kn">import</span> <span class="n">URL</span>
-<span class="kn">from</span> <span class="nn">ydb_dbapi</span> <span class="kn">import</span> <span class="n">Connection</span> <span class="k">as</span> <span class="n">DbApiConnection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">URL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ydb_dbapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Connection</span> <span class="k">as</span> <span class="n">DbApiConnection</span>
 
-<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.common.sql.hooks.sql</span> <span class="kn">import</span> <span class="n">DbApiHook</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.ydb.utils.credentials</span> <span class="kn">import</span> <span class="n">get_credentials_from_connection</span>
-<span class="kn">from</span> <span class="nn">airflow.providers.ydb.utils.defaults</span> <span class="kn">import</span> <span class="n">CONN_NAME_ATTR</span><span class="p">,</span> <span class="n">CONN_TYPE</span><span class="p">,</span> <span class="n">DEFAULT_CONN_NAME</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ydb</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.common.sql.hooks.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">DbApiHook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.ydb.utils.credentials</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_credentials_from_connection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.ydb.utils.defaults</span><span class="w"> </span><span class="kn">import</span> <span class="n">CONN_NAME_ATTR</span><span class="p">,</span> <span class="n">CONN_TYPE</span><span class="p">,</span> <span class="n">DEFAULT_CONN_NAME</span>
 
-<div class="viewcode-block" id="DEFAULT_YDB_GRPCS_PORT"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.DEFAULT_YDB_GRPCS_PORT">[docs]</a><span class="n">DEFAULT_YDB_GRPCS_PORT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2135</span></div>
+<div class="viewcode-block" id="DEFAULT_YDB_GRPCS_PORT">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.DEFAULT_YDB_GRPCS_PORT">[docs]</a>
+<span class="n">DEFAULT_YDB_GRPCS_PORT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2135</span></div>
+
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ydb_dbapi</span> <span class="kn">import</span> <span class="n">Cursor</span> <span class="k">as</span> <span class="n">DbApiCursor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ydb_dbapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cursor</span> <span class="k">as</span> <span class="n">DbApiCursor</span>
 
-    <span class="kn">from</span> <span class="nn">airflow.models.connection</span> <span class="kn">import</span> <span class="n">Connection</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.models.connection</span><span class="w"> </span><span class="kn">import</span> <span class="n">Connection</span>
 
 
-<div class="viewcode-block" id="YDBCursor"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor">[docs]</a><span class="k">class</span> <span class="nc">YDBCursor</span><span class="p">:</span>
+<div class="viewcode-block" id="YDBCursor">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">YDBCursor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;YDB cursor wrapper.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegatee</span><span class="p">:</span> <span class="n">DbApiCursor</span><span class="p">,</span> <span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="p">:</span> <span class="n">DbApiCursor</span> <span class="o">=</span> <span class="n">delegatee</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">is_ddl</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegatee</span><span class="p">:</span> <span class="n">DbApiCursor</span><span class="p">,</span> <span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<div class="viewcode-block" id="YDBCursor.delegatee">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.delegatee">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="p">:</span> <span class="n">DbApiCursor</span> <span class="o">=</span> <span class="n">delegatee</span></div>
 
-<div class="viewcode-block" id="YDBCursor.execute"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="YDBCursor.is_ddl">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.is_ddl">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">is_ddl</span></div>
+
+
+<div class="viewcode-block" id="YDBCursor.execute">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.execute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;parameters is not supported yet&quot;</span><span class="p">)</span>
 
@@ -668,97 +680,194 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBCursor.executemany"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.executemany">[docs]</a>    <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seq_of_parameters</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
+
+<div class="viewcode-block" id="YDBCursor.executemany">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.executemany">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">executemany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seq_of_parameters</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
         <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">seq_of_parameters</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBCursor.executescript"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.executescript">[docs]</a>    <span class="k">def</span> <span class="nf">executescript</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.executescript">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.executescript">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">executescript</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">script</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBCursor.fetchone"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.fetchone">[docs]</a>    <span class="k">def</span> <span class="nf">fetchone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.fetchone">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.fetchone">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetchone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBCursor.fetchmany"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.fetchmany">[docs]</a>    <span class="k">def</span> <span class="nf">fetchmany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.fetchmany">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.fetchmany">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetchmany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">fetchmany</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBCursor.fetchall"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.fetchall">[docs]</a>    <span class="k">def</span> <span class="nf">fetchall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.fetchall">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.fetchall">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetchall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBCursor.nextset"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.nextset">[docs]</a>    <span class="k">def</span> <span class="nf">nextset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.nextset">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.nextset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nextset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">nextset</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBCursor.setinputsizes"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.setinputsizes">[docs]</a>    <span class="k">def</span> <span class="nf">setinputsizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sizes</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.setinputsizes">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.setinputsizes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setinputsizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sizes</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">setinputsizes</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBCursor.setoutputsize"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.setoutputsize">[docs]</a>    <span class="k">def</span> <span class="nf">setoutputsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.setoutputsize">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.setoutputsize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setoutputsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">setoutputsize</span><span class="p">(</span><span class="n">column</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBCursor.__enter__"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.__enter__">[docs]</a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.__enter__">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.__enter__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="YDBCursor.__exit__"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.__exit__">[docs]</a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.__exit__">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.__exit__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBCursor.close"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBCursor.close">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
+
     <span class="nd">@property</span>
-<div class="viewcode-block" id="YDBCursor.rowcount"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.rowcount">[docs]</a>    <span class="k">def</span> <span class="nf">rowcount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="YDBCursor.rowcount">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.rowcount">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rowcount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">rowcount</span></div>
 
+
     <span class="nd">@property</span>
-<div class="viewcode-block" id="YDBCursor.description"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.description">[docs]</a>    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">description</span></div></div>
+<div class="viewcode-block" id="YDBCursor.description">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBCursor.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">description</span></div>
+</div>
 
 
-<div class="viewcode-block" id="YDBConnection"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection">[docs]</a><span class="k">class</span> <span class="nc">YDBConnection</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">YDBConnection</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;YDB connection wrapper.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ydb_session_pool</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span> <span class="o">=</span> <span class="n">is_ddl</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ydb_session_pool</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<div class="viewcode-block" id="YDBConnection.is_ddl">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.is_ddl">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span> <span class="o">=</span> <span class="n">is_ddl</span></div>
+
+<div class="viewcode-block" id="YDBConnection.delegatee">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.delegatee">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="p">:</span> <span class="n">DbApiConnection</span> <span class="o">=</span> <span class="n">DbApiConnection</span><span class="p">(</span>
             <span class="n">database</span><span class="o">=</span><span class="n">database</span><span class="p">,</span>
             <span class="n">ydb_session_pool</span><span class="o">=</span><span class="n">ydb_session_pool</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBConnection.cursor"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.cursor">[docs]</a>    <span class="k">def</span> <span class="nf">cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">YDBCursor</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection.cursor">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.cursor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">YDBCursor</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">YDBCursor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">cursor</span><span class="p">(),</span> <span class="n">is_ddl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBConnection.begin"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection.begin">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.begin">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBConnection.commit"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection.commit">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.commit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBConnection.rollback"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.rollback">[docs]</a>    <span class="k">def</span> <span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection.rollback">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.rollback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBConnection.__enter__"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.__enter__">[docs]</a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBConnection.__enter__">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.__enter__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="YDBConnection.__exit__"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.__exit__">[docs]</a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection.__exit__">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.__exit__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBConnection.close"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBConnection.close">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="YDBConnection.bulk_upsert"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.bulk_upsert">[docs]</a>    <span class="k">def</span> <span class="nf">bulk_upsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">column_types</span><span class="p">:</span> <span class="n">ydb</span><span class="o">.</span><span class="n">BulkUpsertColumns</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">bulk_upsert</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">column_types</span><span class="o">=</span><span class="n">column_types</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="YDBConnection.bulk_upsert">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBConnection.bulk_upsert">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bulk_upsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">column_types</span><span class="p">:</span> <span class="n">ydb</span><span class="o">.</span><span class="n">BulkUpsertColumns</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegatee</span><span class="o">.</span><span class="n">bulk_upsert</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">column_types</span><span class="o">=</span><span class="n">column_types</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="YDBHook"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook">[docs]</a><span class="k">class</span> <span class="nc">YDBHook</span><span class="p">(</span><span class="n">DbApiHook</span><span class="p">):</span>
+
+<div class="viewcode-block" id="YDBHook">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">YDBHook</span><span class="p">(</span><span class="n">DbApiHook</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Interact with YDB.&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="YDBHook.conn_name_attr"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.conn_name_attr">[docs]</a>    <span class="n">conn_name_attr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CONN_NAME_ATTR</span></div>
-<div class="viewcode-block" id="YDBHook.default_conn_name"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.default_conn_name">[docs]</a>    <span class="n">default_conn_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_NAME</span></div>
-<div class="viewcode-block" id="YDBHook.conn_type"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.conn_type">[docs]</a>    <span class="n">conn_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CONN_TYPE</span></div>
-<div class="viewcode-block" id="YDBHook.hook_name"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.hook_name">[docs]</a>    <span class="n">hook_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;YDB&quot;</span></div>
-<div class="viewcode-block" id="YDBHook.supports_autocommit"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.supports_autocommit">[docs]</a>    <span class="n">supports_autocommit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></div>
-<div class="viewcode-block" id="YDBHook.supports_executemany"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.supports_executemany">[docs]</a>    <span class="n">supports_executemany</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></div>
+<div class="viewcode-block" id="YDBHook.conn_name_attr">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.conn_name_attr">[docs]</a>
+    <span class="n">conn_name_attr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CONN_NAME_ATTR</span></div>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="YDBHook.default_conn_name">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.default_conn_name">[docs]</a>
+    <span class="n">default_conn_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_NAME</span></div>
+
+<div class="viewcode-block" id="YDBHook.conn_type">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.conn_type">[docs]</a>
+    <span class="n">conn_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CONN_TYPE</span></div>
+
+<div class="viewcode-block" id="YDBHook.hook_name">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.hook_name">[docs]</a>
+    <span class="n">hook_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;YDB&quot;</span></div>
+
+<div class="viewcode-block" id="YDBHook.supports_autocommit">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.supports_autocommit">[docs]</a>
+    <span class="n">supports_autocommit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="YDBHook.supports_executemany">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.supports_executemany">[docs]</a>
+    <span class="n">supports_executemany</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">is_ddl</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span> <span class="o">=</span> <span class="n">is_ddl</span>
+<div class="viewcode-block" id="YDBHook.is_ddl">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.is_ddl">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span> <span class="o">=</span> <span class="n">is_ddl</span></div>
+
 
         <span class="n">conn</span><span class="p">:</span> <span class="n">Connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span>
         <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">host</span>
@@ -770,7 +879,10 @@
         <span class="n">database</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">connection_extra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">database</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;YDB database must be specified&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">database</span>
+<div class="viewcode-block" id="YDBHook.database">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.database">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">database</span></div>
+
 
         <span class="n">endpoint</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="n">get_credentials_from_connection</span><span class="p">(</span>
@@ -786,14 +898,19 @@
         <span class="n">driver</span> <span class="o">=</span> <span class="n">ydb</span><span class="o">.</span><span class="n">Driver</span><span class="p">(</span><span class="n">driver_config</span><span class="p">)</span>
         <span class="c1"># wait until driver become initialized</span>
         <span class="n">driver</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">fail_fast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ydb_session_pool</span> <span class="o">=</span> <span class="n">ydb</span><span class="o">.</span><span class="n">QuerySessionPool</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<div class="viewcode-block" id="YDBHook.ydb_session_pool">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.ydb_session_pool">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ydb_session_pool</span> <span class="o">=</span> <span class="n">ydb</span><span class="o">.</span><span class="n">QuerySessionPool</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span></div>
+
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="YDBHook.get_connection_form_widgets"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.get_connection_form_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_connection_form_widgets</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="YDBHook.get_connection_form_widgets">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.get_connection_form_widgets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_connection_form_widgets</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return connection widgets to add to YDB connection form.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">flask_appbuilder.fieldwidgets</span> <span class="kn">import</span> <span class="n">BS3PasswordFieldWidget</span><span class="p">,</span> <span class="n">BS3TextFieldWidget</span>
-        <span class="kn">from</span> <span class="nn">flask_babel</span> <span class="kn">import</span> <span class="n">lazy_gettext</span>
-        <span class="kn">from</span> <span class="nn">wtforms</span> <span class="kn">import</span> <span class="n">BooleanField</span><span class="p">,</span> <span class="n">PasswordField</span><span class="p">,</span> <span class="n">StringField</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">flask_appbuilder.fieldwidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BS3PasswordFieldWidget</span><span class="p">,</span> <span class="n">BS3TextFieldWidget</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">flask_babel</span><span class="w"> </span><span class="kn">import</span> <span class="n">lazy_gettext</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">wtforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">BooleanField</span><span class="p">,</span> <span class="n">PasswordField</span><span class="p">,</span> <span class="n">StringField</span>
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
@@ -826,8 +943,11 @@
             <span class="p">),</span>
         <span class="p">}</span></div>
 
+
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="YDBHook.get_ui_field_behaviour"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.get_ui_field_behaviour">[docs]</a>    <span class="k">def</span> <span class="nf">get_ui_field_behaviour</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="YDBHook.get_ui_field_behaviour">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.get_ui_field_behaviour">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ui_field_behaviour</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return custom UI field behaviour for YDB connection.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;hidden_fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;schema&quot;</span><span class="p">,</span> <span class="s2">&quot;extra&quot;</span><span class="p">],</span>
@@ -842,8 +962,11 @@
             <span class="p">},</span>
         <span class="p">}</span></div>
 
+
     <span class="nd">@property</span>
-<div class="viewcode-block" id="YDBHook.sqlalchemy_url"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.sqlalchemy_url">[docs]</a>    <span class="k">def</span> <span class="nf">sqlalchemy_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">URL</span><span class="p">:</span>
+<div class="viewcode-block" id="YDBHook.sqlalchemy_url">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.sqlalchemy_url">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sqlalchemy_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">URL</span><span class="p">:</span>
         <span class="n">conn</span><span class="p">:</span> <span class="n">Connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_conn_id</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">URL</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
             <span class="n">drivername</span><span class="o">=</span><span class="s2">&quot;ydb&quot;</span><span class="p">,</span>
@@ -854,15 +977,21 @@
             <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">},</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="YDBHook.get_conn"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.get_conn">[docs]</a>    <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">YDBConnection</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YDBHook.get_conn">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.get_conn">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">YDBConnection</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Establish a connection to a YDB database.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">YDBConnection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ydb_session_pool</span><span class="p">,</span> <span class="n">is_ddl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_ddl</span><span class="p">)</span></div>
 
+
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_serialize_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">conn</span><span class="p">:</span> <span class="n">YDBConnection</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">conn</span><span class="p">:</span> <span class="n">YDBConnection</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cell</span>
 
-<div class="viewcode-block" id="YDBHook.bulk_upsert"><a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.bulk_upsert">[docs]</a>    <span class="k">def</span> <span class="nf">bulk_upsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">column_types</span><span class="p">:</span> <span class="n">ydb</span><span class="o">.</span><span class="n">BulkUpsertColumns</span><span class="p">):</span>
+<div class="viewcode-block" id="YDBHook.bulk_upsert">
+<a class="viewcode-back" href="../../../../../_api/airflow/providers/ydb/hooks/ydb/index.html#airflow.providers.ydb.hooks.ydb.YDBHook.bulk_upsert">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bulk_upsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">column_types</span><span class="p">:</span> <span class="n">ydb</span><span class="o">.</span><span class="n">BulkUpsertColumns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        BulkUpsert into database. More optimal way to insert rows into db.</span>
 
@@ -872,8 +1001,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span><span class="o">.</span><span class="n">bulk_upsert</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">column_types</span><span class="p">)</span></div>
 
+
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_query_client_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ydb</span><span class="o">.</span><span class="n">QueryClientSettings</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_query_client_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ydb</span><span class="o">.</span><span class="n">QueryClientSettings</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="n">ydb</span><span class="o">.</span><span class="n">QueryClientSettings</span><span class="p">()</span>
             <span class="o">.</span><span class="n">with_native_date_in_result_sets</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -882,6 +1012,7 @@
             <span class="o">.</span><span class="n">with_native_interval_in_result_sets</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="o">.</span><span class="n">with_native_json_in_result_sets</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
         <span class="p">)</span></div>
+
 </pre></div>
 
     <div class="pager" role="navigation" aria-label="related navigation"><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Previous</button><button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" disabled>Next</button>
@@ -1090,18 +1221,15 @@
 </footer>
     <script type="text/javascript" src="../../../../../_static/_gen/js/docs.js"></script>
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
-        <script src="../../../../../_static/jquery.js"></script>
-        <script src="../../../../../_static/underscore.js"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../../_static/doctools.js"></script>
-        <script src="../../../../../_static/sphinx_highlight.js"></script>
-        <script src="../../../../../_static/clipboard.min.js"></script>
-        <script src="../../../../../_static/copybutton.js"></script>
-        <script src="../../../../../_static/js/globaltoc.js"></script>
-        <script src="../../../../../_static/design-tabs.js"></script>
+    <script src="/external/js/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="/external/js/cdnjs.cloudflare.com-1.14.3-popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="/external/js/stackpath.bootstrapcdn.com-4.1.3-bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="../../../../../_static/documentation_options.js?v=20623aea"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+        <script src="../../../../../_static/js/globaltoc.js?v=32f50df6"></script>
+        <script src="../../../../../_static/design-tabs.js?v=f930bc37"></script>
 </body>
 </html>
