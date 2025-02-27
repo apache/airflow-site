@@ -2,6 +2,10 @@
 title: "Airflow Survey 2023"
 linkTitle: "Airflow Survey 2023"
 tags: ["community", "survey", "users"]
+date: "2023-09-21"
+author: "Ankit Chaurasia"
+github: "sunank200"
+linkedin: "sunank200"
 menu:
   main:
     weight: 31
