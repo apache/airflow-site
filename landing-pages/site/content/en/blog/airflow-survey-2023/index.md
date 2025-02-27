@@ -1,10 +1,9 @@
 ---
 title: "Airflow Survey 2023"
-linkTitle: "Airflow Survey 2023"
 tags: ["community", "survey", "users"]
-menu:
-  main:
-    weight: 31
+date: "2023-09-21"
+author: "Michael Robinson"
+github: "merobi-hub"
 ---
 
 ![Demographics](images/Astronomer_Demographics.png "airflow_usage")
