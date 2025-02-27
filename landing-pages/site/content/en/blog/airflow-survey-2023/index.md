@@ -3,6 +3,7 @@ title: "Airflow Survey 2023"
 tags: ["community", "survey", "users"]
 date: "2023-09-21"
 author: "Michael Robinson"
+description: "Airflow 2 has seen rapid adoption, accompanied by continuous community growth. This annual survey helps us understand how people use Airflow and where we can best focus our efforts as we advance."
 github: "merobi-hub"
 ---
 
