@@ -11,8 +11,6 @@ menu:
 &nbsp;
 &nbsp;
 
-**Note:** Follow [@ApacheAirflow](https://twitter.com/ApacheAirflow) on Twitter for the latest news and announcements!
-
 # February 10, 2025
 
 We’ve just released Apache **Airflow 2.10.5**.
