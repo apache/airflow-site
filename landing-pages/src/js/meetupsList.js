@@ -35,86 +35,85 @@ const runMeetups = () => {
   let currentQuery = "";
   const maxItemsOnPage = window.innerWidth < 1920 ? 8 : 10;
 
-  fetch("/meetups.json")
-    .then((response) => response.json())
-    .then((allMeetups) => {
+  const fetchMeetups = () => {
+    fetch("/meetups.json")
+      .then((response) => response.json())
+      .then((allMeetups) => {
+        
+        const setMoreButtonVisibility = (visible) => {
+          moreButton.style.display = visible ? "" : "none";
+        };
 
-      const setMoreButtonVisibility = (visible) => {
-        moreButton.style.display = visible ? "" : "none";
-      };
+        setMoreButtonVisibility(true);
 
-      setMoreButtonVisibility(true);
+        const sortByIndex = (a, b) => a.index - b.index;
 
-      const sortByIndex = (a, b) => {
-        return a.index - b.index;
-      };
+        const createElement = (item) => {
+          const element = templateElement.cloneNode(true);
+          element.querySelector('[data-name="location"]').innerHTML = `${item.city}<br/>${item.country}`;
+          element.querySelector('[data-name="members-count"]').innerText = `${item.members} members`;
+          element.querySelector("a").href = item.url;
+          return element.firstElementChild;
+        };
 
-      const createElement = (item) => {
-        const element = templateElement.cloneNode(true);
-        element.querySelector('[data-name="location"]').innerHTML = `${item.city}<br/>${item.country}`;
-        element.querySelector('[data-name="members-count"]').innerText = `${item.members} members`;
-        element.querySelector("a").href = item.url;
-
-        return element.firstElementChild;
-      };
-
-      const setItems = (items) => {
-        if (items.length === 0) {
-          listItems.innerText = "No items";
-        } else {
-          while (listItems.firstChild) {
-            listItems.removeChild(listItems.firstChild);
+        const setItems = (items) => {
+          if (items.length === 0) {
+            listItems.innerText = "No items";
+          } else {
+            listItems.innerHTML = ""; 
+            items.forEach((item) => {
+              listItems.append(createElement(item));
+            });
           }
-          items.forEach((item) => {
-            const element = createElement(item);
-            listItems.append(element);
-          });
-        }
-      };
-
-      const showItems = (keyword, page) => {
-        const showMoreButtonIfNeeded = (meetups) => {
-          setMoreButtonVisibility(meetups.length > (page * maxItemsOnPage));
         };
 
-        const filterMatchingItems = (meetups) => {
-          if (!keyword) {
-            return meetups;
-          }
-          return meetups.filter((meetup) =>
-            meetup.city.toLowerCase().indexOf(keyword.toLowerCase()) >= 0 ||
-            meetup.country.toLowerCase().indexOf(keyword.toLowerCase()) >= 0 ||
-            (meetup.continent && meetup.continent.toLowerCase().indexOf(keyword.toLowerCase()) >= 0)
-          );
+        const showItems = (keyword, page) => {
+          const showMoreButtonIfNeeded = (meetups) => {
+            setMoreButtonVisibility(meetups.length > page * maxItemsOnPage);
+          };
+
+          const filterMatchingItems = (meetups) => {
+            if (!keyword) return meetups;
+            return meetups.filter((meetup) =>
+              meetup.city.toLowerCase().includes(keyword.toLowerCase()) ||
+              meetup.country.toLowerCase().includes(keyword.toLowerCase()) ||
+              (meetup.continent && meetup.continent.toLowerCase().includes(keyword.toLowerCase()))
+            );
+          };
+
+          const filterVisible = (meetups) => {
+            meetups.sort(sortByIndex);
+            return meetups.slice(0, page * maxItemsOnPage);
+          };
+
+          const matchingItems = filterMatchingItems(allMeetups);
+          const visibleItems = filterVisible(matchingItems);
+          setItems(visibleItems);
+          showMoreButtonIfNeeded(matchingItems);
         };
 
-        const filterVisible = (meetups) => {
-          meetups.sort(sortByIndex);
-          return meetups.slice(0, page * maxItemsOnPage);
+        const setSearchQuery = (keyword) => {
+          currentQuery = keyword;
+          showItems(currentQuery, currentPage);
         };
-        const matchingItems = filterMatchingItems(allMeetups);
-        const visibleItems = filterVisible(matchingItems);
-        setItems(visibleItems);
-        showMoreButtonIfNeeded(matchingItems);
-      };
 
-      const setSearchQuery = (keyword) => {
-        currentQuery = keyword;
-        showItems(currentQuery, currentPage);
-      };
+        searchBox.addEventListener("keyup", () => {
+          currentPage = 1;
+          setSearchQuery(searchBox.value);
+        });
 
-      searchBox.addEventListener("keyup", () => {
-        currentPage = 1;
-        setSearchQuery(searchBox.value);
+        moreButton.addEventListener("click", () => {
+          currentPage += 1;
+          setSearchQuery(searchBox.value);
+        });
+
+        setSearchQuery("");
       });
+  };
 
-      moreButton.addEventListener("click", () => {
-        currentPage = currentPage + 1;
-        setSearchQuery(searchBox.value);
-      });
+  fetchMeetups(); 
 
-      setSearchQuery("");
-    });
+  setInterval(fetchMeetups, 108000000);
 };
 
 runMeetups();
