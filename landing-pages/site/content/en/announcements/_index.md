@@ -11,6 +11,16 @@ menu:
 &nbsp;
 &nbsp;
 
+# April 2, 2025
+
+Airflow PMC welcomes new Airflow Committers:
+
+* **Buğra Öztürk** ([@bugraoz93](https://github.com/bugraoz93))
+* **Kalyan Reddy** ([@rawwar](https://github.com/rawwar))
+* **Rahul Vats** ([@vatsrahul1001](https://github.com/vatsrahul1001))
+* **Shubham Raj** ([@shubhamraj-git](https://github.com/shubhamraj-git))
+* **Zhe You Liu** ([@jason810496](https://github.com/jason810496))
+
 # April 1, 2025
 
 We've just released Apache **Airflow Helm chart 1.16.0**.
