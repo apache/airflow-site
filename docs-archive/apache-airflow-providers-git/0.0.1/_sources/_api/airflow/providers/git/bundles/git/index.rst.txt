@@ -1,0 +1,127 @@
+airflow.providers.git.bundles.git
+=================================
+
+.. py:module:: airflow.providers.git.bundles.git
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.providers.git.bundles.git.log
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.providers.git.bundles.git.GitDagBundle
+
+
+Module Contents
+---------------
+
+.. py:data:: log
+
+.. py:class:: GitDagBundle(*, tracking_ref, subdir = None, git_conn_id = 'git_default', repo_url = None, **kwargs)
+
+   Bases: :py:obj:`airflow.dag_processing.bundles.base.BaseDagBundle`
+
+
+   git DAG bundle - exposes a git repository as a DAG bundle.
+
+   Instead of cloning the repository every time, we clone the repository once into a bare repo from the source
+   and then do a clone for each version from there.
+
+   :param tracking_ref: Branch or tag for this DAG bundle
+   :param subdir: Subdirectory within the repository where the DAGs are stored (Optional)
+   :param git_conn_id: Connection ID for SSH/token based connection to the repository (Optional)
+   :param repo_url: Explicit Git repository URL to override the connection's host. (Optional)
+
+
+   .. py:attribute:: supports_versioning
+      :value: True
+
+
+
+   .. py:attribute:: tracking_ref
+
+
+   .. py:attribute:: subdir
+      :value: None
+
+
+
+   .. py:attribute:: bare_repo_path
+
+
+   .. py:attribute:: git_conn_id
+      :value: 'git_default'
+
+
+
+   .. py:attribute:: repo_url
+      :value: None
+
+
+
+   .. py:method:: initialize()
+
+      Initialize the bundle.
+
+      This method is called by the DAG processor and worker before the bundle is used,
+      and allows for deferring expensive operations until that point in time. This will
+      only be called when Airflow needs the bundle files on disk - some uses only need
+      to call the `view_url` method, which can run without initializing the bundle.
+
+      This method must ultimately be safe to call concurrently from different threads or processes.
+      If it isn't naturally safe, you'll need to make it so with some form of locking.
+      There is a `lock` context manager on this class available for this purpose.
+
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: get_current_version()
+
+      Retrieve a string that represents the version of the DAG bundle.
+
+      Airflow can use this value to retrieve this same bundle version later.
+
+
+
+   .. py:property:: path
+      :type: pathlib.Path
+
+
+      Path for this bundle.
+
+      Airflow will use this path to find/load/execute the DAGs from the bundle.
+      After `initialize` has been called, all dag files in the bundle should be accessible from this path.
+
+
+
+   .. py:method:: refresh()
+
+      Retrieve the latest version of the files in the bundle.
+
+      This method must ultimately be safe to call concurrently from different threads or processes.
+      If it isn't naturally safe, you'll need to make it so with some form of locking.
+      There is a `lock` context manager on this class available for this purpose.
+
+
+
+   .. py:method:: view_url(version = None)
+
+      URL to view the bundle on an external website. This is shown to users in the Airflow UI, allowing them to navigate to this url for more details about that version of the bundle.
+
+      This needs to function without `initialize` being called.
+
+      :param version: Version to view
+      :return: URL to view the bundle
+
+
+

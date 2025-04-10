@@ -1,0 +1,69 @@
+airflow.providers.snowflake.utils.openlineage
+=============================================
+
+.. py:module:: airflow.providers.snowflake.utils.openlineage
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.providers.snowflake.utils.openlineage.log
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   airflow.providers.snowflake.utils.openlineage.fix_account_name
+   airflow.providers.snowflake.utils.openlineage.fix_snowflake_sqlalchemy_uri
+   airflow.providers.snowflake.utils.openlineage.emit_openlineage_events_for_snowflake_queries
+
+
+Module Contents
+---------------
+
+.. py:data:: log
+
+.. py:function:: fix_account_name(name)
+
+   Fix account name to have the following format: <account_id>.<region>.<cloud>.
+
+
+.. py:function:: fix_snowflake_sqlalchemy_uri(uri)
+
+   Fix snowflake sqlalchemy connection URI to OpenLineage structure.
+
+   Snowflake sqlalchemy connection URI has following structure:
+   'snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>'
+   We want account identifier normalized. It can have two forms:
+   - newer, in form of <organization>-<id>. In this case we want to do nothing.
+   - older, composed of <id>-<region>-<cloud> where region and cloud can be
+   optional in some cases. If <cloud> is omitted, it's AWS.
+   If region and cloud are omitted, it's AWS us-west-1
+
+
+.. py:function:: emit_openlineage_events_for_snowflake_queries(query_ids, query_source_namespace, task_instance, hook = None, additional_run_facets = None, additional_job_facets = None)
+
+   Emit OpenLineage events for executed Snowflake queries.
+
+   Metadata retrieval from Snowflake is attempted only if a `SnowflakeHook` is provided.
+   If metadata is available, execution details such as start time, end time, execution status,
+   error messages, and SQL text are included in the events. If no metadata is found, the function
+   defaults to using the Airflow task instance's state and the current timestamp.
+
+   Note that both START and COMPLETE event for each query will be emitted at the same time.
+   If we are able to query Snowflake for query execution metadata, event times
+   will correspond to actual query execution times.
+
+   Args:
+       query_ids: A list of Snowflake query IDs to emit events for.
+       query_source_namespace: The namespace to be included in ExternalQueryRunFacet.
+       task_instance: The Airflow task instance that run these queries.
+       hook: A SnowflakeHook instance used to retrieve query metadata if available.
+       additional_run_facets: Additional run facets to include in OpenLineage events.
+       additional_job_facets: Additional job facets to include in OpenLineage events.
+
+
