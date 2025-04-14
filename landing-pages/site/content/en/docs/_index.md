@@ -81,6 +81,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-common-io/stable/index.html"><code>Common IO</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-common-messaging/stable/index.html"><code>Common Messaging</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-common-sql/stable/index.html"><code>Common SQL</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-databricks/stable/index.html"><code>Databricks</code></a></li>
@@ -104,6 +106,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-facebook/stable/index.html"><code>Facebook</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-ftp/stable/index.html"><code>File Transfer Protocol (FTP)</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-git/stable/index.html"><code>Git</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-github/stable/index.html"><code>GitHub</code></a></li>
 
