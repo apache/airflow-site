@@ -1,0 +1,162 @@
+airflow.providers.amazon.aws.utils.mixins
+=========================================
+
+.. py:module:: airflow.providers.amazon.aws.utils.mixins
+
+.. autoapi-nested-parse::
+
+   This module contains different mixin classes for internal use within the Amazon provider.
+
+   .. warning::
+       Only for internal usage, this module and all classes might be changed, renamed or removed in the future
+       without any further notice.
+
+   :meta: private
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.utils.mixins.AwsHookType
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.utils.mixins.AwsHookParams
+   airflow.providers.amazon.aws.utils.mixins.AwsBaseHookMixin
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   airflow.providers.amazon.aws.utils.mixins.aws_template_fields
+
+
+Module Contents
+---------------
+
+.. py:data:: AwsHookType
+
+.. py:class:: AwsHookParams
+
+   Bases: :py:obj:`NamedTuple`
+
+
+   Default Aws Hook Parameters storage class.
+
+   :meta private:
+
+
+   .. py:attribute:: aws_conn_id
+      :type:  str | None
+
+
+   .. py:attribute:: region_name
+      :type:  str | None
+
+
+   .. py:attribute:: verify
+      :type:  bool | str | None
+
+
+   .. py:attribute:: botocore_config
+      :type:  dict[str, Any] | None
+
+
+   .. py:method:: from_constructor(aws_conn_id, region_name, verify, botocore_config, additional_params)
+      :classmethod:
+
+
+      Resolve generic AWS Hooks parameters in class constructor.
+
+      Examples:
+       .. code-block:: python
+
+          class AwsFooBarOperator(BaseOperator):
+              def __init__(
+                  self,
+                  *,
+                  aws_conn_id: str | None = "aws_default",
+                  region_name: str | None = None,
+                  verify: bool | str | None = None,
+                  botocore_config: dict | None = None,
+                  foo: str = "bar",
+                  **kwargs,
+              ):
+                  params = AwsHookParams.from_constructor(
+                      aws_conn_id, region_name, verify, botocore_config, additional_params=kwargs
+                  )
+                  super().__init__(**kwargs)
+                  self.aws_conn_id = params.aws_conn_id
+                  self.region_name = params.region_name
+                  self.verify = params.verify
+                  self.botocore_config = params.botocore_config
+                  self.foo = foo
+
+
+
+.. py:class:: AwsBaseHookMixin
+
+   Bases: :py:obj:`Generic`\ [\ :py:obj:`AwsHookType`\ ]
+
+
+   Mixin class for AWS Operators, Sensors, etc.
+
+   .. warning::
+       Only for internal usage, this class might be changed, renamed or removed in the future
+       without any further notice.
+
+   :meta private:
+
+
+   .. py:attribute:: aws_hook_class
+      :type:  type[AwsHookType]
+
+
+   .. py:attribute:: aws_conn_id
+      :type:  str | None
+
+
+   .. py:attribute:: region_name
+      :type:  str | None
+
+
+   .. py:attribute:: verify
+      :type:  bool | str | None
+
+
+   .. py:attribute:: botocore_config
+      :type:  dict[str, Any] | None
+
+
+   .. py:method:: validate_attributes()
+
+      Validate class attributes.
+
+
+
+   .. py:property:: hook
+      :type: AwsHookType
+
+
+      Return AWS Provider's hook based on ``aws_hook_class``.
+
+      This method implementation should be taken as a final for
+      thin-wrapped Hooks around boto3.  For thick-wrapped Hooks developer
+      should consider to overwrite ``_hook_parameters`` method instead.
+
+
+
+.. py:function:: aws_template_fields(*template_fields)
+
+   Merge provided template_fields with generic one and return in alphabetical order.
+
+

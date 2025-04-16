@@ -10,7 +10,7 @@
         <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <title>Apache Pinot Hooks &mdash; apache-airflow-providers-apache-pinot Documentation</title>
+        <title>SQLExecuteQueryOperator to connect to Apache Pinot &mdash; apache-airflow-providers-apache-pinot Documentation</title>
     <link rel="stylesheet" href="_static/_gen/css/main.min.css" type="text/css" />
             <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
             <link rel="stylesheet" type="text/css" href="_static/_gen/css/main.min.css?v=016086f5" />
@@ -21,7 +21,7 @@
             <link rel="stylesheet" type="text/css" href="_static/custom.css?v=101b2490" />
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
-            <link rel="next" title="airflow.providers.apache.pinot" href="_api/airflow/providers/apache/pinot/index.html" />
+            <link rel="next" title="Apache Pinot Hooks" href="hooks.html" />
             <link rel="prev" title="Releasing security patches" href="security.html" />
 
     <link rel="canonical" href="https://airflow.apache.org/docs/apache-airflow-providers-apache-pinot/stable/operators.html" />
@@ -339,6 +339,7 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hooks.html">Apache Pinot Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul>
@@ -487,6 +488,7 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hooks.html">Apache Pinot Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul>
@@ -592,7 +594,7 @@
         
             <li class="breadcrumb-item"><a href="index.html" class="icon icon-home"> Home</a></li>
             
-            <li class="breadcrumb-item"><a href="operators.html"> Apache Pinot Hooks</a></li>
+            <li class="breadcrumb-item"><a href="operators.html"> SQLExecuteQueryOperator to connect to Apache Pinot</a></li>
         
     </ul>
 </div>
@@ -603,59 +605,93 @@
                                 <div class="bodywrapper">
                                     <div class="body" role="main">
                                         
-  <blockquote>
-<div></div></blockquote>
-<section id="apache-pinot-hooks">
-<h1>Apache Pinot Hooks<a class="headerlink" href="#apache-pinot-hooks" title="Link to this heading">¶</a></h1>
-<p><a class="reference external" href="https://pinot.apache.org/">Apache Pinot</a> is a column-oriented, open-source, distributed data store written in Java. Pinot is designed to execute OLAP queries with low latency. It is suited in contexts where fast analytics, such as aggregations, are needed on immutable data, possibly, with real-time data ingestion.</p>
-<section id="prerequisite">
-<h2>Prerequisite<a class="headerlink" href="#prerequisite" title="Link to this heading">¶</a></h2>
-</section>
-<section id="pinotadminhook">
-<span id="howto-operator-pinothooks"></span><h2>PinotAdminHook<a class="headerlink" href="#pinotadminhook" title="Link to this heading">¶</a></h2>
-<p>This hook is a wrapper around the pinot-admin.sh script, which is used for administering a Pinot cluster and provided by Apache Pinot distribution. For now, only small subset of its subcommands are implemented, which are required to ingest offline data into Apache Pinot (i.e., AddSchema, AddTable, CreateSegment, and UploadSegment). Their command options are based on Pinot v0.1.0.</p>
-</section>
-<section id="parameters">
-<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
-<p>For parameter definition, take a look at <a class="reference internal" href="_api/airflow/providers/apache/pinot/hooks/pinot/index.html#airflow.providers.apache.pinot.hooks.pinot.PinotAdminHook" title="airflow.providers.apache.pinot.hooks.pinot.PinotAdminHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">PinotAdminHook</span></code></a></p>
+  <section id="sqlexecutequeryoperator-to-connect-to-apache-pinot">
+<span id="howto-operator-pinotoperator"></span><h1>SQLExecuteQueryOperator to connect to Apache Pinot<a class="headerlink" href="#sqlexecutequeryoperator-to-connect-to-apache-pinot" title="Link to this heading">¶</a></h1>
+<p>Use the <a class="reference external" href="/docs/apache-airflow-providers-common-sql/stable/_api/airflow/providers/common/sql/operators/sql/index.html#airflow.providers.common.sql.operators.sql.SQLExecuteQueryOperator" title="(in apache-airflow-providers-common-sql v1.25.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SQLExecuteQueryOperator</span></code></a> to execute SQL queries against an
+<a class="reference external" href="https://pinot.apache.org/">Apache Pinot</a> cluster.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no dedicated operator for Apache Pinot.
+Please use the <code class="docutils literal notranslate"><span class="pre">SQLExecuteQueryOperator</span></code> instead.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure you have installed the necessary provider package (e.g. <code class="docutils literal notranslate"><span class="pre">apache-airflow-providers-apache-pinot</span></code>)
+to enable Apache Pinot support.</p>
+</div>
+<section id="using-the-operator">
+<h2>Using the Operator<a class="headerlink" href="#using-the-operator" title="Link to this heading">¶</a></h2>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">conn_id</span></code> argument to connect to your Apache Pinot instance where
+the connection metadata is structured as follows:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Pinot Airflow Connection Metadata</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Input</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Host: string</p></td>
+<td><p>Pinot broker hostname or IP address</p></td>
+</tr>
+<tr class="row-odd"><td><p>Port: int</p></td>
+<td><p>Pinot broker port (default: 8000)</p></td>
+</tr>
+<tr class="row-even"><td><p>Schema: string</p></td>
+<td><p>(Not used)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Extra: JSON</p></td>
+<td><p>Optional fields such as: <code class="docutils literal notranslate"><span class="pre">{&quot;endpoint&quot;:</span> <span class="pre">&quot;query/sql&quot;}</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>An example usage of the SQLExecuteQueryOperator to connect to Apache Pinot is as follows:</p>
 <div class="example-block-wrapper compound">
-<p class="example-header"><span class="example-title">tests/system/apache/pinot/example_pinot_dag.py</span></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@task</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">pinot_admin</span><span class="p">():</span>
-    <span class="n">PinotAdminHook</span><span class="p">(</span><span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;pinot_admin_default&quot;</span><span class="p">,</span> <span class="n">cmd_path</span><span class="o">=</span><span class="s2">&quot;pinot-admin.sh&quot;</span><span class="p">,</span> <span class="n">pinot_admin_system_exit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<p class="example-header"><span class="example-title">tests/system/apache/pinot/example_pinot.py</span></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+    <span class="c1"># Task: Simple query to test connection and query engine</span>
+    <span class="n">select_1_task</span> <span class="o">=</span> <span class="n">SQLExecuteQueryOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;select_1&quot;</span><span class="p">,</span>
+        <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;SELECT 1&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
-</pre></div>
-</div>
-</div>
-<section id="reference">
-<h3>Reference<a class="headerlink" href="#reference" title="Link to this heading">¶</a></h3>
-<p>For more information, please see the documentation at <code class="docutils literal notranslate"><span class="pre">Apache</span> <span class="pre">Pinot</span> <span class="pre">improvements</span> <span class="pre">for</span> <span class="pre">PinotAdminHook&lt;https://pinot.apache.org/&gt;</span></code></p>
-</section>
-</section>
-<section id="pinotdbapihook">
-<h2>PinotDbApiHook<a class="headerlink" href="#pinotdbapihook" title="Link to this heading">¶</a></h2>
-<p>This hook uses standard-SQL endpoint since PQL endpoint is soon to be deprecated.</p>
-</section>
-<section id="id1">
-<h2>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
-<p>For parameter definition, take a look at <a class="reference internal" href="_api/airflow/providers/apache/pinot/hooks/pinot/index.html#airflow.providers.apache.pinot.hooks.pinot.PinotDbApiHook" title="airflow.providers.apache.pinot.hooks.pinot.PinotDbApiHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">PinotDbApiHook</span></code></a></p>
-<div class="example-block-wrapper compound">
-<p class="example-header"><span class="example-title">tests/system/apache/pinot/example_pinot_dag.py</span></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@task</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">pinot_dbi_api</span><span class="p">():</span>
-    <span class="n">PinotDbApiHook</span><span class="p">(</span>
-        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;run_example_pinot_script&quot;</span><span class="p">,</span>
-        <span class="n">pinot</span><span class="o">=</span><span class="s2">&quot;ls /;&quot;</span><span class="p">,</span>
-        <span class="n">pinot_options</span><span class="o">=</span><span class="s2">&quot;-x local&quot;</span><span class="p">,</span>
+    <span class="c1"># Task: Count total records in airlineStats (sample table)</span>
+    <span class="n">count_airline_stats</span> <span class="o">=</span> <span class="n">SQLExecuteQueryOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;count_airline_stats&quot;</span><span class="p">,</span>
+        <span class="n">sql</span><span class="o">=</span><span class="s2">&quot;SELECT COUNT(*) FROM airlineStats&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Task: Group by Carrier and count flights</span>
+    <span class="n">group_by_carrier</span> <span class="o">=</span> <span class="n">SQLExecuteQueryOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;group_by_carrier&quot;</span><span class="p">,</span>
+        <span class="n">sql</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT Carrier, COUNT(*) AS flight_count</span>
+<span class="s2">            FROM airlineStats</span>
+<span class="s2">            GROUP BY Carrier</span>
+<span class="s2">            ORDER BY flight_count DESC</span>
+<span class="s2">            LIMIT 5</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
     <span class="p">)</span>
 
 </pre></div>
 </div>
 </div>
-<section id="id2">
-<h3>Reference<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
-<p>For more information, please see the documentation at <code class="docutils literal notranslate"><span class="pre">Pinot</span> <span class="pre">documentation</span> <span class="pre">on</span> <span class="pre">querying</span> <span class="pre">data</span> <span class="pre">&lt;https://docs.pinot.apache.org/users/api/querying-pinot-using-standard-sql&gt;</span></code></p>
 </section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">¶</a></h2>
+<p>For further information, see:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.pinot.apache.org/">Apache Pinot Documentation</a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Parameters provided directly via SQLExecuteQueryOperator() take precedence over those specified
+in the Airflow connection metadata.</p>
+</div>
 </section>
 </section>
 
@@ -664,7 +700,7 @@
             <a rel="prev" title="Releasing security patches" href="security.html" >
                 <button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" accesskey="p">Previous</button>
             </a>
-            <a rel="next" title="airflow.providers.apache.pinot" href="_api/airflow/providers/apache/pinot/index.html" >
+            <a rel="next" title="Apache Pinot Hooks" href="hooks.html" >
                 <button class="btn-hollow btn-blue bodytext__medium--cerulean-blue" accesskey="n">Next</button>
             </a>
     </div>
@@ -734,18 +770,9 @@
     <nav class="wy-nav-side-toc">
         <div class="wy-menu-vertical">
             <ul>
-<li><a class="reference internal" href="#">Apache Pinot Hooks</a><ul>
-<li><a class="reference internal" href="#prerequisite">Prerequisite</a></li>
-<li><a class="reference internal" href="#pinotadminhook">PinotAdminHook</a></li>
-<li><a class="reference internal" href="#parameters">Parameters</a><ul>
+<li><a class="reference internal" href="#">SQLExecuteQueryOperator to connect to Apache Pinot</a><ul>
+<li><a class="reference internal" href="#using-the-operator">Using the Operator</a></li>
 <li><a class="reference internal" href="#reference">Reference</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#pinotdbapihook">PinotDbApiHook</a></li>
-<li><a class="reference internal" href="#id1">Parameters</a><ul>
-<li><a class="reference internal" href="#id2">Reference</a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>

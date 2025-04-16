@@ -627,26 +627,24 @@
 <span class="c1"># under the License.</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.models.dag</span><span class="w"> </span><span class="kn">import</span> <span class="n">DAG</span>
+<span class="c1"># [START howto_trigger_message_queue]</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.common.messaging.triggers.msg_queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageQueueTrigger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.standard.operators.empty</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmptyOperator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.sdk.definitions.asset</span><span class="w"> </span><span class="kn">import</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">AssetWatcher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">AssetWatcher</span>
 
-<span class="c1"># [START howto_trigger_message_queue]</span>
+<span class="c1"># Define a trigger that listens to an external message queue (AWS SQS in this case)</span>
 <div class="viewcode-block" id="trigger">
 <a class="viewcode-back" href="../../../../../_api/tests/system/common/messaging/example_message_queue_trigger/index.html#tests.system.common.messaging.example_message_queue_trigger.trigger">[docs]</a>
 <span class="n">trigger</span> <span class="o">=</span> <span class="n">MessageQueueTrigger</span><span class="p">(</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;https://sqs.us-east-1.amazonaws.com/0123456789/my-queue&quot;</span><span class="p">)</span></div>
 
+
+<span class="c1"># Define an asset that watches for messages on the queue</span>
 <div class="viewcode-block" id="asset">
 <a class="viewcode-back" href="../../../../../_api/tests/system/common/messaging/example_message_queue_trigger/index.html#tests.system.common.messaging.example_message_queue_trigger.asset">[docs]</a>
-<span class="n">asset</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">(</span><span class="s2">&quot;sqs_asset&quot;</span><span class="p">,</span> <span class="n">watchers</span><span class="o">=</span><span class="p">[</span><span class="n">AssetWatcher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sqs_asset_watcher&quot;</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)])</span></div>
+<span class="n">asset</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">(</span><span class="s2">&quot;sqs_queue_asset&quot;</span><span class="p">,</span> <span class="n">watchers</span><span class="o">=</span><span class="p">[</span><span class="n">AssetWatcher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sqs_watcher&quot;</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)])</span></div>
 
 
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
-    <span class="n">dag_id</span><span class="o">=</span><span class="s2">&quot;example_msgq_watcher&quot;</span><span class="p">,</span>
-    <span class="n">schedule</span><span class="o">=</span><span class="p">[</span><span class="n">asset</span><span class="p">],</span>
-    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&quot;example_msgq_watcher&quot;</span><span class="p">,</span> <span class="n">schedule</span><span class="o">=</span><span class="p">[</span><span class="n">asset</span><span class="p">])</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
     <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;task&quot;</span><span class="p">)</span>
 <span class="c1"># [END howto_trigger_message_queue]</span>
 
