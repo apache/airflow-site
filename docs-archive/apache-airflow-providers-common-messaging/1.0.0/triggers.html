@@ -620,22 +620,37 @@ queue. Parameters of the trigger are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">queue</span></code> - the queue identifier</p></li>
 </ul>
-<p>Additional parameters can be provided depending on the queue provider.</p>
-<p>The example below shows how to schedule a DAG using MessageQueueTrigger.</p>
+<p>Additional parameters can be provided depending on the queue provider. Connections needs to be provided with the relevant
+default connection ID, for example, when connecting to a queue in AWS SQS, the connection ID should be
+<code class="docutils literal notranslate"><span class="pre">aws_default</span></code>.</p>
+<p>Below is an example of how you can configure an Airflow DAG to be triggered by a message in Amazon SQS.</p>
 <div class="example-block-wrapper compound">
 <p class="example-header"><span class="example-title">tests/system/common/messaging/example_message_queue_trigger.py</span></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">trigger</span> <span class="o">=</span> <span class="n">MessageQueueTrigger</span><span class="p">(</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;https://sqs.us-east-1.amazonaws.com/0123456789/my-queue&quot;</span><span class="p">)</span>
-<span class="n">asset</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">(</span><span class="s2">&quot;sqs_asset&quot;</span><span class="p">,</span> <span class="n">watchers</span><span class="o">=</span><span class="p">[</span><span class="n">AssetWatcher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sqs_asset_watcher&quot;</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)])</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.common.messaging.triggers.msg_queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageQueueTrigger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.standard.operators.empty</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmptyOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">AssetWatcher</span>
 
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
-    <span class="n">dag_id</span><span class="o">=</span><span class="s2">&quot;example_msgq_watcher&quot;</span><span class="p">,</span>
-    <span class="n">schedule</span><span class="o">=</span><span class="p">[</span><span class="n">asset</span><span class="p">],</span>
-    <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
+<span class="c1"># Define a trigger that listens to an external message queue (AWS SQS in this case)</span>
+<span class="n">trigger</span> <span class="o">=</span> <span class="n">MessageQueueTrigger</span><span class="p">(</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;https://sqs.us-east-1.amazonaws.com/0123456789/my-queue&quot;</span><span class="p">)</span>
+
+<span class="c1"># Define an asset that watches for messages on the queue</span>
+<span class="n">asset</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">(</span><span class="s2">&quot;sqs_queue_asset&quot;</span><span class="p">,</span> <span class="n">watchers</span><span class="o">=</span><span class="p">[</span><span class="n">AssetWatcher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sqs_watcher&quot;</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)])</span>
+
+<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&quot;example_msgq_watcher&quot;</span><span class="p">,</span> <span class="n">schedule</span><span class="o">=</span><span class="p">[</span><span class="n">asset</span><span class="p">])</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
     <span class="n">EmptyOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;task&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<section id="how-it-works">
+<h3>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading">¶</a></h3>
+<p>1. <strong>Message Queue Trigger</strong>: The <code class="docutils literal notranslate"><span class="pre">MessageQueueTrigger</span></code> listens for messages from an external queue
+(e.g., AWS SQS, Kafka, or another messaging system).</p>
+<p>2. <strong>Asset and Watcher</strong>: The <code class="docutils literal notranslate"><span class="pre">Asset</span></code> abstracts the external entity, the SQS queue in this example.
+The <code class="docutils literal notranslate"><span class="pre">AssetWatcher</span></code> associate a trigger with a name. This name helps you identify which trigger is associated to which
+asset.</p>
+<p>3. <strong>Event-Driven DAG</strong>: Instead of running on a fixed schedule, the DAG executes when the asset receives an update
+(e.g., a new message in the queue).</p>
+</section>
 </section>
 </section>
 
@@ -715,7 +730,10 @@ queue. Parameters of the trigger are:</p>
         <div class="wy-menu-vertical">
             <ul>
 <li><a class="reference internal" href="#">Messaging Triggers</a><ul>
-<li><a class="reference internal" href="#wait-for-a-message-in-a-queue">Wait for a message in a queue</a></li>
+<li><a class="reference internal" href="#wait-for-a-message-in-a-queue">Wait for a message in a queue</a><ul>
+<li><a class="reference internal" href="#how-it-works">How it works</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
