@@ -1,0 +1,247 @@
+airflow.providers.edge3.models.edge_worker
+==========================================
+
+.. py:module:: airflow.providers.edge3.models.edge_worker
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   airflow.providers.edge3.models.edge_worker.EdgeWorkerVersionException
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.providers.edge3.models.edge_worker.EdgeWorkerState
+   airflow.providers.edge3.models.edge_worker.EdgeWorkerModel
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   airflow.providers.edge3.models.edge_worker.set_metrics
+   airflow.providers.edge3.models.edge_worker.reset_metrics
+   airflow.providers.edge3.models.edge_worker.request_maintenance
+   airflow.providers.edge3.models.edge_worker.exit_maintenance
+   airflow.providers.edge3.models.edge_worker.remove_worker
+   airflow.providers.edge3.models.edge_worker.change_maintenance_comment
+
+
+Module Contents
+---------------
+
+.. py:exception:: EdgeWorkerVersionException
+
+   Bases: :py:obj:`airflow.exceptions.AirflowException`
+
+
+   Signal a version mismatch between core and Edge Site.
+
+
+.. py:class:: EdgeWorkerState
+
+   Bases: :py:obj:`str`, :py:obj:`enum.Enum`
+
+
+   Status of a Edge Worker instance.
+
+
+   .. py:attribute:: STARTING
+      :value: 'starting'
+
+
+      Edge Worker is in initialization.
+
+
+
+   .. py:attribute:: RUNNING
+      :value: 'running'
+
+
+      Edge Worker is actively running a task.
+
+
+
+   .. py:attribute:: IDLE
+      :value: 'idle'
+
+
+      Edge Worker is active and waiting for a task.
+
+
+
+   .. py:attribute:: TERMINATING
+      :value: 'terminating'
+
+
+      Edge Worker is completing work and stopping.
+
+
+
+   .. py:attribute:: OFFLINE
+      :value: 'offline'
+
+
+      Edge Worker was shut down.
+
+
+
+   .. py:attribute:: UNKNOWN
+      :value: 'unknown'
+
+
+      No heartbeat signal from worker for some time, Edge Worker probably down.
+
+
+
+   .. py:attribute:: MAINTENANCE_REQUEST
+      :value: 'maintenance request'
+
+
+      Worker was requested to enter maintenance mode. Once worker receives this it will pause fetching jobs.
+
+
+
+   .. py:attribute:: MAINTENANCE_PENDING
+      :value: 'maintenance pending'
+
+
+      Edge worker received the request for maintenance, waiting for jobs to finish. Once jobs are finished will move to 'maintenance mode'.
+
+
+
+   .. py:attribute:: MAINTENANCE_MODE
+      :value: 'maintenance mode'
+
+
+      Edge worker is in maintenance mode. It is online but pauses fetching jobs.
+
+
+
+   .. py:attribute:: MAINTENANCE_EXIT
+      :value: 'maintenance exit'
+
+
+      Request worker to exit maintenance mode. Once the worker receives this state it will un-pause and fetch new jobs.
+
+
+
+   .. py:attribute:: OFFLINE_MAINTENANCE
+      :value: 'offline maintenance'
+
+
+      Worker was shut down in maintenance mode. It will be in maintenance mode when restarted.
+
+
+
+.. py:class:: EdgeWorkerModel(worker_name, state, queues, first_online = None, last_update = None, maintenance_comment = None)
+
+   Bases: :py:obj:`airflow.models.base.Base`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+
+   A Edge Worker instance which reports the state and health.
+
+
+   .. py:attribute:: __tablename__
+      :value: 'edge_worker'
+
+
+
+   .. py:attribute:: worker_name
+
+
+   .. py:attribute:: state
+
+
+   .. py:attribute:: maintenance_comment
+
+
+   .. py:attribute:: first_online
+
+
+   .. py:attribute:: last_update
+
+
+   .. py:attribute:: jobs_active
+
+
+   .. py:attribute:: jobs_taken
+
+
+   .. py:attribute:: jobs_success
+
+
+   .. py:attribute:: jobs_failed
+
+
+   .. py:attribute:: sysinfo
+
+
+   .. py:property:: queues
+      :type: list[str] | None
+
+
+      Return list of queues which are stored in queues field.
+
+
+
+   .. py:property:: sysinfo_json
+      :type: dict
+
+
+
+   .. py:method:: add_queues(new_queues)
+
+      Add new queue to the queues field.
+
+
+
+   .. py:method:: remove_queues(remove_queues)
+
+      Remove queue from queues field.
+
+
+
+   .. py:method:: update_state(state)
+
+      Update state field.
+
+
+
+.. py:function:: set_metrics(worker_name, state, jobs_active, concurrency, free_concurrency, queues)
+
+   Set metric of edge worker.
+
+
+.. py:function:: reset_metrics(worker_name)
+
+   Reset metrics of worker.
+
+
+.. py:function:: request_maintenance(worker_name, maintenance_comment, session = NEW_SESSION)
+
+   Write maintenance request to the db.
+
+
+.. py:function:: exit_maintenance(worker_name, session = NEW_SESSION)
+
+   Write maintenance exit to the db.
+
+
+.. py:function:: remove_worker(worker_name, session = NEW_SESSION)
+
+   Remove a worker that is offline or just gone from DB.
+
+
+.. py:function:: change_maintenance_comment(worker_name, maintenance_comment, session = NEW_SESSION)
+
+   Write maintenance comment in the db.
+
+
