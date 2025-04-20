@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 # Constants
-MY_DIR = os.path.dirname(os.path.abspath(_file_))
+MY_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKING_DIR = os.getcwd()
 
 
