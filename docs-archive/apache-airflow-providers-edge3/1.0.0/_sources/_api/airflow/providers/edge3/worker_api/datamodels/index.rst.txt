@@ -1,0 +1,252 @@
+airflow.providers.edge3.worker_api.datamodels
+=============================================
+
+.. py:module:: airflow.providers.edge3.worker_api.datamodels
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.providers.edge3.worker_api.datamodels.WorkerApiDocs
+   airflow.providers.edge3.worker_api.datamodels.JsonRpcRequestBase
+   airflow.providers.edge3.worker_api.datamodels.JsonRpcRequest
+   airflow.providers.edge3.worker_api.datamodels.EdgeJobBase
+   airflow.providers.edge3.worker_api.datamodels.EdgeJobFetched
+   airflow.providers.edge3.worker_api.datamodels.WorkerQueuesBase
+   airflow.providers.edge3.worker_api.datamodels.WorkerQueuesBody
+   airflow.providers.edge3.worker_api.datamodels.WorkerStateBody
+   airflow.providers.edge3.worker_api.datamodels.WorkerQueueUpdateBody
+   airflow.providers.edge3.worker_api.datamodels.PushLogsBody
+   airflow.providers.edge3.worker_api.datamodels.WorkerRegistrationReturn
+   airflow.providers.edge3.worker_api.datamodels.WorkerSetStateReturn
+
+
+Module Contents
+---------------
+
+.. py:class:: WorkerApiDocs
+
+   Documentation collection for the worker API.
+
+
+   .. py:attribute:: dag_id
+
+
+   .. py:attribute:: task_id
+
+
+   .. py:attribute:: run_id
+
+
+   .. py:attribute:: try_number
+
+
+   .. py:attribute:: map_index
+
+
+   .. py:attribute:: state
+
+
+.. py:class:: JsonRpcRequestBase(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Base JSON RPC request model to define just the method.
+
+
+   .. py:attribute:: method
+      :type:  Annotated[str, Field(description='Fully qualified python module method name that is called via JSON RPC.')]
+
+
+.. py:class:: JsonRpcRequest(/, **data)
+
+   Bases: :py:obj:`JsonRpcRequestBase`
+
+
+   JSON RPC request model.
+
+
+   .. py:attribute:: jsonrpc
+      :type:  Annotated[str, Field(description='JSON RPC Version', examples=['2.0'])]
+
+
+   .. py:attribute:: params
+      :type:  Annotated[dict[str, Any] | None, Field(description='Dictionary of parameters passed to the method.')]
+
+
+.. py:class:: EdgeJobBase(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Basic attributes of a job on the edge worker.
+
+
+   .. py:attribute:: dag_id
+      :type:  Annotated[str, Field(title='Dag ID', description='Identifier of the DAG to which the task belongs.')]
+
+
+   .. py:attribute:: task_id
+      :type:  Annotated[str, Field(title='Task ID', description='Task name in the DAG.')]
+
+
+   .. py:attribute:: run_id
+      :type:  Annotated[str, Field(title='Run ID', description='Run ID of the DAG execution.')]
+
+
+   .. py:attribute:: map_index
+      :type:  Annotated[int, Field(title='Map Index', description='For dynamically mapped tasks the mapping number, -1 if the task is not mapped.')]
+
+
+   .. py:attribute:: try_number
+      :type:  Annotated[int, Field(title='Try Number', description='The number of attempt to execute this task.')]
+
+
+   .. py:property:: key
+      :type: airflow.models.taskinstancekey.TaskInstanceKey
+
+
+
+.. py:class:: EdgeJobFetched(/, **data)
+
+   Bases: :py:obj:`EdgeJobBase`
+
+
+   Job that is to be executed on the edge worker.
+
+
+   .. py:attribute:: command
+      :type:  Annotated[airflow.providers.edge3.worker_api.routes._v2_compat.ExecuteTask, Field(title='Command', description='Command line to use to execute the job in Airflow 2. Task definition in Airflow 3')]
+
+
+   .. py:attribute:: concurrency_slots
+      :type:  Annotated[int, Field(description='Number of concurrency slots the job requires.')]
+
+
+.. py:class:: WorkerQueuesBase(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Queues that a worker supports to run jobs on.
+
+
+   .. py:attribute:: queues
+      :type:  Annotated[list[str] | None, Field(None, description='List of queues the worker is pulling jobs from. If not provided, worker pulls from all queues.')]
+
+
+.. py:class:: WorkerQueuesBody(/, **data)
+
+   Bases: :py:obj:`WorkerQueuesBase`
+
+
+   Queues that a worker supports to run jobs on.
+
+
+   .. py:attribute:: free_concurrency
+      :type:  Annotated[int, Field(description='Number of free concurrency slots on the worker.')]
+
+
+.. py:class:: WorkerStateBody(/, **data)
+
+   Bases: :py:obj:`WorkerQueuesBase`
+
+
+   Details of the worker state sent to the scheduler.
+
+
+   .. py:attribute:: state
+      :type:  Annotated[airflow.providers.edge3.models.edge_worker.EdgeWorkerState, Field(description='State of the worker from the view of the worker.')]
+
+
+   .. py:attribute:: jobs_active
+      :type:  Annotated[int, Field(description='Number of active jobs the worker is running.')]
+      :value: 0
+
+
+
+   .. py:attribute:: queues
+      :type:  Annotated[list[str] | None, Field(description='List of queues the worker is pulling jobs from. If not provided, worker pulls from all queues.')]
+      :value: None
+
+
+
+   .. py:attribute:: sysinfo
+      :type:  Annotated[dict[str, str | int], Field(description='System information of the worker.', examples=[{'concurrency': 4, 'free_concurrency': 3, 'airflow_version': '2.0.0', 'edge_provider_version': '1.0.0'}])]
+
+
+   .. py:attribute:: maintenance_comments
+      :type:  Annotated[str | None, Field(description='Comments about the maintenance state of the worker.')]
+      :value: None
+
+
+
+.. py:class:: WorkerQueueUpdateBody(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Changed queues for the worker.
+
+
+   .. py:attribute:: new_queues
+      :type:  Annotated[list[str] | None, Field(description='Additional queues to be added to worker.')]
+
+
+   .. py:attribute:: remove_queues
+      :type:  Annotated[list[str] | None, Field(description='Queues to remove from worker.')]
+
+
+.. py:class:: PushLogsBody(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Incremental new log content from worker.
+
+
+   .. py:attribute:: log_chunk_time
+      :type:  Annotated[datetime.datetime, Field(description='Time of the log chunk at point of sending.')]
+
+
+   .. py:attribute:: log_chunk_data
+      :type:  Annotated[str, Field(description='Log chunk data as incremental log text.')]
+
+
+.. py:class:: WorkerRegistrationReturn(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   The return class for the worker registration.
+
+
+   .. py:attribute:: last_update
+      :type:  Annotated[datetime.datetime, Field(description='Time of the last update of the worker.')]
+
+
+.. py:class:: WorkerSetStateReturn(/, **data)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   The return class for the worker set state.
+
+
+   .. py:attribute:: state
+      :type:  Annotated[airflow.providers.edge3.models.edge_worker.EdgeWorkerState, Field(description='State of the worker from the view of the server.')]
+
+
+   .. py:attribute:: queues
+      :type:  Annotated[list[str] | None, Field(description='List of queues the worker is pulling jobs from. If not provided, worker pulls from all queues.')]
+
+
+   .. py:attribute:: maintenance_comments
+      :type:  Annotated[str | None, Field(description='Comments about the maintenance state of the worker.')]
+      :value: None
+
+
+
