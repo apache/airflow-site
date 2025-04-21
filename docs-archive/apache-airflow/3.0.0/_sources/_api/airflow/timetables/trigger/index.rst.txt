@@ -1,0 +1,205 @@
+airflow.timetables.trigger
+==========================
+
+.. py:module:: airflow.timetables.trigger
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.timetables.trigger.DeltaTriggerTimetable
+   airflow.timetables.trigger.CronTriggerTimetable
+   airflow.timetables.trigger.MultipleCronTriggerTimetable
+
+
+Module Contents
+---------------
+
+.. py:class:: DeltaTriggerTimetable(delta, *, interval = datetime.timedelta())
+
+   Bases: :py:obj:`airflow.timetables._delta.DeltaMixin`, :py:obj:`_TriggerTimetable`
+
+
+   Timetable that triggers DAG runs according to a cron expression.
+
+   This is different from ``DeltaDataIntervalTimetable``, where the delta value
+   specifies the *data interval* of a DAG run. With this timetable, the data
+   intervals are specified independently. Also for the same reason, this
+   timetable kicks off a DAG run immediately at the start of the period,
+   instead of needing to wait for one data interval to pass.
+
+   :param delta: How much time to wait between each run.
+   :param interval: The data interval of each run. Default is 0.
+
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+
+.. py:class:: CronTriggerTimetable(cron, *, timezone, interval = datetime.timedelta(), run_immediately = False)
+
+   Bases: :py:obj:`airflow.timetables._cron.CronMixin`, :py:obj:`_TriggerTimetable`
+
+
+   Timetable that triggers DAG runs according to a cron expression.
+
+   This is different from ``CronDataIntervalTimetable``, where the cron
+   expression specifies the *data interval* of a DAG run. With this timetable,
+   the data intervals are specified independently from the cron expression.
+   Also for the same reason, this timetable kicks off a DAG run immediately at
+   the start of the period (similar to POSIX cron), instead of needing to wait
+   for one data interval to pass.
+
+   Don't pass ``@once`` in here; use ``OnceTimetable`` instead.
+
+   :param cron: cron string that defines when to run
+   :param timezone: Which timezone to use to interpret the cron string
+   :param interval: timedelta that defines the data interval start. Default 0.
+
+   *run_immediately* controls, if no *start_time* is given to the DAG, when
+   the first run of the DAG should be scheduled. It has no effect if there
+   already exist runs for this DAG.
+
+   * If *True*, always run immediately the most recent possible DAG run.
+   * If *False*, wait to run until the next scheduled time in the future.
+   * If passed a ``timedelta``, will run the most recent possible DAG run
+     if that run's ``data_interval_end`` is within timedelta of now.
+   * If *None*, the timedelta is calculated as 10% of the time between the
+     most recent past scheduled time and the next scheduled time. E.g. if
+     running every hour, this would run the previous time if less than 6
+     minutes had past since the previous run time, otherwise it would wait
+     until the next hour.
+
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+
+.. py:class:: MultipleCronTriggerTimetable(*crons, timezone, interval = datetime.timedelta(), run_immediately = False)
+
+   Bases: :py:obj:`airflow.timetables.base.Timetable`
+
+
+   Timetable that triggers DAG runs according to multiple cron expressions.
+
+   This combines multiple ``CronTriggerTimetable`` instances underneath, and
+   triggers a DAG run whenever one of the timetables want to trigger a run.
+
+   Only at most one run is triggered for any given time, even if more than one
+   timetable fires at the same time.
+
+
+   .. py:attribute:: description
+      :value: ''
+
+
+      Human-readable description of the timetable.
+
+      For example, this can produce something like ``'At 21:30, only on Friday'``
+      from the cron expression ``'30 21 * * 5'``. This is used in the webserver UI.
+
+
+
+   .. py:method:: deserialize(data)
+      :classmethod:
+
+
+      Deserialize a timetable from data.
+
+      This is called when a serialized DAG is deserialized. ``data`` will be
+      whatever was returned by ``serialize`` during DAG serialization. The
+      default implementation constructs the timetable without any arguments.
+
+
+
+   .. py:method:: serialize()
+
+      Serialize the timetable for JSON encoding.
+
+      This is called during DAG serialization to store timetable information
+      in the database. This should return a JSON-serializable dict that will
+      be fed into ``deserialize`` when the DAG is deserialized. The default
+      implementation returns an empty dict.
+
+
+
+   .. py:property:: summary
+      :type: str
+
+
+      A short summary for the timetable.
+
+      This is used to display the timetable in the web UI. A cron expression
+      timetable, for example, can use this to display the expression. The
+      default implementation returns the timetable's type name.
+
+
+
+   .. py:method:: infer_manual_data_interval(*, run_after)
+
+      When a DAG run is manually triggered, infer a data interval for it.
+
+      This is used for e.g. manually-triggered runs, where ``run_after`` would
+      be when the user triggers the run. The default implementation raises
+      ``NotImplementedError``.
+
+
+
+   .. py:method:: next_dagrun_info(*, last_automated_data_interval, restriction)
+
+      Provide information to schedule the next DagRun.
+
+      The default implementation raises ``NotImplementedError``.
+
+      :param last_automated_data_interval: The data interval of the associated
+          DAG's last scheduled or backfilled run (manual runs not considered).
+      :param restriction: Restriction to apply when scheduling the DAG run.
+          See documentation of :class:`TimeRestriction` for details.
+
+      :return: Information on when the next DagRun can be scheduled. None
+          means a DagRun will not happen. This does not mean no more runs
+          will be scheduled even again for this DAG; the timetable can return
+          a DagRunInfo object when asked at another time.
+
+
+
