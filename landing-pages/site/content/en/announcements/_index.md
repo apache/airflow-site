@@ -11,6 +11,16 @@ menu:
 &nbsp;
 &nbsp;
 
+# April 22, 2025
+
+We’ve just released Apache **Airflow 3.0.0**. You can read more about what 3.0 brings in the [announcement post]({{< ref "blog/airflow-three-point-oh-is-here/index.md" >}}).
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.0.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.0.0 \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.0.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.0.0/installation/installing-from-sources.html
+
+
 # April 2, 2025
 
 Airflow PMC welcomes new Airflow Committers:
