@@ -97,6 +97,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-docker/stable/index.html"><code>Docker</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-edge3/stable/index.html"><code>Edge3</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-elasticsearch/stable/index.html"><code>Elasticsearch</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-exasol/stable/index.html"><code>Exasol</code></a></li>
