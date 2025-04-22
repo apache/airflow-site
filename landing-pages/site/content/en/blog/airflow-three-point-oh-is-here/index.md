@@ -97,7 +97,7 @@ Improving the CLI and reducing the maintenance burden by having the CLI use the 
 
 ## An amazing community
 
-This release could have happened without the inspiration and technical leadership of key contributors who led the AIPs listed above. We thank them all here: Ash Berlin-Taylor, Brent Bovenzi, Bugra Ozturk, Constance Martineau, Daniel Standish, Jed Cunningham, Jens Scheffler, Kaxil Naik, Pierre Jeambrun, Vincent Beck, and Vikram Koka. We also wanted to thank Jarek Potiuk for the critical development infrastructure and packaging work and to Elad Kalif for shepherding all the key provider changes needed. We would like to recognize Wei Lee and Ankit Chaurasia for their work on the upgrade utilities to enable users to easily upgrade to Airflow 3.
+This release could not have happened without the inspiration and technical leadership of key contributors who led the AIPs listed above. We thank them all here: Ash Berlin-Taylor, Brent Bovenzi, Bugra Ozturk, Constance Martineau, Daniel Standish, Jed Cunningham, Jens Scheffler, Kaxil Naik, Pierre Jeambrun, Vincent Beck, and Vikram Koka. We also wanted to thank Jarek Potiuk for the critical development infrastructure and packaging work and to Elad Kalif for shepherding all the key provider changes needed. We would like to recognize Wei Lee and Ankit Chaurasia for their work on the upgrade utilities to enable users to easily upgrade to Airflow 3.
 
 Finally, a huge shoutout to Jed Cunningham and Kaxil Naik for the critical part of release management!
 
