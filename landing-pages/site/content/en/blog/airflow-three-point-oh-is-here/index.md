@@ -4,7 +4,7 @@ linkTitle: "Apache Airflow 3.0 is here!"
 authors:
   - name: "Kaxil Naik"
     github: "kaxil"
-    linkedin: "kaxilnaik"
+    linkedin: "kaxil"
   - name: "Vikram Koka"
     github: "vikramkoka"
     linkedin: "vikramkoka"
