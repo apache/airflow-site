@@ -13,7 +13,7 @@ tags: [Release]
 date: "2025-04-22"
 ---
 
-We announced our intent to focus on Apache Airflow 3.0® as the next big milestone for the Airflow project at the Airflow Summit in September 2024. I am delighted to announce that Airflow 3.0 is now released!
+We announced our intent to focus on Apache Airflow 3.0® as the next big milestone for the Airflow project at the Airflow Summit in September 2024. We are delighted to announce that Airflow 3.0 is now released!
 
 
 ## A Major Release, Four Years in the Making
