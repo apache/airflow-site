@@ -41,7 +41,7 @@ This is the result of 300+ developers within the Airflow community working toget
 DAG Versioning has been the most requested feature within Airflow based on the annual Airflow survey. As implemented in Airflow 3, a DAG will run through to completion based on the version at start, even if a new version has been uploaded while this DAG was being run. All DAG runs in the UI are now associated with the version of the DAG as run including the Task structure, the code, the logs, and more.
 This is described in two AIPs: Improve DAG history ([AIP-65](https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-65%3A+Improve+DAG+history+in+UI)) , and DAG Bundles and Parsing ([AIP-66](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=294816356)).
 
-<!-- TODO: Add Image here -->
+![DAG Versioning UI](versioning_ui.gif)
 
 ### Backfills improvements
 
