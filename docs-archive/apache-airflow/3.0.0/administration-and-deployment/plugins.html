@@ -15,7 +15,7 @@
             <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
             <link rel="stylesheet" type="text/css" href="../_static/_gen/css/main.min.css?v=016086f5" />
             <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-            <link rel="stylesheet" type="text/css" href="../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../_static/_gen/css/main-custom.min.css?v=24ed3fb0" />
             <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
             <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
             <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=101b2490" />
@@ -49,7 +49,10 @@
     
 
 <header>
-    <nav class="js-navbar-scroll navbar">
+    <a href="https://airflowsummit.org" target="_blank" class="d-block fixed-top px-3 py-2 bg-success text-center text-bold text-white">
+        Airflow Summit 2025 is coming October 07-09. Register now for early bird ticket!
+    </a>
+    <nav class="js-navbar-scroll navbar" style="top: 40px;">
         <div class="navbar__icon-container">
             <a href="/">
                 <svg xmlns="http://www.w3.org/2000/svg" width="155.314" height="60" viewBox="0 0 155.314 60">
@@ -365,6 +368,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#exclude-views-from-csrf-protection">Exclude views from CSRF protection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#plugins-as-python-packages">Plugins as Python packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flask-appbuilder-and-flask-blueprints-in-airflow-3">Flask Appbuilder and Flask Blueprints in Airflow 3</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
@@ -553,6 +557,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#exclude-views-from-csrf-protection">Exclude views from CSRF protection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#plugins-as-python-packages">Plugins as Python packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flask-appbuilder-and-flask-blueprints-in-airflow-3">Flask Appbuilder and Flask Blueprints in Airflow 3</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
@@ -754,16 +759,10 @@ looks like:</p>
     <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># A list of references to inject into the macros namespace</span>
     <span class="n">macros</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># A list of Blueprint object created from flask.Blueprint. For use with the flask_appbuilder based GUI</span>
-    <span class="n">flask_blueprints</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># A list of dictionaries containing FastAPI app objects and some metadata. See the example below.</span>
     <span class="n">fastapi_apps</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># A list of dictionaries containing FastAPI middleware factory objects and some metadata. See the example below.</span>
     <span class="n">fastapi_root_middlewares</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># A list of dictionaries containing FlaskAppBuilder BaseView object and some metadata. See example below</span>
-    <span class="n">appbuilder_views</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># A list of dictionaries containing kwargs for FlaskAppBuilder add_link. See example below</span>
-    <span class="n">appbuilder_menu_items</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1"># A callback to perform actions when Airflow starts and the plugin is loaded.</span>
     <span class="c1"># NOTE: Ensure your plugin has *args, and **kwargs in the method definition</span>
@@ -807,13 +806,9 @@ additional initialization. Please note <code class="docutils literal notranslate
 definitions in Airflow.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is the class you derive to create a plugin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.plugins_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowPlugin</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">permissions</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.fab.www.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_access</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.middleware.trustedhost</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrustedHostMiddleware</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Blueprint</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">flask_appbuilder</span><span class="w"> </span><span class="kn">import</span> <span class="n">expose</span><span class="p">,</span> <span class="n">BaseView</span> <span class="k">as</span> <span class="n">AppBuilderBaseView</span>
 
 <span class="c1"># Importing base classes that we need to derive</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.hooks.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseHook</span>
@@ -825,15 +820,6 @@ definitions in Airflow.</p>
 <span class="k">def</span><span class="w"> </span><span class="nf">plugin_macro</span><span class="p">():</span>
     <span class="k">pass</span>
 
-
-<span class="c1"># Creating a flask blueprint to integrate the templates and static folder</span>
-<span class="n">bp</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span>
-    <span class="s2">&quot;test_plugin&quot;</span><span class="p">,</span>
-    <span class="vm">__name__</span><span class="p">,</span>
-    <span class="n">template_folder</span><span class="o">=</span><span class="s2">&quot;templates&quot;</span><span class="p">,</span>  <span class="c1"># registers airflow/plugins/templates as a Jinja template folder</span>
-    <span class="n">static_folder</span><span class="o">=</span><span class="s2">&quot;static&quot;</span><span class="p">,</span>
-    <span class="n">static_url_path</span><span class="o">=</span><span class="s2">&quot;/static/test_plugin&quot;</span><span class="p">,</span>
-<span class="p">)</span>
 
 <span class="c1"># Creating a FastAPI application to integrate in Airflow Rest API.</span>
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
@@ -856,65 +842,12 @@ definitions in Airflow.</p>
 <span class="p">}</span>
 
 
-<span class="c1"># Creating a flask appbuilder BaseView</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">TestAppBuilderBaseView</span><span class="p">(</span><span class="n">AppBuilderBaseView</span><span class="p">):</span>
-    <span class="n">default_view</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
-
-    <span class="nd">@expose</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-    <span class="nd">@has_access</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="p">(</span><span class="n">permissions</span><span class="o">.</span><span class="n">ACTION_CAN_READ</span><span class="p">,</span> <span class="n">permissions</span><span class="o">.</span><span class="n">RESOURCE_WEBSITE</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;test_plugin/test.html&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Hello galaxy!&quot;</span><span class="p">)</span>
-
-
-<span class="c1"># Creating a flask appbuilder BaseView</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">TestAppBuilderBaseNoMenuView</span><span class="p">(</span><span class="n">AppBuilderBaseView</span><span class="p">):</span>
-    <span class="n">default_view</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
-
-    <span class="nd">@expose</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-    <span class="nd">@has_access</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="p">(</span><span class="n">permissions</span><span class="o">.</span><span class="n">ACTION_CAN_READ</span><span class="p">,</span> <span class="n">permissions</span><span class="o">.</span><span class="n">RESOURCE_WEBSITE</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;test_plugin/test.html&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Hello galaxy!&quot;</span><span class="p">)</span>
-
-
-<span class="n">v_appbuilder_view</span> <span class="o">=</span> <span class="n">TestAppBuilderBaseView</span><span class="p">()</span>
-<span class="n">v_appbuilder_package</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Test View&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;Test Plugin&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;view&quot;</span><span class="p">:</span> <span class="n">v_appbuilder_view</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="n">v_appbuilder_nomenu_view</span> <span class="o">=</span> <span class="n">TestAppBuilderBaseNoMenuView</span><span class="p">()</span>
-<span class="n">v_appbuilder_nomenu_package</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;view&quot;</span><span class="p">:</span> <span class="n">v_appbuilder_nomenu_view</span><span class="p">}</span>
-
-<span class="c1"># Creating flask appbuilder Menu Items</span>
-<span class="n">appbuilder_mitem</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Google&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.google.com&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;Search&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">appbuilder_mitem_toplevel</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Apache&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.apache.org/&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-
-
 <span class="c1"># Defining the plugin class</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AirflowTestPlugin</span><span class="p">(</span><span class="n">AirflowPlugin</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;test_plugin&quot;</span>
     <span class="n">macros</span> <span class="o">=</span> <span class="p">[</span><span class="n">plugin_macro</span><span class="p">]</span>
-    <span class="n">flask_blueprints</span> <span class="o">=</span> <span class="p">[</span><span class="n">bp</span><span class="p">]</span>
     <span class="n">fastapi_apps</span> <span class="o">=</span> <span class="p">[</span><span class="n">app_with_metadata</span><span class="p">]</span>
     <span class="n">fastapi_root_middlewares</span> <span class="o">=</span> <span class="p">[</span><span class="n">middleware_with_metadata</span><span class="p">]</span>
-    <span class="n">appbuilder_views</span> <span class="o">=</span> <span class="p">[</span><span class="n">v_appbuilder_package</span><span class="p">,</span> <span class="n">v_appbuilder_nomenu_package</span><span class="p">]</span>
-    <span class="n">appbuilder_menu_items</span> <span class="o">=</span> <span class="p">[</span><span class="n">appbuilder_mitem</span><span class="p">,</span> <span class="n">appbuilder_mitem_toplevel</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="admonition seealso">
@@ -949,21 +882,10 @@ itself.</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># my_package/my_plugin.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.plugins_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowPlugin</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Blueprint</span>
-
-<span class="c1"># Creating a flask blueprint to integrate the templates and static folder</span>
-<span class="n">bp</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span>
-    <span class="s2">&quot;test_plugin&quot;</span><span class="p">,</span>
-    <span class="vm">__name__</span><span class="p">,</span>
-    <span class="n">template_folder</span><span class="o">=</span><span class="s2">&quot;templates&quot;</span><span class="p">,</span>  <span class="c1"># registers airflow/plugins/templates as a Jinja template folder</span>
-    <span class="n">static_folder</span><span class="o">=</span><span class="s2">&quot;static&quot;</span><span class="p">,</span>
-    <span class="n">static_url_path</span><span class="o">=</span><span class="s2">&quot;/static/test_plugin&quot;</span><span class="p">,</span>
-<span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyAirflowPlugin</span><span class="p">(</span><span class="n">AirflowPlugin</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_namespace&quot;</span>
-    <span class="n">flask_blueprints</span> <span class="o">=</span> <span class="p">[</span><span class="n">bp</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Then inside pyproject.toml:</p>
@@ -971,6 +893,13 @@ itself.</p>
 <span class="n">my_plugin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_package.my_plugin:MyAirflowPlugin&quot;</span>
 </pre></div>
 </div>
+</section>
+<section id="flask-appbuilder-and-flask-blueprints-in-airflow-3">
+<h2>Flask Appbuilder and Flask Blueprints in Airflow 3<a class="headerlink" href="#flask-appbuilder-and-flask-blueprints-in-airflow-3" title="Link to this heading">¶</a></h2>
+<p>Airflow 2 supported Flask Appbuilder views (<code class="docutils literal notranslate"><span class="pre">appbuilder_views</span></code>), Flask AppBuilder menu items (<code class="docutils literal notranslate"><span class="pre">appbuilder_menu_items</span></code>),
+and Flask Blueprints (<code class="docutils literal notranslate"><span class="pre">flask_blueprints</span></code>) in plugins. These has been superseded by FastAPI apps in Airflow 3. All new plugins should use FastAPI apps (<code class="docutils literal notranslate"><span class="pre">fastapi_apps</span></code>) instead.</p>
+<p>However, a compatibility layer is provided for Flask and FAB plugins to ease the transition to Airflow 3 - simply install the FAB provider.
+Ideally, you should convert your plugins to FastAPI apps (<cite>fastapi_apps</cite>) during the upgrade process, as this compatibility layer is deprecated.</p>
 </section>
 <section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
@@ -1065,6 +994,7 @@ itself.</p>
 <li><a class="reference internal" href="#example">Example</a></li>
 <li><a class="reference internal" href="#exclude-views-from-csrf-protection">Exclude views from CSRF protection</a></li>
 <li><a class="reference internal" href="#plugins-as-python-packages">Plugins as Python packages</a></li>
+<li><a class="reference internal" href="#flask-appbuilder-and-flask-blueprints-in-airflow-3">Flask Appbuilder and Flask Blueprints in Airflow 3</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
@@ -1089,8 +1019,8 @@ itself.</p>
         
             
         
-        <div class="base-layout--button">
-            <a href="https://github.com/apache/airflow/edit/main/docs/apache-airflow/administration-and-deployment/plugins.rst" rel="nofollow">
+        <div class="base-layout--button fade-target">
+            <a href="https://github.com/apache/airflow/edit/main/airflow-core/docs/administration-and-deployment/plugins.rst" rel="nofollow">
 
                 <button class="btn-hollow btn-brown btn-with-icon with-box-shadow button-fixed">
                     <svg xmlns="http://www.w3.org/2000/svg" width="30.76" height="30">
@@ -1161,15 +1091,6 @@ itself.</p>
                     <g id="Group_209" data-name="Group 209" transform="translate(-645.2 -975.455)">
                         <path id="Path_216" d="M677.028 1043.1v-11.948h3.966v15.914H645.2v-15.914h3.966v11.948z" fill="#fff" data-name="Path 216" transform="translate(0 -27.014)"></path>
                         <path id="Path_217" d="M661.012 1003.008l19.467 4.069.824-3.914-19.467-4.069zm2.575-9.27l18.025 8.395 1.648-3.605-18.025-8.446zm5-8.858l15.3 12.721 2.524-3.039-15.3-12.721zm9.888-9.425l-3.193 2.369 11.845 15.965 3.193-2.369zm-17.875 36.617h19.879v-3.966H660.6z" fill="#fff" data-name="Path 217" transform="translate(-7.469)"></path>
-                    </g>
-                </svg>
-
-            </a>
-
-            <a class="footer-section__media-section--link" target="_blank" href="https://twitter.com/ApacheAirflow">
-                <svg xmlns="http://www.w3.org/2000/svg" width="44.355" height="44.355" viewBox="0 0 44.355 44.355">
-                    <g id="Group_211" data-name="Group 211" transform="translate(-503 -1382.2)">
-                        <path id="Path_221" d="M541.811 1382.2h-33.267a5.546 5.546 0 0 0-5.544 5.544v33.266a5.547 5.547 0 0 0 5.544 5.545h33.267a5.546 5.546 0 0 0 5.544-5.545v-33.266a5.546 5.546 0 0 0-5.544-5.544zm-5.611 16.533c.011.244.011.488.011.732 0 7.507-5.722 16.178-16.179 16.178a16.173 16.173 0 0 1-8.7-2.539 10.92 10.92 0 0 0 1.353.078 11.4 11.4 0 0 0 7.064-2.44 5.685 5.685 0 0 1-5.311-3.947 5.725 5.725 0 0 0 2.561-.1 5.7 5.7 0 0 1-4.557-5.578v-.078a5.752 5.752 0 0 0 2.572.71 5.709 5.709 0 0 1-1.763-7.6 16.146 16.146 0 0 0 11.721 5.944 6.282 6.282 0 0 1-.144-1.3 5.688 5.688 0 0 1 9.836-3.892 11.3 11.3 0 0 0 3.615-1.375 5.721 5.721 0 0 1-2.506 3.149 11.538 11.538 0 0 0 3.271-.9 11.585 11.585 0 0 1-2.844 2.958z" fill="#fff" data-name="Path 221"></path>
                     </g>
                 </svg>
 
