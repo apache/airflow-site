@@ -940,23 +940,21 @@
 
         <span class="c1"># If asking for a known subdag, we want to refresh the parent</span>
         <span class="n">dag</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">root_dag_id</span> <span class="o">=</span> <span class="n">dag_id</span>
         <span class="k">if</span> <span class="n">dag_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="p">:</span>
             <span class="n">dag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="p">[</span><span class="n">dag_id</span><span class="p">]</span>
 
         <span class="c1"># If DAG Model is absent, we can&#39;t check last_expired property. Is the DAG not yet synchronized?</span>
-        <span class="n">orm_dag</span> <span class="o">=</span> <span class="n">DagModel</span><span class="o">.</span><span class="n">get_current</span><span class="p">(</span><span class="n">root_dag_id</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
+        <span class="n">orm_dag</span> <span class="o">=</span> <span class="n">DagModel</span><span class="o">.</span><span class="n">get_current</span><span class="p">(</span><span class="n">dag_id</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">session</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">orm_dag</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dag_id</span><span class="p">)</span>
 
-        <span class="c1"># If the dag corresponding to root_dag_id is absent or expired</span>
-        <span class="n">is_missing</span> <span class="o">=</span> <span class="n">root_dag_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span>
+        <span class="n">is_missing</span> <span class="o">=</span> <span class="n">dag_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span>
         <span class="n">is_expired</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">orm_dag</span><span class="o">.</span><span class="n">last_expired</span> <span class="ow">and</span> <span class="n">dag</span> <span class="ow">and</span> <span class="n">dag</span><span class="o">.</span><span class="n">last_loaded</span> <span class="ow">and</span> <span class="n">dag</span><span class="o">.</span><span class="n">last_loaded</span> <span class="o">&lt;</span> <span class="n">orm_dag</span><span class="o">.</span><span class="n">last_expired</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">is_expired</span><span class="p">:</span>
             <span class="c1"># Remove associated dags so we can re-add them.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dags</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">dag</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">dag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dags</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">dag_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_missing</span> <span class="ow">or</span> <span class="n">is_expired</span><span class="p">:</span>
             <span class="c1"># Reprocess source file.</span>
             <span class="n">found_dags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span>
