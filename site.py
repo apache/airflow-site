@@ -158,10 +158,29 @@ def prepare_theme():
 
 def prepare_packages_metadata():
     log("Preparing packages-metadata.json")
-    command = [sys.executable, f"{MY_DIR}/dump-docs-packages-metadata.py"]
+
+    # Create venv if not exists
+    venv_dir = f"{MY_DIR}/venv"
+    if not os.path.exists(venv_dir):
+        log("Creating virtual environment")
+        venv.create(venv_dir, with_pip=True)
+
+    # Install semver in the venv
+    pip_executable = os.path.join(venv_dir, "bin", "pip")
+    log("Installing semver in virtual environment")
+    subprocess.run([pip_executable, "install", "semver"], check=True)
+
+    # Run dump-docs-packages-metadata.py using venv's python
+    python_executable = os.path.join(venv_dir, "bin", "python")
+    command = [python_executable, f"{MY_DIR}/dump-docs-packages-metadata.py"]
+
     os.makedirs(f"{MY_DIR}/landing-pages/site/static/_gen", exist_ok=True)
-    with open(f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json", "w") as file:
-        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT)
+
+    output_file_path = f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json"
+    with open(output_file_path, "w") as file:
+        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT, check=True)
+
+    log(f"packages-metadata.json generated at {output_file_path}")
 
 
 if __name__ == "__main__":
