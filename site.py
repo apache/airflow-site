@@ -159,29 +159,24 @@ def prepare_theme():
 def prepare_packages_metadata():
     log("Preparing packages-metadata.json")
 
-    # Create venv if not exists
-    venv_dir = f"{MY_DIR}/venv"
-    if not os.path.exists(venv_dir):
-        log("Creating virtual environment")
-        venv.create(venv_dir, with_pip=True)
+    # Create venv
+    venv_path = os.path.join(MY_DIR, "venv")
+    subprocess.run([sys.executable, "-m", "venv", venv_path])
 
-    # Install semver in the venv
-    pip_executable = os.path.join(venv_dir, "bin", "pip")
-    log("Installing semver in virtual environment")
-    subprocess.run([pip_executable, "install", "semver"], check=True)
+    # Install semver inside venv
+    pip_path = os.path.join(venv_path, "bin", "pip")
+    subprocess.run([pip_path, "install", "semver"])
 
-    # Run dump-docs-packages-metadata.py using venv's python
-    python_executable = os.path.join(venv_dir, "bin", "python")
-    command = [python_executable, f"{MY_DIR}/dump-docs-packages-metadata.py"]
-
+    # Ensure target directory exists
     os.makedirs(f"{MY_DIR}/landing-pages/site/static/_gen", exist_ok=True)
 
-    output_file_path = f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json"
-    with open(output_file_path, "w") as file:
-        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT, check=True)
+    # Run dump-docs-packages-metadata.py inside venv
+    python_path = os.path.join(venv_path, "bin", "python")
+    command = [python_path, f"{MY_DIR}/dump-docs-packages-metadata.py"]
+    with open(f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json", "w") as file:
+        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT)
 
-    log(f"packages-metadata.json generated at {output_file_path}")
-
+    log("packages-metadata.json generated successfully")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -215,6 +210,7 @@ These are the site.py commands that can be used in various situations:
         run_command(f"{MY_DIR}/landing-pages", "yarn", "run", "preview")
 
     elif args.arg1 == "build-landing-pages":
+        prepare_packages_metadata()
         ensure_node_module_exists()
         build_landing_pages()
 
