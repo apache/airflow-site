@@ -14,21 +14,17 @@ WORKING_DIR = os.getcwd()
 
 
 def build_landing_pages():
-    log("Building landing pages")
-    run_command(f"{MY_DIR}/landing-pages/", "yarn", "run", "index")
-    prepare_packages_metadata()
-    run_command(f"{MY_DIR}/landing-pages/", "yarn", "run", "build")
-
-
-def build_site():
     log("Building full site")
+
     if not os.path.isfile(f"{MY_DIR}/landing-pages/dist/index.html"):
         build_landing_pages()
 
-    dist_path = 'dist/'
+    os.chdir(MY_DIR)
+
+    dist_path = os.path.join(MY_DIR, "dist")
     os.makedirs(dist_path, exist_ok=True)
 
-    # Clean up old dist contents
+    # Clean dist directory
     for filename in os.listdir(dist_path):
         file_path = os.path.join(dist_path, filename)
         try:
@@ -37,7 +33,7 @@ def build_site():
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print(f'Failed to delete {file_path}. Reason: {e}')
+            print(f"Failed to delete {file_path}. Reason: {e}")
 
     verbose_copy("landing-pages/dist/", "dist/")
 
@@ -48,13 +44,23 @@ def build_site():
 
         stable_file = os.path.join(pkg_path, "stable.txt")
         if os.path.isfile(stable_file):
-            os.makedirs(f"docs-archive/{package_name}", exist_ok=True)
             for version in os.listdir(pkg_path):
                 version_path = os.path.join(pkg_path, version)
                 if os.path.isdir(version_path):
-                    verbose_copy(version_path + "/", f"dist/docs/{package_name}/{version}")
-                    create_redirect(f"dist/docs/{package_name}/index.html",
-                                    f"/docs/{package_name}/stable/index.html")
+                    dest_path = os.path.join("dist/docs", package_name, version)
+                    verbose_copy(version_path + "/", dest_path)
+
+            # Copy stable version
+            with open(stable_file) as f:
+                stable_version = f.read().strip()
+            stable_src = os.path.join(pkg_path, stable_version)
+            stable_dest = os.path.join("dist/docs", package_name, "stable")
+            verbose_copy(stable_src + "/", stable_dest)
+
+            create_redirect(
+                f"dist/docs/{package_name}/index.html",
+                f"/docs/{package_name}/stable/index.html"
+            )
         else:
             verbose_copy(pkg_path + "/", f"dist/docs/{package_name}/")
 
@@ -62,7 +68,7 @@ def build_site():
     command = [sys.executable, f"{MY_DIR}/dump-docs-packages-metadata.py"]
     os.makedirs(f"{MY_DIR}/dist/_gen", exist_ok=True)
     with open(f"{MY_DIR}/dist/_gen/packages-metadata.json", "w") as file:
-        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT)
+        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT, check=True)
 
     assert_file_exists(f"{MY_DIR}/dist/docs/index.html")
     assert_file_exists(f"{MY_DIR}/dist/docs/apache-airflow/index.html")
@@ -158,26 +164,16 @@ def prepare_theme():
 
 def prepare_packages_metadata():
     log("Preparing packages-metadata.json")
-
-    commands = [
-    "pip install venv",
-    "python3 -m venv myenv",
-    "source myenv/bin/activate && pip install semver"
-     ]
-
-    for cmd in commands:
-        subprocess.run(cmd, shell=True, check=True)
-
-    # Ensure target directory exists
+    
     os.makedirs(f"{MY_DIR}/landing-pages/site/static/_gen", exist_ok=True)
 
-    # Run dump-docs-packages-metadata.py inside venv
-    python_path = os.path.join(venv_path, "bin", "python")
-    command = [python_path, f"{MY_DIR}/dump-docs-packages-metadata.py"]
-    with open(f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json", "w") as file:
-        subprocess.run(command, stdout=file, stderr=subprocess.STDOUT)
-
-    log("packages-metadata.json generated successfully")
+    with open(f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json", "w") as outfile:
+        subprocess.run(
+            ["python3", f"{MY_DIR}/dump-docs-packages-metadata.py"],
+            stdout=outfile,
+            stderr=subprocess.STDOUT,
+            check=True
+        )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
