@@ -164,7 +164,7 @@ def prepare_theme():
 
 def prepare_packages_metadata():
     log("Preparing packages-metadata.json")
-    
+
     os.makedirs(f"{MY_DIR}/landing-pages/site/static/_gen", exist_ok=True)
 
     with open(f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json", "w") as outfile:
