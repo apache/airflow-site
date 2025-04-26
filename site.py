@@ -159,13 +159,14 @@ def prepare_theme():
 def prepare_packages_metadata():
     log("Preparing packages-metadata.json")
 
-    # Create venv
-    venv_path = os.path.join(MY_DIR, "venv")
-    subprocess.run([sys.executable, "-m", "venv", venv_path])
+    commands = [
+    "pip install venv",
+    "python3 -m venv myenv",
+    "source myenv/bin/activate && pip install semver"
+     ]
 
-    # Install semver inside venv
-    pip_path = os.path.join(venv_path, "bin", "pip")
-    subprocess.run([pip_path, "install", "semver"])
+    for cmd in commands:
+        subprocess.run(cmd, shell=True, check=True)
 
     # Ensure target directory exists
     os.makedirs(f"{MY_DIR}/landing-pages/site/static/_gen", exist_ok=True)
