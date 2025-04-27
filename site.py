@@ -13,7 +13,7 @@ MY_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKING_DIR = os.getcwd()
 
 
-def build_landing_pages():
+def build_site():
     log("Building full site")
 
     if not os.path.isfile(f"{MY_DIR}/landing-pages/dist/index.html"):
@@ -161,10 +161,16 @@ def prepare_theme():
     shutil.copy(os.path.join(SITE_DIST, "scss/main-custom.min.css"), f"{THEME_GEN}/css/main-custom.min.css")
     print("Successfully copied required files")
 
-
+def build_landing_pages():
+    log("Building Landing Pages")
+    run_command(f"{MY_DIR}/landing-pages/","yarn","run","index")
+    prepare_packages_metadata()
+    run_command(f"{MY_DIR}/landing-pages/","yarn","run","build")
+    
+    
 def prepare_packages_metadata():
     log("Preparing packages-metadata.json")
-
+    
     os.makedirs(f"{MY_DIR}/landing-pages/site/static/_gen", exist_ok=True)
 
     with open(f"{MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json", "w") as outfile:
@@ -207,7 +213,6 @@ These are the site.py commands that can be used in various situations:
         run_command(f"{MY_DIR}/landing-pages", "yarn", "run", "preview")
 
     elif args.arg1 == "build-landing-pages":
-        prepare_packages_metadata()
         ensure_node_module_exists()
         build_landing_pages()
 
