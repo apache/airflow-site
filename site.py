@@ -156,10 +156,21 @@ def prepare_theme():
     os.makedirs(f"{THEME_GEN}/css", exist_ok=True)
     os.makedirs(f"{THEME_GEN}/js", exist_ok=True)
 
-    shutil.copy(os.path.join(SITE_DIST, "docs.js"), f"{THEME_GEN}/js/docs.js")
-    shutil.copy(os.path.join(SITE_DIST, "scss/main.min.css"), f"{THEME_GEN}/css/main.min.css")
-    shutil.copy(os.path.join(SITE_DIST, "scss/main-custom.min.css"), f"{THEME_GEN}/css/main-custom.min.css")
-    print("Successfully copied required files")
+    # Find matching files
+    docs_files = glob.glob(os.path.join(SITE_DIST, "docs.*.js"))
+    scss_main_files = glob.glob(os.path.join(SITE_DIST, "scss", "main.min.*.css"))
+    scss_custom_files = glob.glob(os.path.join(SITE_DIST, "scss", "main-custom.min.*.css"))
+
+    # Copy the first matching file for each pattern
+    if docs_files:
+        shutil.copy(docs_files[0], os.path.join(THEME_GEN, "js", "docs.js"))
+
+    if scss_main_files:
+        shutil.copy(scss_main_files[0], os.path.join(THEME_GEN, "css", "main.min.css"))
+
+    if scss_custom_files:
+        shutil.copy(scss_custom_files[0], os.path.join(THEME_GEN, "css", "main-custom.min.css"))
+        print("Successfully copied required files")
 
 def build_landing_pages():
     log("Building Landing Pages")
