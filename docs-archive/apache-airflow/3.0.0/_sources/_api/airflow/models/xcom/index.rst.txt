@@ -1,0 +1,189 @@
+airflow.models.xcom
+===================
+
+.. py:module:: airflow.models.xcom
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.models.xcom.log
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.models.xcom.XComModel
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   airflow.models.xcom.__getattr__
+
+
+Module Contents
+---------------
+
+.. py:data:: log
+
+.. py:class:: XComModel
+
+   Bases: :py:obj:`airflow.models.base.TaskInstanceDependencies`
+
+
+   XCom model class. Contains table and some utilities.
+
+
+   .. py:attribute:: __tablename__
+      :value: 'xcom'
+
+
+
+   .. py:attribute:: dag_run_id
+
+
+   .. py:attribute:: task_id
+
+
+   .. py:attribute:: map_index
+
+
+   .. py:attribute:: key
+
+
+   .. py:attribute:: dag_id
+
+
+   .. py:attribute:: run_id
+
+
+   .. py:attribute:: value
+
+
+   .. py:attribute:: timestamp
+
+
+   .. py:attribute:: __table_args__
+
+
+   .. py:attribute:: dag_run
+
+
+   .. py:attribute:: logical_date
+
+
+   .. py:method:: clear(*, dag_id, task_id, run_id, map_index = None, session = NEW_SESSION)
+      :classmethod:
+
+
+      Clear all XCom data from the database for the given task instance.
+
+      .. note:: This **will not** purge any data from a custom XCom backend.
+
+      :param dag_id: ID of DAG to clear the XCom for.
+      :param task_id: ID of task to clear the XCom for.
+      :param run_id: ID of DAG run to clear the XCom for.
+      :param map_index: If given, only clear XCom from this particular mapped
+          task. The default ``None`` clears *all* XComs from the task.
+      :param session: Database session. If not given, a new session will be
+          created for this function.
+
+
+
+   .. py:method:: set(key, value, *, dag_id, task_id, run_id, map_index = -1, session = NEW_SESSION)
+      :classmethod:
+
+
+      Store an XCom value.
+
+      :param key: Key to store the XCom.
+      :param value: XCom value to store.
+      :param dag_id: DAG ID.
+      :param task_id: Task ID.
+      :param run_id: DAG run ID for the task.
+      :param map_index: Optional map index to assign XCom for a mapped task.
+          The default is ``-1`` (set for a non-mapped task).
+      :param session: Database session. If not given, a new session will be
+          created for this function.
+
+
+
+   .. py:method:: get_many(*, run_id, key = None, task_ids = None, dag_ids = None, map_indexes = None, include_prior_dates = False, limit = None, session = NEW_SESSION)
+      :classmethod:
+
+
+      Composes a query to get one or more XCom entries.
+
+      This function returns an SQLAlchemy query of full XCom objects. If you
+      just want one stored value, use :meth:`get_one` instead.
+
+      :param run_id: DAG run ID for the task.
+      :param key: A key for the XComs. If provided, only XComs with matching
+          keys will be returned. Pass *None* (default) to remove the filter.
+      :param task_ids: Only XComs from task with matching IDs will be pulled.
+          Pass *None* (default) to remove the filter.
+      :param dag_ids: Only pulls XComs from specified DAGs. Pass *None*
+          (default) to remove the filter.
+      :param map_indexes: Only XComs from matching map indexes will be pulled.
+          Pass *None* (default) to remove the filter.
+      :param include_prior_dates: If *False* (default), only XComs from the
+          specified DAG run are returned. If *True*, all matching XComs are
+          returned regardless of the run it belongs to.
+      :param session: Database session. If not given, a new session will be
+          created for this function.
+      :param limit: Limiting returning XComs
+
+
+
+   .. py:method:: serialize_value(value, *, key = None, task_id = None, dag_id = None, run_id = None, map_index = None)
+      :staticmethod:
+
+
+      Serialize XCom value to JSON str.
+
+
+
+   .. py:method:: deserialize_value(result)
+      :staticmethod:
+
+
+      Deserialize XCom value from a database result.
+
+      If deserialization fails, the raw value is returned, which must still be a valid Python JSON-compatible
+      type (e.g., ``dict``, ``list``, ``str``, ``int``, ``float``, or ``bool``).
+
+      XCom values are stored as JSON in the database, and SQLAlchemy automatically handles
+      serialization (``json.dumps``) and deserialization (``json.loads``). However, we
+      use a custom encoder for serialization (``serialize_value``) and deserialization to handle special
+      cases, such as encoding tuples via the Airflow Serialization module. These must be decoded
+      using ``XComDecoder`` to restore original types.
+
+      Some XCom values, such as those set via the Task Execution API, bypass ``serialize_value``
+      and are stored directly in JSON format. Since these values are already deserialized
+      by SQLAlchemy, they are returned as-is.
+
+      **Example: Handling a tuple**:
+
+      .. code-block:: python
+
+          original_value = (1, 2, 3)
+          serialized_value = XComModel.serialize_value(original_value)
+          print(serialized_value)
+          # '{"__classname__": "builtins.tuple", "__version__": 1, "__data__": [1, 2, 3]}'
+
+      This serialized value is stored in the database. When deserialized, the value is restored to the original tuple.
+
+      :param result: The XCom database row or object containing a ``value`` attribute.
+      :return: The deserialized Python object.
+
+
+
+.. py:function:: __getattr__(name)
+

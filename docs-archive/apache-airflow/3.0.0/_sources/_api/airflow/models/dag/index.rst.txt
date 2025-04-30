@@ -1,0 +1,878 @@
+airflow.models.dag
+==================
+
+.. py:module:: airflow.models.dag
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.models.dag.log
+   airflow.models.dag.AssetT
+   airflow.models.dag.TAG_MAX_LEN
+   airflow.models.dag.DagStateChangeCallback
+   airflow.models.dag.ScheduleInterval
+   airflow.models.dag.ScheduleArg
+   airflow.models.dag.dag
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   airflow.models.dag.InconsistentDataInterval
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.models.dag.DAG
+   airflow.models.dag.DagTag
+   airflow.models.dag.DagOwnerAttributes
+   airflow.models.dag.DagModel
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   airflow.models.dag.get_last_dagrun
+   airflow.models.dag.get_asset_triggered_next_run_info
+
+
+Module Contents
+---------------
+
+.. py:data:: log
+
+.. py:data:: AssetT
+
+.. py:data:: TAG_MAX_LEN
+   :value: 100
+
+
+.. py:data:: DagStateChangeCallback
+
+.. py:data:: ScheduleInterval
+
+.. py:data:: ScheduleArg
+
+.. py:exception:: InconsistentDataInterval(instance, start_field_name, end_field_name)
+
+   Bases: :py:obj:`airflow.exceptions.AirflowException`
+
+
+   Exception raised when a model populates data interval fields incorrectly.
+
+   The data interval fields should either both be None (for runs scheduled
+   prior to AIP-39), or both be datetime (for runs scheduled after AIP-39 is
+   implemented). This is raised if exactly one of the fields is None.
+
+
+   .. py:method:: __str__()
+
+      Return str(self).
+
+
+
+.. py:function:: get_last_dagrun(dag_id, session, include_manually_triggered=False)
+
+   Return the last dag run for a dag, None if there was none.
+
+   Last dag run can be any type of run e.g. scheduled or backfilled.
+   Overridden DagRuns are ignored.
+
+
+.. py:function:: get_asset_triggered_next_run_info(dag_ids, *, session)
+
+   Get next run info for a list of dag_ids.
+
+   Given a list of dag_ids, get string representing how close any that are asset triggered are
+   their next run, e.g. "1 of 2 assets updated".
+
+
+.. py:data:: dag
+
+.. py:class:: DAG(context=None)
+
+   Bases: :py:obj:`airflow.sdk.definitions.dag.DAG`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+
+   A dag (directed acyclic graph) is a collection of tasks with directional dependencies.
+
+   A dag also has a schedule, a start date and an end date (optional).  For each schedule,
+   (say daily or hourly), the DAG needs to run each individual tasks as their dependencies
+   are met. Certain tasks have the property of depending on their own past, meaning that
+   they can't run until their previous schedule (and upstream tasks) are completed.
+
+   DAGs essentially act as namespaces for tasks. A task_id can only be
+   added once to a DAG.
+
+   Note that if you plan to use time zones all the dates provided should be pendulum
+   dates. See :ref:`timezone_aware_dags`.
+
+   .. versionadded:: 2.4
+       The *schedule* argument to specify either time-based scheduling logic
+       (timetable), or asset-driven triggers.
+
+   .. versionchanged:: 3.0
+       The default value of *schedule* has been changed to *None* (no schedule).
+       The previous default was ``timedelta(days=1)``.
+
+   :param dag_id: The id of the DAG; must consist exclusively of alphanumeric
+       characters, dashes, dots and underscores (all ASCII)
+   :param description: The description for the DAG to e.g. be shown on the webserver
+   :param schedule: If provided, this defines the rules according to which DAG
+       runs are scheduled. Possible values include a cron expression string,
+       timedelta object, Timetable, or list of Asset objects.
+       See also :doc:`/howto/timetable`.
+   :param start_date: The timestamp from which the scheduler will
+       attempt to backfill. If this is not provided, backfilling must be done
+       manually with an explicit time range.
+   :param end_date: A date beyond which your DAG won't run, leave to None
+       for open-ended scheduling.
+   :param template_searchpath: This list of folders (non-relative)
+       defines where jinja will look for your templates. Order matters.
+       Note that jinja/airflow includes the path of your DAG file by
+       default
+   :param template_undefined: Template undefined type.
+   :param user_defined_macros: a dictionary of macros that will be exposed
+       in your jinja templates. For example, passing ``dict(foo='bar')``
+       to this argument allows you to ``{{ foo }}`` in all jinja
+       templates related to this DAG. Note that you can pass any
+       type of object here.
+   :param user_defined_filters: a dictionary of filters that will be exposed
+       in your jinja templates. For example, passing
+       ``dict(hello=lambda name: 'Hello %s' % name)`` to this argument allows
+       you to ``{{ 'world' | hello }}`` in all jinja templates related to
+       this DAG.
+   :param default_args: A dictionary of default parameters to be used
+       as constructor keyword parameters when initialising operators.
+       Note that operators have the same hook, and precede those defined
+       here, meaning that if your dict contains `'depends_on_past': True`
+       here and `'depends_on_past': False` in the operator's call
+       `default_args`, the actual value will be `False`.
+   :param params: a dictionary of DAG level parameters that are made
+       accessible in templates, namespaced under `params`. These
+       params can be overridden at the task level.
+   :param max_active_tasks: the number of task instances allowed to run
+       concurrently
+   :param max_active_runs: maximum number of active DAG runs, beyond this
+       number of DAG runs in a running state, the scheduler won't create
+       new active DAG runs
+   :param max_consecutive_failed_dag_runs: (experimental) maximum number of consecutive failed DAG runs,
+       beyond this the scheduler will disable the DAG
+   :param dagrun_timeout: Specify the duration a DagRun should be allowed to run before it times out or
+       fails. Task instances that are running when a DagRun is timed out will be marked as skipped.
+   :param sla_miss_callback: DEPRECATED - The SLA feature is removed in Airflow 3.0, to be replaced with a new implementation in 3.1
+   :param catchup: Perform scheduler catchup (or only run latest)? Defaults to False
+   :param on_failure_callback: A function or list of functions to be called when a DagRun of this dag fails.
+       A context dictionary is passed as a single parameter to this function.
+   :param on_success_callback: Much like the ``on_failure_callback`` except
+       that it is executed when the dag succeeds.
+   :param access_control: Specify optional DAG-level actions, e.g.,
+       "{'role1': {'can_read'}, 'role2': {'can_read', 'can_edit', 'can_delete'}}"
+       or it can specify the resource name if there is a DAGs Run resource, e.g.,
+       "{'role1': {'DAG Runs': {'can_create'}}, 'role2': {'DAGs': {'can_read', 'can_edit', 'can_delete'}}"
+   :param is_paused_upon_creation: Specifies if the dag is paused when created for the first time.
+       If the dag exists already, this flag will be ignored. If this optional parameter
+       is not specified, the global config setting will be used.
+   :param jinja_environment_kwargs: additional configuration options to be passed to Jinja
+       ``Environment`` for template rendering
+
+       **Example**: to avoid Jinja from removing a trailing newline from template strings ::
+
+           DAG(
+               dag_id="my-dag",
+               jinja_environment_kwargs={
+                   "keep_trailing_newline": True,
+                   # some other jinja2 Environment options here
+               },
+           )
+
+       **See**: `Jinja Environment documentation
+       <https://jinja.palletsprojects.com/en/2.11.x/api/#jinja2.Environment>`_
+
+   :param render_template_as_native_obj: If True, uses a Jinja ``NativeEnvironment``
+       to render templates as native Python types. If False, a Jinja
+       ``Environment`` is used to render templates as string values.
+   :param tags: List of tags to help filtering DAGs in the UI.
+   :param owner_links: Dict of owners and their links, that will be clickable on the DAGs view UI.
+       Can be used as an HTTP link (for example the link to your Slack channel), or a mailto link.
+       e.g: {"dag_owner": "https://airflow.apache.org/"}
+   :param auto_register: Automatically register this DAG when it is used in a ``with`` block
+   :param fail_fast: Fails currently running tasks when task in DAG fails.
+       **Warning**: A fail fast dag can only have tasks with the default trigger rule ("all_success").
+       An exception will be thrown if any task in a fail fast dag has a non default trigger rule.
+   :param dag_display_name: The display name of the DAG which appears on the UI.
+
+
+   .. py:attribute:: partial
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: last_loaded
+      :type:  datetime.datetime | None
+
+
+   .. py:attribute:: max_consecutive_failed_dag_runs
+      :type:  int
+
+
+   .. py:property:: safe_dag_id
+
+
+   .. py:method:: validate()
+
+      Validate the DAG has a coherent setup.
+
+      This is called by the DAG bag before bagging the DAG.
+
+
+
+   .. py:method:: validate_executor_field()
+
+
+   .. py:method:: next_dagrun_info(last_automated_dagrun, *, restricted = True)
+
+      Get information about the next DagRun of this dag after ``date_last_automated_dagrun``.
+
+      This calculates what time interval the next DagRun should operate on
+      (its logical date) and when it can be scheduled, according to the
+      dag's timetable, start_date, end_date, etc. This doesn't check max
+      active run or any other "max_active_tasks" type limits, but only
+      performs calculations based on the various date and interval fields of
+      this dag and its tasks.
+
+      :param last_automated_dagrun: The ``max(logical_date)`` of
+          existing "automated" DagRuns for this dag (scheduled or backfill,
+          but not manual).
+      :param restricted: If set to *False* (default is *True*), ignore
+          ``start_date``, ``end_date``, and ``catchup`` specified on the DAG
+          or tasks.
+      :return: DagRunInfo of the next dagrun, or None if a dagrun is not
+          going to be scheduled.
+
+
+
+   .. py:method:: iter_dagrun_infos_between(earliest, latest, *, align = True)
+
+      Yield DagRunInfo using this DAG's timetable between given interval.
+
+      DagRunInfo instances yielded if their ``logical_date`` is not earlier
+      than ``earliest``, nor later than ``latest``. The instances are ordered
+      by their ``logical_date`` from earliest to latest.
+
+      If ``align`` is ``False``, the first run will happen immediately on
+      ``earliest``, even if it does not fall on the logical timetable schedule.
+      The default is ``True``.
+
+      Example: A DAG is scheduled to run every midnight (``0 0 * * *``). If
+      ``earliest`` is ``2021-06-03 23:00:00``, the first DagRunInfo would be
+      ``2021-06-03 23:00:00`` if ``align=False``, and ``2021-06-04 00:00:00``
+      if ``align=True``.
+
+
+
+   .. py:method:: get_last_dagrun(session=NEW_SESSION, include_manually_triggered=False)
+
+
+   .. py:method:: has_dag_runs(session=NEW_SESSION, include_manually_triggered=True)
+
+
+   .. py:property:: dag_id
+      :type: str
+
+
+
+   .. py:property:: timetable_summary
+      :type: str
+
+
+
+   .. py:method:: get_concurrency_reached(session=NEW_SESSION)
+
+      Return a boolean indicating whether the max_active_tasks limit for this DAG has been reached.
+
+
+
+   .. py:method:: get_is_active(session=NEW_SESSION)
+
+      Return a boolean indicating whether this DAG is active.
+
+
+
+   .. py:method:: get_is_stale(session=NEW_SESSION)
+
+      Return a boolean indicating whether this DAG is stale.
+
+
+
+   .. py:method:: get_is_paused(session=NEW_SESSION)
+
+      Return a boolean indicating whether this DAG is paused.
+
+
+
+   .. py:method:: get_bundle_name(session=NEW_SESSION)
+
+      Return the bundle name this DAG is in.
+
+
+
+   .. py:method:: get_bundle_version(session=NEW_SESSION)
+
+      Return the bundle version that was seen when this dag was processed.
+
+
+
+   .. py:method:: get_serialized_fields()
+      :classmethod:
+
+
+      Stringified DAGs and operators contain exactly these fields.
+
+
+
+   .. py:method:: fetch_callback(dag, run_id, success = True, reason = None, *, session = NEW_SESSION)
+      :staticmethod:
+
+
+      Fetch the appropriate callbacks depending on the value of success.
+
+      This method gets the context of a single TaskInstance part of this DagRun and returns it along
+      the list of callbacks.
+
+      :param dag: DAG object
+      :param run_id: The DAG run ID
+      :param success: Flag to specify if failure or success callback should be called
+      :param reason: Completion reason
+      :param session: Database session
+
+
+
+   .. py:method:: handle_callback(dagrun, success=True, reason=None, session=NEW_SESSION)
+
+      Triggers on_failure_callback or on_success_callback as appropriate.
+
+      This method gets the context of a single TaskInstance part of this DagRun
+      and passes that to the callable along with a 'reason', primarily to
+      differentiate DagRun failures.
+
+      .. note: The logs end up in
+          ``$AIRFLOW_HOME/logs/scheduler/latest/PROJECT/DAG_FILE.py.log``
+
+      :param dagrun: DagRun object
+      :param success: Flag to specify if failure or success callback should be called
+      :param reason: Completion reason
+      :param session: Database session
+
+
+
+   .. py:method:: execute_callback(callbacks, context, dag_id)
+      :classmethod:
+
+
+      Triggers the callbacks with the given context.
+
+      :param callbacks: List of callbacks to call
+      :param context: Context to pass to all callbacks
+      :param dag_id: The dag_id of the DAG to find.
+
+
+
+   .. py:method:: get_active_runs()
+
+      Return a list of dag run logical dates currently running.
+
+      :return: List of logical dates
+
+
+
+   .. py:method:: fetch_dagrun(dag_id, run_id, session = NEW_SESSION)
+      :staticmethod:
+
+
+      Return the dag run for a given run_id if it exists, otherwise none.
+
+      :param dag_id: The dag_id of the DAG to find.
+      :param run_id: The run_id of the DagRun to find.
+      :param session:
+      :return: The DagRun if found, otherwise None.
+
+
+
+   .. py:method:: get_dagrun(run_id, session = NEW_SESSION)
+
+
+   .. py:method:: get_dagruns_between(start_date, end_date, session=NEW_SESSION)
+
+      Return the list of dag runs between start_date (inclusive) and end_date (inclusive).
+
+      :param start_date: The starting logical date of the DagRun to find.
+      :param end_date: The ending logical date of the DagRun to find.
+      :param session:
+      :return: The list of DagRuns found.
+
+
+
+   .. py:method:: get_latest_logical_date(session = NEW_SESSION)
+
+      Return the latest date for which at least one dag run exists.
+
+
+
+   .. py:method:: get_task_instances_before(base_date, num, *, session = NEW_SESSION)
+
+      Get ``num`` task instances before (including) ``base_date``.
+
+      The returned list may contain exactly ``num`` task instances
+      corresponding to any DagRunType. It can have less if there are
+      less than ``num`` scheduled DAG runs before ``base_date``.
+
+
+
+   .. py:method:: get_task_instances(start_date = None, end_date = None, state = None, session = NEW_SESSION)
+
+
+   .. py:method:: set_task_instance_state(*, task_id, map_indexes = None, run_id = None, state, upstream = False, downstream = False, future = False, past = False, commit = True, session=NEW_SESSION)
+
+      Set the state of a TaskInstance and clear downstream tasks in failed or upstream_failed state.
+
+      :param task_id: Task ID of the TaskInstance
+      :param map_indexes: Only set TaskInstance if its map_index matches.
+          If None (default), all mapped TaskInstances of the task are set.
+      :param run_id: The run_id of the TaskInstance
+      :param state: State to set the TaskInstance to
+      :param upstream: Include all upstream tasks of the given task_id
+      :param downstream: Include all downstream tasks of the given task_id
+      :param future: Include all future TaskInstances of the given task_id
+      :param commit: Commit changes
+      :param past: Include all past TaskInstances of the given task_id
+
+
+
+   .. py:method:: set_task_group_state(*, group_id, run_id = None, state, upstream = False, downstream = False, future = False, past = False, commit = True, session = NEW_SESSION)
+
+      Set TaskGroup to the given state and clear downstream tasks in failed or upstream_failed state.
+
+      :param group_id: The group_id of the TaskGroup
+      :param run_id: The run_id of the TaskInstance
+      :param state: State to set the TaskInstance to
+      :param upstream: Include all upstream tasks of the given task_id
+      :param downstream: Include all downstream tasks of the given task_id
+      :param future: Include all future TaskInstances of the given task_id
+      :param commit: Commit changes
+      :param past: Include all past TaskInstances of the given task_id
+      :param session: new session
+
+
+
+   .. py:method:: clear(*, dry_run: airflow.typing_compat.Literal[True], task_ids: collections.abc.Collection[str | tuple[str, int]] | None = None, run_id: str, only_failed: bool = False, only_running: bool = False, confirm_prompt: bool = False, dag_run_state: airflow.utils.state.DagRunState = DagRunState.QUEUED, session: sqlalchemy.orm.session.Session = NEW_SESSION, dag_bag: airflow.models.dagbag.DagBag | None = None, exclude_task_ids: frozenset[str] | frozenset[tuple[str, int]] | None = frozenset(), exclude_run_ids: frozenset[str] | None = frozenset()) -> list[airflow.models.taskinstance.TaskInstance]
+                  clear(*, task_ids: collections.abc.Collection[str | tuple[str, int]] | None = None, run_id: str, only_failed: bool = False, only_running: bool = False, confirm_prompt: bool = False, dag_run_state: airflow.utils.state.DagRunState = DagRunState.QUEUED, dry_run: airflow.typing_compat.Literal[False] = False, session: sqlalchemy.orm.session.Session = NEW_SESSION, dag_bag: airflow.models.dagbag.DagBag | None = None, exclude_task_ids: frozenset[str] | frozenset[tuple[str, int]] | None = frozenset(), exclude_run_ids: frozenset[str] | None = frozenset()) -> int
+                  clear(*, dry_run: airflow.typing_compat.Literal[True], task_ids: collections.abc.Collection[str | tuple[str, int]] | None = None, start_date: datetime.datetime | None = None, end_date: datetime.datetime | None = None, only_failed: bool = False, only_running: bool = False, confirm_prompt: bool = False, dag_run_state: airflow.utils.state.DagRunState = DagRunState.QUEUED, session: sqlalchemy.orm.session.Session = NEW_SESSION, dag_bag: airflow.models.dagbag.DagBag | None = None, exclude_task_ids: frozenset[str] | frozenset[tuple[str, int]] | None = frozenset(), exclude_run_ids: frozenset[str] | None = frozenset()) -> list[airflow.models.taskinstance.TaskInstance]
+                  clear(*, task_ids: collections.abc.Collection[str | tuple[str, int]] | None = None, start_date: datetime.datetime | None = None, end_date: datetime.datetime | None = None, only_failed: bool = False, only_running: bool = False, confirm_prompt: bool = False, dag_run_state: airflow.utils.state.DagRunState = DagRunState.QUEUED, dry_run: airflow.typing_compat.Literal[False] = False, session: sqlalchemy.orm.session.Session = NEW_SESSION, dag_bag: airflow.models.dagbag.DagBag | None = None, exclude_task_ids: frozenset[str] | frozenset[tuple[str, int]] | None = frozenset(), exclude_run_ids: frozenset[str] | None = frozenset()) -> int
+
+      Clear a set of task instances associated with the current dag for a specified date range.
+
+      :param task_ids: List of task ids or (``task_id``, ``map_index``) tuples to clear
+      :param run_id: The run_id for which the tasks should be cleared
+      :param start_date: The minimum logical_date to clear
+      :param end_date: The maximum logical_date to clear
+      :param only_failed: Only clear failed tasks
+      :param only_running: Only clear running tasks.
+      :param confirm_prompt: Ask for confirmation
+      :param dag_run_state: state to set DagRun to. If set to False, dagrun state will not
+          be changed.
+      :param dry_run: Find the tasks to clear but don't clear them.
+      :param session: The sqlalchemy session to use
+      :param dag_bag: The DagBag used to find the dags (Optional)
+      :param exclude_task_ids: A set of ``task_id`` or (``task_id``, ``map_index``)
+          tuples that should not be cleared
+      :param exclude_run_ids: A set of ``run_id`` or (``run_id``)
+
+
+
+   .. py:method:: clear_dags(dags, start_date=None, end_date=None, only_failed=False, only_running=False, confirm_prompt=False, dag_run_state=DagRunState.QUEUED, dry_run=False)
+      :classmethod:
+
+
+
+   .. py:method:: cli()
+
+      Exposes a CLI specific to this DAG.
+
+
+
+   .. py:method:: test(run_after = None, logical_date = None, run_conf = None, conn_file_path = None, variable_file_path = None, use_executor = False, mark_success_pattern = None, session = NEW_SESSION)
+
+      Execute one single DagRun for a given DAG and logical date.
+
+      :param run_after: the datetime before which to Dag cannot run.
+      :param logical_date: logical date for the DAG run
+      :param run_conf: configuration to pass to newly created dagrun
+      :param conn_file_path: file path to a connection file in either yaml or json
+      :param variable_file_path: file path to a variable file in either yaml or json
+      :param use_executor: if set, uses an executor to test the DAG
+      :param mark_success_pattern: regex of task_ids to mark as success instead of running
+      :param session: database connection (optional)
+
+
+
+   .. py:method:: bulk_write_to_db(bundle_name, bundle_version, dags, session = NEW_SESSION)
+      :classmethod:
+
+
+      Ensure the DagModel rows for the given dags are up-to-date in the dag table in the DB.
+
+      :param dags: the DAG objects to save to the DB
+      :return: None
+
+
+
+   .. py:method:: sync_to_db(session=NEW_SESSION)
+
+      Save attributes about this DAG to the DB.
+
+      :return: None
+
+
+
+   .. py:method:: deactivate_unknown_dags(active_dag_ids, session=NEW_SESSION)
+      :staticmethod:
+
+
+      Given a list of known DAGs, deactivate any other DAGs that are marked as active in the ORM.
+
+      :param active_dag_ids: list of DAG IDs that are active
+      :return: None
+
+
+
+   .. py:method:: deactivate_stale_dags(expiration_date, session=NEW_SESSION)
+      :staticmethod:
+
+
+      Deactivate any DAGs that were last touched by the scheduler before the expiration date.
+
+      These DAGs were likely deleted.
+
+      :param expiration_date: set inactive DAGs that were touched before this time
+      :return: None
+
+
+
+   .. py:method:: get_num_task_instances(dag_id, run_id=None, task_ids=None, states=None, session=NEW_SESSION)
+      :staticmethod:
+
+
+      Return the number of task instances in the given DAG.
+
+      :param session: ORM session
+      :param dag_id: ID of the DAG to get the task concurrency of
+      :param run_id: ID of the DAG run to get the task concurrency of
+      :param task_ids: A list of valid task IDs for the given DAG
+      :param states: A list of states to filter by if supplied
+      :return: The number of running tasks
+
+
+
+   .. py:method:: get_task_assets(inlets = True, outlets = True, of_type = Asset)
+
+
+   .. py:method:: from_sdk_dag(dag)
+      :classmethod:
+
+
+      Create a new (Scheduler) DAG object from a TaskSDKDag.
+
+
+
+.. py:class:: DagTag
+
+   Bases: :py:obj:`airflow.models.base.Base`
+
+
+   A tag name per dag, to allow quick filtering in the DAG view.
+
+
+   .. py:attribute:: __tablename__
+      :value: 'dag_tag'
+
+
+
+   .. py:attribute:: name
+
+
+   .. py:attribute:: dag_id
+
+
+   .. py:attribute:: __table_args__
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: DagOwnerAttributes
+
+   Bases: :py:obj:`airflow.models.base.Base`
+
+
+   Table defining different owner attributes.
+
+   For example, a link for an owner that will be passed as a hyperlink to the "DAGs" view.
+
+
+   .. py:attribute:: __tablename__
+      :value: 'dag_owner_attributes'
+
+
+
+   .. py:attribute:: dag_id
+
+
+   .. py:attribute:: owner
+
+
+   .. py:attribute:: link
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: get_all(session)
+      :classmethod:
+
+
+
+.. py:class:: DagModel(**kwargs)
+
+   Bases: :py:obj:`airflow.models.base.Base`
+
+
+   Table containing DAG properties.
+
+
+   .. py:attribute:: __tablename__
+      :value: 'dag'
+
+
+      These items are stored in the database for state related information
+
+
+
+   .. py:attribute:: dag_id
+
+
+   .. py:attribute:: is_paused_at_creation
+      :value: True
+
+
+
+   .. py:attribute:: is_paused
+
+
+   .. py:attribute:: is_stale
+
+
+   .. py:attribute:: last_parsed_time
+
+
+   .. py:attribute:: last_expired
+
+
+   .. py:attribute:: fileloc
+
+
+   .. py:attribute:: relative_fileloc
+
+
+   .. py:attribute:: bundle_name
+
+
+   .. py:attribute:: bundle_version
+
+
+   .. py:attribute:: owners
+
+
+   .. py:attribute:: description
+
+
+   .. py:attribute:: timetable_summary
+
+
+   .. py:attribute:: timetable_description
+
+
+   .. py:attribute:: asset_expression
+
+
+   .. py:attribute:: tags
+
+
+   .. py:attribute:: dag_owner_links
+
+
+   .. py:attribute:: max_active_tasks
+
+
+   .. py:attribute:: max_active_runs
+
+
+   .. py:attribute:: max_consecutive_failed_dag_runs
+
+
+   .. py:attribute:: has_task_concurrency_limits
+
+
+   .. py:attribute:: has_import_errors
+
+
+   .. py:attribute:: next_dagrun
+
+
+   .. py:attribute:: next_dagrun_data_interval_start
+
+
+   .. py:attribute:: next_dagrun_data_interval_end
+
+
+   .. py:attribute:: next_dagrun_create_after
+
+
+   .. py:attribute:: __table_args__
+
+
+   .. py:attribute:: schedule_asset_references
+
+
+   .. py:attribute:: schedule_asset_alias_references
+
+
+   .. py:attribute:: schedule_asset_name_references
+
+
+   .. py:attribute:: schedule_asset_uri_references
+
+
+   .. py:attribute:: schedule_assets
+
+
+   .. py:attribute:: task_outlet_asset_references
+
+
+   .. py:attribute:: NUM_DAGS_PER_DAGRUN_QUERY
+
+
+   .. py:attribute:: dag_versions
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:property:: next_dagrun_data_interval
+      :type: airflow.timetables.base.DataInterval | None
+
+
+
+   .. py:property:: timezone
+
+
+   .. py:method:: get_dagmodel(dag_id, session = NEW_SESSION)
+      :staticmethod:
+
+
+
+   .. py:method:: get_current(dag_id, session=NEW_SESSION)
+      :classmethod:
+
+
+
+   .. py:method:: get_last_dagrun(session=NEW_SESSION, include_manually_triggered=False)
+
+
+   .. py:method:: get_is_paused(*, session = None)
+
+      Provide interface compatibility to 'DAG'.
+
+
+
+   .. py:method:: get_is_active(*, session = None)
+
+      Provide interface compatibility to 'DAG'.
+
+
+
+   .. py:method:: get_paused_dag_ids(dag_ids, session = NEW_SESSION)
+      :staticmethod:
+
+
+      Given a list of dag_ids, get a set of Paused Dag Ids.
+
+      :param dag_ids: List of Dag ids
+      :param session: ORM Session
+      :return: Paused Dag_ids
+
+
+
+   .. py:property:: safe_dag_id
+
+
+   .. py:method:: set_is_paused(is_paused, session=NEW_SESSION)
+
+      Pause/Un-pause a DAG.
+
+      :param is_paused: Is the DAG paused
+      :param session: session
+
+
+
+   .. py:method:: dag_display_name()
+
+
+   .. py:method:: deactivate_deleted_dags(bundle_name, rel_filelocs, session = NEW_SESSION)
+      :classmethod:
+
+
+      Set ``is_active=False`` on the DAGs for which the DAG files have been removed.
+
+      :param bundle_name: bundle for filelocs
+      :param rel_filelocs: relative filelocs for bundle
+      :param session: ORM Session
+
+
+
+   .. py:method:: dags_needing_dagruns(session)
+      :classmethod:
+
+
+      Return (and lock) a list of Dag objects that are due to create a new DagRun.
+
+      This will return a resultset of rows that is row-level-locked with a "SELECT ... FOR UPDATE" query,
+      you should ensure that any scheduling decisions are made in a single transaction -- as soon as the
+      transaction is committed it will be unlocked.
+
+
+
+   .. py:method:: calculate_dagrun_date_fields(dag, last_automated_dag_run)
+
+      Calculate ``next_dagrun`` and `next_dagrun_create_after``.
+
+      :param dag: The DAG object
+      :param last_automated_dag_run: DataInterval (or datetime) of most recent run of this dag, or none
+          if not yet scheduled.
+
+
+
+   .. py:method:: get_asset_triggered_next_run_info(*, session=NEW_SESSION)
+
+

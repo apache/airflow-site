@@ -1,0 +1,87 @@
+airflow.providers.standard.operators.branch
+===========================================
+
+.. py:module:: airflow.providers.standard.operators.branch
+
+.. autoapi-nested-parse::
+
+   Branching operators.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.providers.standard.operators.branch.BranchMixIn
+   airflow.providers.standard.operators.branch.BaseBranchOperator
+
+
+Module Contents
+---------------
+
+.. py:class:: BranchMixIn(context=None)
+
+   Bases: :py:obj:`airflow.providers.standard.utils.skipmixin.SkipMixin`
+
+
+   Utility helper which handles the branching as one-liner.
+
+
+   .. py:method:: do_branch(context, branches_to_execute)
+
+      Implement the handling of branching including logging.
+
+
+
+.. py:class:: BaseBranchOperator(**kwargs)
+
+   Bases: :py:obj:`airflow.models.baseoperator.BaseOperator`, :py:obj:`BranchMixIn`
+
+
+   A base class for creating operators with branching functionality, like to BranchPythonOperator.
+
+   Users should create a subclass from this operator and implement the function
+   `choose_branch(self, context)`. This should run whatever business logic
+   is needed to determine the branch, and return one of the following:
+   - A single task_id (as a str)
+   - A single task_group_id (as a str)
+   - A list containing a combination of task_ids and task_group_ids
+
+   The operator will continue with the returned task_id(s) and/or task_group_id(s), and all other
+   tasks directly downstream of this operator will be skipped.
+
+
+   .. py:attribute:: inherits_from_skipmixin
+      :value: True
+
+
+      Used to determine if an Operator is inherited from SkipMixin or its subclasses (e.g., BranchMixin).
+
+
+
+   .. py:method:: choose_branch(context)
+      :abstractmethod:
+
+
+      Abstract method to choose which branch to run.
+
+      Subclasses should implement this, running whatever logic is
+      necessary to choose a branch and returning a task_id or list of
+      task_ids.
+
+      :param context: Context dictionary as passed to execute()
+
+
+
+   .. py:method:: execute(context)
+
+      Derive when creating an operator.
+
+      Context is the same dictionary used as when rendering jinja templates.
+
+      Refer to get_template_context for more context.
+
+
+

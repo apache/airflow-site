@@ -1,0 +1,246 @@
+airflow.triggers.base
+=====================
+
+.. py:module:: airflow.triggers.base
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   airflow.triggers.base.log
+   airflow.triggers.base.DiscrimatedTriggerEvent
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   airflow.triggers.base.StartTriggerArgs
+   airflow.triggers.base.BaseTrigger
+   airflow.triggers.base.BaseEventTrigger
+   airflow.triggers.base.TriggerEvent
+   airflow.triggers.base.TaskSuccessEvent
+   airflow.triggers.base.TaskFailedEvent
+   airflow.triggers.base.TaskSkippedEvent
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   airflow.triggers.base.trigger_event_discriminator
+
+
+Module Contents
+---------------
+
+.. py:data:: log
+
+.. py:class:: StartTriggerArgs
+
+   Arguments required for start task execution from triggerer.
+
+
+   .. py:attribute:: trigger_cls
+      :type:  str
+
+
+   .. py:attribute:: next_method
+      :type:  str
+
+
+   .. py:attribute:: trigger_kwargs
+      :type:  dict[str, Any] | None
+      :value: None
+
+
+
+   .. py:attribute:: next_kwargs
+      :type:  dict[str, Any] | None
+      :value: None
+
+
+
+   .. py:attribute:: timeout
+      :type:  datetime.timedelta | None
+      :value: None
+
+
+
+.. py:class:: BaseTrigger(**kwargs)
+
+   Bases: :py:obj:`abc.ABC`, :py:obj:`airflow.utils.log.logging_mixin.LoggingMixin`
+
+
+   Base class for all triggers.
+
+   A trigger has two contexts it can exist in:
+
+    - Inside an Operator, when it's passed to TaskDeferred
+    - Actively running in a trigger worker
+
+   We use the same class for both situations, and rely on all Trigger classes
+   to be able to return the arguments (possible to encode with Airflow-JSON) that will
+   let them be re-instantiated elsewhere.
+
+
+   .. py:attribute:: task_instance
+      :value: None
+
+
+
+   .. py:attribute:: trigger_id
+      :value: None
+
+
+
+   .. py:method:: serialize()
+      :abstractmethod:
+
+
+      Return the information needed to reconstruct this Trigger.
+
+      :return: Tuple of (class path, keyword arguments needed to re-instantiate).
+
+
+
+   .. py:method:: run()
+      :abstractmethod:
+
+      :async:
+
+
+      Run the trigger in an asynchronous context.
+
+      The trigger should yield an Event whenever it wants to fire off
+      an event, and return None if it is finished. Single-event triggers
+      should thus yield and then immediately return.
+
+      If it yields, it is likely that it will be resumed very quickly,
+      but it may not be (e.g. if the workload is being moved to another
+      triggerer process, or a multi-event trigger was being used for a
+      single-event task defer).
+
+      In either case, Trigger classes should assume they will be persisted,
+      and then rely on cleanup() being called when they are no longer needed.
+
+
+
+   .. py:method:: cleanup()
+      :async:
+
+
+      Cleanup the trigger.
+
+      Called when the trigger is no longer needed, and it's being removed
+      from the active triggerer process.
+
+      This method follows the async/await pattern to allow to run the cleanup
+      in triggerer main event loop. Exceptions raised by the cleanup method
+      are ignored, so if you would like to be able to debug them and be notified
+      that cleanup method failed, you should wrap your code with try/except block
+      and handle it appropriately (in async-compatible way).
+
+
+
+   .. py:method:: repr(classpath, kwargs)
+      :staticmethod:
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: BaseEventTrigger(**kwargs)
+
+   Bases: :py:obj:`BaseTrigger`
+
+
+   Base class for triggers used to schedule DAGs based on external events.
+
+   ``BaseEventTrigger`` is a subclass of ``BaseTrigger`` designed to identify triggers compatible with
+   event-driven scheduling.
+
+
+   .. py:method:: hash(classpath, kwargs)
+      :staticmethod:
+
+
+      Return the hash of the trigger classpath and kwargs. This is used to uniquely identify a trigger.
+
+      We do not want to have this logic in ``BaseTrigger`` because, when used to defer tasks, 2 triggers
+      can have the same classpath and kwargs. This is not true for event driven scheduling.
+
+
+
+.. py:class:: TriggerEvent(payload, **kwargs)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Something that a trigger can fire when its conditions are met.
+
+   Events must have a uniquely identifying value that would be the same
+   wherever the trigger is run; this is to ensure that if the same trigger
+   is being run in two locations (for HA reasons) that we can deduplicate its
+   events.
+
+
+   .. py:attribute:: payload
+      :type:  Any
+      :value: None
+
+
+      The payload for the event to send back to the task.
+
+      Must be natively JSON-serializable, or registered with the airflow serialization code.
+
+
+
+   .. py:method:: __repr__()
+
+
+.. py:class:: TaskSuccessEvent(*, xcoms = None, **kwargs)
+
+   Bases: :py:obj:`BaseTaskEndEvent`
+
+
+   Yield this event in order to end the task successfully.
+
+
+   .. py:attribute:: task_instance_state
+      :type:  airflow.utils.state.TaskInstanceState
+
+
+.. py:class:: TaskFailedEvent(*, xcoms = None, **kwargs)
+
+   Bases: :py:obj:`BaseTaskEndEvent`
+
+
+   Yield this event in order to end the task with failure.
+
+
+   .. py:attribute:: task_instance_state
+      :type:  airflow.utils.state.TaskInstanceState
+
+
+.. py:class:: TaskSkippedEvent(*, xcoms = None, **kwargs)
+
+   Bases: :py:obj:`BaseTaskEndEvent`
+
+
+   Yield this event in order to end the task with status 'skipped'.
+
+
+   .. py:attribute:: task_instance_state
+      :type:  airflow.utils.state.TaskInstanceState
+
+
+.. py:function:: trigger_event_discriminator(v)
+
+.. py:data:: DiscrimatedTriggerEvent
+
