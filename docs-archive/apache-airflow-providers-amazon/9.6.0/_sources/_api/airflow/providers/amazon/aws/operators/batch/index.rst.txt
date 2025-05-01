@@ -27,9 +27,9 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: BatchOperator(*, job_name, job_definition, job_queue, container_overrides = None, array_properties = None, ecs_properties_override = None, eks_properties_override = None, node_overrides = None, share_identifier = None, scheduling_priority_override = None, parameters = None, retry_strategy = None, job_id = None, waiters = None, max_retries = 4200, status_retries = None, aws_conn_id = None, region_name = None, tags = None, wait_for_completion = True, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 30, awslogs_enabled = False, awslogs_fetch_interval = timedelta(seconds=30), submit_job_timeout = None, **kwargs)
+.. py:class:: BatchOperator(*, job_name, job_definition, job_queue, container_overrides = None, array_properties = None, ecs_properties_override = None, eks_properties_override = None, node_overrides = None, share_identifier = None, scheduling_priority_override = None, parameters = None, retry_strategy = None, job_id = None, waiters = None, max_retries = 4200, status_retries = None, tags = None, wait_for_completion = True, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), poll_interval = 30, awslogs_enabled = False, awslogs_fetch_interval = timedelta(seconds=30), submit_job_timeout = None, **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.batch_client.BatchClientHook`\ ]
 
 
    Execute a job on AWS Batch.
@@ -60,10 +60,14 @@ Module Contents
        polling is only used when waiters is None
    :param status_retries: number of HTTP retries to get job status, 10;
        polling is only used when waiters is None
-   :param aws_conn_id: connection id of AWS credentials / region name. If None,
-       credential boto3 strategy will be used.
-   :param region_name: region name to use in AWS Hook.
-       Override the region_name in connection (if provided)
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param tags: collection of tags to apply to the AWS Batch job submission
        if None, no tags are submitted
    :param deferrable: Run operator in the deferrable mode.
@@ -83,6 +87,9 @@ Module Contents
            waiter = waiters.get_waiter("JobComplete")
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: ui_color
       :value: '#c3dae0'
 
@@ -96,8 +103,6 @@ Module Contents
 
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('job_id', 'job_name', 'job_definition', 'job_queue', 'container_overrides', 'array_properties',...
-
 
 
    .. py:attribute:: template_fields_renderers
@@ -209,21 +214,6 @@ Module Contents
 
 
 
-   .. py:attribute:: aws_conn_id
-      :value: None
-
-
-
-   .. py:attribute:: region_name
-      :value: None
-
-
-
-   .. py:property:: hook
-      :type: airflow.providers.amazon.aws.hooks.batch_client.BatchClientHook
-
-
-
    .. py:method:: execute(context)
 
       Submit and monitor an AWS Batch job.
@@ -261,9 +251,9 @@ Module Contents
 
 
 
-.. py:class:: BatchCreateComputeEnvironmentOperator(compute_environment_name, environment_type, state, compute_resources, unmanaged_v_cpus = None, service_role = None, tags = None, poll_interval = 30, max_retries = None, aws_conn_id = None, region_name = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+.. py:class:: BatchCreateComputeEnvironmentOperator(compute_environment_name, environment_type, state, compute_resources, unmanaged_v_cpus = None, service_role = None, tags = None, poll_interval = 30, max_retries = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.batch_client.BatchClientHook`\ ]
 
 
    Create an AWS Batch compute environment.
@@ -290,18 +280,23 @@ Module Contents
        Only useful when deferrable is True.
    :param max_retries: How many times to poll for the environment status.
        Only useful when deferrable is True.
-   :param aws_conn_id: Connection ID of AWS credentials / region name. If None,
-       credential boto3 strategy will be used.
-   :param region_name: Region name to use in AWS Hook. Overrides the
-       ``region_name`` in connection if provided.
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param deferrable: If True, the operator will wait asynchronously for the environment to be created.
        This mode requires aiobotocore module to be installed. (default: False)
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('compute_environment_name', 'compute_resources', 'service_role')
-
 
 
    .. py:attribute:: template_fields_renderers
@@ -342,24 +337,8 @@ Module Contents
 
 
 
-   .. py:attribute:: aws_conn_id
-      :value: None
-
-
-
-   .. py:attribute:: region_name
-      :value: None
-
-
-
    .. py:attribute:: deferrable
       :value: True
-
-
-
-   .. py:property:: hook
-
-      Create and return a BatchClientHook.
 
 
 
