@@ -14,7 +14,7 @@
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main.min.css?v=016086f5" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=24ed3fb0" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=fd3f3429" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=101b2490" />
@@ -46,7 +46,10 @@
     
 
 <header>
-    <nav class="js-navbar-scroll navbar">
+    <a href="https://airflowsummit.org" target="_blank" class="d-block fixed-top px-3 py-2 bg-success text-center text-bold text-white">
+        Airflow Summit 2025 is coming October 07-09. Register now for early bird ticket!
+    </a>
+    <nav class="js-navbar-scroll navbar" style="top: 40px;">
         <div class="navbar__icon-container">
             <a href="/">
                 <svg xmlns="http://www.w3.org/2000/svg" width="155.314" height="60" viewBox="0 0 155.314 60">
@@ -286,7 +289,7 @@
 <div id="docs-version-selector" class="docs-version-selector sidebar__version-selector">
     <a class="dropdown-toggle" href="#" id="versionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
        aria-expanded="false">
-        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">9.6.0</span>
+        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">9.6.1</span>
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 
@@ -344,7 +347,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../logging/index.html">Logging for Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../configurations-ref.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../executors/index.html">Executors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">Auth manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">AWS Auth manager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../cli-ref.html">CLI</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -448,7 +451,7 @@
 <div id="docs-version-selector" class="docs-version-selector sidebar__version-selector">
     <a class="dropdown-toggle" href="#" id="versionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
        aria-expanded="false">
-        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">9.6.0</span>
+        <span class="bodytext__medium--greyish-brown">Version: </span><span class="version">9.6.1</span>
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
 
@@ -506,7 +509,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../logging/index.html">Logging for Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../configurations-ref.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../executors/index.html">Executors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">Auth manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">AWS Auth manager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../cli-ref.html">CLI</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -654,18 +657,18 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">literal_eval</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">botocore.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">WaiterError</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.configuration</span><span class="w"> </span><span class="kn">import</span> <span class="n">conf</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowProviderDeprecationWarning</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.hooks.eks</span><span class="w"> </span><span class="kn">import</span> <span class="n">EksHook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.operators.base_aws</span><span class="w"> </span><span class="kn">import</span> <span class="n">AwsBaseOperator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.triggers.eks</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">EksCreateClusterTrigger</span><span class="p">,</span>
     <span class="n">EksCreateFargateProfileTrigger</span><span class="p">,</span>
@@ -675,6 +678,7 @@
     <span class="n">EksDeleteNodegroupTrigger</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_execute_complete_event</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">aws_template_fields</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils.waiter_with_logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">wait</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.cncf.kubernetes.utils.pod_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">OnFinishAction</span>
 
@@ -815,7 +819,7 @@
 
 <div class="viewcode-block" id="EksCreateClusterOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EksCreateClusterOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EksCreateClusterOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EksHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an Amazon EKS Cluster control plane.</span>
 
@@ -844,13 +848,14 @@
 <span class="sd">         Defaults to &#39;nodegroup&#39; to generate an EKS Managed Nodegroup.</span>
 <span class="sd">    :param create_cluster_kwargs: Optional parameters to pass to the CreateCluster API (templated)</span>
 <span class="sd">    :param wait_for_completion: If True, waits for operator to complete. (default: False) (templated)</span>
-<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials. (templated)</span>
-<span class="sd">         If this is None or empty then the default boto3 behaviour is used. If</span>
-<span class="sd">         running Airflow in a distributed manner and aws_conn_id is None or</span>
-<span class="sd">         empty, then the default boto3 configuration would be used (and must be</span>
-<span class="sd">         maintained on each worker node).</span>
-<span class="sd">    :param region: Which AWS region the connection should use. (templated)</span>
-<span class="sd">         If this is None or empty then the default boto3 behaviour is used.</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 
 <span class="sd">    If compute is assigned the value of &#39;nodegroup&#39;:</span>
 
@@ -876,9 +881,13 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EksCreateClusterOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EksHook</span></div>
+
 <div class="viewcode-block" id="EksCreateClusterOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;cluster_role_arn&quot;</span><span class="p">,</span>
         <span class="s2">&quot;resources_vpc_config&quot;</span><span class="p">,</span>
@@ -892,8 +901,6 @@
         <span class="s2">&quot;fargate_selectors&quot;</span><span class="p">,</span>
         <span class="s2">&quot;create_fargate_profile_kwargs&quot;</span><span class="p">,</span>
         <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;region&quot;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -912,7 +919,6 @@
         <span class="n">fargate_selectors</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">create_fargate_profile_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_ID</span><span class="p">,</span>
         <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
@@ -965,14 +971,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.waiter_max_attempts">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="n">waiter_max_attempts</span></div>
 
-<div class="viewcode-block" id="EksCreateClusterOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="EksCreateClusterOperator.region">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.region">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span></div>
-
 <div class="viewcode-block" id="EksCreateClusterOperator.nodegroup_name">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.nodegroup_name">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span> <span class="o">=</span> <span class="n">nodegroup_name</span></div>
@@ -993,16 +991,16 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.deferrable">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-        <span class="p">)</span>
 
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="EksCreateClusterOperator.hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EksHook</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">EksHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Parameter `region` is deprecated. Use the parameter `region_name` instead&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">AirflowProviderDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;region_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
 
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EksCreateClusterOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateClusterOperator.execute">[docs]</a>
@@ -1010,11 +1008,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_COMPUTE_VALUES</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided compute type is not supported.&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="o">==</span> <span class="s2">&quot;nodegroup&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_role_arn</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="o">==</span> <span class="s2">&quot;nodegroup&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_role_arn</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="n">MISSING_ARN_MSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compute</span><span class="o">=</span><span class="n">NODEGROUP_FULL_NAME</span><span class="p">,</span> <span class="n">requirement</span><span class="o">=</span><span class="s2">&quot;nodegroup_role_arn&quot;</span><span class="p">)</span>
                 <span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="o">==</span> <span class="s2">&quot;fargate&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fargate_pod_execution_role_arn</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="o">==</span> <span class="s2">&quot;fargate&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fargate_pod_execution_role_arn</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="n">MISSING_ARN_MSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">compute</span><span class="o">=</span><span class="n">FARGATE_FULL_NAME</span><span class="p">,</span> <span class="n">requirement</span><span class="o">=</span><span class="s2">&quot;fargate_pod_execution_role_arn&quot;</span>
@@ -1040,7 +1038,7 @@
                 <span class="n">trigger</span><span class="o">=</span><span class="n">EksCreateClusterTrigger</span><span class="p">(</span>
                     <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                 <span class="p">),</span>
@@ -1065,7 +1063,7 @@
             <span class="n">compute</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">,</span>
             <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
             <span class="n">wait_for_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">,</span>
             <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
             <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
@@ -1086,7 +1084,7 @@
         <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Trigger error: event is None&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Trigger error: event is None&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;failed&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;failed&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cluster failed to start and will be torn down.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_cluster</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
@@ -1095,7 +1093,7 @@
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                     <span class="n">force_delete_compute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_failed&quot;</span><span class="p">,</span>
@@ -1107,7 +1105,7 @@
                 <span class="n">compute</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">,</span>
                 <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
                 <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                 <span class="n">wait_for_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">,</span>
                 <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                 <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
@@ -1128,7 +1126,7 @@
                         <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                         <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                         <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                        <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                        <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                     <span class="p">),</span>
                     <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span>
                     <span class="n">timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">),</span>
@@ -1139,7 +1137,7 @@
                         <span class="n">nodegroup_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span><span class="p">,</span>
                         <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
                         <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                        <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                        <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                         <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                         <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                     <span class="p">),</span>
@@ -1154,7 +1152,7 @@
         <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Trigger error: event is None&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Trigger error: event is None&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;deleted&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;deleted&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cluster deleted&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Error creating cluster&quot;</span><span class="p">)</span></div>
 
@@ -1175,7 +1173,7 @@
 
 <div class="viewcode-block" id="EksCreateNodegroupOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EksCreateNodegroupOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EksCreateNodegroupOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EksHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an Amazon EKS managed node group for an existing Amazon EKS Cluster.</span>
 
@@ -1191,13 +1189,14 @@
 <span class="sd">         The Amazon Resource Name (ARN) of the IAM role to associate with the managed nodegroup. (templated)</span>
 <span class="sd">    :param create_nodegroup_kwargs: Optional parameters to pass to the Create Nodegroup API (templated)</span>
 <span class="sd">    :param wait_for_completion: If True, waits for operator to complete. (default: False) (templated)</span>
-<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials. (templated)</span>
-<span class="sd">         If this is None or empty then the default boto3 behaviour is used. If</span>
-<span class="sd">         running Airflow in a distributed manner and aws_conn_id is None or</span>
-<span class="sd">         empty, then the default boto3 configuration would be used (and must be</span>
-<span class="sd">         maintained on each worker node).</span>
-<span class="sd">    :param region: Which AWS region the connection should use. (templated)</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used.</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check nodegroup state</span>
 <span class="sd">    :param waiter_max_attempts: The maximum number of attempts to check nodegroup state</span>
 <span class="sd">    :param deferrable: If True, the operator will wait asynchronously for the nodegroup to be created.</span>
@@ -1206,17 +1205,19 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EksCreateNodegroupOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EksHook</span></div>
+
 <div class="viewcode-block" id="EksCreateNodegroupOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;nodegroup_subnets&quot;</span><span class="p">,</span>
         <span class="s2">&quot;nodegroup_role_arn&quot;</span><span class="p">,</span>
         <span class="s2">&quot;nodegroup_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;create_nodegroup_kwargs&quot;</span><span class="p">,</span>
         <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;region&quot;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -1228,7 +1229,6 @@
         <span class="n">nodegroup_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_NODEGROUP_NAME</span><span class="p">,</span>
         <span class="n">create_nodegroup_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_ID</span><span class="p">,</span>
         <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span>
@@ -1265,14 +1265,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.wait_for_completion">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span></div>
 
-<div class="viewcode-block" id="EksCreateNodegroupOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="EksCreateNodegroupOperator.region">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.region">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span></div>
-
 <div class="viewcode-block" id="EksCreateNodegroupOperator.waiter_delay">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.waiter_delay">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span> <span class="o">=</span> <span class="n">waiter_delay</span></div>
@@ -1284,6 +1276,15 @@
 <div class="viewcode-block" id="EksCreateNodegroupOperator.deferrable">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateNodegroupOperator.deferrable">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
+
+
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Parameter `region` is deprecated. Use the parameter `region_name` instead&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">AirflowProviderDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;region_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -1308,7 +1309,7 @@
             <span class="n">compute</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">,</span>
             <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
             <span class="n">wait_for_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">,</span>
             <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
             <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
@@ -1324,7 +1325,7 @@
                     <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
                     <span class="n">nodegroup_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span><span class="p">,</span>
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                 <span class="p">),</span>
@@ -1348,7 +1349,7 @@
 
 <div class="viewcode-block" id="EksCreateFargateProfileOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EksCreateFargateProfileOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EksCreateFargateProfileOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EksHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an AWS Fargate profile for an Amazon EKS cluster.</span>
 
@@ -1364,14 +1365,14 @@
 <span class="sd">    :param create_fargate_profile_kwargs: Optional parameters to pass to the CreateFargate Profile API</span>
 <span class="sd">     (templated)</span>
 <span class="sd">    :param wait_for_completion: If True, waits for operator to complete. (default: False) (templated)</span>
-
-<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials. (templated)</span>
-<span class="sd">         If this is None or empty then the default boto3 behaviour is used. If</span>
-<span class="sd">         running Airflow in a distributed manner and aws_conn_id is None or</span>
-<span class="sd">         empty, then the default boto3 configuration would be used (and must be</span>
-<span class="sd">         maintained on each worker node).</span>
-<span class="sd">    :param region: Which AWS region the connection should use. (templated)</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used.</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check profile status</span>
 <span class="sd">    :param waiter_max_attempts: The maximum number of attempts to check the status of the profile.</span>
 <span class="sd">    :param deferrable: If True, the operator will wait asynchronously for the profile to be created.</span>
@@ -1379,17 +1380,19 @@
 <span class="sd">        (default: False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EksCreateFargateProfileOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EksHook</span></div>
+
 <div class="viewcode-block" id="EksCreateFargateProfileOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;pod_execution_role_arn&quot;</span><span class="p">,</span>
         <span class="s2">&quot;selectors&quot;</span><span class="p">,</span>
         <span class="s2">&quot;fargate_profile_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;create_fargate_profile_kwargs&quot;</span><span class="p">,</span>
         <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;region&quot;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -1400,9 +1403,8 @@
         <span class="n">selectors</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
         <span class="n">fargate_profile_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_FARGATE_PROFILE_NAME</span><span class="p">,</span>
         <span class="n">create_fargate_profile_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_ID</span><span class="p">,</span>
         <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -1434,14 +1436,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.wait_for_completion">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span></div>
 
-<div class="viewcode-block" id="EksCreateFargateProfileOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="EksCreateFargateProfileOperator.region">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.region">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span></div>
-
 <div class="viewcode-block" id="EksCreateFargateProfileOperator.waiter_delay">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.waiter_delay">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span> <span class="o">=</span> <span class="n">waiter_delay</span></div>
@@ -1458,9 +1452,15 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.compute">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="o">=</span> <span class="s2">&quot;fargate&quot;</span></div>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Parameter `region` is deprecated. Use the parameter `region_name` instead&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">AirflowProviderDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;region_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EksCreateFargateProfileOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksCreateFargateProfileOperator.execute">[docs]</a>
@@ -1469,7 +1469,7 @@
             <span class="n">compute</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">,</span>
             <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
             <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
             <span class="n">wait_for_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">,</span>
             <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
             <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
@@ -1486,7 +1486,7 @@
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span>
                 <span class="c1"># timeout is set to ensure that if a trigger dies, the timeout does not restart</span>
@@ -1510,7 +1510,7 @@
 
 <div class="viewcode-block" id="EksDeleteClusterOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EksDeleteClusterOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EksDeleteClusterOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EksHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes the Amazon EKS Cluster control plane and all nodegroups attached to it.</span>
 
@@ -1529,6 +1529,8 @@
 <span class="sd">         maintained on each worker node).</span>
 <span class="sd">    :param region: Which AWS region the connection should use. (templated)</span>
 <span class="sd">        If this is None or empty then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check cluster state</span>
 <span class="sd">    :param waiter_max_attempts: The maximum number of attempts to check cluster state</span>
 <span class="sd">    :param deferrable: If True, the operator will wait asynchronously for the cluster to be deleted.</span>
@@ -1537,14 +1539,14 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EksDeleteClusterOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EksHook</span></div>
+
 <div class="viewcode-block" id="EksDeleteClusterOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;force_delete_compute&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;region&quot;</span><span class="p">,</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span> <span class="s2">&quot;force_delete_compute&quot;</span><span class="p">,</span> <span class="s2">&quot;wait_for_completion&quot;</span>
     <span class="p">)</span></div>
 
 
@@ -1552,9 +1554,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">cluster_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">force_delete_compute</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_ID</span><span class="p">,</span>
         <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
@@ -1574,14 +1575,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.wait_for_completion">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span></div>
 
-<div class="viewcode-block" id="EksDeleteClusterOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="EksDeleteClusterOperator.region">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.region">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span></div>
-
 <div class="viewcode-block" id="EksDeleteClusterOperator.deferrable">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.deferrable">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
@@ -1594,15 +1587,20 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.waiter_max_attempts">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="n">waiter_max_attempts</span></div>
 
+
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Parameter `region` is deprecated. Use the parameter `region_name` instead&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">AirflowProviderDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;region_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EksDeleteClusterOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
-        <span class="n">eks_hook</span> <span class="o">=</span> <span class="n">EksHook</span><span class="p">(</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
-        <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
                 <span class="n">trigger</span><span class="o">=</span><span class="n">EksDeleteClusterTrigger</span><span class="p">(</span>
@@ -1610,53 +1608,53 @@
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                     <span class="n">force_delete_compute</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">force_delete_compute</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_delete_compute</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">delete_any_nodegroups</span><span class="p">(</span><span class="n">eks_hook</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">delete_any_fargate_profiles</span><span class="p">(</span><span class="n">eks_hook</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete_any_nodegroups</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete_any_fargate_profiles</span><span class="p">()</span>
 
-        <span class="n">eks_hook</span><span class="o">.</span><span class="n">delete_cluster</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_cluster</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for cluster to delete.  This will take some time.&quot;</span><span class="p">)</span>
-            <span class="n">eks_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;cluster_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;cluster_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EksDeleteClusterOperator.delete_any_nodegroups">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.delete_any_nodegroups">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">delete_any_nodegroups</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eks_hook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_any_nodegroups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Delete all Amazon EKS managed node groups for a provided Amazon EKS Cluster.</span>
 
 <span class="sd">        Amazon EKS managed node groups can be deleted in parallel, so we can send all</span>
 <span class="sd">        delete commands in bulk and move on once the count of nodegroups is zero.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nodegroups</span> <span class="o">=</span> <span class="n">eks_hook</span><span class="o">.</span><span class="n">list_nodegroups</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
+        <span class="n">nodegroups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">list_nodegroups</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">nodegroups</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">CAN_NOT_DELETE_MSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compute</span><span class="o">=</span><span class="n">NODEGROUP_FULL_NAME</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nodegroups</span><span class="p">)))</span>
             <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">nodegroups</span><span class="p">:</span>
-                <span class="n">eks_hook</span><span class="o">.</span><span class="n">delete_nodegroup</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">nodegroupName</span><span class="o">=</span><span class="n">group</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_nodegroup</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">nodegroupName</span><span class="o">=</span><span class="n">group</span><span class="p">)</span>
             <span class="c1"># Note this is a custom waiter so we&#39;re using hook.get_waiter(), not hook.conn.get_waiter().</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for all nodegroups to delete.  This will take some time.&quot;</span><span class="p">)</span>
-            <span class="n">eks_hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;all_nodegroups_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;all_nodegroups_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">SUCCESS_MSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compute</span><span class="o">=</span><span class="n">NODEGROUP_FULL_NAME</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="EksDeleteClusterOperator.delete_any_fargate_profiles">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteClusterOperator.delete_any_fargate_profiles">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">delete_any_fargate_profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eks_hook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_any_fargate_profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Delete all EKS Fargate profiles for a provided Amazon EKS Cluster.</span>
 
 <span class="sd">        EKS Fargate profiles must be deleted one at a time, so we must wait</span>
 <span class="sd">        for one to be deleted before sending the next delete command.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fargate_profiles</span> <span class="o">=</span> <span class="n">eks_hook</span><span class="o">.</span><span class="n">list_fargate_profiles</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
+        <span class="n">fargate_profiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">list_fargate_profiles</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">fargate_profiles</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">CAN_NOT_DELETE_MSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compute</span><span class="o">=</span><span class="n">FARGATE_FULL_NAME</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fargate_profiles</span><span class="p">)))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for Fargate profiles to delete.  This will take some time.&quot;</span><span class="p">)</span>
@@ -1664,8 +1662,8 @@
                 <span class="c1"># The API will return a (cluster) ResourceInUseException if you try</span>
                 <span class="c1"># to delete Fargate profiles in parallel the way we can with nodegroups,</span>
                 <span class="c1"># so each must be deleted sequentially</span>
-                <span class="n">eks_hook</span><span class="o">.</span><span class="n">delete_fargate_profile</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">fargateProfileName</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
-                <span class="n">eks_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;fargate_profile_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_fargate_profile</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">fargateProfileName</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;fargate_profile_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
                     <span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">fargateProfileName</span><span class="o">=</span><span class="n">profile</span>
                 <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">SUCCESS_MSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compute</span><span class="o">=</span><span class="n">FARGATE_FULL_NAME</span><span class="p">))</span></div>
@@ -1684,7 +1682,7 @@
 
 <div class="viewcode-block" id="EksDeleteNodegroupOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EksDeleteNodegroupOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EksDeleteNodegroupOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EksHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes an Amazon EKS managed node group from an Amazon EKS Cluster.</span>
 
@@ -1700,8 +1698,10 @@
 <span class="sd">         running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">         empty, then the default boto3 configuration would be used (and must be</span>
 <span class="sd">         maintained on each worker node).</span>
-<span class="sd">    :param region: Which AWS region the connection should use. (templated)</span>
+<span class="sd">    :param region_name: Which AWS region the connection should use. (templated)</span>
 <span class="sd">        If this is None or empty then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check nodegroup state</span>
 <span class="sd">    :param waiter_max_attempts: The maximum number of attempts to check nodegroup state</span>
 <span class="sd">    :param deferrable: If True, the operator will wait asynchronously for the nodegroup to be deleted.</span>
@@ -1710,14 +1710,14 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EksDeleteNodegroupOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EksHook</span></div>
+
 <div class="viewcode-block" id="EksDeleteNodegroupOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;nodegroup_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;region&quot;</span><span class="p">,</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span> <span class="s2">&quot;nodegroup_name&quot;</span><span class="p">,</span> <span class="s2">&quot;wait_for_completion&quot;</span>
     <span class="p">)</span></div>
 
 
@@ -1725,9 +1725,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">cluster_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">nodegroup_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_ID</span><span class="p">,</span>
         <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -1745,14 +1744,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.wait_for_completion">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span></div>
 
-<div class="viewcode-block" id="EksDeleteNodegroupOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="EksDeleteNodegroupOperator.region">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.region">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span></div>
-
 <div class="viewcode-block" id="EksDeleteNodegroupOperator.waiter_delay">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.waiter_delay">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span> <span class="o">=</span> <span class="n">waiter_delay</span></div>
@@ -1765,24 +1756,27 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.deferrable">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
 
+
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Parameter `region` is deprecated. Use the parameter `region_name` instead&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">AirflowProviderDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;region_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EksDeleteNodegroupOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteNodegroupOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
-        <span class="n">eks_hook</span> <span class="o">=</span> <span class="n">EksHook</span><span class="p">(</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">eks_hook</span><span class="o">.</span><span class="n">delete_nodegroup</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">nodegroupName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_nodegroup</span><span class="p">(</span><span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">nodegroupName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
                 <span class="n">trigger</span><span class="o">=</span><span class="n">EksDeleteNodegroupTrigger</span><span class="p">(</span>
                     <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
                     <span class="n">nodegroup_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span><span class="p">,</span>
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
                 <span class="p">),</span>
@@ -1793,7 +1787,7 @@
             <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for nodegroup to delete.  This will take some time.&quot;</span><span class="p">)</span>
-            <span class="n">eks_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;nodegroup_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;nodegroup_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
                 <span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">nodegroupName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodegroup_name</span>
             <span class="p">)</span></div>
 
@@ -1811,7 +1805,7 @@
 
 <div class="viewcode-block" id="EksDeleteFargateProfileOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EksDeleteFargateProfileOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EksDeleteFargateProfileOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EksHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes an AWS Fargate profile from an Amazon EKS Cluster.</span>
 
@@ -1827,8 +1821,10 @@
 <span class="sd">         running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">         empty, then the default boto3 configuration would be used (and must be</span>
 <span class="sd">         maintained on each worker node).</span>
-<span class="sd">    :param region: Which AWS region the connection should use. (templated)</span>
+<span class="sd">    :param region_name: Which AWS region the connection should use. (templated)</span>
 <span class="sd">        If this is None or empty then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check profile status</span>
 <span class="sd">    :param waiter_max_attempts: The maximum number of attempts to check the status of the profile.</span>
 <span class="sd">    :param deferrable: If True, the operator will wait asynchronously for the profile to be deleted.</span>
@@ -1836,14 +1832,14 @@
 <span class="sd">        (default: False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EksDeleteFargateProfileOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EksHook</span></div>
+
 <div class="viewcode-block" id="EksDeleteFargateProfileOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;fargate_profile_name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;wait_for_completion&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;region&quot;</span><span class="p">,</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span> <span class="s2">&quot;fargate_profile_name&quot;</span><span class="p">,</span> <span class="s2">&quot;wait_for_completion&quot;</span>
     <span class="p">)</span></div>
 
 
@@ -1851,15 +1847,13 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">cluster_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">fargate_profile_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DEFAULT_CONN_ID</span><span class="p">,</span>
         <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <div class="viewcode-block" id="EksDeleteFargateProfileOperator.cluster_name">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.cluster_name">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span> <span class="o">=</span> <span class="n">cluster_name</span></div>
@@ -1871,14 +1865,6 @@
 <div class="viewcode-block" id="EksDeleteFargateProfileOperator.wait_for_completion">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.wait_for_completion">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span></div>
-
-<div class="viewcode-block" id="EksDeleteFargateProfileOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="EksDeleteFargateProfileOperator.region">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.region">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span></div>
 
 <div class="viewcode-block" id="EksDeleteFargateProfileOperator.waiter_delay">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.waiter_delay">[docs]</a>
@@ -1892,16 +1878,19 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.deferrable">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
 
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Parameter `region` is deprecated. Use the parameter `region_name` instead&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">AirflowProviderDeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;region_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EksDeleteFargateProfileOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/eks/index.html#airflow.providers.amazon.aws.operators.eks.EksDeleteFargateProfileOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
-        <span class="n">eks_hook</span> <span class="o">=</span> <span class="n">EksHook</span><span class="p">(</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">eks_hook</span><span class="o">.</span><span class="n">delete_fargate_profile</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">delete_fargate_profile</span><span class="p">(</span>
             <span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">fargateProfileName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fargate_profile_name</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span><span class="p">:</span>
@@ -1912,7 +1901,7 @@
                     <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
                     <span class="n">waiter_delay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span>
                     <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
-                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span>
+                    <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span>
                 <span class="c1"># timeout is set to ensure that if a trigger dies, the timeout does not restart</span>
@@ -1921,7 +1910,7 @@
             <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for Fargate profile to delete.  This will take some time.&quot;</span><span class="p">)</span>
-            <span class="n">eks_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;fargate_profile_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;fargate_profile_deleted&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
                 <span class="n">clusterName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
                 <span class="n">fargateProfileName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fargate_profile_name</span><span class="p">,</span>
                 <span class="n">WaiterConfig</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Delay&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">waiter_delay</span><span class="p">,</span> <span class="s2">&quot;MaxAttempts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span><span class="p">},</span>
@@ -2197,15 +2186,6 @@
 
             </a>
 
-            <a class="footer-section__media-section--link" target="_blank" href="https://twitter.com/ApacheAirflow">
-                <svg xmlns="http://www.w3.org/2000/svg" width="44.355" height="44.355" viewBox="0 0 44.355 44.355">
-                    <g id="Group_211" data-name="Group 211" transform="translate(-503 -1382.2)">
-                        <path id="Path_221" d="M541.811 1382.2h-33.267a5.546 5.546 0 0 0-5.544 5.544v33.266a5.547 5.547 0 0 0 5.544 5.545h33.267a5.546 5.546 0 0 0 5.544-5.545v-33.266a5.546 5.546 0 0 0-5.544-5.544zm-5.611 16.533c.011.244.011.488.011.732 0 7.507-5.722 16.178-16.179 16.178a16.173 16.173 0 0 1-8.7-2.539 10.92 10.92 0 0 0 1.353.078 11.4 11.4 0 0 0 7.064-2.44 5.685 5.685 0 0 1-5.311-3.947 5.725 5.725 0 0 0 2.561-.1 5.7 5.7 0 0 1-4.557-5.578v-.078a5.752 5.752 0 0 0 2.572.71 5.709 5.709 0 0 1-1.763-7.6 16.146 16.146 0 0 0 11.721 5.944 6.282 6.282 0 0 1-.144-1.3 5.688 5.688 0 0 1 9.836-3.892 11.3 11.3 0 0 0 3.615-1.375 5.721 5.721 0 0 1-2.506 3.149 11.538 11.538 0 0 0 3.271-.9 11.585 11.585 0 0 1-2.844 2.958z" fill="#fff" data-name="Path 221"></path>
-                    </g>
-                </svg>
-
-            </a>
-
             <a class="footer-section__media-section--link" target="_blank" href="https://www.youtube.com/channel/UCSXwxpWZQ7XZ1WL3wqevChA">
                 <svg xmlns="http://www.w3.org/2000/svg" width="49.594" height="34.941" viewBox="0 0 49.594 34.941">
                     <path id="Path_223" d="M1124.557 1230a6.232 6.232 0 0 0-4.385-4.413c-3.867-1.043-19.376-1.043-19.376-1.043s-15.508 0-19.376 1.043a6.232 6.232 0 0 0-4.385 4.413c-1.036 3.893-1.036 12.014-1.036 12.014s0 8.122 1.036 12.015a6.232 6.232 0 0 0 4.385 4.413c3.867 1.043 19.376 1.043 19.376 1.043s15.509 0 19.376-1.043a6.232 6.232 0 0 0 4.385-4.413c1.036-3.893 1.036-12.015 1.036-12.015s.001-8.123-1.036-12.014zm-28.833 19.388v-14.748l12.962 7.374z" fill="#fff" data-name="Path 223" transform="translate(-1076 -1224.542)"></path>
@@ -2262,7 +2242,7 @@
     <script src="/external/js/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script src="/external/js/cdnjs.cloudflare.com-1.14.3-popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="/external/js/stackpath.bootstrapcdn.com-4.1.3-bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <script src="../../../../../../_static/documentation_options.js?v=f49d6f9b"></script>
+        <script src="../../../../../../_static/documentation_options.js?v=50e5eb82"></script>
         <script src="../../../../../../_static/doctools.js?v=9a2dae69"></script>
         <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>

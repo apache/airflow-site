@@ -96,9 +96,9 @@ Module Contents
    :value: 'AWS Fargate profiles'
 
 
-.. py:class:: EksCreateClusterOperator(cluster_name, cluster_role_arn, resources_vpc_config, compute = DEFAULT_COMPUTE_TYPE, create_cluster_kwargs = None, nodegroup_name = DEFAULT_NODEGROUP_NAME, nodegroup_role_arn = None, create_nodegroup_kwargs = None, fargate_profile_name = DEFAULT_FARGATE_PROFILE_NAME, fargate_pod_execution_role_arn = None, fargate_selectors = None, create_fargate_profile_kwargs = None, wait_for_completion = False, aws_conn_id = DEFAULT_CONN_ID, region = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), waiter_delay = 30, waiter_max_attempts = 40, **kwargs)
+.. py:class:: EksCreateClusterOperator(cluster_name, cluster_role_arn, resources_vpc_config, compute = DEFAULT_COMPUTE_TYPE, create_cluster_kwargs = None, nodegroup_name = DEFAULT_NODEGROUP_NAME, nodegroup_role_arn = None, create_nodegroup_kwargs = None, fargate_profile_name = DEFAULT_FARGATE_PROFILE_NAME, fargate_pod_execution_role_arn = None, fargate_selectors = None, create_fargate_profile_kwargs = None, wait_for_completion = False, region = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), waiter_delay = 30, waiter_max_attempts = 40, **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.eks.EksHook`\ ]
 
 
    Creates an Amazon EKS Cluster control plane.
@@ -128,13 +128,14 @@ Module Contents
         Defaults to 'nodegroup' to generate an EKS Managed Nodegroup.
    :param create_cluster_kwargs: Optional parameters to pass to the CreateCluster API (templated)
    :param wait_for_completion: If True, waits for operator to complete. (default: False) (templated)
-   :param aws_conn_id: The Airflow connection used for AWS credentials. (templated)
-        If this is None or empty then the default boto3 behaviour is used. If
-        running Airflow in a distributed manner and aws_conn_id is None or
-        empty, then the default boto3 configuration would be used (and must be
-        maintained on each worker node).
-   :param region: Which AWS region the connection should use. (templated)
-        If this is None or empty then the default boto3 behaviour is used.
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
 
    If compute is assigned the value of 'nodegroup':
 
@@ -160,10 +161,11 @@ Module Contents
 
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('cluster_name', 'cluster_role_arn', 'resources_vpc_config', 'create_cluster_kwargs', 'compute',...
-
 
 
    .. py:attribute:: compute
@@ -211,16 +213,6 @@ Module Contents
 
 
 
-   .. py:attribute:: aws_conn_id
-      :value: 'aws_default'
-
-
-
-   .. py:attribute:: region
-      :value: None
-
-
-
    .. py:attribute:: nodegroup_name
       :value: 'nodegroup'
 
@@ -239,11 +231,6 @@ Module Contents
 
    .. py:attribute:: deferrable
       :value: True
-
-
-
-   .. py:property:: hook
-      :type: airflow.providers.amazon.aws.hooks.eks.EksHook
 
 
 
@@ -266,9 +253,9 @@ Module Contents
    .. py:method:: execute_complete(context, event = None)
 
 
-.. py:class:: EksCreateNodegroupOperator(cluster_name, nodegroup_subnets, nodegroup_role_arn, nodegroup_name = DEFAULT_NODEGROUP_NAME, create_nodegroup_kwargs = None, wait_for_completion = False, aws_conn_id = DEFAULT_CONN_ID, region = None, waiter_delay = 30, waiter_max_attempts = 80, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+.. py:class:: EksCreateNodegroupOperator(cluster_name, nodegroup_subnets, nodegroup_role_arn, nodegroup_name = DEFAULT_NODEGROUP_NAME, create_nodegroup_kwargs = None, wait_for_completion = False, region = None, waiter_delay = 30, waiter_max_attempts = 80, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.eks.EksHook`\ ]
 
 
    Creates an Amazon EKS managed node group for an existing Amazon EKS Cluster.
@@ -285,13 +272,14 @@ Module Contents
         The Amazon Resource Name (ARN) of the IAM role to associate with the managed nodegroup. (templated)
    :param create_nodegroup_kwargs: Optional parameters to pass to the Create Nodegroup API (templated)
    :param wait_for_completion: If True, waits for operator to complete. (default: False) (templated)
-   :param aws_conn_id: The Airflow connection used for AWS credentials. (templated)
-        If this is None or empty then the default boto3 behaviour is used. If
-        running Airflow in a distributed manner and aws_conn_id is None or
-        empty, then the default boto3 configuration would be used (and must be
-        maintained on each worker node).
-   :param region: Which AWS region the connection should use. (templated)
-       If this is None or empty then the default boto3 behaviour is used.
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check nodegroup state
    :param waiter_max_attempts: The maximum number of attempts to check nodegroup state
    :param deferrable: If True, the operator will wait asynchronously for the nodegroup to be created.
@@ -300,10 +288,11 @@ Module Contents
 
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('cluster_name', 'nodegroup_subnets', 'nodegroup_role_arn', 'nodegroup_name',...
-
 
 
    .. py:attribute:: nodegroup_subnets
@@ -330,16 +319,6 @@ Module Contents
 
    .. py:attribute:: wait_for_completion
       :value: False
-
-
-
-   .. py:attribute:: aws_conn_id
-      :value: 'aws_default'
-
-
-
-   .. py:attribute:: region
-      :value: None
 
 
 
@@ -371,9 +350,9 @@ Module Contents
    .. py:method:: execute_complete(context, event = None)
 
 
-.. py:class:: EksCreateFargateProfileOperator(cluster_name, pod_execution_role_arn, selectors, fargate_profile_name = DEFAULT_FARGATE_PROFILE_NAME, create_fargate_profile_kwargs = None, wait_for_completion = False, aws_conn_id = DEFAULT_CONN_ID, region = None, waiter_delay = 10, waiter_max_attempts = 60, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+.. py:class:: EksCreateFargateProfileOperator(cluster_name, pod_execution_role_arn, selectors, fargate_profile_name = DEFAULT_FARGATE_PROFILE_NAME, create_fargate_profile_kwargs = None, region = None, wait_for_completion = False, waiter_delay = 10, waiter_max_attempts = 60, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.eks.EksHook`\ ]
 
 
    Creates an AWS Fargate profile for an Amazon EKS cluster.
@@ -390,14 +369,14 @@ Module Contents
    :param create_fargate_profile_kwargs: Optional parameters to pass to the CreateFargate Profile API
     (templated)
    :param wait_for_completion: If True, waits for operator to complete. (default: False) (templated)
-
-   :param aws_conn_id: The Airflow connection used for AWS credentials. (templated)
-        If this is None or empty then the default boto3 behaviour is used. If
-        running Airflow in a distributed manner and aws_conn_id is None or
-        empty, then the default boto3 configuration would be used (and must be
-        maintained on each worker node).
-   :param region: Which AWS region the connection should use. (templated)
-       If this is None or empty then the default boto3 behaviour is used.
+   :param aws_conn_id: The Airflow connection used for AWS credentials.
+       If this is ``None`` or empty then the default boto3 behaviour is used. If
+       running Airflow in a distributed manner and aws_conn_id is None or
+       empty, then default boto3 configuration would be used (and must be
+       maintained on each worker node).
+   :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check profile status
    :param waiter_max_attempts: The maximum number of attempts to check the status of the profile.
    :param deferrable: If True, the operator will wait asynchronously for the profile to be created.
@@ -405,10 +384,11 @@ Module Contents
        (default: False)
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('cluster_name', 'pod_execution_role_arn', 'selectors', 'fargate_profile_name',...
-
 
 
    .. py:attribute:: cluster_name
@@ -430,16 +410,6 @@ Module Contents
 
    .. py:attribute:: wait_for_completion
       :value: False
-
-
-
-   .. py:attribute:: aws_conn_id
-      :value: 'aws_default'
-
-
-
-   .. py:attribute:: region
-      :value: None
 
 
 
@@ -476,9 +446,9 @@ Module Contents
    .. py:method:: execute_complete(context, event = None)
 
 
-.. py:class:: EksDeleteClusterOperator(cluster_name, force_delete_compute = False, wait_for_completion = False, aws_conn_id = DEFAULT_CONN_ID, region = None, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), waiter_delay = 30, waiter_max_attempts = 40, **kwargs)
+.. py:class:: EksDeleteClusterOperator(cluster_name, force_delete_compute = False, region = None, wait_for_completion = False, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), waiter_delay = 30, waiter_max_attempts = 40, **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.eks.EksHook`\ ]
 
 
    Deletes the Amazon EKS Cluster control plane and all nodegroups attached to it.
@@ -498,6 +468,8 @@ Module Contents
         maintained on each worker node).
    :param region: Which AWS region the connection should use. (templated)
        If this is None or empty then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check cluster state
    :param waiter_max_attempts: The maximum number of attempts to check cluster state
    :param deferrable: If True, the operator will wait asynchronously for the cluster to be deleted.
@@ -506,10 +478,11 @@ Module Contents
 
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('cluster_name', 'force_delete_compute', 'wait_for_completion', 'aws_conn_id', 'region')
-
 
 
    .. py:attribute:: cluster_name
@@ -522,16 +495,6 @@ Module Contents
 
    .. py:attribute:: wait_for_completion
       :value: False
-
-
-
-   .. py:attribute:: aws_conn_id
-      :value: 'aws_default'
-
-
-
-   .. py:attribute:: region
-      :value: None
 
 
 
@@ -560,7 +523,7 @@ Module Contents
 
 
 
-   .. py:method:: delete_any_nodegroups(eks_hook)
+   .. py:method:: delete_any_nodegroups()
 
       Delete all Amazon EKS managed node groups for a provided Amazon EKS Cluster.
 
@@ -569,7 +532,7 @@ Module Contents
 
 
 
-   .. py:method:: delete_any_fargate_profiles(eks_hook)
+   .. py:method:: delete_any_fargate_profiles()
 
       Delete all EKS Fargate profiles for a provided Amazon EKS Cluster.
 
@@ -581,9 +544,9 @@ Module Contents
    .. py:method:: execute_complete(context, event = None)
 
 
-.. py:class:: EksDeleteNodegroupOperator(cluster_name, nodegroup_name, wait_for_completion = False, aws_conn_id = DEFAULT_CONN_ID, region = None, waiter_delay = 30, waiter_max_attempts = 40, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+.. py:class:: EksDeleteNodegroupOperator(cluster_name, nodegroup_name, region = None, wait_for_completion = False, waiter_delay = 30, waiter_max_attempts = 40, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.eks.EksHook`\ ]
 
 
    Deletes an Amazon EKS managed node group from an Amazon EKS Cluster.
@@ -600,8 +563,10 @@ Module Contents
         running Airflow in a distributed manner and aws_conn_id is None or
         empty, then the default boto3 configuration would be used (and must be
         maintained on each worker node).
-   :param region: Which AWS region the connection should use. (templated)
+   :param region_name: Which AWS region the connection should use. (templated)
        If this is None or empty then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check nodegroup state
    :param waiter_max_attempts: The maximum number of attempts to check nodegroup state
    :param deferrable: If True, the operator will wait asynchronously for the nodegroup to be deleted.
@@ -610,10 +575,11 @@ Module Contents
 
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('cluster_name', 'nodegroup_name', 'wait_for_completion', 'aws_conn_id', 'region')
-
 
 
    .. py:attribute:: cluster_name
@@ -624,16 +590,6 @@ Module Contents
 
    .. py:attribute:: wait_for_completion
       :value: False
-
-
-
-   .. py:attribute:: aws_conn_id
-      :value: 'aws_default'
-
-
-
-   .. py:attribute:: region
-      :value: None
 
 
 
@@ -665,9 +621,9 @@ Module Contents
    .. py:method:: execute_complete(context, event = None)
 
 
-.. py:class:: EksDeleteFargateProfileOperator(cluster_name, fargate_profile_name, wait_for_completion = False, aws_conn_id = DEFAULT_CONN_ID, region = None, waiter_delay = 30, waiter_max_attempts = 60, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
+.. py:class:: EksDeleteFargateProfileOperator(cluster_name, fargate_profile_name, region = None, wait_for_completion = False, waiter_delay = 30, waiter_max_attempts = 60, deferrable = conf.getboolean('operators', 'default_deferrable', fallback=False), **kwargs)
 
-   Bases: :py:obj:`airflow.models.BaseOperator`
+   Bases: :py:obj:`airflow.providers.amazon.aws.operators.base_aws.AwsBaseOperator`\ [\ :py:obj:`airflow.providers.amazon.aws.hooks.eks.EksHook`\ ]
 
 
    Deletes an AWS Fargate profile from an Amazon EKS Cluster.
@@ -684,8 +640,10 @@ Module Contents
         running Airflow in a distributed manner and aws_conn_id is None or
         empty, then the default boto3 configuration would be used (and must be
         maintained on each worker node).
-   :param region: Which AWS region the connection should use. (templated)
+   :param region_name: Which AWS region the connection should use. (templated)
        If this is None or empty then the default boto3 behaviour is used.
+   :param verify: Whether or not to verify SSL certificates. See:
+       https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html
    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check profile status
    :param waiter_max_attempts: The maximum number of attempts to check the status of the profile.
    :param deferrable: If True, the operator will wait asynchronously for the profile to be deleted.
@@ -693,10 +651,11 @@ Module Contents
        (default: False)
 
 
+   .. py:attribute:: aws_hook_class
+
+
    .. py:attribute:: template_fields
       :type:  collections.abc.Sequence[str]
-      :value: ('cluster_name', 'fargate_profile_name', 'wait_for_completion', 'aws_conn_id', 'region')
-
 
 
    .. py:attribute:: cluster_name
@@ -707,16 +666,6 @@ Module Contents
 
    .. py:attribute:: wait_for_completion
       :value: False
-
-
-
-   .. py:attribute:: aws_conn_id
-      :value: 'aws_default'
-
-
-
-   .. py:attribute:: region
-      :value: None
 
 
 
