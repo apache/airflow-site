@@ -14,7 +14,7 @@
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main.min.css?v=016086f5" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=24ed3fb0" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=fd3f3429" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=101b2490" />
@@ -46,7 +46,10 @@
     
 
 <header>
-    <nav class="js-navbar-scroll navbar">
+    <a href="https://airflowsummit.org" target="_blank" class="d-block fixed-top px-3 py-2 bg-success text-center text-bold text-white">
+        Airflow Summit 2025 is coming October 07-09. Register now for early bird ticket!
+    </a>
+    <nav class="js-navbar-scroll navbar" style="top: 40px;">
         <div class="navbar__icon-container">
             <a href="/">
                 <svg xmlns="http://www.w3.org/2000/svg" width="155.314" height="60" viewBox="0 0 155.314 60">
@@ -344,7 +347,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../logging/index.html">Logging for Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../configurations-ref.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../executors/index.html">Executors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">Auth manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">AWS Auth manager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../cli-ref.html">CLI</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -506,7 +509,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../logging/index.html">Logging for Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../configurations-ref.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../executors/index.html">Executors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">Auth manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">AWS Auth manager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../cli-ref.html">CLI</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -655,14 +658,12 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">botocore.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClientError</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.configuration</span><span class="w"> </span><span class="kn">import</span> <span class="n">conf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.hooks.glue</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlueDataQualityHook</span><span class="p">,</span> <span class="n">GlueJobHook</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.hooks.s3</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Hook</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.links.glue</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlueJobRunDetailsLink</span>
@@ -673,6 +674,7 @@
     <span class="n">GlueJobCompleteTrigger</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_execute_complete_event</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">aws_template_fields</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.utils.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">Context</span>
@@ -680,7 +682,7 @@
 
 <div class="viewcode-block" id="GlueJobOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">GlueJobOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GlueJobOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">GlueJobHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create an AWS Glue Job.</span>
 
@@ -719,9 +721,13 @@
 <span class="sd">        For more information see: https://repost.aws/questions/QUaKgpLBMPSGWO0iq2Fob_bw/glue-run-concurrent-jobs#ANFpCL2fRnQRqgDFuIU_rpvA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="GlueJobOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">GlueJobHook</span></div>
+
 <div class="viewcode-block" id="GlueJobOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;job_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;script_location&quot;</span><span class="p">,</span>
         <span class="s2">&quot;script_args&quot;</span><span class="p">,</span>
@@ -764,8 +770,6 @@
         <span class="n">script_args</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">retry_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">num_of_dpus</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
-        <span class="n">region_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">s3_bucket</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">iam_role_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">iam_role_arn</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -809,14 +813,6 @@
 <div class="viewcode-block" id="GlueJobOperator.num_of_dpus">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.num_of_dpus">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_of_dpus</span> <span class="o">=</span> <span class="n">num_of_dpus</span></div>
-
-<div class="viewcode-block" id="GlueJobOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
-<div class="viewcode-block" id="GlueJobOperator.region_name">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.region_name">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region_name</span> <span class="o">=</span> <span class="n">region_name</span></div>
 
 <div class="viewcode-block" id="GlueJobOperator.s3_bucket">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.s3_bucket">[docs]</a>
@@ -879,41 +875,54 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.sleep_before_return">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">sleep_before_return</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">sleep_before_return</span></div>
 
+<div class="viewcode-block" id="GlueJobOperator.s3_script_location">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.s3_script_location">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s3_script_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="GlueJobOperator.glue_job_hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.glue_job_hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">glue_job_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GlueJobHook</span><span class="p">:</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hook_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Upload script to S3 before creating the hook.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">s3_script_location</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_protocol</span><span class="p">):</span>
-            <span class="n">s3_hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
-            <span class="n">script_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">script_location</span><span class="p">)</span>
-            <span class="n">s3_hook</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">s3_artifacts_prefix</span> <span class="o">+</span> <span class="n">script_name</span><span class="p">,</span>
-                <span class="n">bucket_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="p">,</span>
-                <span class="n">replace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">replace_script_file</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">s3_script_location</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_artifacts_prefix</span><span class="si">}{</span><span class="n">script_name</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">s3_script_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span>
-        <span class="k">return</span> <span class="n">GlueJobHook</span><span class="p">(</span>
-            <span class="n">job_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
-            <span class="n">desc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_desc</span><span class="p">,</span>
-            <span class="n">concurrent_run_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">concurrent_run_limit</span><span class="p">,</span>
-            <span class="n">script_location</span><span class="o">=</span><span class="n">s3_script_location</span><span class="p">,</span>
-            <span class="n">retry_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span><span class="p">,</span>
-            <span class="n">num_of_dpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_of_dpus</span><span class="p">,</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
-            <span class="n">s3_bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="p">,</span>
-            <span class="n">iam_role_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iam_role_name</span><span class="p">,</span>
-            <span class="n">iam_role_arn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iam_role_arn</span><span class="p">,</span>
-            <span class="n">create_job_kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">create_job_kwargs</span><span class="p">,</span>
-            <span class="n">update_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">update_config</span><span class="p">,</span>
-            <span class="n">job_poll_interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_poll_interval</span><span class="p">,</span>
-        <span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">s3_script_location</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># location provided, but it&#39;s not in S3 yet.</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3_script_location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_protocol</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">upload_etl_script_to_s3</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">s3_script_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="o">**</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_hook_parameters</span><span class="p">,</span>
+            <span class="s2">&quot;job_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
+            <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_desc</span><span class="p">,</span>
+            <span class="s2">&quot;concurrent_run_limit&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">concurrent_run_limit</span><span class="p">,</span>
+            <span class="s2">&quot;script_location&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3_script_location</span><span class="p">,</span>
+            <span class="s2">&quot;retry_limit&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry_limit</span><span class="p">,</span>
+            <span class="s2">&quot;num_of_dpus&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_of_dpus</span><span class="p">,</span>
+            <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
+            <span class="s2">&quot;region_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">region_name</span><span class="p">,</span>
+            <span class="s2">&quot;s3_bucket&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="p">,</span>
+            <span class="s2">&quot;iam_role_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">iam_role_name</span><span class="p">,</span>
+            <span class="s2">&quot;iam_role_arn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">iam_role_arn</span><span class="p">,</span>
+            <span class="s2">&quot;create_job_kwargs&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_job_kwargs</span><span class="p">,</span>
+            <span class="s2">&quot;update_config&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_config</span><span class="p">,</span>
+            <span class="s2">&quot;job_poll_interval&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_poll_interval</span><span class="p">,</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="GlueJobOperator.upload_etl_script_to_s3">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueJobOperator.upload_etl_script_to_s3">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upload_etl_script_to_s3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Upload the ETL script to S3.&quot;&quot;&quot;</span>
+        <span class="n">s3_hook</span> <span class="o">=</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
+        <span class="n">script_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">script_location</span><span class="p">)</span>
+        <span class="n">s3_hook</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">script_location</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">s3_artifacts_prefix</span> <span class="o">+</span> <span class="n">script_name</span><span class="p">,</span>
+            <span class="n">bucket_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="p">,</span>
+            <span class="n">replace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">replace_script_file</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s3_script_location</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_artifacts_prefix</span><span class="si">}{</span><span class="n">script_name</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
 <div class="viewcode-block" id="GlueJobOperator.execute">
@@ -929,19 +938,19 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">glue_job_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">initialize_job</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">script_args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_job_kwargs</span><span class="p">)</span>
+        <span class="n">glue_job_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">initialize_job</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">script_args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_job_kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job_run_id</span> <span class="o">=</span> <span class="n">glue_job_run</span><span class="p">[</span><span class="s2">&quot;JobRunId&quot;</span><span class="p">]</span>
         <span class="n">glue_job_run_url</span> <span class="o">=</span> <span class="n">GlueJobRunDetailsLink</span><span class="o">.</span><span class="n">format_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">aws_domain</span><span class="o">=</span><span class="n">GlueJobRunDetailsLink</span><span class="o">.</span><span class="n">get_aws_domain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">),</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_domain</span><span class="o">=</span><span class="n">GlueJobRunDetailsLink</span><span class="o">.</span><span class="n">get_aws_domain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">),</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
             <span class="n">job_name</span><span class="o">=</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
             <span class="n">job_run_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_run_id</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">GlueJobRunDetailsLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_name</span><span class="o">=</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
             <span class="n">job_run_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_run_id</span><span class="p">,</span>
         <span class="p">)</span>
@@ -959,7 +968,7 @@
                 <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;execute_complete&quot;</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">:</span>
-            <span class="n">glue_job_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">job_completion</span><span class="p">(</span>
+            <span class="n">glue_job_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">job_completion</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_run_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sleep_before_return</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -989,7 +998,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Cancel the running AWS Glue Job.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_job_run_on_kill</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping AWS Glue Job: </span><span class="si">%s</span><span class="s2">. Run Id: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_run_id</span><span class="p">)</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glue_job_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">batch_stop_job_run</span><span class="p">(</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">batch_stop_job_run</span><span class="p">(</span>
                 <span class="n">JobName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
                 <span class="n">JobRunIds</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_run_id</span><span class="p">],</span>
             <span class="p">)</span>
@@ -1034,7 +1043,9 @@
 
 <div class="viewcode-block" id="GlueDataQualityOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueDataQualityOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;ruleset&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;data_quality_ruleset_kwargs&quot;</span><span class="p">)</span></div>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;ruleset&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;data_quality_ruleset_kwargs&quot;</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="GlueDataQualityOperator.template_fields_renderers">
@@ -1170,7 +1181,7 @@
 
 <div class="viewcode-block" id="GlueDataQualityRuleSetEvaluationRunOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueDataQualityRuleSetEvaluationRunOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;datasource&quot;</span><span class="p">,</span>
         <span class="s2">&quot;role&quot;</span><span class="p">,</span>
         <span class="s2">&quot;rule_set_names&quot;</span><span class="p">,</span>
@@ -1399,7 +1410,7 @@
 
 <div class="viewcode-block" id="GlueDataQualityRuleRecommendationRunOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/glue/index.html#airflow.providers.amazon.aws.operators.glue.GlueDataQualityRuleRecommendationRunOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;datasource&quot;</span><span class="p">,</span>
         <span class="s2">&quot;role&quot;</span><span class="p">,</span>
         <span class="s2">&quot;recommendation_run_kwargs&quot;</span><span class="p">,</span>
@@ -1693,15 +1704,6 @@
                     <g id="Group_209" data-name="Group 209" transform="translate(-645.2 -975.455)">
                         <path id="Path_216" d="M677.028 1043.1v-11.948h3.966v15.914H645.2v-15.914h3.966v11.948z" fill="#fff" data-name="Path 216" transform="translate(0 -27.014)"></path>
                         <path id="Path_217" d="M661.012 1003.008l19.467 4.069.824-3.914-19.467-4.069zm2.575-9.27l18.025 8.395 1.648-3.605-18.025-8.446zm5-8.858l15.3 12.721 2.524-3.039-15.3-12.721zm9.888-9.425l-3.193 2.369 11.845 15.965 3.193-2.369zm-17.875 36.617h19.879v-3.966H660.6z" fill="#fff" data-name="Path 217" transform="translate(-7.469)"></path>
-                    </g>
-                </svg>
-
-            </a>
-
-            <a class="footer-section__media-section--link" target="_blank" href="https://twitter.com/ApacheAirflow">
-                <svg xmlns="http://www.w3.org/2000/svg" width="44.355" height="44.355" viewBox="0 0 44.355 44.355">
-                    <g id="Group_211" data-name="Group 211" transform="translate(-503 -1382.2)">
-                        <path id="Path_221" d="M541.811 1382.2h-33.267a5.546 5.546 0 0 0-5.544 5.544v33.266a5.547 5.547 0 0 0 5.544 5.545h33.267a5.546 5.546 0 0 0 5.544-5.545v-33.266a5.546 5.546 0 0 0-5.544-5.544zm-5.611 16.533c.011.244.011.488.011.732 0 7.507-5.722 16.178-16.179 16.178a16.173 16.173 0 0 1-8.7-2.539 10.92 10.92 0 0 0 1.353.078 11.4 11.4 0 0 0 7.064-2.44 5.685 5.685 0 0 1-5.311-3.947 5.725 5.725 0 0 0 2.561-.1 5.7 5.7 0 0 1-4.557-5.578v-.078a5.752 5.752 0 0 0 2.572.71 5.709 5.709 0 0 1-1.763-7.6 16.146 16.146 0 0 0 11.721 5.944 6.282 6.282 0 0 1-.144-1.3 5.688 5.688 0 0 1 9.836-3.892 11.3 11.3 0 0 0 3.615-1.375 5.721 5.721 0 0 1-2.506 3.149 11.538 11.538 0 0 0 3.271-.9 11.585 11.585 0 0 1-2.844 2.958z" fill="#fff" data-name="Path 221"></path>
                     </g>
                 </svg>
 

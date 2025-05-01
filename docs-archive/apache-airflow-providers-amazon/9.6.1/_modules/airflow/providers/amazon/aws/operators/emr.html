@@ -14,7 +14,7 @@
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main.min.css?v=016086f5" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
-            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=35494344" />
+            <link rel="stylesheet" type="text/css" href="../../../../../../_static/_gen/css/main-custom.min.css?v=24ed3fb0" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=fd3f3429" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
             <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=101b2490" />
@@ -46,7 +46,10 @@
     
 
 <header>
-    <nav class="js-navbar-scroll navbar">
+    <a href="https://airflowsummit.org" target="_blank" class="d-block fixed-top px-3 py-2 bg-success text-center text-bold text-white">
+        Airflow Summit 2025 is coming October 07-09. Register now for early bird ticket!
+    </a>
+    <nav class="js-navbar-scroll navbar" style="top: 40px;">
         <div class="navbar__icon-container">
             <a href="/">
                 <svg xmlns="http://www.w3.org/2000/svg" width="155.314" height="60" viewBox="0 0 155.314 60">
@@ -344,7 +347,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../logging/index.html">Logging for Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../configurations-ref.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../executors/index.html">Executors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">Auth manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">AWS Auth manager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../cli-ref.html">CLI</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -506,7 +509,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../logging/index.html">Logging for Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../configurations-ref.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../executors/index.html">Executors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">Auth manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../auth-manager/index.html">AWS Auth manager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../cli-ref.html">CLI</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">References</span></p>
@@ -656,13 +659,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">uuid4</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.configuration</span><span class="w"> </span><span class="kn">import</span> <span class="n">conf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirflowException</span><span class="p">,</span> <span class="n">AirflowProviderDeprecationWarning</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseOperator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.hooks.emr</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmrContainerHook</span><span class="p">,</span> <span class="n">EmrHook</span><span class="p">,</span> <span class="n">EmrServerlessHook</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.links.emr</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">EmrClusterLink</span><span class="p">,</span>
@@ -673,6 +674,7 @@
     <span class="n">EmrServerlessS3LogsLink</span><span class="p">,</span>
     <span class="n">get_log_uri</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.operators.base_aws</span><span class="w"> </span><span class="kn">import</span> <span class="n">AwsBaseOperator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.triggers.emr</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">EmrAddStepsTrigger</span><span class="p">,</span>
     <span class="n">EmrContainerTrigger</span><span class="p">,</span>
@@ -686,6 +688,7 @@
     <span class="n">EmrTerminateJobFlowTrigger</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_execute_complete_event</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">aws_template_fields</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">airflow.providers.amazon.aws.utils.waiter</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">WAITER_POLICY_NAME_MAPPING</span><span class="p">,</span>
     <span class="n">WaitPolicy</span><span class="p">,</span>
@@ -701,7 +704,7 @@
 
 <div class="viewcode-block" id="EmrAddStepsOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrAddStepsOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrAddStepsOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An operator that adds steps to an existing EMR job_flow.</span>
 
@@ -716,10 +719,13 @@
 <span class="sd">    :param cluster_states: Acceptable cluster states when searching for JobFlow id by job_flow_name.</span>
 <span class="sd">        (templated)</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param steps: boto3 style steps or reference to a steps file (must be &#39;.json&#39;) to</span>
 <span class="sd">        be added to the jobflow. (templated)</span>
 <span class="sd">    :param wait_for_completion: If True, the operator will wait for all the steps to be completed.</span>
@@ -731,9 +737,13 @@
 <span class="sd">        (default: False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrAddStepsOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrHook</span></div>
+
 <div class="viewcode-block" id="EmrAddStepsOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;job_flow_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;job_flow_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;cluster_states&quot;</span><span class="p">,</span>
@@ -767,7 +777,6 @@
         <span class="n">job_flow_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">job_flow_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cluster_states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
@@ -781,10 +790,6 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">cluster_states</span> <span class="o">=</span> <span class="n">cluster_states</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="n">steps</span> <span class="o">=</span> <span class="n">steps</span> <span class="ow">or</span> <span class="p">[]</span>
-<div class="viewcode-block" id="EmrAddStepsOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
 <div class="viewcode-block" id="EmrAddStepsOperator.job_flow_id">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator.job_flow_id">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span> <span class="o">=</span> <span class="n">job_flow_id</span></div>
@@ -825,9 +830,7 @@
 <div class="viewcode-block" id="EmrAddStepsOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrAddStepsOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="n">emr_hook</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
-
-        <span class="n">job_flow_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span> <span class="ow">or</span> <span class="n">emr_hook</span><span class="o">.</span><span class="n">get_cluster_id_by_name</span><span class="p">(</span>
+        <span class="n">job_flow_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_cluster_id_by_name</span><span class="p">(</span>
             <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_states</span>
         <span class="p">)</span>
 
@@ -840,17 +843,17 @@
         <span class="n">EmrClusterLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="n">job_flow_id</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">EmrLogsLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">,</span>
-            <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="n">job_flow_id</span><span class="p">),</span>
+            <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="n">job_flow_id</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Adding steps to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="p">)</span>
@@ -860,7 +863,7 @@
         <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">steps</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
-        <span class="n">step_ids</span> <span class="o">=</span> <span class="n">emr_hook</span><span class="o">.</span><span class="n">add_job_flow_steps</span><span class="p">(</span>
+        <span class="n">step_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">add_job_flow_steps</span><span class="p">(</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="n">job_flow_id</span><span class="p">,</span>
             <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
             <span class="n">wait_for_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">,</span>
@@ -899,7 +902,7 @@
 
 <div class="viewcode-block" id="EmrStartNotebookExecutionOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStartNotebookExecutionOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrStartNotebookExecutionOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrStartNotebookExecutionOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An operator that starts an EMR notebook execution.</span>
 
@@ -923,11 +926,23 @@
 <span class="sd">    :param tags: Optional list of key value pair to associate with the notebook execution.</span>
 <span class="sd">    :param waiter_max_attempts: Maximum number of tries before failing.</span>
 <span class="sd">    :param waiter_delay: Number of seconds between polling the state of the notebook.</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EmrStartNotebookExecutionOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStartNotebookExecutionOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrHook</span></div>
 
 <div class="viewcode-block" id="EmrStartNotebookExecutionOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStartNotebookExecutionOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;editor_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;cluster_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;relative_path&quot;</span><span class="p">,</span>
@@ -954,7 +969,6 @@
         <span class="n">master_instance_security_group_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -996,10 +1010,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStartNotebookExecutionOperator.cluster_id">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span> <span class="o">=</span> <span class="n">cluster_id</span></div>
 
-<div class="viewcode-block" id="EmrStartNotebookExecutionOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStartNotebookExecutionOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
 <div class="viewcode-block" id="EmrStartNotebookExecutionOperator.waiter_max_attempts">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStartNotebookExecutionOperator.waiter_max_attempts">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="n">waiter_max_attempts</span> <span class="ow">or</span> <span class="mi">25</span></div>
@@ -1021,9 +1031,8 @@
             <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;EMR&quot;</span><span class="p">,</span>
             <span class="s2">&quot;MasterInstanceSecurityGroupId&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">master_instance_security_group_id</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="n">emr_hook</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
 
-        <span class="n">response</span> <span class="o">=</span> <span class="n">emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">start_notebook_execution</span><span class="p">(</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">start_notebook_execution</span><span class="p">(</span>
             <span class="n">EditorId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">editor_id</span><span class="p">,</span>
             <span class="n">RelativePath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">relative_path</span><span class="p">,</span>
             <span class="n">NotebookExecutionName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook_execution_name</span><span class="p">,</span>
@@ -1040,7 +1049,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Notebook execution started: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;NotebookExecutionId&quot;</span><span class="p">])</span>
         <span class="n">notebook_execution_id</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;NotebookExecutionId&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">:</span>
-            <span class="n">emr_hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;notebook_running&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;notebook_running&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
                 <span class="n">NotebookExecutionId</span><span class="o">=</span><span class="n">notebook_execution_id</span><span class="p">,</span>
                 <span class="n">WaiterConfig</span><span class="o">=</span><span class="n">prune_dict</span><span class="p">(</span>
                     <span class="p">{</span>
@@ -1054,7 +1063,7 @@
             <span class="c1"># failed, adding that here.  This could maybe be deprecated</span>
             <span class="c1"># later to bring it in line with how other waiters behave.</span>
             <span class="n">failure_states</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;FAILED&quot;</span><span class="p">}</span>
-            <span class="n">final_status</span> <span class="o">=</span> <span class="n">emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">describe_notebook_execution</span><span class="p">(</span>
+            <span class="n">final_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">describe_notebook_execution</span><span class="p">(</span>
                 <span class="n">NotebookExecutionId</span><span class="o">=</span><span class="n">notebook_execution_id</span>
             <span class="p">)[</span><span class="s2">&quot;NotebookExecution&quot;</span><span class="p">][</span><span class="s2">&quot;Status&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">final_status</span> <span class="ow">in</span> <span class="n">failure_states</span><span class="p">:</span>
@@ -1067,7 +1076,7 @@
 
 <div class="viewcode-block" id="EmrStopNotebookExecutionOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrStopNotebookExecutionOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrStopNotebookExecutionOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An operator that stops a running EMR notebook execution.</span>
 
@@ -1078,18 +1087,25 @@
 <span class="sd">    :param notebook_execution_id: The unique identifier of the notebook execution.</span>
 <span class="sd">    :param wait_for_completion: If True, the operator will wait for the notebook.</span>
 <span class="sd">        to be in a STOPPED or FINISHED state. Defaults to False.</span>
-<span class="sd">    :param aws_conn_id: aws connection to use.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_max_attempts: Maximum number of tries before failing.</span>
 <span class="sd">    :param waiter_delay: Number of seconds between polling the state of the notebook.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrStopNotebookExecutionOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrHook</span></div>
+
 <div class="viewcode-block" id="EmrStopNotebookExecutionOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;notebook_execution_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;waiter_delay&quot;</span><span class="p">,</span>
         <span class="s2">&quot;waiter_max_attempts&quot;</span><span class="p">,</span>
@@ -1100,7 +1116,6 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">notebook_execution_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -1114,10 +1129,6 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator.wait_for_completion">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span> <span class="o">=</span> <span class="n">wait_for_completion</span></div>
 
-<div class="viewcode-block" id="EmrStopNotebookExecutionOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
 <div class="viewcode-block" id="EmrStopNotebookExecutionOperator.waiter_max_attempts">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator.waiter_max_attempts">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="n">waiter_max_attempts</span> <span class="ow">or</span> <span class="mi">25</span></div>
@@ -1130,11 +1141,10 @@
 <div class="viewcode-block" id="EmrStopNotebookExecutionOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrStopNotebookExecutionOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">emr_hook</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
-        <span class="n">emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">stop_notebook_execution</span><span class="p">(</span><span class="n">NotebookExecutionId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook_execution_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">stop_notebook_execution</span><span class="p">(</span><span class="n">NotebookExecutionId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook_execution_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_for_completion</span><span class="p">:</span>
-            <span class="n">emr_hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;notebook_stopped&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="s2">&quot;notebook_stopped&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
                 <span class="n">NotebookExecutionId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">notebook_execution_id</span><span class="p">,</span>
                 <span class="n">WaiterConfig</span><span class="o">=</span><span class="n">prune_dict</span><span class="p">(</span>
                     <span class="p">{</span>
@@ -1149,7 +1159,7 @@
 
 <div class="viewcode-block" id="EmrEksCreateClusterOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrEksCreateClusterOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrEksCreateClusterOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrContainerHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An operator that creates EMR on EKS virtual clusters.</span>
 
@@ -1162,13 +1172,24 @@
 <span class="sd">    :param eks_namespace: namespace used by the EKS cluster.</span>
 <span class="sd">    :param virtual_cluster_id: The EMR on EKS virtual cluster id.</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param tags: The tags assigned to created cluster.</span>
 <span class="sd">        Defaults to None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrEksCreateClusterOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrContainerHook</span></div>
+
 <div class="viewcode-block" id="EmrEksCreateClusterOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;virtual_cluster_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;eks_cluster_name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;eks_namespace&quot;</span><span class="p">,</span>
@@ -1186,7 +1207,6 @@
         <span class="n">eks_cluster_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">eks_namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">virtual_cluster_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">tags</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1207,21 +1227,9 @@
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator.virtual_cluster_id">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">virtual_cluster_id</span> <span class="o">=</span> <span class="n">virtual_cluster_id</span></div>
 
-<div class="viewcode-block" id="EmrEksCreateClusterOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
 <div class="viewcode-block" id="EmrEksCreateClusterOperator.tags">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator.tags">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">tags</span></div>
-
-
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="EmrEksCreateClusterOperator.hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrEksCreateClusterOperator.hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmrContainerHook</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create and return an EmrContainerHook.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">EmrContainerHook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EmrEksCreateClusterOperator.execute">
@@ -1238,7 +1246,7 @@
 
 <div class="viewcode-block" id="EmrContainerOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrContainerOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrContainerOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrContainerHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An operator that submits jobs to EMR on EKS virtual clusters.</span>
 
@@ -1257,6 +1265,13 @@
 <span class="sd">        Use this if you want to specify a unique ID to prevent two jobs from getting started.</span>
 <span class="sd">        If no token is provided, a UUIDv4 token will be generated for you.</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param wait_for_completion: Whether or not to wait in the operator for the job to complete.</span>
 <span class="sd">    :param poll_interval: Time (in seconds) to wait between two consecutive calls to check query status on EMR</span>
 <span class="sd">    :param max_polling_attempts: Maximum number of times to wait for the job run to finish.</span>
@@ -1268,9 +1283,13 @@
 <span class="sd">    :param deferrable: Run operator in the deferrable mode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrContainerOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrContainerHook</span></div>
+
 <div class="viewcode-block" id="EmrContainerOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;name&quot;</span><span class="p">,</span>
         <span class="s2">&quot;virtual_cluster_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;execution_role_arn&quot;</span><span class="p">,</span>
@@ -1294,7 +1313,6 @@
         <span class="n">job_driver</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">configuration_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">client_request_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">poll_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
         <span class="n">tags</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1327,10 +1345,6 @@
 <div class="viewcode-block" id="EmrContainerOperator.configuration_overrides">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.configuration_overrides">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">configuration_overrides</span> <span class="o">=</span> <span class="n">configuration_overrides</span> <span class="ow">or</span> <span class="p">{}</span></div>
-
-<div class="viewcode-block" id="EmrContainerOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
 
 <div class="viewcode-block" id="EmrContainerOperator.client_request_token">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.client_request_token">[docs]</a>
@@ -1365,16 +1379,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
 
 
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="EmrContainerOperator.hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmrContainerHook</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create and return an EmrContainerHook.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">EmrContainerHook</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span>
-            <span class="n">virtual_cluster_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">virtual_cluster_id</span><span class="p">,</span>
-        <span class="p">)</span></div>
-
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hook_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_hook_parameters</span><span class="p">,</span> <span class="s2">&quot;virtual_cluster_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_cluster_id</span><span class="p">}</span>
 
 <div class="viewcode-block" id="EmrContainerOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrContainerOperator.execute">[docs]</a>
@@ -1484,7 +1491,7 @@
 
 <div class="viewcode-block" id="EmrCreateJobFlowOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrCreateJobFlowOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrCreateJobFlowOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an EMR JobFlow, reading the config from the EMR connection.</span>
 
@@ -1494,11 +1501,6 @@
 <span class="sd">        For more information on how to use this operator, take a look at the guide:</span>
 <span class="sd">        :ref:`howto/operator:EmrCreateJobFlowOperator`</span>
 
-<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
-<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
-<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
-<span class="sd">        maintained on each worker node)</span>
 <span class="sd">    :param emr_conn_id: :ref:`Amazon Elastic MapReduce Connection &lt;howto/connection:emr&gt;`.</span>
 <span class="sd">        Use to receive an initial Amazon EMR cluster configuration:</span>
 <span class="sd">        ``boto3.client(&#39;emr&#39;).run_job_flow`` request body.</span>
@@ -1506,7 +1508,14 @@
 <span class="sd">        then an empty initial configuration is used.</span>
 <span class="sd">    :param job_flow_overrides: boto3 style arguments or reference to an arguments file</span>
 <span class="sd">        (must be &#39;.json&#39;) to override specific ``emr_conn_id`` extra parameters. (templated)</span>
-<span class="sd">    :param region_name: Region named passed to EmrHook</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param wait_for_completion: Deprecated - use `wait_policy` instead.</span>
 <span class="sd">        Whether to finish task immediately after creation (False) or wait for jobflow</span>
 <span class="sd">        completion (True)</span>
@@ -1522,9 +1531,13 @@
 <span class="sd">        (default: False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrCreateJobFlowOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrHook</span></div>
+
 <div class="viewcode-block" id="EmrCreateJobFlowOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;job_flow_overrides&quot;</span><span class="p">,</span>
         <span class="s2">&quot;waiter_delay&quot;</span><span class="p">,</span>
         <span class="s2">&quot;waiter_max_attempts&quot;</span><span class="p">,</span>
@@ -1553,10 +1566,8 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">emr_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;emr_default&quot;</span><span class="p">,</span>
         <span class="n">job_flow_overrides</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">region_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_policy</span><span class="p">:</span> <span class="n">WaitPolicy</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1565,10 +1576,6 @@
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<div class="viewcode-block" id="EmrCreateJobFlowOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
 <div class="viewcode-block" id="EmrCreateJobFlowOperator.emr_conn_id">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.emr_conn_id">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">emr_conn_id</span> <span class="o">=</span> <span class="n">emr_conn_id</span></div>
@@ -1576,10 +1583,6 @@
 <div class="viewcode-block" id="EmrCreateJobFlowOperator.job_flow_overrides">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.job_flow_overrides">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_overrides</span> <span class="o">=</span> <span class="n">job_flow_overrides</span> <span class="ow">or</span> <span class="p">{}</span></div>
-
-<div class="viewcode-block" id="EmrCreateJobFlowOperator.region_name">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.region_name">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region_name</span> <span class="o">=</span> <span class="n">region_name</span></div>
 
 <div class="viewcode-block" id="EmrCreateJobFlowOperator.wait_policy">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.wait_policy">[docs]</a>
@@ -1607,12 +1610,9 @@
             <span class="c1"># preserve previous behaviour</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">wait_policy</span> <span class="o">=</span> <span class="n">WaitPolicy</span><span class="o">.</span><span class="n">WAIT_FOR_COMPLETION</span> <span class="k">if</span> <span class="n">wait_for_completion</span> <span class="k">else</span> <span class="kc">None</span>
 
-    <span class="nd">@cached_property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_emr_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmrHook</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create and return an EmrHook.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">EmrHook</span><span class="p">(</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">,</span> <span class="n">emr_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">emr_conn_id</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_name</span>
-        <span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hook_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_hook_parameters</span><span class="p">,</span> <span class="s2">&quot;emr_conn_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">emr_conn_id</span><span class="p">}</span>
 
 <div class="viewcode-block" id="EmrCreateJobFlowOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrCreateJobFlowOperator.execute">[docs]</a>
@@ -1625,7 +1625,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_overrides</span> <span class="o">=</span> <span class="n">job_flow_overrides</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">job_flow_overrides</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_overrides</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">create_job_flow</span><span class="p">(</span><span class="n">job_flow_overrides</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">create_job_flow</span><span class="p">(</span><span class="n">job_flow_overrides</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">][</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job flow creation failed: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1635,18 +1635,18 @@
         <span class="n">EmrClusterLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">:</span>
             <span class="n">EmrLogsLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
                 <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
                 <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-                <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-                <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+                <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+                <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
                 <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">,</span>
-                <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">),</span>
+                <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span>
@@ -1663,7 +1663,7 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_policy</span><span class="p">:</span>
             <span class="n">waiter_name</span> <span class="o">=</span> <span class="n">WAITER_POLICY_NAME_MAPPING</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_policy</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="n">waiter_name</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_waiter</span><span class="p">(</span><span class="n">waiter_name</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span>
                 <span class="n">ClusterId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">,</span>
                 <span class="n">WaiterConfig</span><span class="o">=</span><span class="n">prune_dict</span><span class="p">(</span>
                     <span class="p">{</span>
@@ -1693,14 +1693,14 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Terminate the EMR cluster (job flow) unless TerminationProtected is enabled on the cluster.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Terminating job flow </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">terminate_job_flows</span><span class="p">(</span><span class="n">JobFlowIds</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">])</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">terminate_job_flows</span><span class="p">(</span><span class="n">JobFlowIds</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_flow_id</span><span class="p">])</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="EmrModifyClusterOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrModifyClusterOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrModifyClusterOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An operator that modifies an existing EMR cluster.</span>
 
@@ -1710,14 +1710,24 @@
 
 <span class="sd">    :param cluster_id: cluster identifier</span>
 <span class="sd">    :param step_concurrency_level: Concurrency of the cluster</span>
-<span class="sd">    :param aws_conn_id: aws connection to uses</span>
-<span class="sd">    :param aws_conn_id: aws connection to uses</span>
+<span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
+<span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
+<span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param do_xcom_push: if True, cluster_id is pushed to XCom with key cluster_id.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrModifyClusterOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrHook</span></div>
+
 <div class="viewcode-block" id="EmrModifyClusterOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cluster_id&quot;</span><span class="p">,</span> <span class="s2">&quot;step_concurrency_level&quot;</span><span class="p">)</span></div>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span><span class="s2">&quot;cluster_id&quot;</span><span class="p">,</span> <span class="s2">&quot;step_concurrency_level&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EmrModifyClusterOperator.template_ext">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator.template_ext">[docs]</a>
@@ -1740,14 +1750,9 @@
         <span class="o">*</span><span class="p">,</span>
         <span class="n">cluster_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">step_concurrency_level</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<div class="viewcode-block" id="EmrModifyClusterOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
-
 <div class="viewcode-block" id="EmrModifyClusterOperator.cluster_id">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator.cluster_id">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span> <span class="o">=</span> <span class="n">cluster_id</span></div>
@@ -1760,30 +1765,27 @@
 <div class="viewcode-block" id="EmrModifyClusterOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrModifyClusterOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="n">emr_hook</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
-        <span class="n">emr</span> <span class="o">=</span> <span class="n">emr_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_xcom_push</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;ti&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">xcom_push</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;cluster_id&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">)</span>
 
         <span class="n">EmrClusterLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">EmrLogsLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">,</span>
-            <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">),</span>
+            <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Modifying cluster </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">emr</span><span class="o">.</span><span class="n">modify_cluster</span><span class="p">(</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">modify_cluster</span><span class="p">(</span>
             <span class="n">ClusterId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_id</span><span class="p">,</span> <span class="n">StepConcurrencyLevel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">step_concurrency_level</span>
         <span class="p">)</span>
 
@@ -1797,7 +1799,7 @@
 
 <div class="viewcode-block" id="EmrTerminateJobFlowOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrTerminateJobFlowOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrTerminateJobFlowOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Operator to terminate EMR JobFlows.</span>
 
@@ -1807,10 +1809,13 @@
 
 <span class="sd">    :param job_flow_id: id of the JobFlow to terminate. (templated)</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param waiter_delay: Time (in seconds) to wait between two consecutive calls to check JobFlow status</span>
 <span class="sd">    :param waiter_max_attempts: The maximum number of times to poll for JobFlow status.</span>
 <span class="sd">    :param deferrable: If True, the operator will wait asynchronously for the crawl to complete.</span>
@@ -1818,9 +1823,15 @@
 <span class="sd">        (default: False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrTerminateJobFlowOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrHook</span></div>
+
 <div class="viewcode-block" id="EmrTerminateJobFlowOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;job_flow_id&quot;</span><span class="p">,)</span></div>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;job_flow_id&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 <div class="viewcode-block" id="EmrTerminateJobFlowOperator.template_ext">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.template_ext">[docs]</a>
@@ -1842,7 +1853,6 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">job_flow_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -1852,10 +1862,6 @@
 <div class="viewcode-block" id="EmrTerminateJobFlowOperator.job_flow_id">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.job_flow_id">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span> <span class="o">=</span> <span class="n">job_flow_id</span></div>
-
-<div class="viewcode-block" id="EmrTerminateJobFlowOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
 
 <div class="viewcode-block" id="EmrTerminateJobFlowOperator.waiter_delay">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.waiter_delay">[docs]</a>
@@ -1873,27 +1879,24 @@
 <div class="viewcode-block" id="EmrTerminateJobFlowOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrTerminateJobFlowOperator.execute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">emr_hook</span> <span class="o">=</span> <span class="n">EmrHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span>
-        <span class="n">emr</span> <span class="o">=</span> <span class="n">emr_hook</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span>
-
         <span class="n">EmrClusterLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">EmrLogsLink</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span>
             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="n">operator</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
-            <span class="n">region_name</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
-            <span class="n">aws_partition</span><span class="o">=</span><span class="n">emr_hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
+            <span class="n">region_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_region_name</span><span class="p">,</span>
+            <span class="n">aws_partition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn_partition</span><span class="p">,</span>
             <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">,</span>
-            <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="n">emr</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">),</span>
+            <span class="n">log_uri</span><span class="o">=</span><span class="n">get_log_uri</span><span class="p">(</span><span class="n">emr_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="p">,</span> <span class="n">job_flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Terminating JobFlow </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">emr</span><span class="o">.</span><span class="n">terminate_job_flows</span><span class="p">(</span><span class="n">JobFlowIds</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">])</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">terminate_job_flows</span><span class="p">(</span><span class="n">JobFlowIds</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">job_flow_id</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">][</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;JobFlow termination failed: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1930,7 +1933,7 @@
 
 <div class="viewcode-block" id="EmrServerlessCreateApplicationOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessCreateApplicationOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrServerlessCreateApplicationOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrServerlessCreateApplicationOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrServerlessHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Operator to create Serverless EMR Application.</span>
 
@@ -1947,10 +1950,13 @@
 <span class="sd">      Its value must be unique for each request.</span>
 <span class="sd">    :param config: Optional dictionary for arbitrary parameters to the boto API create_application call.</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :waiter_max_attempts: Number of times the waiter should poll the application to check the state.</span>
 <span class="sd">        If not set, the waiter will use its default value.</span>
 <span class="sd">    :param waiter_delay: Number of seconds between polling the state of the application.</span>
@@ -1959,6 +1965,11 @@
 <span class="sd">        (default: False, but can be overridden in config file by setting default_deferrable to True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrServerlessCreateApplicationOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessCreateApplicationOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrServerlessHook</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">release_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1966,7 +1977,6 @@
         <span class="n">client_request_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">deferrable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;operators&quot;</span><span class="p">,</span> <span class="s2">&quot;default_deferrable&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -1974,10 +1984,6 @@
     <span class="p">):</span>
         <span class="n">waiter_delay</span> <span class="o">=</span> <span class="mi">60</span> <span class="k">if</span> <span class="n">waiter_delay</span> <span class="ow">is</span> <span class="n">NOTSET</span> <span class="k">else</span> <span class="n">waiter_delay</span>
         <span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="mi">25</span> <span class="k">if</span> <span class="n">waiter_max_attempts</span> <span class="ow">is</span> <span class="n">NOTSET</span> <span class="k">else</span> <span class="n">waiter_max_attempts</span>
-
-<div class="viewcode-block" id="EmrServerlessCreateApplicationOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessCreateApplicationOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
 
 <div class="viewcode-block" id="EmrServerlessCreateApplicationOperator.release_label">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessCreateApplicationOperator.release_label">[docs]</a>
@@ -2016,14 +2022,6 @@
 <div class="viewcode-block" id="EmrServerlessCreateApplicationOperator.client_request_token">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessCreateApplicationOperator.client_request_token">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_request_token</span> <span class="o">=</span> <span class="n">client_request_token</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span></div>
-
-
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="EmrServerlessCreateApplicationOperator.hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessCreateApplicationOperator.hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmrServerlessHook</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create and return an EmrServerlessHook.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">EmrServerlessHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EmrServerlessCreateApplicationOperator.execute">
@@ -2118,7 +2116,7 @@
 
 <div class="viewcode-block" id="EmrServerlessStartJobOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrServerlessStartJobOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrServerlessStartJobOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrServerlessHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Operator to start EMR Serverless job.</span>
 
@@ -2137,10 +2135,13 @@
 <span class="sd">        If set to False, ``waiter_countdown`` and ``waiter_check_interval_seconds`` will only be applied</span>
 <span class="sd">        when waiting for the application be to in the ``STARTED`` state.</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param name: Name for the EMR Serverless job. If not provided, a default name will be assigned.</span>
 <span class="sd">    :waiter_max_attempts: Number of times the waiter should poll the application to check the state.</span>
 <span class="sd">        If not set, the waiter will use its default value.</span>
@@ -2153,16 +2154,19 @@
 <span class="sd">        Tez UI or Spark stdout logs. Defaults to False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrServerlessStartJobOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrServerlessHook</span></div>
+
 <div class="viewcode-block" id="EmrServerlessStartJobOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
         <span class="s2">&quot;application_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;config&quot;</span><span class="p">,</span>
         <span class="s2">&quot;execution_role_arn&quot;</span><span class="p">,</span>
         <span class="s2">&quot;job_driver&quot;</span><span class="p">,</span>
         <span class="s2">&quot;configuration_overrides&quot;</span><span class="p">,</span>
         <span class="s2">&quot;name&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;aws_conn_id&quot;</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -2193,7 +2197,6 @@
         <span class="n">client_request_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
@@ -2203,10 +2206,6 @@
     <span class="p">):</span>
         <span class="n">waiter_delay</span> <span class="o">=</span> <span class="mi">60</span> <span class="k">if</span> <span class="n">waiter_delay</span> <span class="ow">is</span> <span class="n">NOTSET</span> <span class="k">else</span> <span class="n">waiter_delay</span>
         <span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="mi">25</span> <span class="k">if</span> <span class="n">waiter_max_attempts</span> <span class="ow">is</span> <span class="n">NOTSET</span> <span class="k">else</span> <span class="n">waiter_max_attempts</span>
-
-<div class="viewcode-block" id="EmrServerlessStartJobOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
 
 <div class="viewcode-block" id="EmrServerlessStartJobOperator.application_id">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator.application_id">[docs]</a>
@@ -2261,14 +2260,6 @@
 <div class="viewcode-block" id="EmrServerlessStartJobOperator.client_request_token">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator.client_request_token">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_request_token</span> <span class="o">=</span> <span class="n">client_request_token</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span></div>
-
-
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="EmrServerlessStartJobOperator.hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStartJobOperator.hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmrServerlessHook</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create and return an EmrServerlessHook.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">EmrServerlessHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EmrServerlessStartJobOperator.execute">
@@ -2509,7 +2500,7 @@
 
 <div class="viewcode-block" id="EmrServerlessStopApplicationOperator">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">EmrServerlessStopApplicationOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmrServerlessStopApplicationOperator</span><span class="p">(</span><span class="n">AwsBaseOperator</span><span class="p">[</span><span class="n">EmrServerlessHook</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Operator to stop an EMR Serverless application.</span>
 
@@ -2520,10 +2511,13 @@
 <span class="sd">    :param application_id: ID of the EMR Serverless application to stop.</span>
 <span class="sd">    :param wait_for_completion: If true, wait for the Application to stop before returning. Default to True</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :param force_stop: If set to True, any job for that app that is not in a terminal state will be cancelled.</span>
 <span class="sd">        Otherwise, trying to stop an app with running jobs will return an error.</span>
 <span class="sd">        If you want to wait for the jobs to finish gracefully, use</span>
@@ -2537,16 +2531,21 @@
 <span class="sd">        (default: False, but can be overridden in config file by setting default_deferrable to True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="EmrServerlessStopApplicationOperator.aws_hook_class">
+<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator.aws_hook_class">[docs]</a>
+    <span class="n">aws_hook_class</span> <span class="o">=</span> <span class="n">EmrServerlessHook</span></div>
+
 <div class="viewcode-block" id="EmrServerlessStopApplicationOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;application_id&quot;</span><span class="p">,)</span></div>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;application_id&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">application_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">force_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -2555,10 +2554,6 @@
     <span class="p">):</span>
         <span class="n">waiter_delay</span> <span class="o">=</span> <span class="mi">60</span> <span class="k">if</span> <span class="n">waiter_delay</span> <span class="ow">is</span> <span class="n">NOTSET</span> <span class="k">else</span> <span class="n">waiter_delay</span>
         <span class="n">waiter_max_attempts</span> <span class="o">=</span> <span class="mi">25</span> <span class="k">if</span> <span class="n">waiter_max_attempts</span> <span class="ow">is</span> <span class="n">NOTSET</span> <span class="k">else</span> <span class="n">waiter_max_attempts</span>
-
-<div class="viewcode-block" id="EmrServerlessStopApplicationOperator.aws_conn_id">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator.aws_conn_id">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span> <span class="o">=</span> <span class="n">aws_conn_id</span></div>
 
 <div class="viewcode-block" id="EmrServerlessStopApplicationOperator.application_id">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator.application_id">[docs]</a>
@@ -2585,14 +2580,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">deferrable</span> <span class="o">=</span> <span class="n">deferrable</span></div>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="nd">@cached_property</span>
-<div class="viewcode-block" id="EmrServerlessStopApplicationOperator.hook">
-<a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator.hook">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmrServerlessHook</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create and return an EmrServerlessHook.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">EmrServerlessHook</span><span class="p">(</span><span class="n">aws_conn_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aws_conn_id</span><span class="p">)</span></div>
-
 
 <div class="viewcode-block" id="EmrServerlessStopApplicationOperator.execute">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessStopApplicationOperator.execute">[docs]</a>
@@ -2699,10 +2686,13 @@
 <span class="sd">    :param wait_for_completion: If true, wait for the Application to be deleted before returning.</span>
 <span class="sd">        Defaults to True. Note that this operator will always wait for the application to be STOPPED first.</span>
 <span class="sd">    :param aws_conn_id: The Airflow connection used for AWS credentials.</span>
-<span class="sd">        If this is None or empty then the default boto3 behaviour is used. If</span>
+<span class="sd">        If this is ``None`` or empty then the default boto3 behaviour is used. If</span>
 <span class="sd">        running Airflow in a distributed manner and aws_conn_id is None or</span>
 <span class="sd">        empty, then default boto3 configuration would be used (and must be</span>
 <span class="sd">        maintained on each worker node).</span>
+<span class="sd">    :param region_name: AWS region_name. If not specified then the default boto3 behaviour is used.</span>
+<span class="sd">    :param verify: Whether or not to verify SSL certificates. See:</span>
+<span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html</span>
 <span class="sd">    :waiter_max_attempts: Number of times the waiter should poll the application to check the state.</span>
 <span class="sd">        Defaults to 25.</span>
 <span class="sd">    :param waiter_delay: Number of seconds between polling the state of the application.</span>
@@ -2718,14 +2708,15 @@
 
 <div class="viewcode-block" id="EmrServerlessDeleteApplicationOperator.template_fields">
 <a class="viewcode-back" href="../../../../../../_api/airflow/providers/amazon/aws/operators/emr/index.html#airflow.providers.amazon.aws.operators.emr.EmrServerlessDeleteApplicationOperator.template_fields">[docs]</a>
-    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;application_id&quot;</span><span class="p">,)</span></div>
+    <span class="n">template_fields</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">aws_template_fields</span><span class="p">(</span>
+        <span class="s2">&quot;application_id&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">application_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">wait_for_completion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">aws_conn_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">&quot;aws_default&quot;</span><span class="p">,</span>
         <span class="n">waiter_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">waiter_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">ArgNotSet</span> <span class="o">=</span> <span class="n">NOTSET</span><span class="p">,</span>
         <span class="n">force_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -2744,7 +2735,6 @@
             <span class="n">application_id</span><span class="o">=</span><span class="n">application_id</span><span class="p">,</span>
             <span class="c1"># when deleting an app, we always need to wait for it to stop before we can call delete()</span>
             <span class="n">wait_for_completion</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">aws_conn_id</span><span class="o">=</span><span class="n">aws_conn_id</span><span class="p">,</span>
             <span class="n">waiter_delay</span><span class="o">=</span><span class="n">waiter_delay</span><span class="p">,</span>
             <span class="n">waiter_max_attempts</span><span class="o">=</span><span class="n">waiter_max_attempts</span><span class="p">,</span>
             <span class="n">force_stop</span><span class="o">=</span><span class="n">force_stop</span><span class="p">,</span>
@@ -2946,15 +2936,6 @@
                     <g id="Group_209" data-name="Group 209" transform="translate(-645.2 -975.455)">
                         <path id="Path_216" d="M677.028 1043.1v-11.948h3.966v15.914H645.2v-15.914h3.966v11.948z" fill="#fff" data-name="Path 216" transform="translate(0 -27.014)"></path>
                         <path id="Path_217" d="M661.012 1003.008l19.467 4.069.824-3.914-19.467-4.069zm2.575-9.27l18.025 8.395 1.648-3.605-18.025-8.446zm5-8.858l15.3 12.721 2.524-3.039-15.3-12.721zm9.888-9.425l-3.193 2.369 11.845 15.965 3.193-2.369zm-17.875 36.617h19.879v-3.966H660.6z" fill="#fff" data-name="Path 217" transform="translate(-7.469)"></path>
-                    </g>
-                </svg>
-
-            </a>
-
-            <a class="footer-section__media-section--link" target="_blank" href="https://twitter.com/ApacheAirflow">
-                <svg xmlns="http://www.w3.org/2000/svg" width="44.355" height="44.355" viewBox="0 0 44.355 44.355">
-                    <g id="Group_211" data-name="Group 211" transform="translate(-503 -1382.2)">
-                        <path id="Path_221" d="M541.811 1382.2h-33.267a5.546 5.546 0 0 0-5.544 5.544v33.266a5.547 5.547 0 0 0 5.544 5.545h33.267a5.546 5.546 0 0 0 5.544-5.545v-33.266a5.546 5.546 0 0 0-5.544-5.544zm-5.611 16.533c.011.244.011.488.011.732 0 7.507-5.722 16.178-16.179 16.178a16.173 16.173 0 0 1-8.7-2.539 10.92 10.92 0 0 0 1.353.078 11.4 11.4 0 0 0 7.064-2.44 5.685 5.685 0 0 1-5.311-3.947 5.725 5.725 0 0 0 2.561-.1 5.7 5.7 0 0 1-4.557-5.578v-.078a5.752 5.752 0 0 0 2.572.71 5.709 5.709 0 0 1-1.763-7.6 16.146 16.146 0 0 0 11.721 5.944 6.282 6.282 0 0 1-.144-1.3 5.688 5.688 0 0 1 9.836-3.892 11.3 11.3 0 0 0 3.615-1.375 5.721 5.721 0 0 1-2.506 3.149 11.538 11.538 0 0 0 3.271-.9 11.585 11.585 0 0 1-2.844 2.958z" fill="#fff" data-name="Path 221"></path>
                     </g>
                 </svg>
 
