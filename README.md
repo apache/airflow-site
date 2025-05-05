@@ -67,3 +67,7 @@ For more detailed description of `site.sh` capabilities, please refer to [contri
 
 If you'd like to contribute to the Apache Airflow website project, read our [contributor's guide](CONTRIBUTE.md)
 where you can find detailed instructions on how to work with the website.
+
+# [Publishing Apache Airflow documentation](DOCSPUBLISHING.md)
+
+
