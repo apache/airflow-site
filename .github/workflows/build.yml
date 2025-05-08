@@ -103,6 +103,30 @@ jobs:
         run: |
           /mnt/airflow-site/site.sh build-site
           /mnt/airflow-site/.github/scripts/print_df.sh
+
+      - name: Install AWS CLI v2
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+          unzip -q /tmp/awscliv2.zip -d /tmp
+          rm /tmp/awscliv2.zip
+          sudo /tmp/aws/install --update
+          rm -rf /tmp/aws/
+
+      - name: Configure AWS credentials
+        if: ${{ github.event_name == 'push' }}
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a  # v4.0.1
+        with:
+          aws-access-key-id: ${{ secrets.DOCS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DOCS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Copy docs index page to S3 docs
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          aws s3 cp ./dist/docs/index.html s3://staging-docs-airflow-apache-org/docs/index.html
+          aws s3 cp ./dist/docs/index.xml s3://staging-docs-airflow-apache-org/docs/index.xml
+
       - name: 🐅 Optimize artifacts
         if: ${{ github.event_name == 'pull_request' }}
         run: |
