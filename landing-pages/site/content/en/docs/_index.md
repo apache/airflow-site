@@ -61,6 +61,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-apache-spark/stable/index.html"><code>Apache Spark</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-tinkerpop/stable/index.html"><code>Apache Tinkerpop</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apprise/stable/index.html"><code>Apprise</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-arangodb/stable/index.html"><code>ArangoDB</code></a></li>
