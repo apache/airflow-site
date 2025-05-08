@@ -92,11 +92,11 @@ jobs:
           pip install pre-commit
           pip install pre-commit-uv
           pre-commit run --all-files
-      - name: 🗂 Checkout gh-pages branch with minimum depth
+      - name: 🗂 Checkout publish branch with minimum depth
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
         if: ${{ github.event_name == 'push' }}
         with:
-          ref: gh-pages
+          ref: publish
           fetch-depth: 1
           path: dist
       - name: 🔧 Build site
@@ -160,7 +160,7 @@ jobs:
           PMC_COMMITTERS_FILES: landing-pages/site/data/committers.json,landing-pages/site/data/pmc.json
         run: |
           python3 ./.github/scripts/refresh_pmc_committer_images.py
-      - name: 🚀 Amend gh-pages branch and deploy it with force (replacing previous pages)
+      - name: 🚀 Add commit to publish branch and deploy it
         if: ${{ github.event_name == 'push' }}
         working-directory: dist
         run: |
@@ -172,9 +172,9 @@ jobs:
           git add .
           ../.github/scripts/print_df.sh
           echo "Running git commit"
-          git commit --amend --no-edit > ../git_commit.log
+          git commit --no-edit -m "Docs updated via ${{ github.ref }}:${{ github.sha }}" > ../git_commit.log
           ../.github/scripts/print_df.sh
-          git push --force origin gh-pages
+          git push origin publish
           ../.github/scripts/print_df.sh
       - name: 🚀 Upload git commit log as artifacts
         uses: actions/upload-artifact@v4
