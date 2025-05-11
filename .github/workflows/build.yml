@@ -59,10 +59,6 @@ jobs:
       - name: Set working directory to /mnt/airflow-site
         working-directory: /mnt/airflow-site
         run: echo "Working directory set to /mnt/airflow-site"
-
-      - name: Display disk free
-        run: /mnt/airflow-site/.github/scripts/print_df.sh
-        working-directory: /mnt/airflow-site
       - name: 🐍 Setup Python
         uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0  # v4.6.1
         with:
@@ -79,20 +75,17 @@ jobs:
       - name: 🟢 Install node dependencies
         run: |
           /mnt/airflow-site/site.sh install-node-deps
-          /mnt/airflow-site/.github/scripts/print_df.sh
-      - name: 🐍 Install Python dependencies
+      - name: 🐍 Install uv
         run: |
-          pip install -r requirements.txt
-          /mnt/airflow-site/.github/scripts/print_df.sh
+          curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Ensure cache directory exists and adjust permissions
         run: |
           mkdir -p /mnt/airflow-site/.cache/pre-commit
           sudo chmod -R 777 /mnt/airflow-site/.cache/pre-commit
       - name: 🔎 Lint
         run: |
-          pip install pre-commit
-          pip install pre-commit-uv
-          pre-commit run --all-files
+          uv tool install pre-commit --with pre-commit-uv
+          pre-commit run --all-files --color always
       - name: 🗂 Checkout publish branch with minimum depth
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -103,8 +96,6 @@ jobs:
       - name: 🔧 Build site
         run: |
           /mnt/airflow-site/site.sh build-site
-          /mnt/airflow-site/.github/scripts/print_df.sh
-
       - name: Install AWS CLI v2
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
@@ -113,7 +104,6 @@ jobs:
           rm /tmp/awscliv2.zip
           sudo /tmp/aws/install --update
           rm -rf /tmp/aws/
-
       - name: Configure AWS credentials
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a  # v4.0.1
@@ -135,7 +125,6 @@ jobs:
           echo "These files have been deleted to optimize the size of the artifacts." > ./dist/docs/index.html
           echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
           find ./dist/
-          /mnt/airflow-site/.github/scripts/print_df.sh
       - uses: actions/upload-artifact@v4
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
@@ -150,33 +139,27 @@ jobs:
           # The asf.yaml file must be in the branch from which the files are published.
           # Otherwise, ASF publising tools cannot detect it.
           cp .asf.yaml ./dist/
-          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🪓 Remove node and node modules
         run: |
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
-          /mnt/airflow-site/.github/scripts/print_df.sh
       - name: 🔄Refresh PMC/COMMITTERS profiles
         env:
           PMC_COMMITTERS_FILES: landing-pages/site/data/committers.json,landing-pages/site/data/pmc.json
         run: |
-          python3 ./.github/scripts/refresh_pmc_committer_images.py
+          uv run ./.github/scripts/refresh_pmc_committer_images.py
       - name: 🚀 Add commit to publish branch and deploy it
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         working-directory: dist
         run: |
-          ../.github/scripts/print_df.sh
           echo "Running git config"
           git config user.name "GitHub Actions"
           git config user.email "actions@users.noreply.github.com"
           echo "Running git add"
           git add .
-          ../.github/scripts/print_df.sh
           echo "Running git commit"
           git commit --no-edit -m "Docs updated via ${{ github.ref }}:${{ github.sha }}" > ../git_commit.log
-          ../.github/scripts/print_df.sh
           git push origin publish
-          ../.github/scripts/print_df.sh
       - name: 🚀 Upload git commit log as artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -186,13 +169,10 @@ jobs:
       - name: 🔧 Copy files from site to theme
         run: |
           ./site.sh prepare-theme
-          ./.github/scripts/print_df.sh
       - name: 🔧 Prepare sphinx_airflow_theme package ️
         working-directory: sphinx_airflow_theme
         run: |
-          python3 -m pip install --user --upgrade setuptools wheel
-          python3 setup.py sdist bdist_wheel
-          ../.github/scripts/print_df.sh
+          uv build
       - name: 🚀 Upload sphinx_airflow_theme package as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -206,7 +186,6 @@ jobs:
           pip install ./dist/sphinx_airflow_theme-*.whl
           cd demo
           ./docs.sh build
-          ../../.github/scripts/print_df.sh
       - name: 🚀 Upload sphinx_airflow_theme demo as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -236,4 +215,3 @@ jobs:
             --title "${TITLE}" \
             --notes "${NOTES}" \
             ./dist/*
-          ../.github/scripts/print_df.sh

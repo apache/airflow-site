@@ -80,7 +80,7 @@ if [[ "${CMD}" == "build" ]] ; then
     rm -rf _build
     build_sphinx_demo
     mkdir -p _build/_gen/
-    (cd ../../; python dump-docs-packages-metadata.py > "${BUILD_DIR}/_gen/packages-metadata.json")
+    (cd ../../; uv run .github/scripts/dump-docs-packages-metadata.py > "${BUILD_DIR}/_gen/packages-metadata.json")
     exit 0
 elif [[ "${CMD}" == "preview" ]] ; then
     start_preview

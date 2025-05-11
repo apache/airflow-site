@@ -127,7 +127,7 @@ function run_lint {
 
 function prepare_packages_metadata {
     log "Preparing packages-metadata.json"
-    "${MY_DIR}"/dump-docs-packages-metadata.py > "${MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json"
+    uv run "${MY_DIR}"/.github/scripts/dump-docs-packages-metadata.py > "${MY_DIR}/landing-pages/site/static/_gen/packages-metadata.json"
 }
 
 function build_landing_pages {
@@ -171,7 +171,7 @@ function build_site {
     # This file may already have been created during building landing pages,
     # but when building a full site, it's worth regenerate
     log "Preparing packages-metadata.json"
-    "${MY_DIR}"/dump-docs-packages-metadata.py > "${MY_DIR}/dist/_gen/packages-metadata.json"
+    uv run "${MY_DIR}"/.github/scripts/dump-docs-packages-metadata.py > "${MY_DIR}/dist/_gen/packages-metadata.json"
 
     # Sanity checks
     assert_file_exists "${MY_DIR}"/dist/docs/index.html
