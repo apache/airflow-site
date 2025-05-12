@@ -19,7 +19,7 @@ name: Build docs
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'staging']
   pull_request:
   workflow_dispatch:
 
@@ -88,9 +88,16 @@ jobs:
           pre-commit run --all-files --color always
       - name: 🗂 Checkout publish branch with minimum depth
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         with:
           ref: publish
+          fetch-depth: 1
+          path: dist
+      - name: 🗂 Checkout publish-staging branch with minimum depth
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'
+        with:
+          ref: publish-staging
           fetch-depth: 1
           path: dist
       - name: 🔧 Build site
@@ -149,7 +156,9 @@ jobs:
         run: |
           uv run ./.github/scripts/refresh_pmc_committer_images.py
       - name: 🚀 Add commit to publish branch and deploy it
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        if: >
+          github.event_name == 'push' || github.event_name == 'workflow_dispatch' &&
+          github.repository == 'apache/airflow-site' && (gihub.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
         working-directory: dist
         run: |
           echo "Running git config"
@@ -159,7 +168,13 @@ jobs:
           git add .
           echo "Running git commit"
           git commit --no-edit -m "Docs updated via ${{ github.ref }}:${{ github.sha }}" > ../git_commit.log
-          git push origin publish
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            echo "Running git push to publish branch"
+            git push origin publish
+          else
+            echo "Running git push to publish-stging branch"
+            git push origin publish-staging
+          fi
       - name: 🚀 Upload git commit log as artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -200,18 +215,24 @@ jobs:
           GITHUB_COMMIT: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
         if: >
-          github.ref == 'refs/heads/main' && github.repository == 'apache/airflow-site' &&
+          (github.ref == 'refs/heads/main' || github.ref == 'refs/head/stging') &&
+          github.repository == 'apache/airflow-site' &&
           (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: |
           set -x
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            SUFFIX=""
+          else
+            SUFFIX="-staging"
+          fi
           gh auth status
           VERSION="$(cd sphinx_airflow_theme; uv run python -c 'import sphinx_airflow_theme; print(sphinx_airflow_theme.__version__)')"
           TITLE=$(date "+%Y-%m-%d %H:%M:%S")
           NOTES="Commit: ${GITHUB_COMMIT}
           Source: ${GITHUB_REF}"
 
-          gh release delete "${VERSION}" -y || true
-          gh release create "${VERSION}" \
+          gh release delete "${VERSION}${SUFFIX}" -y || true
+          gh release create "${VERSION}${SUFFIX}" \
             --title "${TITLE}" \
             --notes "${NOTES}" \
             ./dist/*
