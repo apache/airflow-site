@@ -140,11 +140,32 @@ jobs:
           path: './dist'
           if-no-files-found: error
           retention-days: 14
-      - name: Replace cloudfront url for staging branch
+      - name: Apply staging modifications
         run: |
           sed -i 's/d7fnmbhf26p21.cloudfront.net/d3a2du7x0n8ydr.cloudfront.net/' .htaccess
           echo "Updated .htaccess"
           cat .htaccess
+          echo
+          echo "Adding watermark"
+          cat <<EOF >> ./dist/scss/main-custom.min.*.css
+          body {
+              position: relative; /* Ensures the pseudo-element is positioned relative to the body */
+              z-index: 0; /* Keeps the content above the pseudo-element */
+          }
+
+          body::before {
+              content: "";
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: url(/images/staging.png) repeat center center fixed; /* Sets the background image */
+              opacity: 0.2; /* Makes the watermark semi-transparent */
+              pointer-events: none; /* Ensures the watermark doesn't interfere with user interactions */
+              z-index: -1; /* Places the pseudo-element behind all other elements */
+          }
+          EOF
         working-directory: ./dist
         if: github.ref == 'refs/heads/staging'
       - name: 👷 Copy .asf.yaml to /dist/
