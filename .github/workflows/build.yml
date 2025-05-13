@@ -30,6 +30,7 @@ jobs:
       S3_DOCS_BUCKET: ${{github.ref == 'refs/heads/staging' && 'staging-docs-airflow-apache-org' || 'live-docs-airflow-apache-org'}}
       PROD_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' || 'false' }}
       STAGING_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging' || 'false' }}
+      PUBLISH_BRANCH: ${{ github.ref == 'refs/heads/main' && 'publish' || 'staging-publish' }}
     steps:
       - name: ℹ️ Info
         run: |
@@ -95,18 +96,11 @@ jobs:
         run: |
           uv tool install pre-commit --with pre-commit-uv
           pre-commit run --all-files --color always
-      - name: 🗂 Checkout publish branch with minimum depth
+      - name: 🗂 Checkout ${{ env.PUBLISH_BRANCH }} branch with minimum depth
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
         if: env.PROD_PUBLISH_REQUIRED != 'false'
         with:
-          ref: publish
-          fetch-depth: 1
-          path: dist
-      - name: 🗂 Checkout staging-publish branch with minimum depth
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
-        if: env.STAGING_PUBLISH_REQUIRED != 'false'
-        with:
-          ref: staging-publish
+          ref: ${{ env.PUBLISH_BRANCH }}
           fetch-depth: 1
           path: dist
       - name: 🔧 Build site
@@ -181,7 +175,7 @@ jobs:
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
         run: |
           # The asf.yaml file must be in the branch from which the files are published.
-          # Otherwise, ASF publising tools cannot detect it.
+          # Otherwise, ASF publishing tools cannot detect it.
           cp .asf.yaml ./dist/
       - name: 🪓 Remove node and node modules
         run: |
@@ -192,10 +186,11 @@ jobs:
           PMC_COMMITTERS_FILES: landing-pages/site/data/committers.json,landing-pages/site/data/pmc.json
         run: |
           uv run ./.github/scripts/refresh_pmc_committer_images.py
-      - name: 🚀 Add commit to publish branch and deploy it
+      - name: 🚀 Add commit to ${{ env.PUBLISH_BRANCH }} branch and deploy it
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
         working-directory: dist
         run: |
+          set -x
           echo "Running git config"
           git config user.name "GitHub Actions"
           git config user.email "actions@users.noreply.github.com"
@@ -203,13 +198,8 @@ jobs:
           git add .
           echo "Running git commit"
           git commit --no-edit -m "Docs updated via ${{ github.ref }}:${{ github.sha }}" > ../git_commit.log
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            echo "Running git push to publish branch"
-            git push origin publish
-          else
-            echo "Running git push to staging-publish branch"
-            git push origin staging-publish
-          fi
+          echo "Running git push to ${{ env.PUBLISH_BRANCH }} branch"
+          git push origin ${{ env.PUBLISH_BRANCH }}
       - name: 🚀 Upload git commit log as artifacts
         uses: actions/upload-artifact@v4
         with:
