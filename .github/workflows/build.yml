@@ -141,34 +141,15 @@ jobs:
           name: airflow-website
           path: './dist'
           if-no-files-found: error
-          retention-days: 14
-      - name: Apply staging modifications
+          retention-days: 7
+      - name: "Apply staging modifications: .htaccess and watermarks"
         run: |
-          sed -i 's/d7fnmbhf26p21.cloudfront.net/d3a2du7x0n8ydr.cloudfront.net/' .htaccess
-          echo "Updated .htaccess"
-          cat .htaccess
+          sed -i 's/d7fnmbhf26p21.cloudfront.net/d3a2du7x0n8ydr.cloudfront.net/' ./dist/.htaccess
+          echo "Updated ./dist/.htaccess"
+          cat ./dist/.htaccess
           echo
-          echo "Adding watermark"
-          cat <<EOF >> ./scss/main-custom.min.*.css
-          body {
-              position: relative; /* Ensures the pseudo-element is positioned relative to the body */
-              z-index: 0; /* Keeps the content above the pseudo-element */
-          }
-
-          body::before {
-              content: "";
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              background: url(/images/staging.png) repeat center center fixed; /* Sets the background image */
-              opacity: 0.2; /* Makes the watermark semi-transparent */
-              pointer-events: none; /* Ensures the watermark doesn't interfere with user interactions */
-              z-index: -1; /* Places the pseudo-element behind all other elements */
-          }
-          EOF
-        working-directory: ./dist
+          uv run .github/scripts/add_watermark.py --pattern 'main.min.css' \
+          --folder landing-pages/site/static --image-directory images --url-prefix /images
         if: github.ref == 'refs/heads/staging'
       - name: 👷 Copy .asf.yaml to /dist/
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
