@@ -71,14 +71,16 @@ if __name__ == "__main__":
     content_to_add = CSS_TO_ADD.replace("URL_PREFIX", url_prefix)
     console.print(f"[bright_blue]Looking for css files following '{pattern}' pattern[/] in {folder_path}")
     files = folder_path.rglob(pattern)
-    for file in files:
-        content = file.read_text()
-        if not "watermark semi-transparent" in content:
-            console.print(f"[yellow]Adding watermark to:[/] {file}")
-            content = content + content_to_add
-            file.write_text(content)
+    if not files:
+        console.print(f"[red]No files found with pattern {pattern} in {folder_path}")
     else:
-        console.print("[red]Not found files to update css in.")
+        for file in files:
+            content = file.read_text()
+            if not "watermark semi-transparent" in content:
+                console.print(f"[yellow]Adding watermark to:[/] {file}")
+                content = content + content_to_add
+                file.write_text(content)
     target_image_location = folder_path / image_directory_path
+    console.print(f"[yellow]Creating staging image at :[/]:{target_image_location}/staging.png")
     target_image_location.mkdir(parents=True, exist_ok=True)
     shutil.copy(IMAGE_FILE, target_image_location / "staging.png")
