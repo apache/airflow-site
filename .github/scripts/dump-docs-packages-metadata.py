@@ -26,8 +26,10 @@
 import sys
 
 import requests
+import os
 
-resp = requests.get("https://live-docs-airflow-apache-org.s3.us-east-2.amazonaws.com/manifest/packages-metadata.json")
+bucket = os.environ.get("S3_DOCS_BUCKET")
+resp = requests.get(f"https://{bucket}.s3.us-east-2.amazonaws.com/manifest/packages-metadata.json")
 if resp.status_code != 200:
     raise RuntimeError(f"Failed to fetch metadata: {resp.status_code} - {resp.text}")
 
