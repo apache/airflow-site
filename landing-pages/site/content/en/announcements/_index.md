@@ -11,6 +11,32 @@ menu:
 &nbsp;
 &nbsp;
 
+# May 27, 2025
+
+We’ve just released Apache Airflow **Python Client 3.0.0**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow-client/3.0.0/ \
+📚 Docs: https://github.com/apache/airflow-client-python/blob/3.0.0/README.md \
+🛠️ Release Notes: https://github.com/apache/airflow-client-python/blob/3.0.0/CHANGELOG.md
+
+# May 20, 2025
+
+We’ve just released Apache **Airflow 2.11.0**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.11.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.11.0/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/2.11.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/2.11.0/installation/installing-from-sources.html
+
+# May 12, 2025
+
+We’ve just released Apache **Airflow 3.0.1**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.0.1/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.0.1/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.0.1/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.0.1/installation/installing-from-sources.html
+
 # April 22, 2025
 
 We’ve just released Apache **Airflow 3.0.0**. You can read more about what 3.0 brings in the [announcement post]({{< ref "blog/airflow-three-point-oh-is-here/index.md" >}}).
