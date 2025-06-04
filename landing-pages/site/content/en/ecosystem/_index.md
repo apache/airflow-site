@@ -177,8 +177,6 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Elyra](https://github.com/elyra-ai/elyra) - Elyra provides a visual editor that enables data scientists to create AI pipelines in a low-code/no-code fashion.
 
-[GeniumCloud](https://geniumcloud.com) - One-Stop-Shop Platform for rapid build, scheduling and control Airflow workflows via completely new UI. Out of the box comprehensive Airflow infrastructure monitoring, integration with alerting systems and service adoption from small to enterprise organizations. The easiest way to manage complex workflows.
-
 [gusty](https://github.com/chriscardillo/gusty) - Create a DAG using any number of YAML, Python, Jupyter Notebook, or R Markdown files that represent individual tasks in the DAG. gusty also configures dependencies, DAGs, and TaskGroups, features support for your local operators, and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
 
 [Marquez](https://marquezproject.ai) - Marquez is an open source metadata service that maintains data provenance, shows how datasets are consumed and produced and centralizes dataset lifecycle management. Marquez can be used with Apache Airflow as an OpenLineage backend.
