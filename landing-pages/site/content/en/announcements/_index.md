@@ -11,6 +11,16 @@ menu:
 &nbsp;
 &nbsp;
 
+# June 11, 2025
+
+We’ve just released Apache **Airflow 3.0.2**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.0.2/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.0.2/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.0.2/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.0.2/installation/installing-from-sources.html \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.0.2
+
 # May 27, 2025
 
 We’ve just released Apache Airflow **Python Client 3.0.0**.
