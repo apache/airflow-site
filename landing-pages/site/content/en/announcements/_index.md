@@ -11,6 +11,14 @@ menu:
 &nbsp;
 &nbsp;
 
+# June 23, 2025
+
+We've just released Apache **Airflow Helm chart 1.17.0**.
+
+📚 Docs: https://airflow.apache.org/docs/helm-chart/1.17.0/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.17.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.17.0/installing-helm-chart-from-sources.html
+
 # June 11, 2025
 
 We’ve just released Apache **Airflow 3.0.2**.
