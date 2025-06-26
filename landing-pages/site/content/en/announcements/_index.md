@@ -11,6 +11,10 @@ menu:
 &nbsp;
 &nbsp;
 
+# June 26, 2025
+
+Airflow PMC welcomes new Airflow PMC Member: **Amogh Desai** ([@amoghrajesh](https://github.com/amoghrajesh))
+
 # June 23, 2025
 
 We've just released Apache **Airflow Helm chart 1.17.0**.
@@ -113,7 +117,7 @@ We’ve just released Apache **Airflow 2.10.3**.
 
 # October 19, 2024
 
-Airflow PMC welcomes new Airflow PMC Member: **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka)
+Airflow PMC welcomes new Airflow PMC Member: **Vikram Koka** ([@vikramkoka](https://github.com/vikramkoka))
 
 # September 20, 2024
 
