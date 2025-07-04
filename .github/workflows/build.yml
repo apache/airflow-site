@@ -31,6 +31,7 @@ jobs:
       PROD_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' || 'false' }}
       STAGING_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging' || 'false' }}
       PUBLISH_BRANCH: ${{ github.ref == 'refs/heads/main' && 'publish' || 'staging-publish' }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ github.ref == 'refs/heads/main' && 'E26P75MP9PMULE' || 'E197MS0XRJC5F3' }}
     steps:
       - name: ℹ️ Info
         run: |
@@ -126,7 +127,7 @@ jobs:
         run: |
           aws s3 cp ./dist/docs/index.html s3://${S3_DOCS_BUCKET}/docs/index.html
           aws s3 cp ./dist/docs/index.xml s3://${S3_DOCS_BUCKET}/docs/index.xml
-
+          aws create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths "/docs/index.html"
       - name: 🐅 Optimize artifacts
         if: ${{ github.event_name == 'pull_request' }}
         run: |
