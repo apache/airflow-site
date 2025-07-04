@@ -14,12 +14,6 @@ menu:
 Apache Airflow Core, which includes webserver, scheduler, CLI and other components that are needed for minimal Airflow installation.
 [Read the documentation >>](/docs/apache-airflow/stable/index.html)
 
-## [Task SDK](/docs/task-sdk/stable/index.html)
-
-The Task SDK provides python-native interfaces for defining DAGs,
-executing tasks in isolated subprocesses and interacting with Airflow resources
-(e.g., Connections, Variables, XComs, Metrics, Logs, and OpenLineage events) at runtime. The goal of task-sdk is to decouple DAG authoring from Airflow internals (Scheduler, API Server, etc.), providing a forward-compatible, stable interface for writing and maintaining DAGs across Airflow versions.
-[Read the documentation >>](/docs/task-sdk/stable/index.html)
 
 ## [Docker stack](/docs/docker-stack/index.html)
 
