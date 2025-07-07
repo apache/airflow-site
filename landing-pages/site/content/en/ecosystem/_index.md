@@ -223,7 +223,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [airflow-balancer](https://github.com/airflow-laminar/airflow-balancer) - Utilities for tracking hosts and ports and load balancing DAGs
 
-[mcp-server-apache-airflow](https://github.com/yangkyeongmo/mcp-server-apache-airflow) - [MCP](https:/modelcontextprotocol.com) server for Apache Airflow
+[mcp-server-apache-airflow](https://github.com/yangkyeongmo/mcp-server-apache-airflow) - [MCP](https://modelcontextprotocol.com) server for Apache Airflow
 
 &nbsp;
 
