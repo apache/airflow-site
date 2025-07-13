@@ -11,6 +11,15 @@ menu:
 &nbsp;
 &nbsp;
 
+# July 13, 2025
+
+We've just released Apache **Airflow Helm chart 1.18.0**.
+
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
+📚 Docs: https://airflow.apache.org/docs/helm-chart/1.18.0/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/helm-chart/1.18.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/helm-chart/1.18.0/installing-helm-chart-from-sources.html
+
 # June 26, 2025
 
 Airflow PMC welcomes new Airflow PMC Member: **Amogh Desai** ([@amoghrajesh](https://github.com/amoghrajesh))
