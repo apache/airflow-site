@@ -27,7 +27,6 @@ jobs:
   build:
     runs-on: ["ubuntu-22.04"]
     env:
-      S3_DOCS_BUCKET: ${{github.ref == 'refs/heads/staging' && 'staging-docs-airflow-apache-org' || 'live-docs-airflow-apache-org'}}
       PROD_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' || 'false' }}
       STAGING_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging' || 'false' }}
       PUBLISH_BRANCH: ${{ github.ref == 'refs/heads/main' && 'publish' || 'staging-publish' }}
@@ -35,7 +34,6 @@ jobs:
     steps:
       - name: ℹ️ Info
         run: |
-          echo "Using s3 bucket to copy index: ${S3_DOCS_BUCKET}"
           echo "PROD_PUBLISH_REQUIRED: ${PROD_PUBLISH_REQUIRED}"
           echo "STAGING_PUBLISH_REQUIRED: ${STAGING_PUBLISH_REQUIRED}"
       # Based on https://github.com/actions/runner-images/issues/2840
@@ -121,20 +119,6 @@ jobs:
           aws-access-key-id: ${{ secrets.DOCS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DOCS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
-
-      - name: Copy docs index page to S3 docs
-        if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
-        run: |
-          aws s3 cp ./dist/docs/index.html s3://${S3_DOCS_BUCKET}/docs/index.html
-          aws s3 cp ./dist/docs/index.xml s3://${S3_DOCS_BUCKET}/docs/index.xml
-          aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths "/docs/index.html"
-      - name: 🐅 Optimize artifacts
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          rm -rf ./dist/docs/*
-          echo "These files have been deleted to optimize the size of the artifacts." > ./dist/docs/index.html
-          echo "Here was the contents of the ./docs-archive directory" >> ./dist/docs/index.html
-          find ./dist/
       - uses: actions/upload-artifact@v4
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
