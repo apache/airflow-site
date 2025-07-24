@@ -225,6 +225,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Airflow Schedule Insights](https://github.com/hipposys-ltd/airflow-schedule-insights) - Airflow Plugin from [Hipposys](https://newsletter.hipposys.ai/) that can predict the next DAG run for both scheduled DAGs and event-driven DAGs, visualizing everything in a beautiful Gantt chart.
 
+[airflow-mcp-hipposys](https://github.com/hipposys-ltd/airflow-mcp) - [MCP](https://modelcontextprotocol.com) server for Apache Airflow with safe and unsafe modes, and can predict next DAG runs if the instance has the Airflow Schedule Insights plugin installed.
 
 &nbsp;
 
