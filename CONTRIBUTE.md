@@ -437,7 +437,7 @@ To release a new documentation, follow these steps:
 2.  To build documentation, run following commands:
     ```bash
     cd "${AIRFLOW_REPO}" && git checkout "${AIRFLOW_VERSION}"
-    cd "${AIRFLOW_REPO}" && breeze build-docs'
+    cd "${AIRFLOW_REPO}" && breeze build-docs
     ```
 
 3.  Copy generated files from `${AIRFLOW_REPO}/docs/_build/html` to `${AIRFLOW_SITE_REPO}/docs-archive/<version>/`
