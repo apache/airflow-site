@@ -47,8 +47,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Yandex Managed Service for Apache Airflow](https://cloud.yandex.com/en/services/managed-airflow) - Managed Apache Airflow on Yandex Cloud
 
-[Airflow with Restack](https://www.restack.io/store/airflow) - Managed Apache Airflow on Restack Cloud or bring your own cloud: AWS EKS, GCP GKE, or Azure AKS. Allowing you to use the latest version of Airflow with your own DAGs. Connect your repo to the Restack GitHub app for built-in CI/CD.
-
 &nbsp;
 
 ## Other deployments methods
