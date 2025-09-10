@@ -10,7 +10,7 @@ tags: [Release]
 date: "2022-12-02"
 ---
 
-Apache Airfow 2.5 has just been released, barely two and a half months after 2.4!
+Apache Airflow 2.5 has just been released, barely two and a half months after 2.4!
 
 
 **Details**:

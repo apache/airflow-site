@@ -849,7 +849,7 @@ I'm happy to announce that Apache **Airflow 2.1.0** was just released. This one 
 
 - Mask passwords and sensitive info in task logs and UI (finally!)
 
-- Improvmenets to webserver start up time (mostly around time spent syncing DAG permissions)
+- Improvements to webserver start up time (mostly around time spent syncing DAG permissions)
 
 Please note that *this* release no long includes the `HTTP` extra provider by default, as we discovered that it pulls in an LGPL dependency (via the `requests` module of all places) so it is now optional.
 
