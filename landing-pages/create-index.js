@@ -17,8 +17,6 @@
  * under the License.
  */
 
-/* eslint-disable no-console */
-
 const fs = require("fs").promises;
 const path = require("path");
 const {promisify} = require("util");
@@ -35,7 +33,7 @@ async function isDirectoryExists(dirPath) {
     if ((await fs.stat(dirPath)).isDirectory()) {
       return true;
     }
-  } catch (err) {
+  } catch {
     return false;
   }
   return false;
