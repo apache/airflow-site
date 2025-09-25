@@ -7,7 +7,7 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="generator" content="Hugo 0.91.2" />
+<meta name="generator" content="Hugo 0.135.0">
 
 <META NAME="ROBOTS" CONTENT="INDEX, FOLLOW">
 
@@ -31,26 +31,34 @@
 <meta name="msapplication-TileImage" content="/favicons/ms-icon-144x144.png">
 <meta name="theme-color" content="#ffffff">
 
-<title>Apache Airflow 2.9.0: Dataset and UI Improvements | Apache Airflow</title><meta property="og:title" content="Apache Airflow 2.9.0: Dataset and UI Improvements" />
-<meta property="og:description" content="Apache Airflow 2.9.0 is here! Lots of exciting new Dataset and UI features/improvements this time around." />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="/blog/airflow-2.9.0/" /><meta property="og:image" content="/images/feature-image.png"/><meta property="article:section" content="blog" />
-<meta property="article:published_time" content="2024-04-08T00:00:00+00:00" />
-<meta property="article:modified_time" content="2025-09-25T22:04:04+01:00" /><meta property="og:site_name" content="Apache Airflow" />
+<title>Apache Airflow 2.9.0: Dataset and UI Improvements | Apache Airflow</title><meta property="og:url" content="/blog/airflow-2.9.0/">
+  <meta property="og:site_name" content="Apache Airflow">
+  <meta property="og:title" content="Apache Airflow 2.9.0: Dataset and UI Improvements">
+  <meta property="og:description" content="Apache Airflow 2.9.0 is here! Lots of exciting new Dataset and UI features/improvements this time around.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="blog">
+    <meta property="article:published_time" content="2024-04-08T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-09-25T22:52:02+01:00">
+    <meta property="article:tag" content="Release">
+    <meta property="og:image" content="/images/feature-image.png">
 
-<meta itemprop="name" content="Apache Airflow 2.9.0: Dataset and UI Improvements">
-<meta itemprop="description" content="Apache Airflow 2.9.0 is here! Lots of exciting new Dataset and UI features/improvements this time around."><meta itemprop="datePublished" content="2024-04-08T00:00:00+00:00" />
-<meta itemprop="dateModified" content="2025-09-25T22:04:04+01:00" />
-<meta itemprop="wordCount" content="1041"><meta itemprop="image" content="/images/feature-image.png"/>
-<meta itemprop="keywords" content="Release," />
+  <meta itemprop="name" content="Apache Airflow 2.9.0: Dataset and UI Improvements">
+  <meta itemprop="description" content="Apache Airflow 2.9.0 is here! Lots of exciting new Dataset and UI features/improvements this time around.">
+  <meta itemprop="datePublished" content="2024-04-08T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2025-09-25T22:52:02+01:00">
+  <meta itemprop="wordCount" content="1042">
+  <meta itemprop="image" content="/images/feature-image.png">
+  <meta itemprop="keywords" content="Release">
 
 
 
 
 
 
-<link rel="preload" href="/scss/main.min.b17aebabd27496c9901cfab812b30fb885ece0ac9dedd4969f14edf568b76157.css" as="style">
-<link href="/scss/main.min.b17aebabd27496c9901cfab812b30fb885ece0ac9dedd4969f14edf568b76157.css" rel="stylesheet" integrity="">
+<link rel="preload" href="/scss/main.min.88249c1339fe16a3fabf9b92c623dfad7cedd424c3202bfec29db4dcb0326427.css" as="style">
+<link href="/scss/main.min.88249c1339fe16a3fabf9b92c623dfad7cedd424c3202bfec29db4dcb0326427.css" rel="stylesheet" integrity="">
+
 
 <script
   src="/external/js/jquery-3.3.1.min.js"
@@ -86,10 +94,10 @@
 
 
 
-<link rel="preload" href="/main.60e9d.js" as="script">
-<link rel="preload" href="/chunk-1.60e9d.js" as="script">
+<link rel="preload" href="/main.8cb1f.js" as="script">
+<link rel="preload" href="/chunk-608.8cb1f.js" as="script">
 
-<link rel="preload" href="/chunk-4.60e9d.js" as="script">
+<link rel="preload" href="/" as="script">
 
 
 
@@ -450,46 +458,45 @@
 <h3 id="logical-operators-and-conditional-expressions-for-dag-scheduling">Logical operators and conditional expressions for DAG scheduling</h3>
 <p>When Datasets were added in Airflow 2.4, DAGs only had scheduling support for logical AND combinations of Datasets. Simply, you could schedule against more than one Dataset, but a DAG run would only be created once all the Datasets were updated after the last run. Now in Airflow 2.9, we support logical OR and even arbitrary combinations of AND and OR.</p>
 <p>As an example, you can schedule a DAG whenever <code>dataset_1</code> or <code>dataset_2</code> are updated :</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="p">(</span><span class="n">dataset_1</span> <span class="o">|</span> <span class="n">dataset_2</span><span class="p">),</span> <span class="o">...</span><span class="p">):</span>
-    <span class="o">...</span>
-</code></pre></div><p>You can have arbitrary combinations:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="p">((</span><span class="n">dataset_1</span> <span class="o">|</span> <span class="n">dataset_2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">dataset_3</span><span class="p">),</span> <span class="o">...</span><span class="p">):</span>
-    <span class="o">...</span>
-</code></pre></div><p>You can read more about this new functionality in the <a href="https://airflow.apache.org/docs/apache-airflow/2.9.0/authoring-and-scheduling/datasets.html#advanced-dataset-scheduling-with-conditional-expressions">data-aware scheduling docs</a>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="p">(</span><span class="n">dataset_1</span> <span class="o">|</span> <span class="n">dataset_2</span><span class="p">),</span> <span class="o">...</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span></code></pre></div><p>You can have arbitrary combinations:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="p">((</span><span class="n">dataset_1</span> <span class="o">|</span> <span class="n">dataset_2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">dataset_3</span><span class="p">),</span> <span class="o">...</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span></code></pre></div><p>You can read more about this new functionality in the <a href="https://airflow.apache.org/docs/apache-airflow/2.9.0/authoring-and-scheduling/datasets.html#advanced-dataset-scheduling-with-conditional-expressions">data-aware scheduling docs</a>.</p>
 <h3 id="combining-dataset-and-time-based-schedules">Combining Dataset and Time-Based Schedules</h3>
 <p>Airflow 2.9 comes with a new timetable, <code>DatasetOrTimeSchedule</code>, that allows you to schedule DAGs based on both dataset events and a timetable. Now you have the best of both worlds.</p>
 <p>For example, to run whenever <code>dataset_1</code> updates and at midnight UTC:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
-    <span class="n">schedule</span><span class="o">=</span><span class="n">DatasetOrTimeSchedule</span><span class="p">(</span>
-        <span class="n">timetable</span><span class="o">=</span><span class="n">CronTriggerTimetable</span><span class="p">(</span><span class="s2">&#34;0 0 * * *&#34;</span><span class="p">,</span> <span class="n">timezone</span><span class="o">=</span><span class="s2">&#34;UTC&#34;</span><span class="p">),</span>
-        <span class="n">datasets</span><span class="o">=</span><span class="p">[</span><span class="n">dag1_dataset</span><span class="p">],</span>
-    <span class="p">),</span>
-    <span class="o">...</span>
-<span class="p">):</span>
-    <span class="o">...</span>
-
-</code></pre></div><h3 id="dataset-event-rest-api-endpoints">Dataset Event REST API endpoints</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">schedule</span><span class="o">=</span><span class="n">DatasetOrTimeSchedule</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">timetable</span><span class="o">=</span><span class="n">CronTriggerTimetable</span><span class="p">(</span><span class="s2">&#34;0 0 * * *&#34;</span><span class="p">,</span> <span class="n">timezone</span><span class="o">=</span><span class="s2">&#34;UTC&#34;</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">datasets</span><span class="o">=</span><span class="p">[</span><span class="n">dag1_dataset</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">    <span class="p">),</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span></code></pre></div><h3 id="dataset-event-rest-api-endpoints">Dataset Event REST API endpoints</h3>
 <p>New REST API endpoints have been introduced for creating, listing, and deleting dataset events. This makes it possible for external systems to notify Airflow about dataset updates and unlocks management of event queues for more sophisticated use cases.</p>
 <p>See the <a href="https://airflow.apache.org/docs/apache-airflow/2.9.0/stable-rest-api-ref.html#tag/Dataset">Dataset API docs</a> for more details.</p>
 <h3 id="dataset-ui-enhancements">Dataset UI Enhancements</h3>
 <p>The DAG&rsquo;s graph view has been enhanced to display both the datasets it is scheduled on and those in the task outlets, providing a comprehensive overview of the datasets consumed and produced by the DAG.</p>
-<p><img src="datasets-in-graph.png" alt="Datasets in the graph view"></p>
+<p><img alt="Datasets in the graph view" src="/blog/airflow-2.9.0/datasets-in-graph.png"></p>
 <p>The main datasets view now allows you to filter for both DAGs and datasets:</p>
-<p><img src="dataset-view-filtering.png" alt="Dataset view filtering"></p>
+<p><img alt="Dataset view filtering" src="/blog/airflow-2.9.0/dataset-view-filtering.png"></p>
 <p>When viewing a Dataset, you can now create a manual dataset event through the UI by clicking the play button shown in the top right here:</p>
-<p><img src="create-manual-dataset-event.png" alt="Creating manual Dataset event"></p>
+<p><img alt="Creating manual Dataset event" src="/blog/airflow-2.9.0/create-manual-dataset-event.png"></p>
 <h2 id="custom-names-for-dynamic-task-mapping">Custom names for Dynamic Task Mapping</h2>
 <p>Gone are the days of clicking into index numbers and hunting for the dynamically mapped task you wanted to see! This has been a requested feature ever since task mapping was added in Airflow 2.3, and we are happy it’s finally here.</p>
 <p>You can provide a <code>map_index_template</code> to mapped operators:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">BashOperator</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;hello&#34;</span><span class="p">,</span>
-    <span class="n">bash_command</span><span class="o">=</span><span class="s2">&#34;echo Hello $NAME&#34;</span><span class="p">,</span>
-    <span class="n">map_index_template</span><span class="o">=</span><span class="s2">&#34;{{ task.env[&#39;NAME&#39;] }}&#34;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span>
-    <span class="n">env</span><span class="o">=</span><span class="p">[{</span><span class="s2">&#34;NAME&#34;</span><span class="p">:</span> <span class="s2">&#34;John&#34;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&#34;NAME&#34;</span><span class="p">:</span> <span class="s2">&#34;Bob&#34;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&#34;NAME&#34;</span><span class="p">:</span> <span class="s2">&#34;Fred&#34;</span><span class="p">}],</span>
-<span class="p">)</span>
-</code></pre></div><p>That template will be rendered after each task finishes running and will populate the name in the UI:</p>
-<p><img src="dynamic-task-mapping-custom-names.png" alt="Dynamic Task Mapping custom names"></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">BashOperator</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;hello&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">bash_command</span><span class="o">=</span><span class="s2">&#34;echo Hello $NAME&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">map_index_template</span><span class="o">=</span><span class="s2">&#34;{{ task.env[&#39;NAME&#39;] }}&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">env</span><span class="o">=</span><span class="p">[{</span><span class="s2">&#34;NAME&#34;</span><span class="p">:</span> <span class="s2">&#34;John&#34;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&#34;NAME&#34;</span><span class="p">:</span> <span class="s2">&#34;Bob&#34;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&#34;NAME&#34;</span><span class="p">:</span> <span class="s2">&#34;Fred&#34;</span><span class="p">}],</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><p>That template will be rendered after each task finishes running and will populate the name in the UI:</p>
+<p><img alt="Dynamic Task Mapping custom names" src="/blog/airflow-2.9.0/dynamic-task-mapping-custom-names.png"></p>
 <p>More details on this, including a taskflow example, is available in the <a href="https://airflow.apache.org/docs/apache-airflow/2.9.0/authoring-and-scheduling/dynamic-task-mapping.html#named-mapping">dynamic task mapping docs</a>.</p>
 <h2 id="object-storage-as-xcom-backend">Object Storage as XCom Backend</h2>
 <p>You can now configure Object Storage to be used as an XCom backend, making it much easier to get XCom results into an object store. Deployment managers can configure the object store of their choice, a size threshold to route some results to the Airflow metadata database and some to the object store, and even a compression method to apply before the data is stored.</p>
@@ -505,34 +512,34 @@ xcom_objectstorage_compression = gzip
 <h2 id="display-names-for-dags-and-tasks">Display names for DAGs and Tasks</h2>
 <p>Get your emojis ready! You can now set a display name for dags and tasks, separate from the <code>dag_id</code> and <code>task_id</code>. This allows you to have localized display names in the UI, or just use a bunch of emojis.</p>
 <p>Using <code>dag_display_name</code> and <code>task_display_name</code>, you can break away from the ascii handcuffs:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="s2">&#34;not_a_fun_dag_id&#34;</span><span class="p">,</span> <span class="n">dag_display_name</span><span class="o">=</span><span class="s2">&#34;📣 Best DAG ever 🎉&#34;</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
-    <span class="n">BashOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;some_task&#34;</span><span class="p">,</span> <span class="n">task_display_name</span><span class="o">=</span><span class="s2">&#34;🥳 Fun task!&#34;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-</code></pre></div><p><img src="display-names.png" alt="Display names for DAGs and tasks"></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="s2">&#34;not_a_fun_dag_id&#34;</span><span class="p">,</span> <span class="n">dag_display_name</span><span class="o">=</span><span class="s2">&#34;📣 Best DAG ever 🎉&#34;</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">BashOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;some_task&#34;</span><span class="p">,</span> <span class="n">task_display_name</span><span class="o">=</span><span class="s2">&#34;🥳 Fun task!&#34;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</span></span></code></pre></div><p><img alt="Display names for DAGs and tasks" src="/blog/airflow-2.9.0/display-names.png"></p>
 <h2 id="task-log-grouping">Task log grouping</h2>
 <p>Airflow now has support for arbitrary grouping of task logs.</p>
 <p>By default, pre-execute and post-execute logs are grouped and collapsed, making it easier to see your task logs:</p>
-<p><img src="pre-post-logs-grouped.png" alt="Pre and post execute logs are grouped"></p>
+<p><img alt="Pre and post execute logs are grouped" src="/blog/airflow-2.9.0/pre-post-logs-grouped.png"></p>
 <p>You can also use this feature in your task code to make your logs easier to follow:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="nd">@task</span>
-<span class="k">def</span> <span class="nf">big_hello</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;::group::Setup our big Hello&#34;</span><span class="p">)</span>
-    <span class="n">greeting</span> <span class="o">=</span> <span class="s2">&#34;&#34;</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">&#34;Hello Airflow 2.9&#34;</span><span class="p">:</span>
-        <span class="n">greeting</span> <span class="o">+=</span> <span class="n">c</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Adding </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> to our greeting. Current greeting: </span><span class="si">{</span><span class="n">greeting</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;::endgroup::&#34;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span>
-</code></pre></div><p>That custom group is collapsed by default:</p>
-<p><img src="custom-log-grouping.png" alt="Custom log grouping collapsed by default"></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@task</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">big_hello</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;::group::Setup our big Hello&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">greeting</span> <span class="o">=</span> <span class="s2">&#34;&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">&#34;Hello Airflow 2.9&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">greeting</span> <span class="o">+=</span> <span class="n">c</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Adding </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> to our greeting. Current greeting: </span><span class="si">{</span><span class="n">greeting</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;::endgroup::&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span>
+</span></span></code></pre></div><p>That custom group is collapsed by default:</p>
+<p><img alt="Custom log grouping collapsed by default" src="/blog/airflow-2.9.0/custom-log-grouping.png"></p>
 <p>And it can be expanded if you want to dig into the details:</p>
-<p><img src="custom-log-grouping-expanded.png" alt="Custom log grouping expanded"></p>
+<p><img alt="Custom log grouping expanded" src="/blog/airflow-2.9.0/custom-log-grouping-expanded.png"></p>
 <h2 id="ui-modernization">UI Modernization</h2>
 <p>In addition to all the UI improvements mentioned above, we have a bunch more improvements in Airflow 2.9!</p>
 <p>The rest of the DAG level views have been moved into React and the grid view interface, allowing for a more cohesive experience. This includes the calendar, task duration, run duration (which replaces landing times), and the audit log. These weren’t just “moved”, they each were improved upon as well.</p>
 <p>Here is the new run duration view, which replaces landing times. Users can toggle between landing times and simple run duration:</p>
-<p><img src="run-duration.png" alt="Run duration"></p>
+<p><img alt="Run duration" src="/blog/airflow-2.9.0/run-duration.png"></p>
 <p>And the new task duration view. Users can toggle queued time on/off and see the median value across the displayed runs:</p>
-<p><img src="task-duration.png" alt="Task duration"></p>
+<p><img alt="Task duration" src="/blog/airflow-2.9.0/task-duration.png"></p>
 <h2 id="additional-new-features">Additional new features</h2>
 <p>Here are just a few interesting new features since there are too many to list in full:</p>
 <ul>
@@ -703,7 +710,7 @@ xcom_objectstorage_compression = gzip
 
 <div class="base-layout--button">
     
-    <a href=https://github.com/apache/airflow-site/edit/main/landing-pages/site/content/en/blog/airflow-2.9.0/index.md>
+    <a href=https://github.com/apache/airflow-site/edit/main/landing-pages/site/content/en//blog/airflow-2.9.0>
         
 
 
@@ -855,13 +862,13 @@ xcom_objectstorage_compression = gzip
 
 
 
-<script src="/js/main.min.5c74b870c6953931a705f390a49c7e4c0a842ec5c83b24354758dd674343ed0d.js" integrity="sha256-XHS4cMaVOTGnBfOQpJx&#43;TAqELsXIOyQ1R1jdZ0ND7Q0=" crossorigin="anonymous"></script>
+<script src="/js/main.min.7d5b92c4889cf0554b0ea5e2309b0b81b196aa7c9a235632938a25d9fc4d8a7c.js" integrity="sha256-fVuSxIic8FVLDqXiMJsLgbGWqnyaI1Yyk4ol2fxNinw=" crossorigin="anonymous"></script>
 
 
 
 </body>
 
 
-    <script src="/main.60e9d.js"></script>
+    <script src="/main.8cb1f.js"></script>
 
 </html>

@@ -7,7 +7,7 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="generator" content="Hugo 0.91.2" />
+<meta name="generator" content="Hugo 0.135.0">
 
 <META NAME="ROBOTS" CONTENT="INDEX, FOLLOW">
 
@@ -31,26 +31,34 @@
 <meta name="msapplication-TileImage" content="/favicons/ms-icon-144x144.png">
 <meta name="theme-color" content="#ffffff">
 
-<title>Apache Airflow 2.4.0: That Data Aware Release | Apache Airflow</title><meta property="og:title" content="Apache Airflow 2.4.0: That Data Aware Release" />
-<meta property="og:description" content="We&#39;re proud to announce that Apache Airflow 2.4.0 has been released with many exciting improvements." />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="/blog/airflow-2.4.0/" /><meta property="og:image" content="/images/feature-image.png"/><meta property="article:section" content="blog" />
-<meta property="article:published_time" content="2022-09-19T00:00:00+00:00" />
-<meta property="article:modified_time" content="2025-09-25T22:04:04+01:00" /><meta property="og:site_name" content="Apache Airflow" />
+<title>Apache Airflow 2.4.0: That Data Aware Release | Apache Airflow</title><meta property="og:url" content="/blog/airflow-2.4.0/">
+  <meta property="og:site_name" content="Apache Airflow">
+  <meta property="og:title" content="Apache Airflow 2.4.0: That Data Aware Release">
+  <meta property="og:description" content="We&#39;re proud to announce that Apache Airflow 2.4.0 has been released with many exciting improvements.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="blog">
+    <meta property="article:published_time" content="2022-09-19T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-09-25T22:52:02+01:00">
+    <meta property="article:tag" content="Release">
+    <meta property="og:image" content="/images/feature-image.png">
 
-<meta itemprop="name" content="Apache Airflow 2.4.0: That Data Aware Release">
-<meta itemprop="description" content="We&#39;re proud to announce that Apache Airflow 2.4.0 has been released with many exciting improvements."><meta itemprop="datePublished" content="2022-09-19T00:00:00+00:00" />
-<meta itemprop="dateModified" content="2025-09-25T22:04:04+01:00" />
-<meta itemprop="wordCount" content="848"><meta itemprop="image" content="/images/feature-image.png"/>
-<meta itemprop="keywords" content="Release," />
+  <meta itemprop="name" content="Apache Airflow 2.4.0: That Data Aware Release">
+  <meta itemprop="description" content="We&#39;re proud to announce that Apache Airflow 2.4.0 has been released with many exciting improvements.">
+  <meta itemprop="datePublished" content="2022-09-19T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2025-09-25T22:52:02+01:00">
+  <meta itemprop="wordCount" content="849">
+  <meta itemprop="image" content="/images/feature-image.png">
+  <meta itemprop="keywords" content="Release">
 
 
 
 
 
 
-<link rel="preload" href="/scss/main.min.b17aebabd27496c9901cfab812b30fb885ece0ac9dedd4969f14edf568b76157.css" as="style">
-<link href="/scss/main.min.b17aebabd27496c9901cfab812b30fb885ece0ac9dedd4969f14edf568b76157.css" rel="stylesheet" integrity="">
+<link rel="preload" href="/scss/main.min.88249c1339fe16a3fabf9b92c623dfad7cedd424c3202bfec29db4dcb0326427.css" as="style">
+<link href="/scss/main.min.88249c1339fe16a3fabf9b92c623dfad7cedd424c3202bfec29db4dcb0326427.css" rel="stylesheet" integrity="">
+
 
 <script
   src="/external/js/jquery-3.3.1.min.js"
@@ -86,10 +94,10 @@
 
 
 
-<link rel="preload" href="/main.60e9d.js" as="script">
-<link rel="preload" href="/chunk-1.60e9d.js" as="script">
+<link rel="preload" href="/main.8cb1f.js" as="script">
+<link rel="preload" href="/chunk-608.8cb1f.js" as="script">
 
-<link rel="preload" href="/chunk-4.60e9d.js" as="script">
+<link rel="preload" href="/" as="script">
 
 
 
@@ -448,36 +456,36 @@
 <p>This one is big. Airflow now has the ability to schedule DAGs based on other tasks updating datasets.</p>
 <p>What does this mean, exactly? This is a great new feature that lets DAG authors create smaller, more self-contained DAGs, which chain together into a larger data-based workflow. If you are currently using <code>ExternalTaskSensor</code> or <code>TriggerDagRunOperator</code> you should take a look at datasets &ndash; in most cases you can replace them with something that will speed up the scheduling!</p>
 <p>But enough talking, lets have a short example. First lets write a simple DAG with a task called <code>my_task</code> that produces a dataset called <code>my-dataset</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">Dataset</span>
-
-
-<span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s1">&#39;my-dataset&#39;</span><span class="p">)</span>
-
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;producer&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-    <span class="nd">@task</span><span class="p">(</span><span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="n">dataset</span><span class="p">])</span>
-    <span class="k">def</span> <span class="nf">my_task</span><span class="p">():</span>
-        <span class="o">...</span>
-</code></pre></div><p>Datasets are defined by a URI. Now, we can create a second DAG (<code>consumer</code>) that gets scheduled whenever this dataset changes:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">Dataset</span>
-
-
-<span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s1">&#39;my-dataset&#39;</span><span class="p">)</span>
-
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;dataset-consumer&#39;</span><span class="p">,</span> <span class="n">schedule</span><span class="o">=</span><span class="p">[</span><span class="n">dataset</span><span class="p">]):</span>
-    <span class="o">...</span>
-</code></pre></div><p>With these two DAGs, the instant <code>my_task</code> finishes, Airflow will create the DAG run for the <code>dataset-consumer</code> workflow.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">Dataset</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s1">&#39;my-dataset&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;producer&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nd">@task</span><span class="p">(</span><span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="n">dataset</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">my_task</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="o">...</span>
+</span></span></code></pre></div><p>Datasets are defined by a URI. Now, we can create a second DAG (<code>consumer</code>) that gets scheduled whenever this dataset changes:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">Dataset</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s1">&#39;my-dataset&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s1">&#39;dataset-consumer&#39;</span><span class="p">,</span> <span class="n">schedule</span><span class="o">=</span><span class="p">[</span><span class="n">dataset</span><span class="p">]):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span></code></pre></div><p>With these two DAGs, the instant <code>my_task</code> finishes, Airflow will create the DAG run for the <code>dataset-consumer</code> workflow.</p>
 <p>We know that what exists right now won&rsquo;t fit all use cases that people might wish for datasets, and in the coming minor releases (2.5, 2.6, etc.) we will expand and improve upon this foundation.</p>
 <p>Datasets represent the abstract concept of a dataset, and (for now) do not have any direct read or write capability - in this release we are adding the foundational feature that we will build upon in the future - and it&rsquo;s part of our goal to have smaller releases to get new features in your hands sooner!</p>
 <p>For more information on datasets, see the <a href="https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/datasets.html">documentation on Data-aware scheduling</a>. That includes details on how datasets are identified (URIs), how you can depend on multiple datasets, and how to think about what a dataset is (hint: don&rsquo;t include &ldquo;date partitions&rdquo; in a dataset, it&rsquo;s higher level than that).</p>
 <h2 id="easier-management-of-conflicting-python-dependencies-using-the-new-externalpythonoperator">Easier management of conflicting python dependencies using the new ExternalPythonOperator</h2>
 <p>As much as we wish all python libraries could be used happily together that sadly isn&rsquo;t the world we live in, and sometimes there are conflicts when trying to install multiple python libraries in an Airflow install &ndash; right now we hear this a lot with <code>dbt-core</code>.</p>
 <p>To make this easier we have introduced <code>@task.external_python</code> (and the matching <code>ExternalPythonOperator</code>) that lets you run an python function as an Airflow task in a pre-configured virtual env, or even a whole different python version. For example:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="nd">@task</span><span class="o">.</span><span class="n">external_python</span><span class="p">(</span><span class="n">python</span><span class="o">=</span><span class="s1">&#39;/opt/venvs/task_deps/bin/python&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">my_task</span><span class="p">(</span><span class="n">data_interval_start</span><span class="p">,</span> <span class="n">data_interval_env</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Looking at data between </span><span class="si">{</span><span class="n">data_interval_start</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">data_interval_end</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="o">...</span>
-</code></pre></div><p>There are a few subtlties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the <a href="http://airflow.apache.org/docs/apache-airflow/2.4.0/howto/operator/python.html#externalpythonoperator">how-to on using the ExternalPythonOperator</a></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@task.external_python</span><span class="p">(</span><span class="n">python</span><span class="o">=</span><span class="s1">&#39;/opt/venvs/task_deps/bin/python&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">my_task</span><span class="p">(</span><span class="n">data_interval_start</span><span class="p">,</span> <span class="n">data_interval_env</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Looking at data between </span><span class="si">{</span><span class="n">data_interval_start</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">data_interval_end</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span></code></pre></div><p>There are a few subtlties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the <a href="http://airflow.apache.org/docs/apache-airflow/2.4.0/howto/operator/python.html#externalpythonoperator">how-to on using the ExternalPythonOperator</a></p>
 <h2 id="more-improvements-to-dynamic-task-mapping-aip-42">More improvements to Dynamic Task Mapping (AIP-42)</h2>
 <p>You asked, we listened. Dynamic task mapping now includes support for:</p>
 <ul>
@@ -488,34 +496,34 @@
 <p>For more information on dynamic task mapping, see the new sections of the doc on <a href="https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/dynamic-task-mapping.html#transforming-mapped-data">Transforming Mapped Data</a>, <a href="https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/dynamic-task-mapping.html#combining-upstream-data-aka-zipping">Combining upstream data (aka &ldquo;zipping&rdquo;)</a>, and <a href="https://airflow.apache.org/docs/apache-airflow/2.4.0/concepts/dynamic-task-mapping.html#assigning-multiple-parameters-to-a-non-taskflow-operator">Assigning multiple parameters to a non-TaskFlow operator</a>.</p>
 <h2 id="auto-register-dags-used-in-a-context-manager-no-more-as-dag-needed">Auto-register DAGs used in a context manager (no more <code>as dag:</code> needed)</h2>
 <p>This one is a small quality of life improvement, and I don&rsquo;t want to admit how many times I forgot the <code>as dag:</code>, or worse, had <code>as dag:</code> repeated.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;example&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
-  <span class="o">...</span>
-
-
-<span class="nd">@dag</span>
-<span class="k">def</span> <span class="nf">dag_maker</span><span class="p">():</span>
-    <span class="o">...</span>
-
-
-<span class="n">dag2</span> <span class="o">=</span> <span class="n">dag_maker</span><span class="p">()</span>
-</code></pre></div><p>can become</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;example&#34;</span><span class="p">):</span>
-    <span class="o">...</span>
-
-
-<span class="nd">@dag</span>
-<span class="k">def</span> <span class="nf">my_dag</span><span class="p">():</span>
-    <span class="o">...</span>
-
-
-<span class="n">my_dag</span><span class="p">()</span>
-</code></pre></div><p>If you want to disable the behaviour for any reason, set <code>auto_register=False</code> on the DAG:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># This dag will not be picked up by Airflow as it&#39;s not assigned to a variable</span>
-<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;example&#34;</span><span class="p">,</span> <span class="n">auto_register</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="o">...</span>
-</code></pre></div><h2 id="additional-improvements">Additional improvements</h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;example&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@dag</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">dag_maker</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">dag2</span> <span class="o">=</span> <span class="n">dag_maker</span><span class="p">()</span>
+</span></span></code></pre></div><p>can become</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;example&#34;</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@dag</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">my_dag</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">my_dag</span><span class="p">()</span>
+</span></span></code></pre></div><p>If you want to disable the behaviour for any reason, set <code>auto_register=False</code> on the DAG:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># This dag will not be picked up by Airflow as it&#39;s not assigned to a variable</span>
+</span></span><span class="line"><span class="cl"><span class="k">with</span> <span class="n">DAG</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;example&#34;</span><span class="p">,</span> <span class="n">auto_register</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span></code></pre></div><h2 id="additional-improvements">Additional improvements</h2>
 <p>With over 650 commits the <a href="https://airflow.apache.org/docs/apache-airflow/2.4.0/release_notes.html#airflow-2-4-0-2022-09-19">full list of features, fixes and changes</a> is too big to go in to here (check out the release notes for a full list), but some noteworthy or interesting small features include:</p>
 <ul>
 <li>Auto-refresh on the home page</li>
@@ -685,7 +693,7 @@
 
 <div class="base-layout--button">
     
-    <a href=https://github.com/apache/airflow-site/edit/main/landing-pages/site/content/en/blog/airflow-2.4.0/index.md>
+    <a href=https://github.com/apache/airflow-site/edit/main/landing-pages/site/content/en//blog/airflow-2.4.0>
         
 
 
@@ -837,13 +845,13 @@
 
 
 
-<script src="/js/main.min.5c74b870c6953931a705f390a49c7e4c0a842ec5c83b24354758dd674343ed0d.js" integrity="sha256-XHS4cMaVOTGnBfOQpJx&#43;TAqELsXIOyQ1R1jdZ0ND7Q0=" crossorigin="anonymous"></script>
+<script src="/js/main.min.7d5b92c4889cf0554b0ea5e2309b0b81b196aa7c9a235632938a25d9fc4d8a7c.js" integrity="sha256-fVuSxIic8FVLDqXiMJsLgbGWqnyaI1Yyk4ol2fxNinw=" crossorigin="anonymous"></script>
 
 
 
 </body>
 
 
-    <script src="/main.60e9d.js"></script>
+    <script src="/main.8cb1f.js"></script>
 
 </html>
