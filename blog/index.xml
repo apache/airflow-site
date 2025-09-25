@@ -14,6 +14,193 @@
     
     
     <item>
+      <title>Blog: Apache Airflow 3.1.0: Human-Centered Workflows</title>
+      <link>/blog/airflow-3.1.0/</link>
+      <pubDate>Thu, 25 Sep 2025 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/airflow-3.1.0/</guid>
+      <description>
+        
+        
+        &lt;p&gt;We are thrilled to announce the release of &lt;strong&gt;Apache Airflow 3.1.0&lt;/strong&gt;, an update that puts humans at the center of data
+workflows. This release introduces powerful new capabilities for human decision-making in automated
+processes, comprehensive internationalization support, and significant developer experience improvements.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Details&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;📦 PyPI: &lt;a href=&#34;https://pypi.org/project/apache-airflow/3.1.0/&#34;&gt;https://pypi.org/project/apache-airflow/3.1.0/&lt;/a&gt; &lt;br&gt;
+📚 Core Airflow Docs: &lt;a href=&#34;https://airflow.apache.org/docs/apache-airflow/3.1.0/&#34;&gt;https://airflow.apache.org/docs/apache-airflow/3.1.0/&lt;/a&gt; &lt;br&gt;
+📚 Task SDK Docs: &lt;a href=&#34;https://airflow.apache.org/docs/task-sdk/1.1.0/&#34;&gt;https://airflow.apache.org/docs/task-sdk/1.1.0/&lt;/a&gt; &lt;br&gt;
+🛠️ Release Notes: &lt;a href=&#34;https://airflow.apache.org/docs/apache-airflow/3.1.0/release_notes.html&#34;&gt;https://airflow.apache.org/docs/apache-airflow/3.1.0/release_notes.html&lt;/a&gt; &lt;br&gt;
+🪶 Sources: &lt;a href=&#34;https://airflow.apache.org/docs/apache-airflow/3.1.0/installation/installing-from-sources.html&#34;&gt;https://airflow.apache.org/docs/apache-airflow/3.1.0/installation/installing-from-sources.html&lt;/a&gt; &lt;br&gt;
+🚏 Constraints: &lt;a href=&#34;https://github.com/apache/airflow/tree/constraints-3.1.0&#34;&gt;https://github.com/apache/airflow/tree/constraints-3.1.0&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;-human-in-the-loop-hitl-when-automation-meets-human-judgment&#34;&gt;🤝 Human-in-the-Loop (HITL): When Automation Meets Human Judgment&lt;/h2&gt;
+&lt;p&gt;This powerful capability bridges the gap between automated processes and human expertise, making Airflow invaluable for:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;images/hitl.gif&#34; alt=&#34;Human-in-the-Loop HITL&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;AI/ML Model Validation&lt;/strong&gt;: Pause inference pipelines for human review of model outputs&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Content Moderation&lt;/strong&gt;: Route content through human reviewers before publication&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Approval Workflows&lt;/strong&gt;: Require manager approval for sensitive operations&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Data Quality Gates&lt;/strong&gt;: Allow data stewards to validate critical datasets&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;HITL&lt;/strong&gt; tasks pause in a deferred state while presenting intuitive web forms in the Airflow UI. Users with appropriate roles can review context data, DAG parameters, and XCom values before making informed decisions.&lt;/p&gt;
+&lt;h2 id=&#34;example-code&#34;&gt;Example Code:&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-py&#34; data-lang=&#34;py&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;airflow.sdk&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DAG&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;airflow.providers.standard.operators.hitl&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;HITLOperator&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DAG&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content_moderation&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;schedule&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;@daily&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;as&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;dag&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;moderate_content&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;HITLOperator&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;task_id&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;review_content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;message&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;Please review this content for publication&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;data_key&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content_to_review&amp;#34;&lt;/span&gt;
+    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;-ui-enhancements--performance&#34;&gt;📊 UI Enhancements &amp;amp; Performance&lt;/h1&gt;
+&lt;h2 id=&#34;calendar-and-gantt-views-make-their-comeback&#34;&gt;Calendar and Gantt Views Make Their Comeback&lt;/h2&gt;
+&lt;p&gt;Remember those beloved Calendar and Gantt chart views from Airflow 2.x? They&amp;rsquo;re back, completely rebuilt for the
+modern React UI after being omitted from the 3.0 release.&lt;/p&gt;
+&lt;p&gt;The new Calendar view is genuinely interactive with filtering capabilities that make it easy to drill down
+into specific time periods and dag states.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;images/calendar.gif&#34; alt=&#34;Calendar View&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The Gantt chart is now integrated directly into the grid view and renders much faster than the old
+version, giving you that timeline perspective without the performance headaches.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;images/gantt.png&#34; alt=&#34;Gantt View&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;theme-updates-that-actually-matter&#34;&gt;Theme Updates That Actually Matter&lt;/h2&gt;
+&lt;p&gt;We&amp;rsquo;ve refreshed the color palette using modern design principles, making the UI more consistent, professional
+and most of all taken a careful look at contrast ratios so the UI should be more accessible.&lt;/p&gt;
+&lt;h2 id=&#34;other-improvements&#34;&gt;Other Improvements&lt;/h2&gt;
+&lt;p&gt;We&amp;rsquo;ve added a lot more filtering options across the pages!&lt;/p&gt;
+&lt;p&gt;Plus, you can now pin your &lt;strong&gt;favorite DAGs&lt;/strong&gt; to keep them at the top of your list or to filter for them easily. It&amp;rsquo;s
+one of those small features that makes a huge difference when dealing with 100s of workflows.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;images/favorite.png&#34; alt=&#34;Favorite Dags in the UI&#34;&gt;
+Credited to Volker Janz.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;📊 &lt;strong&gt;UI Development Milestone&lt;/strong&gt;: Airflow 3.1.0 features &lt;strong&gt;5x more UI pull requests&lt;/strong&gt; than the 2.10 release and &lt;strong&gt;50% more&lt;/strong&gt; than Airflow 3.0, demonstrating the community&amp;rsquo;s commitment to user experience excellence.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;-deadline-alerts-proactive-workflow-monitoring&#34;&gt;⏰ &lt;strong&gt;Deadline Alerts&lt;/strong&gt;: Proactive Workflow Monitoring&lt;/h1&gt;
+&lt;p&gt;Say goodbye to reactive monitoring. &lt;strong&gt;Deadline Alerts&lt;/strong&gt; provide proactive notifications when DAG runs
+exceed time thresholds, helping ensure SLA compliance and timely completion of critical workflows.&lt;/p&gt;
+&lt;p&gt;Configure monitoring by specifying:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Reference point&lt;/strong&gt;: DAG queued time, logical date, or fixed datetime&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Interval&lt;/strong&gt;: Time threshold (positive or negative)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Callback&lt;/strong&gt;: Notifications via Airflow Notifiers or custom functions&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;example-code-1&#34;&gt;Example Code:&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-py&#34; data-lang=&#34;py&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;datetime&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;timedelta&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;airflow.sdk.definitions.deadline&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DeadlineAlert&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DeadlineReference&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;AsyncCallback&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;airflow.providers.slack.notifications.slack_webhook&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;SlackWebhookNotifier&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DAG&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+    &lt;span class=&#34;s2&#34;&gt;&amp;#34;critical_etl&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;deadline&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;DeadlineAlert&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;reference&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;DeadlineReference&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;DAGRUN_QUEUED_AT&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;interval&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;timedelta&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;hours&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+        &lt;span class=&#34;n&#34;&gt;callback&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;AsyncCallback&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+            &lt;span class=&#34;n&#34;&gt;SlackWebhookNotifier&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+            &lt;span class=&#34;n&#34;&gt;kwargs&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;text&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;🚨 Critical ETL missed deadline!&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+        &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;as&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;dag&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+    &lt;span class=&#34;c1&#34;&gt;# Your tasks here&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Perfect for monitoring daily ETLs, alerting before critical deadlines, or escalating resource-constrained workflows.&lt;/p&gt;
+&lt;h1 id=&#34;-going-global-with-17-languages&#34;&gt;🌍 Going Global with 17 Languages&lt;/h1&gt;
+&lt;p&gt;Airflow now speaks your team&amp;rsquo;s language. Literally. We have added comprehensive internationalization support
+for &lt;strong&gt;17 languages&lt;/strong&gt;, including Arabic, Chinese, French, German, Spanish and more. The interface detects your
+browser preferences automatically, but you can switch languages on the fly without refreshing the page.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;images/i18n-demo.gif&#34; alt=&#34;Internationalization Demo&#34;&gt;&lt;/p&gt;
+&lt;p&gt;For our Arabic and Hebrew users, we&amp;rsquo;ve built in &lt;strong&gt;proper right-to-left (RTL) support&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The best part? We have made it straightforward for the community to contribute additional languages with clear
+contribution guidelines, so this is just the beginning of Airflow&amp;rsquo;s global reach.&lt;/p&gt;
+&lt;h1 id=&#34;-build-your-airflow-your-way&#34;&gt;🎨 Build &lt;em&gt;your Airflow&lt;/em&gt;, &lt;em&gt;your way&lt;/em&gt;&lt;/h1&gt;
+&lt;p&gt;The new &lt;strong&gt;React Plugin System&lt;/strong&gt; (&lt;strong&gt;AIP-68&lt;/strong&gt;) transforms how you extend Airflow&amp;rsquo;s interface. We have replaced
+the old Flask-based approach with a modern toolkit that lets you customize Airflow exactly how your team works.&lt;/p&gt;
+&lt;p&gt;Want to embed your company&amp;rsquo;s dashboard right in the Airflow UI? Build React applications or iframes that will
+render inside Airflow&amp;rsquo;s (nav bar, dashboard, details page, etc). Want to link to your existing tools
+seamlessly? Create custom external links to your resources. Want to extend Airflow&amp;rsquo;s API server? Register
+FastAPI sub applications and middlewares that fit your specific processes.&lt;/p&gt;
+&lt;p&gt;The system includes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;External Views&lt;/strong&gt; for linking to existing tools (external links or embedded iframes)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;React Applications&lt;/strong&gt;  support for rendering external react apps&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;FastAPI Sub Applications&lt;/strong&gt; to extend the API server&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Root Middlewares&lt;/strong&gt; for intercepting API requests (even core ones)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We&amp;rsquo;ve already seen teams integrate everything from Wikipedia searches to data lineage
+visualizations to yes, someone building a snake game to play while waiting on dag runs!&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;images/snake.gif&#34; alt=&#34;Snake Game Plugin&#34;&gt;
+Credited to Tamara Fingerlin.&lt;/p&gt;
+&lt;h1 id=&#34;-enhanced-developer-and-authoring-experience&#34;&gt;🔧 Enhanced Developer and Authoring Experience&lt;/h1&gt;
+&lt;h2 id=&#34;task-sdk-evolution&#34;&gt;Task SDK Evolution&lt;/h2&gt;
+&lt;p&gt;Airflow 3.1 advances the decoupling of the &lt;strong&gt;Task SDK&lt;/strong&gt; from Airflow Core through improved DAG serialization. While
+complete separation arrives in 3.2.0, the foundation enables:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Independent Upgrades&lt;/strong&gt;: Reduced coordination need between Dag authors and Airflow Ops teams&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Forward Compatibility&lt;/strong&gt;: Dag authors should now write Dags by importing from the &lt;strong&gt;airflow.sdk&lt;/strong&gt; namespace for future-proofing. (Naturally, the old imports still work but issue a warning.)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Deployment Flexibility&lt;/strong&gt;: Better support for separated component deployment&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;python-313-support&#34;&gt;Python 3.13 Support&lt;/h2&gt;
+&lt;p&gt;Airflow 3.1.0 adds &lt;strong&gt;Python 3.13&lt;/strong&gt; support while removing Python 3.9 (end-of-life). The platform now supports Python 3.10, 3.11, 3.12, and 3.13.&lt;/p&gt;
+&lt;h2 id=&#34;inference-execution&#34;&gt;Inference Execution&lt;/h2&gt;
+&lt;p&gt;A new streaming API endpoint (&lt;strong&gt;&lt;code&gt;/dags/{dag_id}/dagRuns/{dag_run_id}/wait&lt;/code&gt;&lt;/strong&gt;) allows applications to watch DAG runs
+until completion, enabling responsive integration patterns for real-time workflows.&lt;/p&gt;
+&lt;p&gt;The below example use &lt;a href=&#34;https://www.python-httpx.org/async/&#34;&gt;&lt;code&gt;httpx&lt;/code&gt;&lt;/a&gt; to trigger a dag run, and emits the final dag run
+state after it finishes:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-py&#34; data-lang=&#34;py&#34;&gt;&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;asyncio&lt;/span&gt;
+&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;json&lt;/span&gt;
+
+&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;httpx&lt;/span&gt;
+
+&lt;span class=&#34;n&#34;&gt;dag_id&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;my-dag&amp;#34;&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;async&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;create_and_wait&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+    &lt;span class=&#34;c1&#34;&gt;# Create a dag run...&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;await&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;post&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;sa&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://my-airflow.example.com/api/v2/dags/&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;dag_id&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;/dagRuns&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+    &lt;span class=&#34;n&#34;&gt;run_id&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;json&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;dag_run_id&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;async&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;stream&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+        &lt;span class=&#34;s2&#34;&gt;&amp;#34;GET&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+        &lt;span class=&#34;sa&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://my-airflow.example.com/api/v2/dags/&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;dag_id&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;/dagRuns/&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;run_id&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;/wait&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;as&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;async&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;line&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;r&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;aiter_lines&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+            &lt;span class=&#34;k&#34;&gt;pass&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;# You can do progress report here instead.&lt;/span&gt;
+    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;Dag run state:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;json&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;loads&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;line&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;strip&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;())[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;state&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt;
+
+&lt;span class=&#34;k&#34;&gt;async&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;async&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;with&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;httpx&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;AsyncClient&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;as&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;await&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;create_and_wait&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+&lt;span class=&#34;n&#34;&gt;asyncio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;run&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;-amazing-community&#34;&gt;🙏 Amazing Community&lt;/h1&gt;
+&lt;p&gt;Apache Airflow 3.1.0 represents an extraordinary community effort, showcasing the vibrant ecosystem that drives this project forward with &lt;strong&gt;163 contributors&lt;/strong&gt; making this release possible across &lt;strong&gt;1,400+ commits&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;leading-contributors&#34;&gt;Leading Contributors&lt;/h2&gt;
+&lt;p&gt;Special thanks to our top 20 contributors who drove this release forward: &lt;strong&gt;Amogh Desai&lt;/strong&gt;, &lt;strong&gt;Ash Berlin-Taylor&lt;/strong&gt;, &lt;strong&gt;Brent Bovenzi&lt;/strong&gt;, &lt;strong&gt;Bugra Ozturk&lt;/strong&gt;, &lt;strong&gt;Daniel Standish&lt;/strong&gt;, &lt;strong&gt;Elad Kalif&lt;/strong&gt;, &lt;strong&gt;Ephraim Anierobi&lt;/strong&gt;, &lt;strong&gt;GPK&lt;/strong&gt;, &lt;strong&gt;Guan Ming (Wesley) Chiu&lt;/strong&gt;, &lt;strong&gt;Jarek Potiuk&lt;/strong&gt;, &lt;strong&gt;Jens Scheffler&lt;/strong&gt;, &lt;strong&gt;Karthikeyan Singaravelan&lt;/strong&gt;, &lt;strong&gt;Kaxil Naik&lt;/strong&gt;, &lt;strong&gt;LI,JHE-CHEN&lt;/strong&gt;, &lt;strong&gt;Pierre Jeambrun&lt;/strong&gt;, &lt;strong&gt;Shahar Epstein&lt;/strong&gt;, &lt;strong&gt;Tzu-ping Chung&lt;/strong&gt;, &lt;strong&gt;Vincent&lt;/strong&gt;, &lt;strong&gt;Wei Lee&lt;/strong&gt;, and &lt;strong&gt;Yeonguk Choo&lt;/strong&gt;.&lt;/p&gt;
+&lt;details&gt;
+&lt;summary&gt;View all 143 additional contributors&lt;/summary&gt;
+&lt;p&gt;1in3x, Aaron Chen, Aayush Bisen, Abhishek, Achim Gädke, Aldo, Alex Neal Albinda, Alyssa Mhie M. Matila, Anand Raman, Andrei Serdiukov, Ankit Chaurasia, Antony Southworth, Aritra Basu, Aryan Khurana, Atul Singh, Azis, BBQing, Bjorn Olsen, Bowrna, Brunda10, Carl Leake, Chang-Yen (Brian) Li, Christos Bisias, Collin McNulty, Constance Martineau, D. Ferruzzi, DHARMENDRA AHIRWAR, Damian Shaw, Daniel Wolf, David Blain, Denis Krivenko, Dev-iL, Dheeraj Turaga, Diogo Rodrigues, Domadelfin, Dov Benyomin Sohacheski, Duc Nguyen, Evgenii Prusov, Farhan, Fortytwo, Gabriel TOUZALIN, Gajo Petrovic, Gary Hsu, Glenn Schuurman, Guangyang Li, Gwak Beomgyu, Hoyeop Lee, Hussein Awala, Isaiah Iruoha, Ivan, Jake Roach, James Hyphen, Jason, Jason Brownstein, Jed Cunningham, Jeongseok Kang, John Bampton, Josef Šimánek, Josué Velázquez Gen, João Ramiro, Kacper Muda, Kalyan R, Karan Anand, Karen Braganza, Karthik S, Kavya Katal, Ken Lewerentz, Kevin Liu, Kevin Yang, Kiran R, Kiruban Kamaraj, Kosteev Eugene, Kumbha Lakshmi Narayana, Kyungjun Lee, LIU ZHE YOU, Lipu Fei, Maciej Obuchowski, Maksim, Mike Lay, Mikhail Dengin, Minkyu Kim, N R Navaneet, NOEUN KIM, Naseem Shah, Nataneljpwd, Niko Oliveira, Nithin U, Nitochkin, Olivier, Owen Leung, Paolo Facchinetti, Pedro Leal, Pratiksha, Przemysław Mirowski, Qiang-Liu, Rahul Vats, Ramit Kataria, Sam Wheating, Sean Ghaeli, Sean Rose, Sebastián Ortega, Seongho Kim, SeungMin, Shlomit-B, Shubham Raj, Sneha Prabhu, Stanley Law, Stephan, Steve Ahn, Valentyn, Vic Wen, Vincent Kling, VladaZakharova, Wei-Yu Chen, Wonseok Yang, Xch1, Xiaodong DENG, Y. SOMDA, Yann Lambret, Yannick Suter, Yeonguk, Yiming Peng, Yusin, Zach, Zach Liu, Zhen-Lun (Kevin) Hong, anasatzemoso, ayush3singh, codecae, davidfgcorreia, dominikhei, ecodina, fuatcakici, humit, magic_frog, majorosdonat, mandeepzemo, oboki, olegkachur-e, pawelgrochowicz, roach231428, shreyaskj-0710, sujitha-saranam, suman-himanshu, vikrantkumar-max, yangyulely, 코딩하는펭귄.&lt;/p&gt;
+&lt;/details&gt;
+&lt;h2 id=&#34;ui-excellence--community-growth&#34;&gt;UI Excellence &amp;amp; Community Growth&lt;/h2&gt;
+&lt;p&gt;The exceptional growth in UI contributions - &lt;strong&gt;5x more pull requests&lt;/strong&gt; than Airflow 2.10 and &lt;strong&gt;50% more&lt;/strong&gt; than Airflow 3.0 - reflects the dedicated efforts of our UI maintainers and an expanding community of &lt;strong&gt;70 frontend contributors&lt;/strong&gt; who have made user experience a cornerstone of this release.&lt;/p&gt;
+&lt;h2 id=&#34;global-collaboration&#34;&gt;Global Collaboration&lt;/h2&gt;
+&lt;p&gt;The internationalization effort represents contributors from around the world, making Airflow truly accessible across &lt;strong&gt;17 languages&lt;/strong&gt; and diverse technical communities, demonstrating the truly global nature of the Airflow project.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;em&gt;Apache Airflow is a community-driven project. Special thanks to all contributors who made this release possible through code, documentation, testing, and feedback. The future of workflow orchestration is built together.&lt;/em&gt;&lt;/p&gt;
+&lt;h1 id=&#34;-migration--upgrade-notes&#34;&gt;📝 Migration &amp;amp; Upgrade Notes&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Python Support&lt;/strong&gt;: Ensure you&amp;rsquo;re running Python 3.10+ before upgrading. We recommend at least Python 3.12 for performance improvements from the Python core team – 3.13 if you can manage it is even better!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Provider Updates&lt;/strong&gt;: Update to the latest provider packages to take advantage of new features.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Breaking Changes&lt;/strong&gt;: Review the &lt;a href=&#34;https://airflow.apache.org/docs/apache-airflow/3.1.0/installation/upgrading.html&#34;&gt;migration guide&lt;/a&gt; for configuration changes and removed features if you are upgrading directly from Airflow 2.x.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;-get-involved&#34;&gt;🔗 Get Involved&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Try the Release&lt;/strong&gt;: Upgrade your development environment and explore the new features&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Join the Conversation&lt;/strong&gt;: Connect with us on (&lt;a href=&#34;https://s.apache.org/airflow-slack&#34;&gt;Airflow Slack&lt;/a&gt;) and the (&lt;a href=&#34;https://airflow.apache.org/community/&#34;&gt;dev mailing list&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Contribute&lt;/strong&gt;: Check out our &lt;a href=&#34;https://github.com/apache/airflow/blob/main/contributing-docs/README.rst&#34;&gt;contribution guide&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Provide Feedback&lt;/strong&gt;: Share your experiences and suggestions on GitHub (&lt;a href=&#34;https://github.com/apache/airflow&#34;&gt;https://github.com/apache/airflow&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Apache Airflow 3.1.0 marks a new chapter in making data orchestration more inclusive, intelligent, and
+human-centered. We can&amp;rsquo;t wait to see what you build with it!&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
       <title>Blog: Apache Airflow® 3 is Generally Available!</title>
       <link>/blog/airflow-three-point-oh-is-here/</link>
       <pubDate>Tue, 22 Apr 2025 00:00:00 +0000</pubDate>
