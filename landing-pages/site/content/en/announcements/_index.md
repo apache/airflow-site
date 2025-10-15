@@ -11,6 +11,19 @@ menu:
 &nbsp;
 &nbsp;
 
+# October 15, 2025
+
+Airflow PMC welcomes new PMC members and committer:
+
+PMC members:
+
+* **Vincent Beck** ([@vincbeck](https://github.com/vincbeck))
+* **Wei Lee** ([@Lee-W](https://github.com/Lee-W))
+
+Committer:
+
+* **Guan Ming(Wesley) Chiu** ([@guan404ming](https://github.com/guan404ming))
+
 # September 25, 2025
 
 We’ve just released Apache **Airflow 3.1.0** and **Task SDK 1.1.0**.
