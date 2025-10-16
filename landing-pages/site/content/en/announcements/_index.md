@@ -22,7 +22,7 @@ PMC members:
 
 Committer:
 
-* **Guan Ming(Wesley) Chiu** ([@guan404ming](https://github.com/guan404ming))
+* **Guan-Ming (Wesley) Chiu** ([@guan404ming](https://github.com/guan404ming))
 
 # September 25, 2025
 
