@@ -206,7 +206,7 @@ Over three hundred developers around the world have contributed to making this r
 - GlenboLake
 - Gopal Dirisala
 - Gregory Borodin
-- Guan Ming(Wesley) Chiu
+- Guan-Ming (Wesley) Chiu
 - Guangyang Li
 - Guillaume Lostis
 - Hari Selvarajan
