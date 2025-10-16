@@ -210,7 +210,7 @@ asyncio.run(main())
 Apache Airflow 3.1.0 represents an extraordinary community effort, showcasing the vibrant ecosystem that drives this project forward with **163 contributors** making this release possible across **1,400+ commits**.
 
 ## Leading Contributors
-Special thanks to our top 20 contributors who drove this release forward: **Amogh Desai**, **Ash Berlin-Taylor**, **Brent Bovenzi**, **Bugra Ozturk**, **Daniel Standish**, **Elad Kalif**, **Ephraim Anierobi**, **GPK**, **Guan Ming (Wesley) Chiu**, **Jarek Potiuk**, **Jens Scheffler**, **Karthikeyan Singaravelan**, **Kaxil Naik**, **LI,JHE-CHEN**, **Pierre Jeambrun**, **Shahar Epstein**, **Tzu-ping Chung**, **Vincent**, **Wei Lee**, and **Yeonguk Choo**.
+Special thanks to our top 20 contributors who drove this release forward: **Amogh Desai**, **Ash Berlin-Taylor**, **Brent Bovenzi**, **Bugra Ozturk**, **Daniel Standish**, **Elad Kalif**, **Ephraim Anierobi**, **GPK**, **Guan-Ming (Wesley) Chiu**, **Jarek Potiuk**, **Jens Scheffler**, **Karthikeyan Singaravelan**, **Kaxil Naik**, **LI,JHE-CHEN**, **Pierre Jeambrun**, **Shahar Epstein**, **Tzu-ping Chung**, **Vincent**, **Wei Lee**, and **Yeonguk Choo**.
 
 <details>
 <summary>View all 143 additional contributors</summary>
