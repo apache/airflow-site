@@ -13,19 +13,34 @@ images: ["/images/blog/airflowctl-1.0.0/airflowctl-cover.png"]
 
 We are thrilled to announce the first major release of **`airflowctl` 1.0.0**, the new **secure, API-driven command-line interface (CLI)** for Apache Airflow — built under [**AIP-81**](https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81+Enhanced+Security+in+CLI+via+Integration+of+API).
 
-This release marks the beginning of Airflow’s next evolution: replacing the legacy direct-database CLI with a **modern, authenticated, and auditable interface** that communicates exclusively through the Airflow REST API.
+This release marks CLI to join the general posture on communicating through API. Airflow CLI joins the modern era of secure, auditable, and remote-first operations.
+
 
 **Details**:
 
 📦 **PyPI:** [https://pypi.org/project/apache-airflow-ctl/1.0.0/](https://pypi.org/project/apache-airflow-ctl/1.0.0/)  \
-📚 **airflowctl Docs:** [https://airflow.apache.org/docs/apache-airflow-ctl/stable/](https://airflow.apache.org/docs/apache-airflow-ctl/stable/)  \
 🛠️ **Release Notes:** [https://airflow.apache.org/docs/apache-airflow-ctl/stable/release_notes.html](https://airflow.apache.org/docs/apache-airflow-ctl/stable/release_notes.html)  \
 🪶 **Source Code:** [https://github.com/apache/airflow/tree/main/airflow-ctl](https://github.com/apache/airflow/tree/main/airflow-ctl)
+
+## 🎯 What is airflowctl?
+`airflowctl` is a new command-line interface for Apache Airflow that interacts exclusively with the Airflow REST API.
+It provides a secure, auditable, and consistent way to manage Airflow deployments — without direct access to the metadata database.
+
+## 🔄 Coexistence with Airflow CLI
+The Airflow CLI will continue as intended, primarily for admin tasks such as running Airflow components (`airflow api-server`, `airflow scheduler`) or managing the metadata database (`airflow db init`).
+`airflowctl` focuses on operational commands that interact with Airflow resources via the API (`airflowctl dagrun trigger`, `airflowctl connection create`, etc.).
+
+We defined the commands falls under **two main categories**:
+1. **Remote Commands**: Operations that can be provided via API (e.g., managing DAGs, connections, variables, triggering DAG runs) are now available in `airflowctl` and will be the recommended approach going forward.
+2. **Local/Admin Commands**: Operations that manage Airflow components or the metadata database will remain in the Airflow CLI.
+
+Of course, in the current state they will both have the remote commands.
+We are planning a zero-disruption migration path where **Remote Commands** will be gradually deprecated from the Airflow CLI as they achieve parity in `airflowctl`.
 
 
 ## 🔒 Why airflowctl?
 
-Until now, Airflow’s classic CLI connected directly to the **metadata database**, bypassing RBAC, authentication, and API logs.
+Until now, Airflow CLI connected directly to the **metadata database**, bypassing RBAC, authentication, and API logs.
 While convenient, this approach limited **security, auditing, and remote management** capabilities — especially for enterprise environments.
 
 **`airflowctl`** changes that by routing every command through the **Airflow REST API**, bringing:
@@ -62,6 +77,13 @@ Once installed, you can connect your CLI to an Airflow instance:
 
 ```bash
 airflowctl auth login --url http://localhost:8080 --username admin --password admin
+```
+
+The password field is interactive by default. You can enter your password securely without echoing it on the terminal.
+Use the above command without specifying the password and run it.
+
+```bash
+airflowctl auth login --url http://localhost:8080 --username admin --password
 ```
 
 ## 🧩 Command Highlights
@@ -142,10 +164,16 @@ Side by side comparison:
 ## 🙏 Community & Acknowledgments
 
 This release is the result of extensive collaboration across the Apache Airflow community.
-Special thanks to all contributors who worked on AIP-81, the Airflow REST API, and the airflowctl implementation.
-[comment]: <> (TODO: Add list of contributors here after exporting them from git history)
+Many thanks all who worked on AIP-81, the Airflow REST API, Authentication, and the airflowctl implementation.
 
-The secure CLI foundation lays the groundwork for Airflow’s next generation. A unified, API-first platform for orchestration and operations.
+## Leading Contributors
+Special thanks to leading contributors of `airflowctl`:
+**Amar Prakash Pandey, Amogh Desai, Aritra Basu, Aryan Khurana, ayush3singh, Brent Bovenzi, Brunda10,
+Bugra Ozturk, Daniel Standish, D. Ferruzzi, Deji Ibrahim, Elad Kalif, Ephraim Anierobi, GPK,
+Guan Ming(Wesley) Chiu, Hussein Awala, Jake Roach, Jarek Potiuk, Jed Cunningham, Jens Scheffler,
+Jaejun Lee, Kalyan R, Karthikeyan Singaravelan, Kaxil Naik, Kevin Yang, Kiruban Kamaraj, LI,JHE-CHEN,
+Pierre Jeambrun, Pratiksha, Sam Wheating, Tzu-ping Chung, Valentyn, Vincent, Wei Lee, Yeonguk,
+Yunchi Pang, Zhen-Lun (Kevin) Hong**
 
 ✨ In Summary
 
@@ -158,5 +186,5 @@ airflowctl 1.0.0 makes Airflow’s command line:
 | Inconsistent behavior | Unified CLI + API experience |
 | Manual secrets        | Keyring-secured credentials  |
 
-### 🔐 Security first. API always. CLI reimagined.
-
+Security first. API always. CLI reimagined.
+The secure CLI foundation lays the groundwork for Airflow’s next generation. A unified, API-first platform for orchestration and operations.
