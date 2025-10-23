@@ -117,7 +117,7 @@ Executor. This should significantly improve execution time and resource usage.
 When triggering a DAG from the CLI or the REST API, it s possible to pass configuration for the DAG run as a JSON blob.
 
 From Airflow 1.10.10, when a user clicks on Trigger Dag button, a new screen confirming the trigger request, and allowing the user to pass a JSON configuration
-blob would be show.
+blob would be shown.
 
 **Screenshot**:
 ![Allow passing DagRun conf when triggering dags via UI](trigger-dag-conf.png)

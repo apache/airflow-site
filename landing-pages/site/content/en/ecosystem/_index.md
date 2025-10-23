@@ -213,7 +213,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [airflow-ha](https://github.com/airflow-laminar/airflow-ha) - High Availability (HA) DAG Utility
 
-[airflow-supervisor](https://github.com/airflow-laminar/airflow-supervisor) - Easy-to-use [supervisor](http://supervisord.org) integration for long running or "always on" DAGs
+[airflow-supervisor](https://github.com/airflow-laminar/airflow-supervisor) - Easy-to-use [supervisor](http://supervisord.org) integration for long-running or "always on" DAGs
 
 [airflow-balancer](https://github.com/airflow-laminar/airflow-balancer) - Utilities for tracking hosts and ports and load balancing DAGs
 
