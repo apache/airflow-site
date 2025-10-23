@@ -111,7 +111,7 @@ More information can be found here: [Airflow `db downgrade` and Offline generati
 
 ## Reuse of decorated tasks
 
-You can now reuse decorated tasks across your dag files. A decorated task has an `override` method that allows you to override it's arguments.
+You can now reuse decorated tasks across your dag files. A decorated task has an `override` method that allows you to override its arguments.
 
 Here's an example:
 

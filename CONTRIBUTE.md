@@ -383,7 +383,7 @@ If your meetup group isn't on the list, add it following the format of existing 
 
 # How to release new documentation
 
-Building documentation for the Apache Airlfow project also requires Python3.6 with pip and graphviz. You also need to have additional `apache/airflow` repository available.
+Building documentation for the Apache Airflow project also requires Python3.6 with pip and graphviz. You also need to have additional `apache/airflow` repository available.
 
 ### Prerequisite Tasks
 
@@ -630,7 +630,7 @@ gcloud compute instances delete "${GCP_INSTANCE_NAME}"  --zone="${GCP_ZONE}"
 
 ## Use RAM disk for build
 
-If you wanna create RAM disk, run following command:
+If you want to create RAM disk, run following command:
 ```bash
 sudo mkdir -p /mnt/ramdisk && sudo mount -t tmpfs -o size=16g tmpfs /mnt/ramdisk
 ```

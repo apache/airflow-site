@@ -27,7 +27,7 @@ This quicker release cadence is a departure from our previous habit of releasing
 
 When we released Dataset aware scheduling in September we knew that the tools we gave to manage the Datasets were very much a Minimum Viable Product, and in the last two months the committers and contributors have been hard at work at making the UI much more usable when it comes to Datasets.
 
-But we we aren't done yet - keep an eye out for more improvements coming over the next couple of releases too.
+But we aren't done yet - keep an eye out for more improvements coming over the next couple of releases too.
 
 ## Greatly improved `airflow dags test` command
 
