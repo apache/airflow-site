@@ -63,7 +63,7 @@ More information on the `@task.docker` decorator can be found at: [Using the Tas
 
 You can now apply validation on DAG params by passing a `Param` object for each param. The `Param` object supports the full [json-schema validation specifications](https://json-schema.org/draft/2020-12/json-schema-validation.html).
 
-Currently this only functions with manually triggered DAGs, but it does set the stage for future params related functionality.
+Currently, this only functions with manually triggered DAGs, but it does set the stage for future params related functionality.
 
 More information can be found at: [Params](https://airflow.apache.org/docs/apache-airflow/stable/concepts/params.html)
 

@@ -11,7 +11,7 @@ date: 2019-11-22
 
 ## Documenting local development environment of Apache Airflow
 
-From Sept to November, 2019 I have been participating in a wonderful initiative, [Google Season of Docs](https://developers.google.com/season-of-docs).
+From Sept to November 2019 I have been participating in a wonderful initiative, [Google Season of Docs](https://developers.google.com/season-of-docs).
 
 I had a pleasure to contribute to the Apache Airflow open source project as a technical writer.
 My initial assignment was an extension to the GitHub-based Contribution guide.
