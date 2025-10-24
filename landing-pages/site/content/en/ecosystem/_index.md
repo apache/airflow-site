@@ -209,7 +209,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [airflow-config](https://github.com/airflow-laminar/airflow-config) - [Pydantic](https://pydantic.dev) / [Hydra](https://hydra.cc) based configuration system for DAG and Task arguments
 
-[airflow-priority](https://github.com/airflow-laminar/airflow-priority) - Priority Tags (P1, P2, etc) for Airflow DAGs with automated alerting to Datadog, New Relic, Slack, Discord, and more
+[airflow-priority](https://github.com/airflow-laminar/airflow-priority) - Priority Tags (P1, P2, etc.) for Airflow DAGs with automated alerting to Datadog, New Relic, Slack, Discord, and more
 
 [airflow-ha](https://github.com/airflow-laminar/airflow-ha) - High Availability (HA) DAG Utility
 

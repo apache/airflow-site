@@ -28,7 +28,7 @@ The raw response data will be made available here soon, in the meantime, feel fr
 ### Deployments
 
 - 85% of the Airflow users have between 1 and 7 active Airflow instances. 62.5% of the Airflow users have between 11 and 250 DAGs in their largest Airflow instance. 75% of the surveyed Airflow users have between 1 and 100 tasks per DAG.
-- Close to 85% of users use one of the Airflow 2 versions, 9.2% users still use 1.10.15, while the remaining 6.3% are still using olderAirflow 1 versions. The good news is that the majority of users on Airflow 1 are planning migration to Airflow 2 quite soon, with resources and capacity being the main blockers.
+- Close to 85% of users use one of the Airflow 2 versions, 9.2% users still use 1.10.15, while the remaining 6.3% are still using older Airflow 1 versions. The good news is that the majority of users on Airflow 1 are planning migration to Airflow 2 quite soon, with resources and capacity being the main blockers.
 - In comparison to results from [2020](https://airflow.apache.org/blog/airflow-survey-2020/#overview-of-the-user), more users were interested in monitoring in general and specifically in using tools such as external monitoring services (40.7%, up from 29.6%) and information from metabase (35.7%, up from 25.1%).
 - Celery (52.7%) and Kubernetes (39.4%) are the most common executors used.
 
@@ -160,7 +160,7 @@ Airflow documentation is a critical source of information, with more than 90% of
 | 1000+    | 10  | 4.8%  |
 | 501-1000 | 9   | 4.3%  |
 
-62.5% of the Airflow users surveyed have between 11 to 250 DAGs in their largest Airflow instance.
+62.5% of the Airflow users surveyed have between 11 and 250 DAGs in their largest Airflow instance.
 
 ### How many active Airflow instances do you have? (single choice)
 

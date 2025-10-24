@@ -31,7 +31,7 @@ Some of the noteworthy new features (user-facing) are:
 
 ### Add tags to DAGs and use it for filtering in the UI
 
-In order to filter DAGs (e.g by team), you can add tags in each dag. The filter is saved in a cookie and can be reset by the reset button.
+In order to filter DAGs (e.g. by team), you can add tags in each dag. The filter is saved in a cookie and can be reset by the reset button.
 
 For example:
 
@@ -62,7 +62,7 @@ We strongly recommend users to use Python >= 3.6
 ### Use Airflow RBAC UI
 Airflow 1.10.9 ships with 2 UIs, the default is non-RBAC Flask-admin based UI and Flask-appbuilder based UI.
 
-The Flask-AppBuilder (FAB) based UI is allows Role-based Access Control and has more advanced features compared to
+The Flask-AppBuilder (FAB) based UI is allowed Role-based Access Control and has more advanced features compared to
 the legacy Flask-admin based UI. This UI can be enabled by setting `rbac=True` in `[webserver]` section in your `airflow.cfg`.
 
 Flask-admin based UI is deprecated and new features won't be ported to it. This UI will still be the default

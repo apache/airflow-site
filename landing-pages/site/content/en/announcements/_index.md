@@ -1338,7 +1338,7 @@ Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airf
 
 Changelog - https://airflow.apache.org/changelog.html#airflow-1-10-2-2019-01-19
 
-By default one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
+By default, one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
 
 # Jan 9, 2019
 
@@ -1370,7 +1370,7 @@ Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airf
 
 Changelog - https://github.com/apache/incubator-airflow/blob/v1-10-test/CHANGELOG.txt
 
-By default one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
+By default, one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
 
 
 # Oct 16, 2018
@@ -1417,7 +1417,7 @@ Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airf
 
 Changelog - https://github.com/apache/incubator-airflow/blob/8100f1f/CHANGELOG.txt
 
-By default one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
+By default, one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
 
 
 # Aug 3, 2018

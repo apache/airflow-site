@@ -138,7 +138,7 @@ The new **React Plugin System** (**AIP-68**) transforms how you extend Airflow's
 the old Flask-based approach with a modern toolkit that lets you customize Airflow exactly how your team works.
 
 Want to embed your company's dashboard right in the Airflow UI? Build React applications or iframes that will
-render inside Airflow's (nav bar, dashboard, details page, etc). Want to link to your existing tools
+render inside Airflow's (nav bar, dashboard, details page, etc.). Want to link to your existing tools
 seamlessly? Create custom external links to your resources. Want to extend Airflow's API server? Register
 FastAPI sub applications and middlewares that fit your specific processes.
 
