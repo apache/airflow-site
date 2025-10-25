@@ -76,7 +76,7 @@ def my_task(data_interval_start, data_interval_env)
     ...
 ```
 
-There are a few subtlties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the [how-to on using the ExternalPythonOperator][howto-externalpythonop]
+There are a few subtleties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the [how-to on using the ExternalPythonOperator][howto-externalpythonop]
 
 [howto-externalpythonop]: http://airflow.apache.org/docs/apache-airflow/2.4.0/howto/operator/python.html#externalpythonoperator
 

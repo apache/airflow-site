@@ -41,7 +41,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
 
 Hopefully the headline says enough. It's lovely, go check it out.
 
-## More improvments to Dynamic-Task mapping
+## More improvements to Dynamic-Task mapping
 
 In a similar vein to the improvements to the Dataset (UI), we have continued to iterate on and improve the feature we first added in Airflow 2.3, Dynamic Task Mapping, and 2.5 includes [dozens of improvements](https://github.com/apache/airflow/pulls?q=is%3Apr+author%3Auranusjr+is%3Aclosed+milestone%3A%22Airflow+2.5.0%22).
 
