@@ -31,7 +31,7 @@ Considering the total experience, I decided to go with the Airflow.
 After selecting the org, the next step was to choose the project. Again, my previous experience played a role here, and I ended up picking the **How to create a workflow** . The aim of the project was to write documentation which will help users in creating complex as well as custom DAGs.
 The final deliverables were a bit different, though. More on that later.
 
-After submitting my application, I got involved in my job until one day, I saw a mail from google confirming my selection as a Technical Writer for the project.
+After submitting my application, I got involved in my job until one day, I saw a mail from Google confirming my selection as a Technical Writer for the project.
 
 ## Community Bonding
 Getting selected is just a beginning.  I got the invite to the Airflow Slack channel where most of the discussions happened.
