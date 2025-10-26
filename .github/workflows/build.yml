@@ -31,6 +31,7 @@ jobs:
       STAGING_PUBLISH_REQUIRED: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging' || 'false' }}
       PUBLISH_BRANCH: ${{ github.ref == 'refs/heads/main' && 'publish' || 'staging-publish' }}
       CLOUDFRONT_DISTRIBUTION_ID: ${{ github.ref == 'refs/heads/main' && 'E26P75MP9PMULE' || 'E197MS0XRJC5F3' }}
+      S3_DOCS_BUCKET: ${{ github.ref == 'refs/heads/main' && 'live-docs-airflow-apache-org' || 'staging-docs-airflow-apache-org' }}
     steps:
       - name: ℹ️ Info
         run: |
@@ -52,7 +53,7 @@ jobs:
           && sudo apt update \
           && sudo apt install gh -y
       - name: 🗂 Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # v3.5.3
+        uses: actions/checkout@v4.2.2  # v4.2.2
         with:
           submodules: recursive
           lfs: true
@@ -69,17 +70,17 @@ jobs:
         working-directory: /mnt/airflow-site
         run: echo "Working directory set to /mnt/airflow-site"
       - name: 🐍 Setup Python
-        uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0  # v4.6.1
+        uses: actions/setup-python@v5.3.0  # v5.3.0
         with:
-          python-version: '3.9'
-      - name: ❤️  Install Node 16
-        uses: actions/setup-node@v3.3.0  # v3.3.0
+          python-version: '3.12'
+      - name: ❤️  Install Node 22 LTS
+        uses: actions/setup-node@v4.2.0  # v4.2.0
         with:
-          node-version: 16
+          node-version: 22
       - name: 📚 Install Hugo
-        uses: peaceiris/actions-hugo@v2.4.13  # v2.4.13
+        uses: peaceiris/actions-hugo@v3.0.0  # v3.0.0
         with:
-          hugo-version: '0.91.2'
+          hugo-version: '0.135.0'
           extended: true
       - name: 🟢 Install node dependencies
         run: |
@@ -96,7 +97,7 @@ jobs:
           uv tool install pre-commit --with pre-commit-uv
           pre-commit run --all-files --color always
       - name: 🗂 Checkout ${{ env.PUBLISH_BRANCH }} branch with minimum depth
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # 3.5.3
+        uses: actions/checkout@v4.2.2  # v4.2.2
         with:
           ref: ${{ env.PUBLISH_BRANCH }}
           fetch-depth: 1
@@ -104,6 +105,7 @@ jobs:
       - name: 🔧 Build site
         run: |
           /mnt/airflow-site/site.sh build-site
+
       - name: Install AWS CLI v2
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
         run: |
@@ -114,7 +116,7 @@ jobs:
           rm -rf /tmp/aws/
       - name: Configure AWS credentials
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
-        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a  # v4.0.1
+        uses: aws-actions/configure-aws-credentials@v4.0.2  # v4.0.2
         with:
           aws-access-key-id: ${{ secrets.DOCS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DOCS_AWS_SECRET_ACCESS_KEY }}

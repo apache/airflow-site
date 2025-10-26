@@ -120,7 +120,7 @@ calls a python function, AwsBatchOperator which executes a job on AWS Batch and 
 
 #### Sensors
 Sensors can be described as special operators that are used to monitor a long-running task.
-Just like Operators, there are many predefined sensors in Airflow. These includes
+Just like Operators, there are many predefined sensors in Airflow. These include
 
   - AthenaSensor: Asks for the state of the Query until it reaches a failure state or success state.
   - AzureCosmosDocumentSensor: Checks for the existence of a document which matches the given query in CosmosDB

@@ -67,7 +67,7 @@ The fundamental evolution of Datasets into Data Assets has been done as part of 
 
 External event driven scheduling ([AIP-82](https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-82+External+event+driven+scheduling+in+Airflow)) is based on the foundational Data Assets work described above, specifically Watchers. The initial scope as defined in the AIP is complete and now incorporates a “Common Message Bus” interface. This release also includes an implementation of the above for AWS SQS as an “out of the box” integration, which demonstrates DAGs being triggered upon the arrival of a message in AWS SQS.
 
-### Inference execution and hyper-parameter tuning
+### Inference execution and hyperparameter tuning
 
 Many ML and AI Engineers are already using Airflow for ML/AI Ops, especially for model training. However, there were challenges for Inference Execution. Enhancing Airflow for Inference Execution by adding support for non-data-interval-Dags (sorry, that’s a mouthful) is an important change. This work is covered as part of “Remove Execution date unique constraint from DAG run” ([AIP-83](https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-83+Remove+Execution+Date+Unique+Constraint+from+DAG+Run))
 
@@ -206,7 +206,7 @@ Over three hundred developers around the world have contributed to making this r
 - GlenboLake
 - Gopal Dirisala
 - Gregory Borodin
-- Guan Ming(Wesley) Chiu
+- Guan-Ming (Wesley) Chiu
 - Guangyang Li
 - Guillaume Lostis
 - Hari Selvarajan

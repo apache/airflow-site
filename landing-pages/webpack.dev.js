@@ -17,7 +17,7 @@
  * under the License.
  */
 
-const merge = require("webpack-merge");
+const {merge} = require("webpack-merge");
 const path = require("path");
 const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -35,9 +35,10 @@ module.exports = merge(common, {
   devServer: {
     host: "0.0.0.0",
     port: process.env.PORT || 3000,
-    contentBase: path.join(process.cwd(), "./dist"),
-    watchContentBase: true,
-    quiet: false,
+    static: {
+      directory: path.join(process.cwd(), "./dist"),
+      watch: true
+    },
     open: true,
     historyApiFallback: {
       rewrites: [{from: /./, to: "404.html"}]

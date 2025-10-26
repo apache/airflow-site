@@ -11,6 +11,63 @@ menu:
 &nbsp;
 &nbsp;
 
+# October 15, 2025
+
+Airflow PMC welcomes new PMC members and committer:
+
+PMC members:
+
+* **Vincent Beck** ([@vincbeck](https://github.com/vincbeck))
+* **Wei Lee** ([@Lee-W](https://github.com/Lee-W))
+
+Committer:
+
+* **Guan-Ming (Wesley) Chiu** ([@guan404ming](https://github.com/guan404ming))
+
+# September 25, 2025
+
+We’ve just released Apache **Airflow 3.1.0** and **Task SDK 1.1.0**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.0/ \
+📚 Core Airflow Docs: https://airflow.apache.org/docs/apache-airflow/3.1.0/ \
+📚 Task SDK Docs: https://airflow.apache.org/docs/task-sdk/1.1.0/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.0/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.1.0/installation/installing-from-sources.html \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.0
+
+# August 29, 2025
+
+We’ve just released Apache **Airflow 3.0.6** and **Task SDK 1.0.6**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.0.6/ \
+📚 Core Airflow Docs: https://airflow.apache.org/docs/apache-airflow/3.0.6/ \
+📚 Task SDK Docs: https://airflow.apache.org/docs/task-sdk/1.0.6/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.0.6/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.0.6/installation/installing-from-sources.html \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.0.6
+
+# August 20, 2025
+
+We’ve just released Apache **Airflow 3.0.5** and **Task SDK 1.0.5**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.0.5/ \
+📚 Core Airflow Docs: https://airflow.apache.org/docs/apache-airflow/3.0.5/ \
+📚 Task SDK Docs: https://airflow.apache.org/docs/task-sdk/1.0.5/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.0.5/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.0.5/installation/installing-from-sources.html \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.0.5
+
+# August 8, 2025
+
+We’ve just released Apache **Airflow 3.0.4** and **Task SDK 1.0.4**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.0.4/ \
+📚 Core Airflow Docs: https://airflow.apache.org/docs/apache-airflow/3.0.4/ \
+📚 Task SDK Docs: https://airflow.apache.org/docs/task-sdk/1.0.4/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.0.4/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.0.4/installation/installing-from-sources.html \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.0.4
+
 # July 15, 2025
 
 We’ve just released Apache **Airflow 3.0.3** and **Task SDK 1.0.3**.
@@ -816,7 +873,7 @@ I'm happy to announce that Apache **Airflow 2.1.0** was just released. This one 
 
 - Mask passwords and sensitive info in task logs and UI (finally!)
 
-- Improvmenets to webserver start up time (mostly around time spent syncing DAG permissions)
+- Improvements to webserver start up time (mostly around time spent syncing DAG permissions)
 
 Please note that *this* release no long includes the `HTTP` extra provider by default, as we discovered that it pulls in an LGPL dependency (via the `requests` module of all places) so it is now optional.
 
@@ -1281,7 +1338,7 @@ Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airf
 
 Changelog - https://airflow.apache.org/changelog.html#airflow-1-10-2-2019-01-19
 
-By default one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
+By default, one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
 
 # Jan 9, 2019
 
@@ -1313,7 +1370,7 @@ Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airf
 
 Changelog - https://github.com/apache/incubator-airflow/blob/v1-10-test/CHANGELOG.txt
 
-By default one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
+By default, one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
 
 
 # Oct 16, 2018
@@ -1360,7 +1417,7 @@ Pypi - https://pypi.python.org/pypi/apache-airflow (Run `pip install apache-airf
 
 Changelog - https://github.com/apache/incubator-airflow/blob/8100f1f/CHANGELOG.txt
 
-By default one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
+By default, one of Airflow's dependencies installs a GPL dependency (unidecode). To avoid this dependency set **SLUGIFY_USES_TEXT_UNIDECODE=yes** in your environment when you install or upgrade Airflow. To force installing the GPL version set **AIRFLOW_GPL_UNIDECODE**. One of these two environment variables must be specified.
 
 
 # Aug 3, 2018

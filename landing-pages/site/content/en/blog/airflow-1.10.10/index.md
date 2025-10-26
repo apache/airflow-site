@@ -20,14 +20,14 @@ Airflow 1.10.10 contains 199 commits since 1.10.9 and includes 11 new features, 
 
 Some of the noteworthy new features (user-facing) are:
 
-- [Allow user to chose timezone to use in the RBAC UI](https://github.com/apache/airflow/pull/8046)
+- [Allow user to choose timezone to use in the RBAC UI](https://github.com/apache/airflow/pull/8046)
 - [Add Production Docker image support](https://github.com/apache/airflow/pull/7832)
 - [Allow Retrieving Airflow Connections & Variables from various Secrets backend](http://airflow.apache.org/docs/1.10.10/howto/use-alternative-secrets-backend.html)
 - [Stateless Webserver using DAG Serialization](http://airflow.apache.org/docs/1.10.10/dag-serialization.html)
 - [Tasks with Dummy Operators are no longer sent to executor](https://github.com/apache/airflow/pull/7880)
 - [Allow passing DagRun conf when triggering dags via UI](https://github.com/apache/airflow/pull/7312)
 
-### Allow user to chose timezone to use in the RBAC UI
+### Allow user to choose timezone to use in the RBAC UI
 
 By default the Web UI will show times in UTC. It is possible to change the timezone shown by using the menu in the top
  right (click on the clock to activate it):
@@ -41,7 +41,7 @@ Details: https://airflow.apache.org/docs/1.10.10/timezone.html#web-ui
 
 ### Add Production Docker image support
 
-There are brand new production images (alpha quality) available for Airflow 1.10.10. You can pull them from the
+There are brand-new production images (alpha quality) available for Airflow 1.10.10. You can pull them from the
 [Apache Airflow Dockerhub](https://hub.docker.com/r/apache/airflow) repository and start using it.
 
 More information about using production images can be found in https://github.com/apache/airflow/blob/master/IMAGES.rst#using-the-images. Soon it will be updated with
@@ -117,7 +117,7 @@ Executor. This should significantly improve execution time and resource usage.
 When triggering a DAG from the CLI or the REST API, it s possible to pass configuration for the DAG run as a JSON blob.
 
 From Airflow 1.10.10, when a user clicks on Trigger Dag button, a new screen confirming the trigger request, and allowing the user to pass a JSON configuration
-blob would be show.
+blob would be shown.
 
 **Screenshot**:
 ![Allow passing DagRun conf when triggering dags via UI](trigger-dag-conf.png)
@@ -137,7 +137,7 @@ If you are updating Apache Airflow from a previous version to `1.10.10`, please 
 
     More details in https://github.com/apache/airflow/pull/7464.
 
--   Setting empty string to a Airflow Variable will now return an empty string, it previously returned `None`.
+-   Setting empty string to an Airflow Variable will now return an empty string, it previously returned `None`.
 
     Example:
 

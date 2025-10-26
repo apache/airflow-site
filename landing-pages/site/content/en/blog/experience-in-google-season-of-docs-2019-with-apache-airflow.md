@@ -28,13 +28,13 @@ The second one was [Apache Cassandra][3], on which I also had worked extensively
 Considering the total experience, I decided to go with the Airflow.
 
 ## Project selection
-After selecting the org, the next step was to choose the project. Again, my previous experience played a role here, and I ended up picking the **How to create a workflow** . The aim of the project was to write documentation which will help users in creating complex as well as custom DAGs.  
+After selecting the org, the next step was to choose the project. Again, my previous experience played a role here, and I ended up picking the **How to create a workflow** . The aim of the project was to write documentation which will help users in creating complex as well as custom DAGs.
 The final deliverables were a bit different, though. More on that later.
 
-After submitting my application, I got involved in my job until one day, I saw a mail from google confirming my selection as a Technical Writer for the project.
+After submitting my application, I got involved in my job until one day, I saw a mail from Google confirming my selection as a Technical Writer for the project.
 
 ## Community Bonding
-Getting selected is just a beginning.  I got the invite to the Airflow slack channel where most of the discussions happened.
+Getting selected is just a beginning.  I got the invite to the Airflow Slack channel where most of the discussions happened.
 My mentor was [Ash-Berlin Taylor][4] from Apache Airflow. I started talking to my mentor to get a general sense of what deliverables were expected. The deliverables were documented in [confluence][5].
 
 - A page for how to create a DAG that also includes:
@@ -57,12 +57,12 @@ After connecting with the mentor, I started engaging with the overall Airflow co
 
 ## Doc Development
 I picked DAG run as my first deliverable. I chose this topic as some parts of it were already documented but needed some additional text.
-I splitter the existing Scheduling & Triggers page into two new pages.
+I split the existing Scheduling & Triggers page into two new pages.
 1. Schedulers
 2. DAG Runs
 
 Most of the details unrelated to schedulers were moved to DAG runs page, and then missing points such as how to re-run a task or DAG were added.
-Once I was satisfied with my version, I asked my mentor and Kamil to review it. For the first version, I shared the text in the Google docs file in which the reviewers added comments.
+Once I was satisfied with my version, I asked my mentor and Kamil to review it. For the first version, I shared the text in the Google Docs file in which the reviewers added comments.
 However, the document started getting messy, and it became difficult to track the changes. The time had come now to raise a proper Pull Request.
 
 This was the time when I faced my first challenge. The documentation of Apache Airflow is written using RST(reStructuredText) syntax, with which I was entirely unfamiliar. I had mostly worked in Markdown.
@@ -79,7 +79,7 @@ This required a bit of trial and error. I studied the current pattern in Airflow
 
 In the end, all the reviewers approved the PR, but it was not merged until two months later. This was because we doubted if some more pages, such as **Concepts**, should also be split up, resulting in a better-structured document. In the end, we decided to delay it until we discussed it with the broader community.
 
-My [second PR][9] was a completely new document. It was related to How to create your custom operator. For this, since now I was familiar with most of the syntax, I directly raised the PR without going via Google docs. I received a lot of comments again, but this time they were more related to what I had written rather than how I had written it.
+My [second PR][9] was a completely new document. It was related to How to create your custom operator. For this, since now I was familiar with most of the syntax, I directly raised the PR without going via Google Docs. I received a lot of comments again, but this time they were more related to what I had written rather than how I had written it.
 e.g., Describing in detail how to use **template fields** and clean up my code examples. The fewer grammatical & formatting error comments showed I had made progress.
 The PR was accepted within two weeks and gave me a huge confidence boost.
 

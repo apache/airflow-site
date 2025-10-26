@@ -19,4 +19,4 @@ Airflow had been on our radar for a while until one day we took the leap. We use
 We have DAGs orchestrating SQL transformations in our data warehouse, but also DAGs that are orchestrating functions ran against our Kubernetes cluster both for training Machine Learning models and sending daily analytics emails.
 
 ##### What are the results?
-The learning curve was steep but in about 100 days we were able to efficiently use Airflow to manage the complexity of our data engineering. We currently have 17 DAGs (adding on average 1 per week), we have 2 contributions on apache/airflow, we have 7 internal hooks and operators and are planning to add more as our migration efforts continue.
+The learning curve was steep but in about 100 days we were able to efficiently use Airflow to manage the complexity of our data engineering. We currently have 17 DAGs (adding on average 1 per week), we have 2 contributions to apache/airflow, we have 7 internal hooks and operators and are planning to add more as our migration efforts continue.

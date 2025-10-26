@@ -67,7 +67,7 @@ For more information on datasets, see the [documentation on Data-aware schedulin
 
 As much as we wish all python libraries could be used happily together that sadly isn't the world we live in, and sometimes there are conflicts when trying to install multiple python libraries in an Airflow install -- right now we hear this a lot with `dbt-core`.
 
-To make this easier we have introduced `@task.external_python` (and the matching `ExternalPythonOperator`) that lets you run an python function as an Airflow task in a pre-configured virtual env, or even a whole different python version. For example:
+To make this easier we have introduced `@task.external_python` (and the matching `ExternalPythonOperator`) that lets you run a python function as an Airflow task in a pre-configured virtual env, or even a whole different python version. For example:
 
 ```python
 @task.external_python(python='/opt/venvs/task_deps/bin/python')
@@ -76,7 +76,7 @@ def my_task(data_interval_start, data_interval_env)
     ...
 ```
 
-There are a few subtlties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the [how-to on using the ExternalPythonOperator][howto-externalpythonop]
+There are a few subtleties as to what you need installed in the virtual env depending on which context variables you access, so be sure to read the [how-to on using the ExternalPythonOperator][howto-externalpythonop]
 
 [howto-externalpythonop]: http://airflow.apache.org/docs/apache-airflow/2.4.0/howto/operator/python.html#externalpythonoperator
 

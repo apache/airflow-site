@@ -57,7 +57,7 @@ with TaskGroup("load") as load:
 do_emr >> load
 ```
 
-In this code, each group has a teardown, and we just arrow the first group to the second. As advertised, `delete_cluster`, a teardown task, is ignored. This has two important consequences: one, even if it fails, the `load` group will still run; and two, `delete_cluster` and `create_configuration` can run in parallel (generally speaking, we’d imagine you don’t want to wait for teardown operations to complete before continuing onto other tasks in the dag). Of course you can override this behavior by adding an arrow between `delete_cluster` and `create_configuration`. Further, the success of this dag will depend only on whether the `load_data` task completes successfully.
+In this code, each group has a teardown, and we just arrow the first group to the second. As advertised, `delete_cluster`, a teardown task, is ignored. This has two important consequences: one, even if it fails, the `load` group will still run; and two, `delete_cluster` and `create_configuration` can run in parallel (generally speaking, we’d imagine you don’t want to wait for teardown operations to complete before continuing onto other tasks in the dag). Of course, you can override this behavior by adding an arrow between `delete_cluster` and `create_configuration`. Further, the success of this dag will depend only on whether the `load_data` task completes successfully.
 
 ## Conclusion
 

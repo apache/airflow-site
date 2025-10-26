@@ -51,5 +51,5 @@ if (document.querySelector("#header")) {
     module.initHeaderAnimation();
   });
 }
-require("./js/integrationList.js");
-require("./js/meetupsList.js");
+import("./js/integrationList.js");
+import("./js/meetupsList.js");

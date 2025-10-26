@@ -47,8 +47,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Yandex Managed Service for Apache Airflow](https://cloud.yandex.com/en/services/managed-airflow) - Managed Apache Airflow on Yandex Cloud
 
-[Airflow with Restack](https://www.restack.io/store/airflow) - Managed Apache Airflow on Restack Cloud or bring your own cloud: AWS EKS, GCP GKE, or Azure AKS. Allowing you to use the latest version of Airflow with your own DAGs. Connect your repo to the Restack GitHub app for built-in CI/CD.
-
 &nbsp;
 
 ## Other deployments methods
@@ -105,8 +103,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Astronomer Providers](https://github.com/astronomer/astronomer-providers) - A collection of Async Operators and Sensors for Apache Airflow built and maintained by Astronomer.
 
-[Airflow Kafka Provider](https://github.com/astronomer/airflow-provider-kafka) - Apache Airflow Kafka provider containing Deferrable Operators & Sensors.
-
 &nbsp;
 
 ## Third Party Airflow Helm Charts
@@ -125,7 +121,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [ADA](https://github.com/IBM/ada) - A microservice created to retrieve analytics metrics from an Airflow database instance.
 
-[as-scraper](https://github.com/Avila-Systems/as-scraper) - An integration with Selenium to build & mantain web scrapers inside Airflow.
+[as-scraper](https://github.com/Avila-Systems/as-scraper) - An integration with Selenium to build & maintain web scrapers inside Airflow.
 
 [afctl](https://github.com/qubole/afctl) - A CLI tool that includes everything required to create, manage and deploy airflow projects faster and smoother.
 
@@ -213,11 +209,11 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [airflow-config](https://github.com/airflow-laminar/airflow-config) - [Pydantic](https://pydantic.dev) / [Hydra](https://hydra.cc) based configuration system for DAG and Task arguments
 
-[airflow-priority](https://github.com/airflow-laminar/airflow-priority) - Priority Tags (P1, P2, etc) for Airflow DAGs with automated alerting to Datadog, New Relic, Slack, Discord, and more
+[airflow-priority](https://github.com/airflow-laminar/airflow-priority) - Priority Tags (P1, P2, etc.) for Airflow DAGs with automated alerting to Datadog, New Relic, Slack, Discord, and more
 
 [airflow-ha](https://github.com/airflow-laminar/airflow-ha) - High Availability (HA) DAG Utility
 
-[airflow-supervisor](https://github.com/airflow-laminar/airflow-supervisor) - Easy-to-use [supervisor](http://supervisord.org) integration for long running or "always on" DAGs
+[airflow-supervisor](https://github.com/airflow-laminar/airflow-supervisor) - Easy-to-use [supervisor](http://supervisord.org) integration for long-running or "always on" DAGs
 
 [airflow-balancer](https://github.com/airflow-laminar/airflow-balancer) - Utilities for tracking hosts and ports and load balancing DAGs
 

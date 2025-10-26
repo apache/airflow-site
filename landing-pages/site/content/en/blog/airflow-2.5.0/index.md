@@ -10,7 +10,7 @@ tags: [Release]
 date: "2022-12-02"
 ---
 
-Apache Airfow 2.5 has just been released, barely two and a half months after 2.4!
+Apache Airflow 2.5 has just been released, barely two and a half months after 2.4!
 
 
 **Details**:
@@ -27,7 +27,7 @@ This quicker release cadence is a departure from our previous habit of releasing
 
 When we released Dataset aware scheduling in September we knew that the tools we gave to manage the Datasets were very much a Minimum Viable Product, and in the last two months the committers and contributors have been hard at work at making the UI much more usable when it comes to Datasets.
 
-But we we aren't done yet - keep an eye out for more improvements coming over the next couple of releases too.
+But we aren't done yet - keep an eye out for more improvements coming over the next couple of releases too.
 
 ## Greatly improved `airflow dags test` command
 
@@ -41,7 +41,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
 
 Hopefully the headline says enough. It's lovely, go check it out.
 
-## More improvments to Dynamic-Task mapping
+## More improvements to Dynamic-Task mapping
 
 In a similar vein to the improvements to the Dataset (UI), we have continued to iterate on and improve the feature we first added in Airflow 2.3, Dynamic Task Mapping, and 2.5 includes [dozens of improvements](https://github.com/apache/airflow/pulls?q=is%3Apr+author%3Auranusjr+is%3Aclosed+milestone%3A%22Airflow+2.5.0%22).
 
