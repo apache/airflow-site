@@ -11,6 +11,17 @@ menu:
 &nbsp;
 &nbsp;
 
+# October 27, 2025
+
+We've just released Apache **Airflow 3.1.1** and **Task SDK 1.1.1**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.1/ \
+📚 Core Airflow Docs: https://airflow.apache.org/docs/apache-airflow/3.1.1/ \
+📚 Task SDK Docs: https://airflow.apache.org/docs/task-sdk/1.1.1/ \
+🛠️ Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.1/release_notes.html \
+🪶 Sources: https://airflow.apache.org/docs/apache-airflow/3.1.1/installation/installing-from-sources.html \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.1
+
 # October 15, 2025
 
 Airflow PMC welcomes new PMC members and committer:
