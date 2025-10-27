@@ -66,7 +66,7 @@ The following applications must be installed to use the project:
 
 * git
 * docker (for the shell language linter)
-* Node 16
+* Node 22
 * Yarn
 * Hugo
 
@@ -94,11 +94,11 @@ git config --global user.email '<your.email@example.com>'
 git config --global user.name '<you name>'
 ```
 
-To install Node 16, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 16 with these commands:
+To install Node 22, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 22 with these commands:
 
 ```bash
-nvm install 16
-nvm use 16
+nvm install 22
+nvm use 22
 ```
 
 To install yarn, run the following command:
@@ -123,12 +123,11 @@ Then, install [Homebrew](https://brew.sh). Once that has completed, you can inst
 brew install hugo
 ```
 
-To install Node 16, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 16 with these commands:
+To install Node 22, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 22 with these commands:
 
 ```bash
-nvm install 16
-nvm use 16
-```
+nvm install 22
+nvm use 22
 
 To install Yarn, run the following command:
 ```bash
