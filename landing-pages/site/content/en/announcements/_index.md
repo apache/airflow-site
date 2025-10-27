@@ -732,7 +732,7 @@ We’ve just released Apache **Airflow 2.2.4**.
 
 # February 19, 2022
 
-Airflow PMC welcomes two new Airlow Committers:
+Airflow PMC welcomes two new Airflow Committers:
 
 * **Malthe Borch** ([@malthe](https://github.com/malthe))
 * **Josh Fell** ([@josh-fell](https://github.com/josh-fell))
@@ -1355,7 +1355,7 @@ Apache Airflow graduates from the Incubator and is now a TLP!
     - [ASF "Foundation" Blog](https://s.apache.org/LeeE)
     - [The ASF Twitter Feed](https://twitter.com/TheASF/status/1082593312421208064)
     - [The ASF on LinkedIn](https://www.linkedin.com/company/the-apache-software-foundation)
-    - You can find more announcements on our twitter account as well : [@ApacheAirflow](https://twitter.com/ApacheAirflow)
+    - You can find more announcements on our Twitter account as well : [@ApacheAirflow](https://twitter.com/ApacheAirflow)
 
 - Community Blogs
     - [Apache Airflow announced as a Top-Level Project — How does ING WB Advanced Analytics use Airflow?](https://medium.com/wbaa/apache-airflow-announced-as-a-top-level-project-how-does-ing-wb-advanced-analytics-use-airflow-ed7990ffba9c)
