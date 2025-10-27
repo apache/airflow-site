@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import * as p5 from "p5";
+import p5 from "p5";
 import debounce from "lodash/debounce";
 import {documentReady} from "./utils.js";
 
