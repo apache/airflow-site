@@ -1355,7 +1355,6 @@ Apache Airflow graduates from the Incubator and is now a TLP!
     - [ASF "Foundation" Blog](https://s.apache.org/LeeE)
     - [The ASF Twitter Feed](https://twitter.com/TheASF/status/1082593312421208064)
     - [The ASF on LinkedIn](https://www.linkedin.com/company/the-apache-software-foundation)
-    - You can find more announcements on our Twitter account as well : [@ApacheAirflow](https://twitter.com/ApacheAirflow)
 
 - Community Blogs
     - [Apache Airflow announced as a Top-Level Project — How does ING WB Advanced Analytics use Airflow?](https://medium.com/wbaa/apache-airflow-announced-as-a-top-level-project-how-does-ing-wb-advanced-analytics-use-airflow-ed7990ffba9c)
@@ -1634,12 +1633,6 @@ Special thanks to Dan Davydov ([@aoen](https://github.com/aoen))  for tirelessly
 # May 20, 2016
 
 **Steven Yvinec-Kruyk** ([@syvineckruyk](https://github.com/syvineckruyk)) joins the [Apache Airflow Committer and PPMC group](https://cwiki.apache.org/confluence/display/AIRFLOW/Committers) today. Please give him a hearty welcome and of course.. ask him to review your PRs and answer any questions you may have :)
-
-
-# April 29, 2016
-
-Want to keep abreast of new Apache Airflow updates (e.g. releases, meet-ups, new features, conference talks, etc... ), follow our newly-minted Twitter account : [@ApacheAirflow](https://twitter.com/ApacheAirflow)
-
 
 # April 27, 2016
 
