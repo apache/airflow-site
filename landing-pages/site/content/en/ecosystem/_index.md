@@ -219,7 +219,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [mcp-server-apache-airflow](https://github.com/yangkyeongmo/mcp-server-apache-airflow) - [MCP](https://modelcontextprotocol.com) server for Apache Airflow
 
-[Airflow Schedule Insights](https://github.com/ponderedw/airflow-schedule-insights) - Airflow Plugin from [Ponder](https://newsletter.ponder.ai/) that can predict the next DAG run for both scheduled DAGs and event-driven DAGs, visualizing everything in a beautiful Gantt chart.
+[Airflow Schedule Insights](https://github.com/ponderedw/airflow-schedule-insights) - Airflow Plugin from [Ponder](https://newsletter.ponder.co) that can predict the next DAG run for both scheduled DAGs and event-driven DAGs, visualizing everything in a beautiful Gantt chart.
 
 [airflow-mcp-ponder](https://github.com/ponderedw/airflow-mcp) - [MCP](https://modelcontextprotocol.com) server for Apache Airflow with safe and unsafe modes, and can predict next DAG runs if the instance has the Airflow Schedule Insights plugin installed.
 
