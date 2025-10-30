@@ -15,7 +15,7 @@ blocktype: use-case
 
 Extract-Transform-Load (ETL) and Extract-Load-Transform (ELT) data pipelines are the most common use case for Apache Airflow. 90% of respondents in the 2023 Apache Airflow survey are using Airflow for ETL/ELT to power analytics use cases.
 
-The video below shows a simple ETL/ELT pipeline in Airflow that extracts climate data from a CSV file, as well as weather data from an API, runs transformations and then loads the results into a database to power a dashboard. You can find the code for this example [here](https://www.astronomer.io/docs/learn/2.x/airflow-quickstart).
+The video below shows a simple ETL/ELT pipeline in Airflow that extracts climate data from a CSV file, as well as weather data from an API, runs transformations and then loads the results into a database to power a dashboard.
 
 
 <div id="videoContainer" style="display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; width: 75%; margin: auto; padding: 20px;">
