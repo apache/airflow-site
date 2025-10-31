@@ -11,6 +11,14 @@ menu:
 &nbsp;
 &nbsp;
 
+# October 29, 2025
+
+We’ve just released Apache Airflow **Python Client 3.1.0**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow-client/3.1.0/ \
+📚 Docs: https://github.com/apache/airflow-client-python/blob/3.1.0/README.md \
+🛠️ Release Notes: https://github.com/apache/airflow-client-python/blob/3.1.0/CHANGELOG.md
+
 # October 27, 2025
 
 We've just released Apache **Airflow 3.1.1** and **Task SDK 1.1.1**.
