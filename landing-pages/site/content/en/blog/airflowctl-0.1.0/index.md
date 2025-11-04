@@ -1,24 +1,24 @@
 ---
-title: "Apache Airflow CTL aka airflowctl 1.0.0"
-linkTitle: "Apache Airflow CTL aka airflowctl 1.0.0"
+title: "Apache Airflow CTL aka airflowctl 0.1.0"
+linkTitle: "Apache Airflow CTL aka airflowctl 0.1.0"
 author: "Buğra Öztürk"
 twitter: ""
 github: "bugraoz93"
 linkedin: "bugraozturk93"
-description: "A new way of using API in Airflow. Apache Airflow CTL aka airflowctl 1.0.0 is released! Secure way to manage your Apache Airflow deployments with ease."
+description: "A new way of using API in Airflow. Apache Airflow CTL aka airflowctl 0.1.0 is released! Secure way to manage your Apache Airflow deployments with ease."
 tags: ["release"]
 date: 2025-10-15
-images: ["/images/blog/airflowctl-1.0.0/airflowctl-cover.png"]
+images: ["/images/blog/airflowctl-0.1.0/airflowctl-cover.png"]
 ---
 
-We are thrilled to announce the first major release of **`airflowctl` 1.0.0**, the new **secure, API-driven command-line interface (CLI)** for Apache Airflow — built under [**AIP-81**](https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81+Enhanced+Security+in+CLI+via+Integration+of+API).
+We are thrilled to announce the first major release of **`airflowctl` 0.1.0**, the new **secure, API-driven command-line interface (CLI)** for Apache Airflow — built under [**AIP-81**](https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81+Enhanced+Security+in+CLI+via+Integration+of+API).
 
 This release marks CLI to join the general posture on communicating through API. Airflow CLI joins the modern era of secure, auditable, and remote-first operations.
 
 
 **Details**:
 
-📦 **PyPI:** [https://pypi.org/project/apache-airflow-ctl/1.0.0/](https://pypi.org/project/apache-airflow-ctl/1.0.0/)  \
+📦 **PyPI:** [https://pypi.org/project/apache-airflow-ctl/0.1.0/](https://pypi.org/project/apache-airflow-ctl/0.1.0/)  \
 🛠️ **Release Notes:** [https://airflow.apache.org/docs/apache-airflow-ctl/stable/release_notes.html](https://airflow.apache.org/docs/apache-airflow-ctl/stable/release_notes.html)  \
 🪶 **Source Code:** [https://github.com/apache/airflow/tree/main/airflow-ctl](https://github.com/apache/airflow/tree/main/airflow-ctl)
 
@@ -88,7 +88,7 @@ airflowctl auth login --url http://localhost:8080 --username admin --password
 
 ## 🧩 Command Highlights
 
-Here’s a quick look at some of the most popular commands, now fully API-backed in airflowctl 1.0.0:
+Here’s a quick look at some of the most popular commands, now fully API-backed in airflowctl 0.1.0:
 
 ### 🧩 Assets
 
@@ -136,7 +136,7 @@ All CLI commands generate API logs and can be observed through standard audit me
 
 ## 📈 Roadmap Highlights
 
-airflowctl 1.0.0 is just the beginning. The foundation is in place for a fully unified, secure CLI experience.
+airflowctl 0.1.0 is just the beginning. The foundation is in place for a fully unified, secure CLI experience.
 
 ### 🧩 Coming Soon
 
@@ -177,7 +177,7 @@ Yunchi Pang, Zhen-Lun (Kevin) Hong**
 
 ✨ In Summary
 
-airflowctl 1.0.0 makes Airflow’s command line:
+airflowctl 0.1.0 makes Airflow’s command line:
 
 | Before                | After                        |
 |-----------------------|------------------------------|
