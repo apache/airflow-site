@@ -11,6 +11,16 @@ menu:
 &nbsp;
 &nbsp;
 
+# November 5, 2025
+
+We've just released Apache **Airflow 3.1.2** and **Task SDK 1.1.2**.
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.2/
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.2/
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.2/release_notes.html
+🐳 Docker Image: "docker pull apache/airflow:3.1.2"
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.2
+
 # October 29, 2025
 
 We’ve just released Apache Airflow **Python Client 3.1.0**.
