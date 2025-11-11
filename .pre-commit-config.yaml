@@ -18,17 +18,35 @@
 default_stages: [pre-commit, pre-push]
 default_language_version:
   # force all unspecified python hooks to run python3
-  python: python3
+  python: python310
   node: "22.13.0"
 exclude: ^(docs-archive|landing-pages/site/static/external|landing-pages/site/layouts/partials/scripts.html|landing-pages/site/assets/scss/_variables.scss)
-
+minimum_prek_version: '0.2.13'
 repos:
   - repo: meta
     hooks:
       - id: check-hooks-apply
       - id: check-useless-excludes
+  - repo: https://github.com/eclipse-csi/octopin
+    # We need this commit because if supports two spaces before comments (yamllint compatibility)
+    rev: 21360742e352e87450f99e180fdfc2cf774a72a3
+    hooks:
+      - id: pin-versions
+        name: Pin versions of dependencies in CI workflows (manual)
+        stages: ['manual']
+        language: python
+        language_version: python311
+  - repo: https://github.com/woodruffw/zizmor-pre-commit
+    rev: 86ee5ea442ee969842e00913c6b76c060a7aa8ef  # frozen: v1.16.3
+    hooks:
+      - id: zizmor
+        name: Run zizmor to check for github workflow syntax errors
+        types: [yaml]
+        files: ^\.github/workflows/.*$|^\.github/actions/.*$
+        require_serial: true
+        entry: zizmor
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.5
+    rev: abdd8b62891099da34162217ecb3872d22184a51
     hooks:
       - id: forbid-tabs
         exclude: ^\.gitmodules$
@@ -127,24 +145,8 @@ repos:
         name: Lint Dockerfile
         language: system
         entry: bash -c "docker run --rm hadolint/hadolint:latest <Dockerfile"
-      - id: lint-css
-        name: Lint CSS files
-        entry: ./site.sh lint-css
-        language: node
-        files: \.scss$
-        exclude: _roadmap.scss$|_rst-content.scss$
-        additional_dependencies:
-          - yarn
-      - id: lint-js
-        name: Lint JS files
-        entry: ./site.sh lint-js
-        language: node
-        files: \.js$
-        exclude: ^sphinx_airflow_theme/
-        additional_dependencies:
-          - yarn
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: check-executables-have-shebangs
       - id: check-json

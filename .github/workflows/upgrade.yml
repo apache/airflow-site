@@ -1,0 +1,89 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: Upgrade CI dependencies
+
+on:
+  push:
+    branches: ['main', 'staging']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: upgrade-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  upgrade:
+    runs-on: ["ubuntu-22.04"]
+    steps:
+      - name: 🗂 Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          submodules: recursive
+          lfs: true
+          fetch-depth: 1
+          persist-credentials: false
+      - name: 🐍 Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: 📦 Install prek
+        run: |
+          uv tool install prek
+      - name: 🔄 Upgrade prek hooks
+        id: upgrade-prek
+        continue-on-error: true
+        run: |
+          echo "Upgrading prek hooks..."
+          prek autoupdate --color=always --freeze
+          prek autoupdate --color=always --bleeding-edge --freeze --repo https://github.com/Lucas-C/pre-commit-hooks
+          prek autoupdate --color=always --bleeding-edge --freeze --repo https://github.com/eclipse-csi/octopin
+          if git diff --quiet; then
+            echo "prek_changed=false" >> $GITHUB_OUTPUT
+            echo "No changes from prek upgrade"
+          else
+            echo "prek_changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected from prek upgrade"
+          fi
+      - name: 🔄 Upgrade octopin versions
+        id: upgrade-octopin
+        continue-on-error: true
+        run: |
+          echo "Upgrading octopin versions..."
+          # Run octopin as a pre-commit hook
+          prek run pin-versions --hook-stage manual --color=always --show-diff-on-failure --all-files
+          if git diff --quiet; then
+            echo "octopin_changed=false" >> $GITHUB_OUTPUT
+            echo "No changes from octopin upgrade"
+          else
+            echo "octopin_changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected from octopin upgrade"
+          fi
+      - name: ✅ No changes needed
+        if: >
+          steps.upgrade-octopin.outputs.octopin_changed == 'false' &&
+          steps.upgrade-prek.outputs.prek_changed == 'false'
+        run: |
+          echo "✅ All dependencies are up to date!"
+      - name: ❌ Error - Changes detected
+        if: >
+          steps.upgrade-octopin.outputs.octopin_changed == 'true' ||
+          steps.upgrade-prek.outputs.prek_changed == 'true'
+        run: |
+          echo "❌ ERROR: Changes detected from upgrade process!"
+          exit 1
