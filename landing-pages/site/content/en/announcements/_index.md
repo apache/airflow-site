@@ -11,6 +11,18 @@ menu:
 &nbsp;
 &nbsp;
 
+# November 11, 2025
+
+📣 We've just released Apache Airflow CTL 0.1.0 🎉
+
+This is the first official release of the `airflowctl` - new tool to remotely interact with your Airflow 3
+
+📦 PyPI: https://pypi.org/project/apache-airflow-ctl/
+📚 Docs: https://airflow.apache.org/docs/apache-airflow-ctl/stable/index.html
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow-ctl/stable/changelog.html
+
+Thanks to all the contributors who made this possible.
+
 # November 5, 2025
 
 We've just released Apache **Airflow 3.1.2** and **Task SDK 1.1.2**.
