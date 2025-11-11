@@ -22,7 +22,11 @@ on:
     branches: ['main', 'staging']
   pull_request:
   workflow_dispatch:
-
+permissions:
+  contents: read
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ["ubuntu-22.04"]
@@ -53,32 +57,33 @@ jobs:
           && sudo apt update \
           && sudo apt install gh -y
       - name: 🗂 Checkout
-        uses: actions/checkout@v4.2.2  # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           submodules: recursive
           lfs: true
           fetch-depth: 1
-      - name: Create /mnt/airflow-site directory
+          persist-credentials: false
+      - name: 📁Create /mnt/airflow-site directory
         run: sudo mkdir -p /mnt/airflow-site
-      - name: Move repository to /mnt
+      - name: 📁Move repository to /mnt
         run: |
           sudo mv /home/runner/work/airflow-site/airflow-site /mnt/
           # Create symbolic link
           sudo mkdir -p /home/runner/work/airflow-site
           sudo ln -s /mnt/airflow-site /home/runner/work/airflow-site/airflow-site
-      - name: Set working directory to /mnt/airflow-site
+      - name: 📁Set working directory to /mnt/airflow-site
         working-directory: /mnt/airflow-site
         run: echo "Working directory set to /mnt/airflow-site"
       - name: 🐍 Setup Python
-        uses: actions/setup-python@v5.3.0  # v5.3.0
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
         with:
           python-version: '3.12'
       - name: ❤️  Install Node 22 LTS
-        uses: actions/setup-node@v4.2.0  # v4.2.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
         with:
           node-version: 22
       - name: 📚 Install Hugo
-        uses: peaceiris/actions-hugo@v3.0.0  # v3.0.0
+        uses: peaceiris/actions-hugo@75d2e84710de30f6ff7268e08f310b60ef14033f  # v3.0.0
         with:
           hugo-version: '0.135.0'
           extended: true
@@ -90,23 +95,24 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Ensure cache directory exists and adjust permissions
         run: |
-          mkdir -p /mnt/airflow-site/.cache/pre-commit
-          sudo chmod -R 777 /mnt/airflow-site/.cache/pre-commit
+          mkdir -p /mnt/airflow-site/.cache/prek
+          sudo chmod -R 777 /mnt/airflow-site/.cache/prek
       - name: 🔎 Lint
         run: |
-          uv tool install pre-commit --with pre-commit-uv
-          pre-commit run --all-files --color always
+          uv tool install prek
+          prek run --all-files --color always
       - name: 🗂 Checkout ${{ env.PUBLISH_BRANCH }} branch with minimum depth
-        uses: actions/checkout@v4.2.2  # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           ref: ${{ env.PUBLISH_BRANCH }}
           fetch-depth: 1
           path: dist
+          persist-credentials: false
       - name: 🔧 Build site
         run: |
           /mnt/airflow-site/site.sh build-site
 
-      - name: Install AWS CLI v2
+      - name: ☁ nstall AWS CLI v2
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
@@ -114,14 +120,14 @@ jobs:
           rm /tmp/awscliv2.zip
           sudo /tmp/aws/install --update
           rm -rf /tmp/aws/
-      - name: Configure AWS credentials
+      - name: ☁ Configure AWS credentials
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
-        uses: aws-actions/configure-aws-credentials@v4.0.2  # v4.0.2
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # v4.0.2
         with:
           aws-access-key-id: ${{ secrets.DOCS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DOCS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         name: 🚀 Upload website as artifact
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -129,7 +135,7 @@ jobs:
           path: './dist'
           if-no-files-found: error
           retention-days: 7
-      - name: "Apply staging modifications: .htaccess and watermarks"
+      - name: "🧪 Apply staging modifications: .htaccess and watermarks"
         run: |
           set -x
           sed -i 's/d7fnmbhf26p21.cloudfront.net/d3a2du7x0n8ydr.cloudfront.net/' ./dist/.htaccess
@@ -166,9 +172,9 @@ jobs:
           git add .
           git diff HEAD
           echo "Running git commit"
-          git commit --no-edit -m "Docs updated via ${{ github.ref }}:${{ github.sha }}" --allow-empty
-          echo "Running git push to ${{ env.PUBLISH_BRANCH }} branch"
-          git push origin ${{ env.PUBLISH_BRANCH }}
+          git commit --no-edit -m "Docs updated via ${GITHUB_REF}:${{ github.sha }}" --allow-empty
+          echo "Running git push to ${PUBLISH_BRANCH} branch"
+          git push origin ${PUBLISH_BRANCH}
       - name: 🔧 Copy files from site to theme
         run: |
           ./site.sh prepare-theme
@@ -177,7 +183,7 @@ jobs:
         run: |
           uv build
       - name: 🚀 Upload sphinx_airflow_theme package as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: airflow-sphinx-theme
           path: './sphinx_airflow_theme/dist'
@@ -190,7 +196,7 @@ jobs:
           cd demo
           ./docs.sh build
       - name: 🚀 Upload sphinx_airflow_theme demo as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: airflow-sphinx-theme-demo
           path: './sphinx_airflow_theme/demo/_build'

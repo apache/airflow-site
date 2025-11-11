@@ -136,28 +136,31 @@ brew install yarn
 
 ### Static checks
 
-The project uses many static checks using fantastic [pre-commit](https://pre-commit.com/). Every change is checked on CI and if it does not pass the tests it cannot be accepted. If you want to check locally then you should install Python3.6 or newer together with pip and run following command to install pre-commit:
+The project uses many static checks using [prek](https://github.com/j178/prek). Every change is checked on
+CI and if it does not pass the tests it cannot be accepted. If you want to check locally
+then you should install Python3.10 or newer together with pip and run following c
+ommand to install it:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-To turn on pre-commit checks for commit operations in git, enter:
+To turn on prek checks for commit operations in git, enter:
 ```bash
-pre-commit install
+prek install
 ```
 
 To run all checks on your staged files, enter:
 ```bash
-pre-commit run
+prek run
 ```
 
 To run all checks on all files, enter:
 ```bash
-pre-commit run --all-files
+prek run --all-files
 ```
 
-Pre-commit check results are also attached to your PR through integration with Travis CI.
+Prek check results are also attached to your PR through integration with Travis CI.
 
 ### Clone repository
 
