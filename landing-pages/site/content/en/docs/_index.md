@@ -14,6 +14,11 @@ menu:
 Apache Airflow Core, which includes webserver, scheduler, CLI and other components that are needed for minimal Airflow installation.
 [Read the documentation >>](/docs/apache-airflow/stable/index.html)
 
+## [Apache Airflow CTL (airflowctl)](/docs/apache-airflow-ctl/stable/index.html)
+
+Apache Airflow CTL (airflowctl) is a command-line interface (CLI) for Apache Airflow that interacts exclusively with the Airflow REST API. It provides a secure, auditable, and consistent way to manage Airflow deployments — without direct access to the metadata database.
+[Read the documentation >>](/docs/apache-airflow-ctl/stable/index.html)
+
 ## [Task SDK](/docs/task-sdk/stable/index.html)
 
 The Task SDK provides python-native interfaces for defining DAGs,
