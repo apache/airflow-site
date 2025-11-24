@@ -15,6 +15,170 @@
     
     
     <item>
+      <title>Blog: Apache Airflow CTL aka airflowctl 0.1.0</title>
+      <link>/blog/airflowctl-0.1.0/</link>
+      <pubDate>Wed, 15 Oct 2025 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/airflowctl-0.1.0/</guid>
+      <description>
+        
+        
+        &lt;p&gt;We are thrilled to announce the first major release of &lt;strong&gt;&lt;code&gt;airflowctl&lt;/code&gt; 0.1.0&lt;/strong&gt;, the new &lt;strong&gt;secure, API-driven command-line interface (CLI)&lt;/strong&gt; for Apache Airflow — built under &lt;a href=&#34;https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81+Enhanced+Security+in+CLI+via+Integration+of+API&#34;&gt;&lt;strong&gt;AIP-81&lt;/strong&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This release marks CLI to join the general posture on communicating through API. Airflow CLI joins the modern era of secure, auditable, and remote-first operations.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Details&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;📦 &lt;strong&gt;PyPI:&lt;/strong&gt; &lt;a href=&#34;https://pypi.org/project/apache-airflow-ctl/0.1.0/&#34;&gt;https://pypi.org/project/apache-airflow-ctl/0.1.0/&lt;/a&gt;  &lt;br&gt;
+🛠️ &lt;strong&gt;Release Notes:&lt;/strong&gt; &lt;a href=&#34;https://airflow.apache.org/docs/apache-airflow-ctl/stable/release_notes.html&#34;&gt;https://airflow.apache.org/docs/apache-airflow-ctl/stable/release_notes.html&lt;/a&gt;  &lt;br&gt;
+🪶 &lt;strong&gt;Source Code:&lt;/strong&gt; &lt;a href=&#34;https://github.com/apache/airflow/tree/main/airflow-ctl&#34;&gt;https://github.com/apache/airflow/tree/main/airflow-ctl&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;-what-is-airflowctl&#34;&gt;🎯 What is airflowctl?&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;airflowctl&lt;/code&gt; is a new command-line interface for Apache Airflow that interacts exclusively with the Airflow REST API.
+It provides a secure, auditable, and consistent way to manage Airflow deployments — without direct access to the metadata database.&lt;/p&gt;
+&lt;h2 id=&#34;-coexistence-with-airflow-cli&#34;&gt;🔄 Coexistence with Airflow CLI&lt;/h2&gt;
+&lt;p&gt;The Airflow CLI will continue as intended, primarily for admin tasks such as running Airflow components (&lt;code&gt;airflow api-server&lt;/code&gt;, &lt;code&gt;airflow scheduler&lt;/code&gt;) or managing the metadata database (&lt;code&gt;airflow db init&lt;/code&gt;).
+&lt;code&gt;airflowctl&lt;/code&gt; focuses on operational commands that interact with Airflow resources via the API (&lt;code&gt;airflowctl dagrun trigger&lt;/code&gt;, &lt;code&gt;airflowctl connection create&lt;/code&gt;, etc.).&lt;/p&gt;
+&lt;p&gt;We defined the commands falls under &lt;strong&gt;two main categories&lt;/strong&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Remote Commands&lt;/strong&gt;: Operations that can be provided via API (e.g., managing DAGs, connections, variables, triggering DAG runs) are now available in &lt;code&gt;airflowctl&lt;/code&gt; and will be the recommended approach going forward.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Local/Admin Commands&lt;/strong&gt;: Operations that manage Airflow components or the metadata database will remain in the Airflow CLI.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Of course, in the current state they will both have the remote commands.
+We are planning a zero-disruption migration path where &lt;strong&gt;Remote Commands&lt;/strong&gt; will be gradually deprecated from the Airflow CLI as they achieve parity in &lt;code&gt;airflowctl&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;-why-airflowctl&#34;&gt;🔒 Why airflowctl?&lt;/h2&gt;
+&lt;p&gt;Until now, Airflow CLI connected directly to the &lt;strong&gt;metadata database&lt;/strong&gt;, bypassing RBAC, authentication, and API logs.
+While convenient, this approach limited &lt;strong&gt;security, auditing, and remote management&lt;/strong&gt; capabilities — especially for enterprise environments.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;airflowctl&lt;/code&gt;&lt;/strong&gt; changes that by routing every command through the &lt;strong&gt;Airflow REST API&lt;/strong&gt;, bringing:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Authentication &amp;amp; RBAC enforcement&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Centralized logging &amp;amp; audit trail&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Secure credential storage via Keyring&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Remote command execution with zero DB access&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Consistency with Airflow UI and API behaviors&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;-aip-81-cli-reimagined-through-the-api&#34;&gt;🚀 AIP-81: CLI Reimagined Through the API&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;AIP-81&lt;/strong&gt; (“Enhanced Security in CLI via Integration of API”) defined a clear goal:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;“The CLI must be a first-class, secure client of the Airflow REST API — not a privileged database actor.”&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;airflowctl&lt;/code&gt; is the direct realization of that vision.&lt;/p&gt;
+&lt;h3 id=&#34;core-design-principles&#34;&gt;Core design principles:&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;All remote commands use the REST API&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;RBAC and auth handled consistently via API layer&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Pluggable auth mechanisms&lt;/strong&gt; (basic auth, OAuth, token, etc.)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Secure credential persistence&lt;/strong&gt; through &lt;strong&gt;system keyring&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Extensible&lt;/strong&gt; to new API endpoints as Airflow evolves&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;-getting-started&#34;&gt;⚙️ Getting Started&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install apache-airflow-ctl
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Once installed, you can connect your CLI to an Airflow instance:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;airflowctl auth login --url http://localhost:8080 --username admin --password admin
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The password field is interactive by default. You can enter your password securely without echoing it on the terminal.
+Use the above command without specifying the password and run it.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;airflowctl auth login --url http://localhost:8080 --username admin --password
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;-command-highlights&#34;&gt;🧩 Command Highlights&lt;/h2&gt;
+&lt;p&gt;Here’s a quick look at some of the most popular commands, now fully API-backed in airflowctl 0.1.0:&lt;/p&gt;
+&lt;h3 id=&#34;-assets&#34;&gt;🧩 Assets&lt;/h3&gt;
+&lt;p&gt;&lt;img alt=&#34;Assets Create Event&#34; src=&#34;/blog/airflowctl-0.1.0/images/assets_create_event.gif&#34;&gt;
+&lt;img alt=&#34;Assets Get&#34; src=&#34;/blog/airflowctl-0.1.0/images/assets_get.gif&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;-config&#34;&gt;⚙️ Config&lt;/h3&gt;
+&lt;p&gt;&lt;img alt=&#34;Config Get&#34; src=&#34;/blog/airflowctl-0.1.0/images/config_get.gif&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;-connections&#34;&gt;🔑 Connections&lt;/h3&gt;
+&lt;p&gt;&lt;img alt=&#34;Connections Create&#34; src=&#34;/blog/airflowctl-0.1.0/images/connections_create.gif&#34;&gt;
+&lt;img alt=&#34;Connections Update&#34; src=&#34;/blog/airflowctl-0.1.0/images/connections_update.gif&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;-dag-runs&#34;&gt;🎯 DAG Runs&lt;/h3&gt;
+&lt;p&gt;Trigger and inspect DAG runs securely through the API:&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;DagRun List&#34; src=&#34;/blog/airflowctl-0.1.0/images/dagrun_list.gif&#34;&gt;
+&lt;img alt=&#34;DagRun Trigger&#34; src=&#34;/blog/airflowctl-0.1.0/images/dagrun_trigger.gif&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;-variables&#34;&gt;🪣 Variables&lt;/h3&gt;
+&lt;p&gt;&lt;img alt=&#34;Variables Export&#34; src=&#34;/blog/airflowctl-0.1.0/images/variables_export.gif&#34;&gt;
+&lt;img alt=&#34;Variables Import&#34; src=&#34;/blog/airflowctl-0.1.0/images/variables_import.gif&#34;&gt;&lt;/p&gt;
+&lt;p&gt;All these commands — and many more — operate via Airflow’s public REST API, ensuring secure, logged, and RBAC-controlled execution.&lt;/p&gt;
+&lt;h2 id=&#34;-key-security-features&#34;&gt;🔐 Key Security Features&lt;/h2&gt;
+&lt;h3 id=&#34;-keyring-integration&#34;&gt;🔑 Keyring Integration&lt;/h3&gt;
+&lt;p&gt;No more plaintext tokens or passwords.
+airflowctl uses your OS-level keyring (e.g., macOS Keychain, Windows Credential Manager, or Linux Secret Service) to store and retrieve authentication tokens securely.&lt;/p&gt;
+&lt;h3 id=&#34;-role-based-access-control&#34;&gt;🧱 Role-Based Access Control&lt;/h3&gt;
+&lt;p&gt;Every command is evaluated by Airflow’s RBAC system through the API — ensuring consistent authorization with the web UI and API clients.&lt;/p&gt;
+&lt;h3 id=&#34;-auditing-and-traceability&#34;&gt;🕵️‍♀️ Auditing and Traceability&lt;/h3&gt;
+&lt;p&gt;All CLI commands generate API logs and can be observed through standard audit mechanisms — closing a long-standing gap between the CLI and Airflow’s security model.&lt;/p&gt;
+&lt;h2 id=&#34;-roadmap-highlights&#34;&gt;📈 Roadmap Highlights&lt;/h2&gt;
+&lt;p&gt;airflowctl 0.1.0 is just the beginning. The foundation is in place for a fully unified, secure CLI experience.&lt;/p&gt;
+&lt;h3 id=&#34;-coming-soon&#34;&gt;🧩 Coming Soon&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Completeness of API coverage&lt;/li&gt;
+&lt;li&gt;Live log streaming&lt;/li&gt;
+&lt;li&gt;Worker management&lt;/li&gt;
+&lt;li&gt;Remote debugging&lt;/li&gt;
+&lt;li&gt;Incremental deprecation of legacy CLI commands&lt;/li&gt;
+&lt;li&gt;Over time, the legacy airflow CLI will be incrementally deprecated as commands achieve API parity.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;-migration&#34;&gt;🧭 Migration&lt;/h2&gt;
+&lt;p&gt;Migration requires mapping commands, updating authentication, and re-testing automation to ensure compatibility with the new API-backed architecture.
+Because airflowctl mirrors the core CLI syntax, most workflows require minimal changes — primarily adjusting authentication and configuration.&lt;/p&gt;
+&lt;p&gt;Side by side comparison:&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;Before&lt;/th&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;After&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;&lt;img alt=&#34;pools_list_old.gif&#34; src=&#34;/blog/airflowctl-0.1.0/images/pools_list_old.gif&#34;&gt;&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;&lt;img alt=&#34;pools_list.gif&#34; src=&#34;/blog/airflowctl-0.1.0/images/pools_list.gif&#34;&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;&lt;img alt=&#34;variables_list_old.gif&#34; src=&#34;/blog/airflowctl-0.1.0/images/variables_list_old.gif&#34;&gt;&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;&lt;img alt=&#34;variables_list_yaml.gif&#34; src=&#34;/blog/airflowctl-0.1.0/images/variables_list_yaml.gif&#34;&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;-community--acknowledgments&#34;&gt;🙏 Community &amp;amp; Acknowledgments&lt;/h2&gt;
+&lt;p&gt;This release is the result of extensive collaboration across the Apache Airflow community.
+Many thanks all who worked on AIP-81, the Airflow REST API, Authentication, and the airflowctl implementation.&lt;/p&gt;
+&lt;h2 id=&#34;leading-contributors&#34;&gt;Leading Contributors&lt;/h2&gt;
+&lt;p&gt;Special thanks to leading contributors of &lt;code&gt;airflowctl&lt;/code&gt;:
+&lt;strong&gt;Amar Prakash Pandey, Amogh Desai, Aritra Basu, Aryan Khurana, ayush3singh, Brent Bovenzi, Brunda10,
+Bugra Ozturk, Daniel Standish, D. Ferruzzi, Deji Ibrahim, Elad Kalif, Ephraim Anierobi, GPK,
+Guan Ming(Wesley) Chiu, Hussein Awala, Jake Roach, Jarek Potiuk, Jed Cunningham, Jens Scheffler,
+Jaejun Lee, Kalyan R, Karthikeyan Singaravelan, Kaxil Naik, Kevin Yang, Kiruban Kamaraj, LI,JHE-CHEN,
+Pierre Jeambrun, Pratiksha, Sam Wheating, Tzu-ping Chung, Valentyn, Vincent, Wei Lee, Yeonguk,
+Yunchi Pang, Zhen-Lun (Kevin) Hong&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;✨ In Summary&lt;/p&gt;
+&lt;p&gt;airflowctl 0.1.0 makes Airflow’s command line:&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;Before&lt;/th&gt;
+          &lt;th style=&#34;text-align: left&#34;&gt;After&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Direct DB access&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;API-backed security&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;No RBAC or audit&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Centralized auth &amp;amp; logging&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Inconsistent behavior&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Unified CLI + API experience&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Manual secrets&lt;/td&gt;
+          &lt;td style=&#34;text-align: left&#34;&gt;Keyring-secured credentials&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Security first. API always. CLI reimagined.
+The secure CLI foundation lays the groundwork for Airflow’s next generation. A unified, API-first platform for orchestration and operations.&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
       <title>Blog: Apache Airflow 3.1.0: Human-Centered Workflows</title>
       <link>/blog/airflow-3.1.0/</link>
       <pubDate>Thu, 25 Sep 2025 00:00:00 +0000</pubDate>
