@@ -19,69 +19,69 @@
 
 import { compareVersion } from "./sortVersions";
 
-export function initVersionSelector({ versions }) {
+export function initVersionSelector(options) {
+  const versions = options.versions;
+  const input = document.getElementById("versionInput");
+  const suggestionBox = document.getElementById("versionSuggestions");
 
-    const input = document.getElementById("versionInput");
-    const suggestionBox = document.getElementById("versionSuggestions");
+  if (!input || !suggestionBox || !versions) {
+    return;
+  }
 
-    if (!input || !suggestionBox || !versions) return;
+  const sortedVersions = versions.sort(compareVersion).reverse();
 
-    // Sort versions newest → oldest
-    versions = versions.sort(compareVersion).reverse();
-
-    // Show suggestions
-    function showSuggestions(filtered) {
-        suggestionBox.innerHTML = "";
-
-        if (filtered.length === 0) {
-            suggestionBox.style.display = "none";
-            return;
-        }
-
-        filtered.forEach((v) => {
-            const item = document.createElement("div");
-            item.className = "version-suggestion-item";
-            item.textContent = v;
-
-            item.addEventListener("click", () => {
-                goToVersion(v);
-            });
-
-            suggestionBox.appendChild(item);
-        });
-
-        suggestionBox.style.display = "block";
+  function goToVersion(version) {
+    if (!version) {
+      return;
     }
 
-    // Handle input typing
-    input.addEventListener("input", () => {
-        const query = input.value.toLowerCase();
-        const filtered = versions.filter(v => v.toLowerCase().includes(query));
-        showSuggestions(filtered);
-    });
+    const parts = window.location.pathname.split("/");
+    const pkg = parts[2] || "";
+    const pagePath = parts.slice(4).join("/");
 
-    // Enter key → go to version
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            goToVersion(input.value.trim());
-        }
-    });
+    window.location.href = "/docs/" + pkg + "/" + version + "/" + pagePath;
+  }
 
-    function goToVersion(version) {
-        if (!version) return;
+  function showSuggestions(list) {
+    suggestionBox.innerHTML = "";
 
-        const parts = window.location.pathname.split("/");
-        // /docs/<package>/<version>/page...
-        const pkg = parts[2] || "";
-        const pagePath = parts.slice(4).join("/");
-
-        window.location.href = `/docs/${pkg}/${version}/${pagePath}`;
+    if (list.length === 0) {
+      suggestionBox.style.display = "none";
+      return;
     }
 
-    // Hide suggestion box on click outside
-    document.addEventListener("click", (e) => {
-        if (!e.target.closest("#docs-version-selector")) {
-            suggestionBox.style.display = "none";
-        }
+    list.forEach(function (v) {
+      const item = document.createElement("div");
+      item.className = "version-suggestion-item";
+      item.textContent = v;
+
+      item.addEventListener("click", function () {
+        goToVersion(v);
+      });
+
+      suggestionBox.appendChild(item);
     });
+
+    suggestionBox.style.display = "block";
+  }
+
+  input.addEventListener("input", function () {
+    const query = input.value.toLowerCase();
+    const filtered = sortedVersions.filter(function (v) {
+      return v.toLowerCase().includes(query);
+    });
+    showSuggestions(filtered);
+  });
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      goToVersion(input.value.trim());
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("#docs-version-selector")) {
+      suggestionBox.style.display = "none";
+    }
+  });
 }
