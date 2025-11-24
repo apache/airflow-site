@@ -17,56 +17,71 @@
  * under the License.
  */
 
-import {compareVersion} from "./sortVersions";
+import { compareVersion } from "./sortVersions";
 
-const getCurrentPageInfo = () => {
+export function initVersionSelector({ versions }) {
 
-  const [, , currentPackageName, currentVersion, ...pagePathParts] = document.location.pathname.split("/");
-  const pagePath = pagePathParts.join("/");
-  return {currentVersion, currentPackageName, pagePath};
-};
+    const input = document.getElementById("versionInput");
+    const suggestionBox = document.getElementById("versionSuggestions");
 
-const updateVersionSelector = (versionSelector, packageAllVersions, stableVersion) => {
-  const templateText = versionSelector.querySelector("#version-item-template").innerText;
-  let templateElement = document.createElement("div");
-  templateElement.innerHTML = templateText;
-  templateElement = templateElement.firstElementChild;
+    if (!input || !suggestionBox || !versions) return;
 
-  const dropdownMenu = versionSelector.querySelector(".dropdown-menu");
+    // Sort versions newest → oldest
+    versions = versions.sort(compareVersion).reverse();
 
-  const {currentPackageName, pagePath} = getCurrentPageInfo();
+    // Show suggestions
+    function showSuggestions(filtered) {
+        suggestionBox.innerHTML = "";
 
-  const appendNewVersionLink = (targetVersion, label) => {
-    const newElement = templateElement.cloneNode(true);
-    const newDocsLink = `/docs/${currentPackageName}/${targetVersion}/${pagePath}`;
-    newElement.setAttribute("href", newDocsLink);
-    newElement.innerText = label;
-    dropdownMenu.appendChild(newElement);
-  };
-  appendNewVersionLink("stable", `Stable (${stableVersion})`);
-  packageAllVersions.forEach((version) => appendNewVersionLink(version, version));
-};
+        if (filtered.length === 0) {
+            suggestionBox.style.display = "none";
+            return;
+        }
 
-const runVersionSelector = () => {
-  const versionSelectors = window.document.querySelectorAll(".docs-version-selector");
+        filtered.forEach((v) => {
+            const item = document.createElement("div");
+            item.className = "version-suggestion-item";
+            item.textContent = v;
 
-  if (!versionSelectors || versionSelectors.length === 0) {
-    return;
-  }
+            item.addEventListener("click", () => {
+                goToVersion(v);
+            });
 
-  fetch("/_gen/packages-metadata.json")
-    .then((resp) => resp.json())
-    .then((packageInfos) => {
-      const {currentPackageName} = getCurrentPageInfo();
-      const currentPackageInfo = packageInfos.find((d) => d["package-name"] === currentPackageName);
-      if (!currentPackageInfo) {
-        return;
-      }
+            suggestionBox.appendChild(item);
+        });
 
-      const packageAllVersions = currentPackageInfo["all-versions"].sort(compareVersion).reverse();
-      const stableVersion = currentPackageInfo["stable-version"];
-      versionSelectors.forEach((d) => updateVersionSelector(d, packageAllVersions, stableVersion));
+        suggestionBox.style.display = "block";
+    }
+
+    // Handle input typing
+    input.addEventListener("input", () => {
+        const query = input.value.toLowerCase();
+        const filtered = versions.filter(v => v.toLowerCase().includes(query));
+        showSuggestions(filtered);
     });
-};
 
-runVersionSelector();
+    // Enter key → go to version
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            goToVersion(input.value.trim());
+        }
+    });
+
+    function goToVersion(version) {
+        if (!version) return;
+
+        const parts = window.location.pathname.split("/");
+        // /docs/<package>/<version>/page...
+        const pkg = parts[2] || "";
+        const pagePath = parts.slice(4).join("/");
+
+        window.location.href = `/docs/${pkg}/${version}/${pagePath}`;
+    }
+
+    // Hide suggestion box on click outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest("#docs-version-selector")) {
+            suggestionBox.style.display = "none";
+        }
+    });
+}
