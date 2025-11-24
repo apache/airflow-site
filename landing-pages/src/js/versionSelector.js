@@ -19,43 +19,30 @@
 
 import { compareVersion } from "./sortVersions";
 
-export function initVersionSelector(options) {
-  const versions = options.versions;
+export function initVersionSelector({ versions }) {
   const input = document.getElementById("versionInput");
   const suggestionBox = document.getElementById("versionSuggestions");
 
-  if (!input || !suggestionBox || !versions) {
-    return;
-  }
+  if (!input || !suggestionBox || !versions) return;
 
-  const sortedVersions = versions.sort(compareVersion).reverse();
+  // Sort versions newest → oldest
+  versions = versions.sort(compareVersion).reverse();
 
-  function goToVersion(version) {
-    if (!version) {
-      return;
-    }
-
-    const parts = window.location.pathname.split("/");
-    const pkg = parts[2] || "";
-    const pagePath = parts.slice(4).join("/");
-
-    window.location.href = "/docs/" + pkg + "/" + version + "/" + pagePath;
-  }
-
-  function showSuggestions(list) {
+  // Show suggestions
+  function showSuggestions(filtered) {
     suggestionBox.innerHTML = "";
 
-    if (list.length === 0) {
+    if (filtered.length === 0) {
       suggestionBox.style.display = "none";
       return;
     }
 
-    list.forEach(function (v) {
+    filtered.forEach(v => {
       const item = document.createElement("div");
       item.className = "version-suggestion-item";
       item.textContent = v;
 
-      item.addEventListener("click", function () {
+      item.addEventListener("click", () => {
         goToVersion(v);
       });
 
@@ -65,21 +52,32 @@ export function initVersionSelector(options) {
     suggestionBox.style.display = "block";
   }
 
-  input.addEventListener("input", function () {
+  // Handle input typing
+  input.addEventListener("input", () => {
     const query = input.value.toLowerCase();
-    const filtered = sortedVersions.filter(function (v) {
-      return v.toLowerCase().includes(query);
-    });
+    const filtered = versions.filter(v => v.toLowerCase().includes(query));
     showSuggestions(filtered);
   });
 
-  input.addEventListener("keydown", function (e) {
+  // Enter key → go to version
+  input.addEventListener("keydown", e => {
     if (e.key === "Enter") {
       goToVersion(input.value.trim());
     }
   });
 
-  document.addEventListener("click", function (e) {
+  function goToVersion(version) {
+    if (!version) return;
+
+    const parts = window.location.pathname.split("/");
+    const pkg = parts[2] || "";
+    const pagePath = parts.slice(4).join("/");
+
+    window.location.href = `/docs/${pkg}/${version}/${pagePath}`;
+  }
+
+  // Hide suggestion box on click outside
+  document.addEventListener("click", e => {
     if (!e.target.closest("#docs-version-selector")) {
       suggestionBox.style.display = "none";
     }
