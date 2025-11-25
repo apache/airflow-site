@@ -17,37 +17,38 @@
  * under the License.
  */
 
-import { documentReady } from "./utils";
+const SCROLL_THRESHOLD = 100; // Show button after scrolling 100px
 
-function initScrollToTop() {
-  const scrollTopBtn = document.getElementById("scroll-to-top");
+document.addEventListener("DOMContentLoaded", function() {
+  const scrollToTopBtn = document.getElementById("scroll-to-top-btn");
 
-  if (!scrollTopBtn) return;
+  if (!scrollToTopBtn) {
+    return; // Button not found on this page
+  }
 
-  // Show/hide button based on scroll position
-  const toggleScrollTopBtn = () => {
-    const scrollThreshold = 300; // Show after scrolling 300px
-
-    if (window.scrollY > scrollThreshold) {
-      scrollTopBtn.classList.add("visible");
+  // Function to toggle button visibility
+  function toggleScrollToTopBtn() {
+    if (window.scrollY > SCROLL_THRESHOLD) {
+      scrollToTopBtn.style.display = "flex";
     } else {
-      scrollTopBtn.classList.remove("visible");
+      scrollToTopBtn.style.display = "none";
     }
-  };
+  }
 
-  // Scroll to top function
-  const scrollToTop = () => {
-    window.scrollTo({top: 0, behavior: "smooth"});
-  };
+  // Function to scroll to top smoothly
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
 
-  // Event listeners
-  window.addEventListener("scroll", toggleScrollTopBtn);
-  scrollTopBtn.addEventListener("click", scrollToTop);
+  // Add scroll event listener
+  window.addEventListener("scroll", toggleScrollToTopBtn);
 
-  // Check initial scroll position
-  toggleScrollTopBtn();
-}
+  // Add click event listener
+  scrollToTopBtn.addEventListener("click", scrollToTop);
 
-documentReady(() => {
-  initScrollToTop();
+  // Initialize button visibility on load
+  toggleScrollToTopBtn();
 });
