@@ -17,16 +17,18 @@
  * under the License.
  */
 
-import { compareVersion } from "./sortVersions";
+import {compareVersion} from "./sortVersions";
 
-export function initVersionSelector({ versions }) {
+export function initVersionSelector({versions}) {
   const input = document.getElementById("versionInput");
   const suggestionBox = document.getElementById("versionSuggestions");
 
-  if (!input || !suggestionBox || !versions) return;
+  if (!input || !suggestionBox || !versions) {
+    return;
+  }
 
-  // Sort versions newest → oldest
-  versions = versions.sort(compareVersion).reverse();
+  // Sort versions newest → oldest (copy, original array ko mat chhedo)
+  const sortedVersions = versions.slice().sort(compareVersion).reverse();
 
   // Show suggestions
   function showSuggestions(filtered) {
@@ -37,7 +39,7 @@ export function initVersionSelector({ versions }) {
       return;
     }
 
-    filtered.forEach(v => {
+    filtered.forEach((v) => {
       const item = document.createElement("div");
       item.className = "version-suggestion-item";
       item.textContent = v;
@@ -55,21 +57,26 @@ export function initVersionSelector({ versions }) {
   // Handle input typing
   input.addEventListener("input", () => {
     const query = input.value.toLowerCase();
-    const filtered = versions.filter(v => v.toLowerCase().includes(query));
+    const filtered = sortedVersions.filter((v) =>
+      v.toLowerCase().includes(query)
+    );
     showSuggestions(filtered);
   });
 
   // Enter key → go to version
-  input.addEventListener("keydown", e => {
+  input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       goToVersion(input.value.trim());
     }
   });
 
   function goToVersion(version) {
-    if (!version) return;
+    if (!version) {
+      return;
+    }
 
     const parts = window.location.pathname.split("/");
+    // /docs/<package>/<version>/page...
     const pkg = parts[2] || "";
     const pagePath = parts.slice(4).join("/");
 
@@ -77,7 +84,7 @@ export function initVersionSelector({ versions }) {
   }
 
   // Hide suggestion box on click outside
-  document.addEventListener("click", e => {
+  document.addEventListener("click", (e) => {
     if (!e.target.closest("#docs-version-selector")) {
       suggestionBox.style.display = "none";
     }
