@@ -18,9 +18,9 @@
  */
 
 
-// Enabled button with 1200px threshold
+// Enabled button with 1000px threshold
 const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-const scrollThreshold = 1200;
+const scrollThreshold = 1000;
 
 function toggleScrollToTopButton() {
   if (!scrollToTopBtn) return;
