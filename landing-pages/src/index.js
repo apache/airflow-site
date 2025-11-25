@@ -17,9 +17,9 @@
  * under the License.
  */
 
-import {shuffleNodeChildren} from "./js/committersList";
-import {showMore} from "./js/showMore";
-import {handleActiveVideo} from "./js/handleActiveVideo";
+import { shuffleNodeChildren } from "./js/committersList";
+import { showMore } from "./js/showMore";
+import { handleActiveVideo } from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
 import "./js/contentDrawer";
@@ -27,6 +27,7 @@ import "./js/progressTracking";
 import "./js/rating";
 import "./js/makeTableResponsive";
 import "./js/versionSelector";
+import "./js/scroll-to-top";
 
 if (document.querySelector("#search")) {
   import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
