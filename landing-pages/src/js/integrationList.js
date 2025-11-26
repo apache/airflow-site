@@ -78,7 +78,7 @@ function handleIntegration() {
       .then((integrations) => {
         integrations = shuffle(integrations);
         integrations.sort(sortByLogoAvailability);
-        integrations.forEach((i, index) => i.inddex = index);
+        integrations.forEach((i, index) => i.index = index);
         return Promise.resolve(integrations);
       });
     fetchIntegrationRequest = request;
