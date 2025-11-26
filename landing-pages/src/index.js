@@ -17,9 +17,9 @@
  * under the License.
  */
 
-import { shuffleNodeChildren } from "./js/committersList";
-import { showMore } from "./js/showMore";
-import { handleActiveVideo } from "./js/handleActiveVideo";
+import {shuffleNodeChildren} from "./js/committersList";
+import {showMore} from "./js/showMore";
+import {handleActiveVideo} from "./js/handleActiveVideo";
 import "./js/navbarScroll";
 import "./js/drawer";
 import "./js/contentDrawer";
