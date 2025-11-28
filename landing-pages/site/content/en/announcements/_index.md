@@ -15,10 +15,10 @@ menu:
 
 We've just released Apache Airflow 3.1.3 🎉
 
-📦 PyPI: https://pypi.org/project/apache-airflow/3.1.3/
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.3/
-🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.3/release_notes.html
-🐳 Docker Image: "docker pull apache/airflow:3.1.3"
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.3/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.3/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.3/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.1.3" \
 🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.3
 
 Thanks to all the contributors who made this possible.
@@ -29,8 +29,8 @@ Thanks to all the contributors who made this possible.
 
 This is the first official release of the `airflowctl` - new tool to remotely interact with your Airflow 3
 
-📦 PyPI: https://pypi.org/project/apache-airflow-ctl/
-📚 Docs: https://airflow.apache.org/docs/apache-airflow-ctl/stable/index.html
+📦 PyPI: https://pypi.org/project/apache-airflow-ctl/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow-ctl/stable/index.html \
 🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow-ctl/stable/changelog.html
 
 Thanks to all the contributors who made this possible.
@@ -39,10 +39,10 @@ Thanks to all the contributors who made this possible.
 
 We've just released Apache **Airflow 3.1.2** and **Task SDK 1.1.2**.
 
-📦 PyPI: https://pypi.org/project/apache-airflow/3.1.2/
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.2/
-🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.2/release_notes.html
-🐳 Docker Image: "docker pull apache/airflow:3.1.2"
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.2/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.2/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.2/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.1.2" \
 🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.2
 
 # October 29, 2025
