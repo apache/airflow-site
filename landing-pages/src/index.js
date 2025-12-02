@@ -27,6 +27,7 @@ import "./js/progressTracking";
 import "./js/rating";
 import "./js/makeTableResponsive";
 import "./js/versionSelector";
+import "./js/scrollToTop";
 
 if (document.querySelector("#search")) {
   import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
