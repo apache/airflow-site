@@ -136,13 +136,14 @@ brew install yarn
 
 ### Static checks
 
-The project uses many static checks using [prek](https://github.com/j178/prek). Every change is checked on
-CI and if it does not pass the tests it cannot be accepted. If you want to check locally
-then you should install Python3.10 or newer together with pip and run following c
-ommand to install it:
-
+The project uses many static checks using [prek](https://github.com/j178/prek). Every change is checked on CI and if it does not pass the tests it cannot be accepted. If you want to check locally, you should install Python 3.10 or newer together with pip and run the following command to install prek:
 ```bash
-pip install -r requirements.txt
+uv tool install prek
+```
+
+Or if you prefer pip:
+```bash
+pip install prek
 ```
 
 To turn on prek checks for commit operations in git, enter:
