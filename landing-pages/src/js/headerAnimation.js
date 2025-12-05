@@ -210,7 +210,6 @@ export function initHeaderAnimation() {
   const button = document.querySelector("#header-button");
 
   documentReady(function() {
-
     new p5((sketch) => {
 
       let colors = [];
@@ -237,7 +236,14 @@ export function initHeaderAnimation() {
       };
 
       sketch.draw = () => {
-        sketch.background(255, 255, 255);
+        // Dark mode support: dynamically set canvas background based on theme
+        const isDarkMode = document.documentElement.getAttribute("data-bs-theme") === "dark";
+        if (isDarkMode) {
+          sketch.background(26, 26, 26); // #1a1a1a to match dark navbar background
+        } else {
+          sketch.background(255, 255, 255);
+        }
+
         if (DRAW_SAFE_AREA) {
           logoArea.draw(sketch);
         }
