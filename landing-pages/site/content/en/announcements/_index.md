@@ -15,10 +15,10 @@ menu:
 
 We've just released Apache **Airflow 3.1.4** and **Task SDK 1.1.4** 🎉
 
-📦 PyPI: https://pypi.org/project/apache-airflow/3.1.4/
-📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.4/
-🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.4/release_notes.html
-🐳 Docker Image: "docker pull apache/airflow:3.1.4"
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.4/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.4/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.4/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.1.4" \
 🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.4
 
 Thanks to all the contributors who made this possible.
