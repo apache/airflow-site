@@ -20,17 +20,46 @@
 Contributor Guide
 =================
 
-```
+## 📌 Table of Contents
+
+- [Working with the project](#working-with-the-project)
+  - [Prerequisite Tasks](#prerequisite-tasks)
+    - [Debian installation](#debian-installation)
+    - [macOS installation](#macos-installation)
+  - [Static checks](#static-checks)
+  - [Clone repository](#clone-repository)
+  - [Use site.sh script](#use-sitesh-script)
+  - [How to add a new blogpost](#how-to-add-a-new-blogpost)
+  - [How to add a blog post with images](#how-to-add-a-blog-post-with-images)
+  - [How to add a new company testimonial](#how-to-add-a-new-company-testimonial)
+  - [How to add a new integration](#how-to-add-a-new-integration)
+  - [How to add a new meetup](#how-to-add-a-new-meetup)
+  - [Preview changes on pull requests (CI/CD)](#preview-changes-on-pull-requests-cicd)
+- [How to release new documentation](#how-to-release-new-documentation)
+  - [Prerequisite Tasks](#prerequisite-tasks-1)
+  - [Clone repositories](#clone-repositories)
+  - [Instruction](#instruction)
+- [Publish site on Apache server (CI/CD)](#publish-site-on-apache-server-cicd)
+- [Publish site on Apache server (manual way)](#publish-site-on-apache-server-manual-way)
+  - [Prerequisite tasks](#prerequisite-tasks-2)
+  - [Instruction](#instruction-1)
+- [Release and publish documentation in one go](#release-and-publish-documentation-in-one-go)
+  - [Prerequisite tasks](#prerequisite-tasks-3)
+  - [Instruction](#instruction-2)
+- [Additional tips](#additional-tips)
+  - [Using VM on GCP](#using-vm-on-gcp)
+  - [Use RAM disk for build](#use-ram-disk-for-build)
+
 .
 ├── dist
 ├── docs-archive
 ├── landing-pages
-│   ├── dist
-│   ├── site
-│   │   ├── assets
+│   ├── dist
+│   ├── site
+│   │   ├── assets
 │   │   │   ├── icons
 │   │   │   └── scss
-│   │   ├── content
+│   │   ├── content
 │   │   │   └── en
 │   │   │       ├── blog
 │   │   │       ├── community
@@ -40,19 +69,20 @@ Contributor Guide
 │   │   │       ├── privacy-notice
 │   │   │       ├── roadmap
 │   │   │       └── use-cases
-│   │   ├── data
-│   │   ├── layouts
-│   │   ├── static
+│   │   ├── data
+│   │   ├── layouts
+│   │   ├── static
 │   │   │   ├── icons
 │   │   │   └── integration-logos
-│   │   └── themes
+│   │   └── themes
 │   │       └── docsy
-│   └── src
-│       └── js
+│   └── src
+│       └── js
 ├── license-templates
 └── sphinx_airflow_theme
     ├── demo
     └── sphinx_airflow_theme
+
 ```
 
 # Working with the project
