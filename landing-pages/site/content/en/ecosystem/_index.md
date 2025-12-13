@@ -99,6 +99,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow LDAP Auth Manager](https://github.com/emredjan/airflow-ldap-auth-manager) - An Auth Manager for Apache Airflow 3.x that authenticates users against LDAP/Active Directory and maps LDAP groups to Airflow roles (admin / editor / viewer).
 
+[Ksolves Apache Airflow Support](https://www.ksolves.com/support-services/apache-airflow) - Airflow Service Provider - Support, Consultation, Migration.
+
 &nbsp;
 
 ## Async Providers
