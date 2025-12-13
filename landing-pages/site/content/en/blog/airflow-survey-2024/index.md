@@ -12,6 +12,6 @@ menu:
     weight: 31
 ---
 
-![Airflow Survey 2024](images/Airflow-Survey-2024-Results-v2.png "airflow_survey_2024")
+![ 2024](images/Airflow-Survey-2024-Results-v2.png "airflow_survey_2024")
 
 [View Raw Data](https://astronomer.typeform.com/report/SF2VGNTc/fRSeRcKKJ3kgYXVl)
