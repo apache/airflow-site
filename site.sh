@@ -35,7 +35,7 @@ These are the ${0} commands that can be used in various situations:
     preview-landing-pages Start the web server with preview of the landing pages.
     build-landing-pages   Build the landing pages.
     prepare-theme         Copy required CSS/JS files from landing pages into the docs theme.
-    install-node-deps     Download all the Node dependencies.
+    install-node-deps     Download all the Node dependencies (including Docsy theme deps).
     check-site-links      Check to make sure that links are correct in the website.
     lint-css              Lint CSS files.
     lint-js               Lint Javascript files.
@@ -53,6 +53,15 @@ function ensure_node_module_exists {
         log "Missing node dependencies. Start installation."
         run_command "./landing-pages/" yarn install
         log "Dependencies installed."
+    fi
+}
+
+function ensure_docsy_theme_deps_exists {
+    log "Checking if Docsy theme dependencies exist"
+    if [[ ! -d ${MY_DIR}/landing-pages/site/themes/docsy/node_modules/ ]] ; then
+        log "Missing Docsy theme dependencies (Bootstrap & FontAwesome). Start installation."
+        run_command "${MY_DIR}/landing-pages/site/themes/docsy/" npm install
+        log "Docsy theme dependencies installed."
     fi
 }
 
@@ -212,16 +221,20 @@ shift
 if [[ "${CMD}" == "install-node-deps" ]] ; then
     npm install --global yarn
     run_command "${MY_DIR}/landing-pages/" yarn install
+    run_command "${MY_DIR}/landing-pages/site/themes/docsy/" npm install
 elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
+    ensure_docsy_theme_deps_exists
     run_command "${MY_DIR}/landing-pages/" yarn run index
     prepare_packages_metadata
     run_command "./landing-pages/" yarn run preview
 elif [[ "${CMD}" == "build-landing-pages" ]]; then
     ensure_node_module_exists
+    ensure_docsy_theme_deps_exists
     build_landing_pages
 elif [[ "${CMD}" == "build-site" ]]; then
     ensure_node_module_exists
+    ensure_docsy_theme_deps_exists
     build_site
 elif [[ "${CMD}" == "check-site-links" ]]; then
     ensure_node_module_exists
