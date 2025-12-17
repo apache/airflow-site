@@ -187,9 +187,12 @@ function prepare_theme {
     cp "${SITE_DIST}"/scss/main.min.*.css "${THEME_GEN}/css/main.min.css"
     cp "${SITE_DIST}"/scss/main-custom.min.*.css "${THEME_GEN}/css/main-custom.min.css"
 
-    # Copy external JS/CSS/fonts for Sphinx docs to _gen directory
+    # Copy external JS/CSS/fonts for Sphinx docs to _gen directory (excluding profiles)
     EXTERNAL_SRC="${MY_DIR}/landing-pages/site/static/external"
-    cp -r "${EXTERNAL_SRC}" "${THEME_GEN}/"
+    mkdir -p "${THEME_GEN}/external"
+    cp -r "${EXTERNAL_SRC}/js" "${THEME_GEN}/external/"
+    cp -r "${EXTERNAL_SRC}/css" "${THEME_GEN}/external/"
+    cp -r "${EXTERNAL_SRC}/fonts" "${THEME_GEN}/external/"
 
     echo "Successful copied required files"
 }
