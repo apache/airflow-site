@@ -183,7 +183,7 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Oozie to Airflow](https://github.com/GoogleCloudPlatform/oozie-to-airflow) - A tool to easily convert between [Apache Oozie](http://oozie.apache.org/) workflows and Apache Airflow workflows.
 
-[Astronomer Orbiter](https://astronomer.github.io/orbiter/) - A framework and tool to convert workflows from different source systems (e.g. Apache Oozie, Control-M, Autosys, CRON, Dag Factory, Luigi) to an Apache Airflow project. 
+[Astronomer Orbiter](https://astronomer.github.io/orbiter/) - A framework and tool to convert workflows from different source systems (e.g. Apache Oozie, Control-M, Autosys, CRON, Dag Factory, Luigi) to an Apache Airflow project.
 
 [OpenLineage](https://openlineage.io) - An open standard for the collection of data lineage, which can be used to trace the path of datasets as they traverse multiple systems including Apache Airflow.
 
