@@ -182,7 +182,7 @@ Over three hundred developers around the world have contributed to making this r
 - Derek
 - Detlev V.
 - Dewen Kong
-- Dheeraj Turaga
+- Sriraj Dheeraj Turaga
 - Diogo Rodrigues
 - Dmitry Astankov
 - Dmitry Pustoshilov
@@ -368,7 +368,7 @@ Over three hundred developers around the world have contributed to making this r
 - Wei Lee
 - Wojciech Szlachta
 - Wonseok Yang
-- Yeonguk
+- Yeonguk Choo
 - Yohei Kishimoto
 - Youngha, Park
 - Yuan Li
