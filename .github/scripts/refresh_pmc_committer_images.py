@@ -45,7 +45,7 @@ def refresh_committer_pmc_images(file_path: Path):
         console.print(f"Downloading image for: [magenta]{data.get("name")}[/] from {image_url}")
         response = requests.get(image_url)
         if response.status_code == 200:
-            with open(f'landing-pages/site/static/external/profiles/{username}.png', 'wb') as f:
+            with open(f'{AIRFLOW_SOURCES_ROOT}/landing-pages/site/static/external/profiles/{username}.png', 'wb') as f:
                 f.write(response.content)
         else:
             print(f"Failed to download image for {data.get('name')}")

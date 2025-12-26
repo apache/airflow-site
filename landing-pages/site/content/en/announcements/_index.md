@@ -10,6 +10,19 @@ menu:
 
 &nbsp;
 &nbsp;
+# December 25, 2025
+
+Airflow PMC welcomes new PMC member and committers:
+
+PMC member:
+
+* **Shahar Epstein** ([@shahar1](https://github.com/shahar1))
+
+Committers:
+
+* **David Blain** ([@dabla](https://github.com/dabla))
+* **Sriraj Dheeraj Turaga** ([@dheerajturaga](https://github.com/dheerajturaga))
+* **Yeonguk Choo** ([@choo121600](https://github.com/choo121600))
 
 # December 12, 2025
 
