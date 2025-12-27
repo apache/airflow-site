@@ -29,10 +29,7 @@ const toggleDrawer = () => {
   closeIcon.classList.toggle("visible");
 };
 
-if (toggleButton) {
-  if (toggleButton.handler) {
-    toggleButton.removeEventListener("click", toggleButton.handler);
-  }
-  toggleButton.handler = toggleDrawer;
-  toggleButton.addEventListener("click", toggleButton.handler);
+if (toggleButton && !toggleButton.dataset.drawerInitialized) {
+  toggleButton.addEventListener("click", toggleDrawer);
+  toggleButton.dataset.drawerInitialized = "true";
 }
