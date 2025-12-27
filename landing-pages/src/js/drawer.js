@@ -17,6 +17,8 @@
  * under the License.
  */
 
+const toggleButton = window.document.querySelector("#navbar-toggle-button");
+
 const toggleDrawer = () => {
   const drawer = window.document.querySelector("#navbar-drawer");
   const hamburgerIcon = window.document.querySelector("#hamburger-icon");
@@ -27,4 +29,10 @@ const toggleDrawer = () => {
   closeIcon.classList.toggle("visible");
 };
 
-window.document.querySelector("#navbar-toggle-button").addEventListener("click", toggleDrawer);
+if (toggleButton) {
+  if (toggleButton.handler) {
+    toggleButton.removeEventListener("click", toggleButton.handler);
+  }
+  toggleButton.handler = toggleDrawer;
+  toggleButton.addEventListener("click", toggleButton.handler);
+}
