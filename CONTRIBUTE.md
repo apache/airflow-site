@@ -68,7 +68,7 @@ The following applications must be installed to use the project:
 * docker (for the shell language linter)
 * Node 22
 * Yarn
-* Hugo
+* Hugo >= 0.146.0
 
 It is also worth adding SSH keys for the `github.com` server to trusted ones. It is necessary to clone repositories. You can do this using following command:
 ```bash
@@ -111,6 +111,11 @@ To install hugo on Debian, run the following command:
 sudo apt install hugo -y
 ```
 
+To verify your Hugo version meets the requirement (>= 0.146.0), run:
+```bash
+hugo version
+```
+
 **macOS installation**
 
 To install git on macOS, install the XCode Command Line Tools with the following command:
@@ -121,6 +126,11 @@ xcode-select --install
 Then, install [Homebrew](https://brew.sh). Once that has completed, you can install Hugo:
 ```bash
 brew install hugo
+```
+
+To verify your Hugo version meets the requirement (>= 0.146.0), run:
+```bash
+hugo version
 ```
 
 To install Node 22, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 22 with these commands:
