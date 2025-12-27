@@ -77,6 +77,10 @@ $card-margin: 20px;
   flex-direction: column;
   align-items: center;
 
+  .logo-dark-mode {
+    display: none;
+  }
+
   &__blogpost {
     display: flex;
     flex-direction: column;
@@ -147,6 +151,7 @@ $card-margin: 20px;
   &__use-cases {
     padding: 18px 18px 0;
     justify-content: space-between;
+    height: 100%;
 
     &--logo {
       display: flex;
@@ -274,15 +279,29 @@ $card-margin: 20px;
 
   &.hoverable-icon {
     svg, img {
-      filter: grayscale(1);
-      opacity: 0.6;
+      // Default for transparent logos (Testimonials): Uniform Dark Gray
+      filter: brightness(0) opacity(0.6);
       transition: all 0.2s;
     }
 
+    // Specific for Use Cases (White BG) in Light Mode
+    .box-event__use-cases--logo img {
+      // Normalize to B/W (Text=Black, BG=White) then Gray
+      filter: brightness(0.6) contrast(25) grayscale(1) opacity(0.6);
+      mix-blend-mode: multiply;
+    }
+
+    // Experity: Revert to original (White BG JPG)
+    .logo-experity img {
+      filter: none;
+      opacity: 0.6;
+    }
+
     &:hover {
-      svg, img {
+      svg, img, .box-event__use-cases--logo img {
         filter: none;
         opacity: 1;
+        mix-blend-mode: normal;
       }
     }
   }
@@ -307,6 +326,57 @@ $card-margin: 20px;
     &__integration--name {
       color: var(--bs-emphasis-color);
     }
+
+    // Testimonials (Transparent BG) - Consistent Gray
+    &.hoverable-icon {
+      .box-event__use-cases--testimonial--logo img {
+        filter: brightness(0) invert(0.6);
+        opacity: 1;
+      }
+
+      // Experity: Revert to original (White BG JPG)
+      .logo-experity img {
+        filter: none;
+        opacity: 0.6;
+      }
+    }
+
+    // Rancher SUSE & Sift specific: Swap logo in dark mode
+    .logo-rancherbysuse,
+    .logo-sift {
+      .logo-default { display: none; }
+      .logo-dark-mode { display: block; }
+    }
+
+    // Use Cases (White BG) - Consistent Gray via Screen Blend
+    &.hoverable-icon .box-event__use-cases--logo img {
+      // Normalize to B/W (Text=Black, BG=White) then Invert (Text=White, BG=Black) then Gray
+      filter: brightness(0.6) contrast(25) grayscale(1) invert(1) brightness(0.6);
+      mix-blend-mode: screen;
+      opacity: 1;
+    }
+
+    // Hover state for Use Cases (Top boxes) & Testimonials
+    &.hoverable-icon:hover {
+      // Use Cases (Top boxes) - Keep inverted to stay white, but rotate hue to restore colors
+      .box-event__use-cases--logo img {
+        filter: invert(1) hue-rotate(180deg);
+        opacity: 1;
+      }
+
+      // Testimonials - Restore original colors
+      .box-event__use-cases--testimonial--logo img {
+        filter: none;
+        opacity: 1;
+        mix-blend-mode: normal;
+      }
+      // Plarium & Onefootball specific: White on hover in dark mode
+      .logo-plarium-krasnodar img,
+      .logo-onefootball img {
+        filter: brightness(0) invert(1);
+      }
+    }
+
     &__case-study--quote,
     &__use-cases--usecasedescription,
     &__use-cases--testimonial--quote {
