@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Sphinx theme for Airflow](#sphinx-theme-for-airflow)
+- [Install from sources](#install-from-sources)
+- [Generate Airflow documentation with Sphinx theme changes](#generate-airflow-documentation-with-sphinx-theme-changes)
+- [Install developer version](#install-developer-version)
+- [Configuration](#configuration)
+  - [`navbar_links`](#navbar_links)
+  - [`hide_website_buttons`](#hide_website_buttons)
+  - [`sidebar_collapse`](#sidebar_collapse)
+  - [`sidebar_includehidden`](#sidebar_includehidden)
+- [Theme's source files](#themes-source-files)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 <!--
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
