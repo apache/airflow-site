@@ -1,3 +1,21 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Contributor Guide](#contributor-guide)
+- [Working with the project](#working-with-the-project)
+- [How to release new documentation](#how-to-release-new-documentation)
+- [Publish site on Apache server (CI/CD)](#publish-site-on-apache-server-cicd)
+- [Publish site on Apache server (manual way)](#publish-site-on-apache-server-manual-way)
+  - [Prerequisite tasks](#prerequisite-tasks)
+  - [Instruction](#instruction)
+- [Release and publish documentation in one go](#release-and-publish-documentation-in-one-go)
+- [Additional tips:](#additional-tips)
+  - [Using VM on GCP](#using-vm-on-gcp)
+  - [Use RAM disk for build](#use-ram-disk-for-build)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 <!--
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
