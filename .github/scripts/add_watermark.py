@@ -49,7 +49,24 @@ CSS_TO_ADD = """
       pointer-events: none; /* Ensures the watermark doesn't interfere with user interactions */
       z-index: -1; /* Places the pseudo-element behind all other elements */
   }
+
+  /* Dark mode support - increases watermark visibility */
+  [data-theme="dark"] body::before,
+  [data-bs-theme="dark"] body::before,
+  .dark body::before,
+  .dark-mode body::before {
+      opacity: 0.4; /* Higher opacity for dark mode visibility */
+      filter: invert(1) brightness(2); /* Inverts colors for dark background */
+  }
+
+  @media (prefers-color-scheme: dark) {
+      body::before {
+          opacity: 0.4;
+          filter: invert(1) brightness(2);
+      }
+  }
 """
+
 
 IMAGE_FILE=Path(__file__).parent / "images" / "staging.png"
 
