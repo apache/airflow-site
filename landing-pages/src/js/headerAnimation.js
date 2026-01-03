@@ -253,6 +253,21 @@ export function initHeaderAnimation() {
         });
       };
 
+      // Listen for theme changes and redraw
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+            // Theme changed, sketch.draw() will be called automatically on next frame
+            // No need to do anything here as p5 continuously calls draw()
+          }
+        });
+      });
+      
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-bs-theme']
+      });
+
       sketch.windowResized = debounce(() => {
         const positionInfo = canvas.getBoundingClientRect();
         const vw = positionInfo.width; // viewport width

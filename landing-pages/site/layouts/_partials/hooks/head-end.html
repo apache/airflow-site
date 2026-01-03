@@ -19,6 +19,32 @@
 
 <meta name="description" content="{{ .Description | default $.Site.Params.description }}" />
 
+{{/* Early theme initialization to prevent FOUC and ensure animation gets correct theme */}}
+{{ if .Site.Params.ui.showLightDarkModeMenu -}}
+<script>
+(function() {
+  'use strict';
+  const themeKey = 'td-color-theme';
+  const getStoredTheme = () => localStorage.getItem(themeKey);
+  const getPreferredTheme = () => {
+    const storedTheme = getStoredTheme();
+    if (storedTheme) {
+      return storedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+  const setTheme = theme => {
+    if (theme === 'auto') {
+      document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    } else {
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    }
+  };
+  setTheme(getPreferredTheme());
+})();
+</script>
+{{ end -}}
+
 <!-- Matomo -->
 <script>
     var _paq = window._paq = window._paq || [];
