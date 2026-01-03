@@ -30,7 +30,7 @@
 (() => {
   'use strict'
 
-  const themeKey = 'td-color-theme'
+  const themeKey = 'theme'
   const getStoredTheme = () => localStorage.getItem(themeKey)
   const setStoredTheme = theme => localStorage.setItem(themeKey, theme)
 
@@ -103,7 +103,7 @@
     }
   })
 
-  window.addEventListener('DOMContentLoaded', () => {
+  const init = () => {
     showActiveTheme(getPreferredTheme())
 
     document.querySelectorAll('[data-bs-theme-value]')
@@ -115,5 +115,11 @@
           showActiveTheme(theme, true)
         })
       })
-  })
+  }
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', init)
+  } else {
+    init()
+  }
 })()
