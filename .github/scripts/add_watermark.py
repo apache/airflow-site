@@ -32,14 +32,13 @@ from rich.console import Console
 console = Console(width=200, color_system="standard")
 
 CSS_TO_ADD = """
-  body {
-      position: relative; /* Ensures the pseudo-element is positioned relative to the body */
-      z-index: 0; /* Keeps the content above the pseudo-element */
+  .td-main {
+      position: relative; /* Ensures the pseudo-element is positioned relative to the main content */
   }
 
-  body::before {
+  .td-main::before {
       content: "";
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 100%;
@@ -51,19 +50,13 @@ CSS_TO_ADD = """
   }
 
   /* Dark mode support - increases watermark visibility */
-  [data-theme="dark"] body::before,
-  [data-bs-theme="dark"] body::before,
-  .dark body::before,
-  .dark-mode body::before {
-      opacity: 0.4; /* Higher opacity for dark mode visibility */
+  [data-theme="dark"] .td-main::before,
+  [data-bs-theme="dark"] .td-main::before,
+  .dark .td-main::before,
+  .dark-mode .td-main::before {
+      opacity: 0.2; /* Higher opacity for dark mode visibility */
       filter: invert(1) brightness(2); /* Inverts colors for dark background */
-  }
-
-  @media (prefers-color-scheme: dark) {
-      body::before {
-          opacity: 0.4;
-          filter: invert(1) brightness(2);
-      }
+      z-index: 1;
   }
 """
 
