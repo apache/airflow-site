@@ -32,11 +32,12 @@ from rich.console import Console
 console = Console(width=200, color_system="standard")
 
 CSS_TO_ADD = """
-  .td-main {
+  .td-main, .roadmap {
       position: relative; /* Ensures the pseudo-element is positioned relative to the main content */
   }
 
-  .td-main::before {
+  .td-main::before,
+  .roadmap::before {
       content: "";
       position: absolute;
       top: 0;
@@ -51,9 +52,13 @@ CSS_TO_ADD = """
 
   /* Dark mode support - increases watermark visibility */
   [data-theme="dark"] .td-main::before,
+  [data-theme="dark"] .roadmap::before,
   [data-bs-theme="dark"] .td-main::before,
+  [data-bs-theme="dark"] .roadmap::before,
   .dark .td-main::before,
+  .dark .roadmap::before,
   .dark-mode .td-main::before {
+  .dark-mode .roadmap::before {
       opacity: 0.2; /* Higher opacity for dark mode visibility */
       filter: invert(1) brightness(2); /* Inverts colors for dark background */
       z-index: 1;
