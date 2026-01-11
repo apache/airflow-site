@@ -54,7 +54,7 @@
   setTheme(getPreferredTheme())
 
   const showActiveTheme = (theme, focus = false) => {
-    const themeSwitchers = document.querySelectorAll('.theme-switcher')
+    const themeSwitchers = document.querySelectorAll('#bd-theme')
 
     if (!themeSwitchers.length) {
       return
