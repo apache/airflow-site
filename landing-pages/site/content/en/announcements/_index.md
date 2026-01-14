@@ -10,6 +10,14 @@ menu:
 
 &nbsp;
 &nbsp;
+
+# January 14, 2026
+
+Airflow PMC welcomes new PMC members:
+
+* **Buğra Öztürk** ([@bugraoz93](https://github.com/bugraoz93))
+* **Rahul Vats** ([@vatsrahul1001](https://github.com/vatsrahul1001))
+
 # December 25, 2025
 
 Airflow PMC welcomes new PMC member and committers:
