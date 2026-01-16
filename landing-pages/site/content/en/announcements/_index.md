@@ -18,6 +18,18 @@ Airflow PMC welcomes new PMC members:
 * **Buğra Öztürk** ([@bugraoz93](https://github.com/bugraoz93))
 * **Rahul Vats** ([@vatsrahul1001](https://github.com/vatsrahul1001))
 
+# January 13, 2026
+We've just released **Airflow 3.1.6** and **Task SDK 1.1.6** 🎉
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.6/ \
+📚 Core Docs: https://airflow.apache.org/docs/apache-airflow/3.1.6/ \
+📚 Task SDK Docs: https://airflow.apache.org/docs/task-sdk/1.1.6/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.6/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.1.6" \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.6
+
+Thanks to all the contributors who made this possible.
+
 # December 25, 2025
 
 Airflow PMC welcomes new PMC member and committers:
