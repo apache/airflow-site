@@ -2,7 +2,7 @@
 title: "Airflow Survey 2025"
 linkTitle: "Airflow Survey 2025"
 tags: ["community", "survey", "users"]
-date: "2026-02-27"
+date: "2026-01-22"
 author: "Ankit Chaurasia"
 github: "sunank200"
 linkedin: "sunank200"
