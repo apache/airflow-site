@@ -6,7 +6,7 @@ date: "2026-02-27"
 author: "Ankit Chaurasia"
 github: "sunank200"
 linkedin: "sunank200"
-description: "With more than 5,818 responses from 122 countries, this is the largest data engineering survey to date. Conducted annually, it offers valuable insights into Airflow usage and helps guide our future efforts."
+description: "With more than 5,818 responses from 122 countries, this is the largest data engineering survey to date. Conducted annually, Apache Airflow Survey offers valuable insights into Airflow usage and helps guide our future efforts."
 menu:
   main:
     weight: 30
