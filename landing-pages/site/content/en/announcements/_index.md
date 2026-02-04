@@ -11,6 +11,17 @@ menu:
 &nbsp;
 &nbsp;
 
+# February 4, 2026
+We've just released **Airflow 3.1.7** and **Task SDK 1.1.7** 🎉
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.1.7/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.1.7/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.1.7/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.1.7" \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.1.7
+
+Thanks to all the contributors who made this possible.
+
 # January 14, 2026
 
 Airflow PMC welcomes new PMC members:
