@@ -24,3 +24,5 @@ menu:
 <hr style="margin: 1rem 0; border: none; border-top: 1px solid #ccc;" />
 
 [View raw data](https://astronomer.typeform.com/reports/01KESPS8SJ2Y80THJAEYCECE5B)
+
+[Download survey responses (CSV)](/data/survey-responses/airflow-user-survey-responses-2025.csv.zip)

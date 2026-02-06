@@ -21,3 +21,5 @@ description: "With more than 5,250 responses from 116 countries, this is the lar
 <hr style="margin: 1rem 0; border: none; border-top: 1px solid #ccc;" />
 
 [View raw data](https://astronomer.typeform.com/report/SF2VGNTc/fRSeRcKKJ3kgYXVl)
+
+[Download survey responses (CSV)](/data/survey-responses/airflow-user-survey-responses-2024.csv.zip)
