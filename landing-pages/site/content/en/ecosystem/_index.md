@@ -47,6 +47,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Yandex Managed Service for Apache Airflow](https://cloud.yandex.com/en/services/managed-airflow) - Managed Apache Airflow on Yandex Cloud
 
+[Ksolves Apache Airflow Support](https://www.ksolves.com/support-services/apache-airflow) - Airflow Service Provider - Support, Consultation, Migration
+
 &nbsp;
 
 ## Other deployments methods
