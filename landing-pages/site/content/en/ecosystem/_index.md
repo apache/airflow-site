@@ -49,6 +49,12 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 &nbsp;
 
+## Airflow Technology Consultancy Support
+
+[Ksolves Apache Airflow Support](https://www.ksolves.com/support-services/apache-airflow) - Airflow Service Provider - Support, Consultation, Migration
+
+&nbsp;
+
 ## Other deployments methods
 
 [Airflow Heroku Deployment](https://github.com/slyapustin/airflow-on-heroku) - Airflow Heroku Deployment allows creating a demo Airflow instance in just a couple of clicks.
