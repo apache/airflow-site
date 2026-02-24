@@ -105,6 +105,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow LDAP Auth Manager](https://github.com/emredjan/airflow-ldap-auth-manager) - An Auth Manager for Apache Airflow 3.x that authenticates users against LDAP/Active Directory and maps LDAP groups to Airflow roles (admin / editor / viewer).
 
+[Airflow Watcher](https://github.com/ram07eng/airflow-watcher) - An Airflow UI plugin for monitoring DAG failures, SLA misses, task health, scheduling lag, and cross-DAG dependencies. Includes dashboard views, REST API, and multi-channel alerting (Slack, PagerDuty, Email) with StatsD and Prometheus metrics export. Available on [PyPI](https://pypi.org/project/airflow-watcher/).
+
 &nbsp;
 
 ## Async Providers
