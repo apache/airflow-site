@@ -158,6 +158,17 @@ jobs:
         run: |
           rm -rf node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY/node"
+      - name: 🔧 Copy files from site to theme
+        run: |
+          ./site.sh prepare-theme
+      - name: 🔧 Prepare sphinx_airflow_theme package ️
+        working-directory: sphinx_airflow_theme
+        run: |
+          uv build
+      - name: 📦 Copy sphinx_airflow_theme package to dist
+        run: |
+          mkdir -p dist/sphinx-airflow-theme
+          cp sphinx_airflow_theme/dist/* dist/sphinx-airflow-theme/
       - name: 🔄Refresh PMC/COMMITTERS profiles
         env:
           PMC_COMMITTERS_FILES: landing-pages/site/data/committers.json,landing-pages/site/data/pmc.json
@@ -178,13 +189,6 @@ jobs:
           git commit --no-edit -m "Docs updated via ${GITHUB_REF}:${{ github.sha }}" --allow-empty
           echo "Running git push to ${PUBLISH_BRANCH} branch"
           git push origin ${PUBLISH_BRANCH}
-      - name: 🔧 Copy files from site to theme
-        run: |
-          ./site.sh prepare-theme
-      - name: 🔧 Prepare sphinx_airflow_theme package ️
-        working-directory: sphinx_airflow_theme
-        run: |
-          uv build
       - name: 🚀 Upload sphinx_airflow_theme package as artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
