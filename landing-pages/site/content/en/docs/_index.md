@@ -157,6 +157,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-influxdb/stable/index.html"><code>Influx DB</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-informatica/stable/index.html"><code>Informatica</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-imap/stable/index.html"><code>Internet Message Access Protocol (IMAP)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-jdbc/stable/index.html"><code>Java Database Connectivity (JDBC)</code></a></li>
