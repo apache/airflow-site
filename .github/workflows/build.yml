@@ -176,11 +176,16 @@ jobs:
       - name: 🚀 Add commit to ${{ env.PUBLISH_BRANCH }} branch and deploy it
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
         working-directory: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -x
           echo "Running git config"
           git config user.name "GitHub Actions"
           git config user.email "actions@users.noreply.github.com"
+          # actions/checkout@v6 stores credentials via includeIf gitdir conditions that
+          # break when the repo is symlinked to /mnt. Set the token explicitly.
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           echo "Running git add"
           git add .
           git diff HEAD
