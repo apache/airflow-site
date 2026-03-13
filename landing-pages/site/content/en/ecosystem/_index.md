@@ -239,6 +239,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [airflow-mcp-ponder](https://github.com/ponderedw/airflow-mcp) - [MCP](https://modelcontextprotocol.com) server for Apache Airflow with safe and unsafe modes, and can predict next DAG runs if the instance has the Airflow Schedule Insights plugin installed.
 
+[Airflow Schedule Heatmap](https://github.com/rahrajlat/airflow-schedule-heatmap) - An Airflow plugin that visualizes DAG schedules as a heatmap to reveal scheduler load patterns and help distribute pipelines more evenly.
+
 
 &nbsp;
 
