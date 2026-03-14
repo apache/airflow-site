@@ -11,6 +11,16 @@ menu:
 &nbsp;
 &nbsp;
 
+# March 14, 2026
+We've just released Apache Airflow 2.11.2 🎉
+
+📦 PyPI: https://pypi.org/project/apache-airflow/2.11.2/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/2.11.2/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/2.11.2/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:2.11.2" \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-2.11.2
+
+
 # March 11, 2026
 We've just released Apache Airflow 3.1.8 🎉
 
