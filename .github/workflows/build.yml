@@ -160,14 +160,32 @@ jobs:
       - name: 🔧 Copy files from site to theme
         run: |
           ./site.sh prepare-theme
+      - name: 🔍 Check if sphinx_airflow_theme changed
+        id: check-theme
+        run: |
+          NEW_VERSION=$(cat sphinx_airflow_theme/LATEST_VERSION.txt | tr -d '[:space:]')
+          PUBLISHED_VERSION=""
+          if [ -f dist/sphinx-airflow-theme/LATEST_VERSION.txt ]; then
+            PUBLISHED_VERSION=$(cat dist/sphinx-airflow-theme/LATEST_VERSION.txt | tr -d '[:space:]')
+          fi
+          if [ "${NEW_VERSION}" != "${PUBLISHED_VERSION}" ]; then
+            echo "theme_changed=true" >> "${GITHUB_OUTPUT}"
+            echo "sphinx_airflow_theme version changed: ${PUBLISHED_VERSION} -> ${NEW_VERSION}"
+          else
+            echo "theme_changed=false" >> "${GITHUB_OUTPUT}"
+            echo "sphinx_airflow_theme version unchanged (${NEW_VERSION}), skipping theme upload"
+          fi
       - name: 🔧 Prepare sphinx_airflow_theme package ️
+        if: steps.check-theme.outputs.theme_changed == 'true'
         working-directory: sphinx_airflow_theme
         run: |
           uv build
       - name: 📦 Copy sphinx_airflow_theme package to dist
+        if: steps.check-theme.outputs.theme_changed == 'true'
         run: |
           mkdir -p dist/sphinx-airflow-theme
           cp sphinx_airflow_theme/dist/* dist/sphinx-airflow-theme/
+          cp sphinx_airflow_theme/LATEST_VERSION.txt dist/sphinx-airflow-theme/
       - name: 🔄Refresh PMC/COMMITTERS profiles
         env:
           PMC_COMMITTERS_FILES: landing-pages/site/data/committers.json,landing-pages/site/data/pmc.json
@@ -194,6 +212,7 @@ jobs:
           echo "Running git push to ${PUBLISH_BRANCH} branch"
           git push origin ${PUBLISH_BRANCH}
       - name: 🚀 Upload sphinx_airflow_theme package as artifact
+        if: steps.check-theme.outputs.theme_changed == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: airflow-sphinx-theme
@@ -201,12 +220,14 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: 🔧 Build theme demo
+        if: steps.check-theme.outputs.theme_changed == 'true'
         working-directory: sphinx_airflow_theme
         run: |
           pip install ./dist/sphinx_airflow_theme-*.whl
           cd demo
           ./docs.sh build
       - name: 🚀 Upload sphinx_airflow_theme demo as artifact
+        if: steps.check-theme.outputs.theme_changed == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: airflow-sphinx-theme-demo
@@ -219,7 +240,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_COMMIT: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
-        if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
+        if: steps.check-theme.outputs.theme_changed == 'true' && (env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false')
         run: |
           set -x
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
