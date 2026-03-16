@@ -111,9 +111,26 @@ jobs:
           set-safe-directory: 'true'
           # We will push to the publish branch
           persist-credentials: true
+      - name: 📦 Save previous sphinx_airflow_theme packages from publish branch
+        run: |
+          if [ -d dist/sphinx-airflow-theme ]; then
+            echo "Saving previous theme packages:"
+            ls -la dist/sphinx-airflow-theme/
+            cp -r dist/sphinx-airflow-theme /tmp/sphinx-airflow-theme-backup
+          else
+            echo "No previous theme packages found"
+          fi
       - name: 🔧 Build site
         run: |
           /mnt/airflow-site/site.sh build-site
+      - name: 📦 Restore previous sphinx_airflow_theme packages
+        run: |
+          if [ -d /tmp/sphinx-airflow-theme-backup ]; then
+            mkdir -p dist/sphinx-airflow-theme
+            cp -r /tmp/sphinx-airflow-theme-backup/* dist/sphinx-airflow-theme/
+            echo "Restored previous theme packages:"
+            ls -la dist/sphinx-airflow-theme/
+          fi
       - name: ☁ nstall AWS CLI v2
         if: env.PROD_PUBLISH_REQUIRED != 'false' || env.STAGING_PUBLISH_REQUIRED != 'false'
         run: |
@@ -180,12 +197,14 @@ jobs:
         working-directory: sphinx_airflow_theme
         run: |
           uv build
-      - name: 📦 Copy sphinx_airflow_theme package to dist
+      - name: 📦 Copy sphinx_airflow_theme package to dist (preserving previous versions)
         if: steps.check-theme.outputs.theme_changed == 'true'
         run: |
           mkdir -p dist/sphinx-airflow-theme
           cp sphinx_airflow_theme/dist/* dist/sphinx-airflow-theme/
           cp sphinx_airflow_theme/LATEST_VERSION.txt dist/sphinx-airflow-theme/
+          echo "All theme packages (including previous versions):"
+          ls -la dist/sphinx-airflow-theme/
       - name: 🔄Refresh PMC/COMMITTERS profiles
         env:
           PMC_COMMITTERS_FILES: landing-pages/site/data/committers.json,landing-pages/site/data/pmc.json
