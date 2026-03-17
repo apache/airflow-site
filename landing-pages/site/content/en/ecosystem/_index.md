@@ -203,6 +203,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [PowerBI-Airflow-Plugin](https://github.com/ambika-garg/PowerBI_Airflow_Plugin) - The Airflow plugin for Power BI includes a custom Airflow operator designed to refresh Power BI datasets.
 
+[Provero](https://github.com/provero-org/provero) - Declarative data quality engine. Define checks in YAML that compile to batch SQL, with a built-in Apache Airflow provider.
+
 [Pylint-Airflow](https://github.com/BasPH/pylint-airflow) - A Pylint plugin for static code analysis on Airflow code.
 
 [Redactics](https://www.redactics.com) - A managed appliance (built on Airflow) installed next to your databases that powers a growing collection of data management workflows.
