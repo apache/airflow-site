@@ -65,6 +65,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Amazon MWAA Terraform Module](https://github.com/aws-ia/terraform-aws-mwaa) allows you to deploy Amazon Managed Workflows for Apache Airflow using the official Terraform module. For a full example on how to use Amazon MWAA, check out the [Data on EKS MWAA blueprint](https://awslabs.github.io/data-on-eks/docs/blueprints/job-schedulers/aws-managed-airflow).
 
+[Pre-installed Apache Airflow at HOSTKEY](https://hostkey.com/apps/data-science/apache-airflow/) - Ready-to-use Apache Airflow on rented virtual (VPS) or dedicated servers in Europe, the USA and Turkey.
+
 &nbsp;
 
 ## Third Party Airflow Plugins and Providers
