@@ -30,7 +30,10 @@ def get_html_theme_path():
 
 def setup_my_func(app, config):
     # We can't set this in the theme.conf, cos we want it to be a non-string type
-    config.html_theme_options.setdefault('navbar_links', [{'href': '/index.html', 'text': 'Documentation'}])
+    config.html_theme_options.setdefault('navbar_links', [
+        {'href': '/index.html', 'text': 'Documentation'},
+        {'href': '/registry/', 'text': 'Registry'},
+    ])
 
 
 # See http://www.sphinx-doc.org/en/stable/theming.html#distribute-your-theme-as-a-python-package
