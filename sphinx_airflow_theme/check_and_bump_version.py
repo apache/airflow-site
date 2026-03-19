@@ -47,7 +47,7 @@ def compute_theme_hash() -> str:
     """
     h = hashlib.sha256()
     for f in sorted(THEME_MODULE.rglob("*")):
-        if not f.is_file():
+        if not f.is_file() or "__pycache__" in f.parts:
             continue
         relative = f.relative_to(REPO_ROOT)
         h.update(f"{relative}\n".encode())
