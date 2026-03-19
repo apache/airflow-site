@@ -4,9 +4,9 @@ linkTitle: "Introducing the Apache Airflow Registry"
 author: "Kaxil Naik"
 github: "kaxil"
 linkedin: "kaxil"
-description: "The Apache Airflow Registry is a searchable catalog of 99 providers and 1,600+ modules — operators, hooks, sensors, triggers, and more — now live on airflow.apache.org."
+description: "The Apache Airflow Registry is a searchable catalog of 98 providers and 1,600+ modules — operators, hooks, sensors, triggers, and more — now live on airflow.apache.org."
 tags: [Community]
-date: "2026-03-16"
+date: "2026-03-19"
 ---
 
 Today we're launching the **[Apache Airflow Registry](https://airflow.apache.org/registry/)** — a searchable catalog of every official Airflow provider and its modules, live at [airflow.apache.org/registry/](https://airflow.apache.org/registry/).
@@ -19,8 +19,8 @@ Need an S3 operator? A Snowflake hook? An OpenAI sensor? The Registry helps you 
 
 | | |
 |---|---|
-| **99** | Official providers |
-| **1,614** | Modules (operators, hooks, sensors, triggers, transfers, and more) |
+| **98** | Official providers |
+| **1,602** | Modules (operators, hooks, sensors, triggers, transfers, and more) |
 | **329M+** | Monthly PyPI downloads across all providers |
 | **125+** | Integrations with cloud platforms, databases, ML tools, and messaging services |
 
@@ -54,7 +54,7 @@ Not sure which provider you need? The **[Explore page](https://airflow.apache.or
 
 ## Statistics
 
-The **[Stats page](https://airflow.apache.org/registry/stats/)** breaks down the ecosystem: **853 operators**, **300 hooks**, **164 triggers**, **157 sensors**, **83 transfers**, and more — plus top providers by downloads and module count.
+The **[Stats page](https://airflow.apache.org/registry/stats/)** breaks down the ecosystem: **848 operators**, **298 hooks**, **164 triggers**, **157 sensors**, **83 transfers**, and more — plus top providers by downloads and module count.
 
 ![Registry statistics showing module distribution by type](images/stats-page.png)
 
@@ -74,7 +74,7 @@ Full theme support with dark mode as the default. One click to switch.
 
 ## Standing on Shoulders
 
-The Airflow Registry is a community-owned successor to the [Astronomer Registry](https://registry.astronomer.io), which [Astronomer](https://www.astronomer.io) and Josh Fell built and maintained for years as the go-to place to discover Airflow providers. Their work proved the value of a searchable provider catalog and shaped what this new registry is.
+The Apache Airflow PMC would like to thank [Astronomer](https://www.astronomer.io) for building and maintaining the Astronomer Registry for years — it was the go-to place to discover Airflow providers and proved the value of a searchable provider catalog. That work directly shaped this community-owned registry.
 
 The Apache Airflow Registry lives at `airflow.apache.org`, is built from the same repo as the providers, and updates automatically when new versions are published.
 
@@ -82,7 +82,7 @@ The Apache Airflow Registry lives at `airflow.apache.org`, is built from the sam
 
 This is the first release of the Registry. Here's what's coming:
 
-- **Third-party provider support** — list community-built providers alongside the official ones
+- **Third-party provider support** — we're exploring options to list community-built providers alongside the official ones
 - **Richer module pages** — dedicated pages per module with full parameter docs and usage examples
 
 ## Get Involved
