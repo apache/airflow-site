@@ -271,7 +271,7 @@ A built-in plugin adds the review UI to the Airflow web interface.
 
 ![Human-in-the-loop approval interface showing the generated output with approve, reject, and modify options](images/hitl-approval.png)
 
-![Human-in-the-loop review tab in the task instance page](images/hitl-review-tab.png)
+![Human-in-the-loop review tab in the task instance page](images/HITLReviewTab.gif)
 
 
 ## Durable Execution
