@@ -92,9 +92,11 @@ with DAG(
     combine_player_stats()
 ```
 
-See `example_asset_partition.py` and the Task SDK API docs for `PartitionedAssetTimetable` and partition mappers.
+See [`example_asset_partition.py`](https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/example_dags/example_asset_partition.py) and the Task SDK API docs for `PartitionedAssetTimetable` and partition mappers.
 
 # 🏢 Multi-Team Deployments (AIP-67): Airflow for the Enterprise
+
+> ⚠️ **Experimental**: Multi-Team support is experimental in Airflow 3.2 and may change in future releases based on user feedback.
 
 Airflow 3.2 introduces multi-team support, allowing organizations to run multiple isolated teams within a single Airflow deployment. Each team can have its own Dags, connections, variables, pools, and executors— enabling true resource and permission isolation without requiring separate Airflow instances per team.
 
@@ -123,11 +125,13 @@ export AIRFLOW__CORE__MULTI_TEAM=True
 
 # ⏰ Deadline Alerts: Now With Synchronous Callbacks (AIP-86)
 
+> ⚠️ **Experimental**: Deadline Alerts are experimental in Airflow 3.2 and may change in future releases based on user feedback.
+
 Building on the Deadline Alerts system introduced in Airflow 3.1, this release adds synchronous callback support. In 3.1, callbacks ran through the triggerer (async only), which limited integration options. Synchronous callbacks execute directly via the executor, with optional targeting of a specific executor via the executor parameter.
 
 ## What's New in 3.2
 
-* **SyncCallback support**: Callbacks now execute via the executor, not the triggerer, with optional executor targeting
+* **SyncCallback support**: Unlike `AsyncCallback` which runs on the triggerer, `SyncCallback` executes directly on the worker via the executor, with optional targeting of a specific executor
 * **Multiple Deadline Alerts per Dag**: Pass a list to the deadline parameter to configure multiple thresholds on a single Dag
 * **Missed-deadline metadata in Grid API**: Dag run API now includes missed-deadline information for programmatic monitoring
 * **Improved UX for custom DeadlineReferences**: Cleaner developer experience when defining custom deadline reference points (#57222)
