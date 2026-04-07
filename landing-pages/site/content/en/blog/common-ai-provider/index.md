@@ -145,7 +145,7 @@ sql_generator()
 
 ### `@task.llm_file_analysis`: Analyze Files with LLMs
 
-Point it at files in object storage (S3, GCS, local) and let the LLM analyze them. Supports CSV, Parquet, Avro, JSON, Markdown, and images (multimodal).
+Point it at files in object storage (S3, GCS, local) and let the LLM analyze them. Supports CSV, Parquet, Avro, JSON, and images (multimodal).
 
 ![LLM analyzing a CSV file — identifying columns, counting rows, computing totals](images/file-analysis-csv.png)
 
