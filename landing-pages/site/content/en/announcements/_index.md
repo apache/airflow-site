@@ -11,6 +11,16 @@ menu:
 &nbsp;
 &nbsp;
 
+# April 07, 2026
+
+We've just released Apache Airflow 3.2.0 🎉
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.2.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.2.0/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.2.0/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.2.0" \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.2.0
+
 # March 22, 2026
 
 We've just released Apache **Airflow Helm chart 1.20.0**.
