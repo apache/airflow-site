@@ -234,6 +234,10 @@ async def load_xml_files(files):
                 # Do something with result or accumulate it and return it as an XCom
 ```
 
+# Updated securiy model
+
+We are working on improving isolation and improving security of Airflow deployments and in order to make our users better informed of what expectations they should have for Airflow security, we updated the security model to reflect changes implemented in Airflow 3.2.0 and explain future improvements that we work on in this area. See more:  [Airflow Security Model](https://airflow.apache.org/docs/apache-airflow/stable/security/security_model.html).
+
 # 🙏 Community Appreciation
 
 This release represents the collaborative effort of hundreds of contributors from around the world. Special thanks to our release manager and all the developers, documentarians, testers, and community members who made Airflow 3.2.0 possible.
