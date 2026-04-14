@@ -5,7 +5,7 @@ authors:
   - name: "Vikram Koka"
     github: "vikramkoka"
     linkedin: "vikramkoka"
-description: "A walkthrough of two natural language analysis pipelines over the 2025 Airflow Community Survey — an interactive human-in-the-loop version and a fully automated scheduled version — using operators from the common.ai and common.sql providers."
+description: "A walkthrough of two natural language analysis pipelines over the 2025 Airflow Community Survey, covering an interactive human-in-the-loop version and a fully automated scheduled version, using operators from the common.ai and common.sql providers."
 tags: [Community, Tutorial]
 date: "2026-04-XX"
 images: ["/blog/ai-survey-analysis-pipelines/images/survey-pipeline-dag.png"]
@@ -17,14 +17,14 @@ or write SQL by hand. But what if you could just ask a question and have Airflow
 the query, run it, and bring the result back for your approval?
 
 This post builds two pipelines that do exactly that, using the
-[`apache-airflow-providers-common-ai`](https://airflow.apache.org/blog/common-ai-provider/)
+[`apache-airflow-providers-common-ai`](https://pypi.org/project/apache-airflow-providers-common-ai/)
 provider released with Airflow 3.
 
 The first pipeline is **interactive**: a human reviews the question before it reaches the LLM
 and approves the result before the DAG finishes. The second is **scheduled**: it downloads
 fresh survey data, validates the schema, runs the query unattended, and emails the result.
 
-If you haven't seen the common.ai provider overview yet, start there for a tour of all the
+If you haven't seen the [common.ai provider overview](https://airflow.apache.org/blog/common-ai-provider/) yet, start there for a tour of all the
 operators. This post goes deep on a concrete end-to-end example.
 
 
@@ -34,14 +34,14 @@ Both DAGs live in
 [`example_llm_survey_analysis.py`](https://github.com/apache/airflow/tree/main/providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_survey_analysis.py)
 and share the same schema context and datasource configuration.
 
-**`example_llm_survey_interactive`** — trigger manually, review at both ends:
+**`example_llm_survey_interactive`**: trigger manually, review at both ends:
 
 ```
 prompt_confirmation  →  generate_sql  →  run_query  →  extract_data  →  result_confirmation
 (HITLEntryOperator)     (LLMSQLQuery)    (Analytics)    (@task)          (ApprovalOperator)
 ```
 
-**`example_llm_survey_scheduled`** — runs `@monthly`, no human in the loop:
+**`example_llm_survey_scheduled`**: runs `@monthly`, no human in the loop:
 
 ```
 download_survey  →  prepare_csv  →  check_schema  →  generate_sql  →  run_query  →  extract_data  →  send_result
@@ -80,7 +80,7 @@ Five tasks. No external services beyond your LLM provider and a local copy of th
 | 1 | `HITLEntryOperator` | DAG pauses. Human reviews and optionally edits the question. |
 | 2 | `LLMSQLQueryOperator` | LLM translates the confirmed question into SQL, validated by sqlglot. |
 | 3 | `AnalyticsOperator` | Apache DataFusion executes the SQL against the local CSV. |
-| 4 | `@task extract_data` | Strips the query from the JSON result — reviewer sees only data rows. |
+| 4 | `@task extract_data` | Strips the query from the JSON result so the reviewer sees only data rows. |
 | 5 | `ApprovalOperator` | DAG pauses again. Human approves or rejects the result. |
 
 The LLM and DataFusion steps run unattended. The human shows up at step 1 to confirm the
@@ -139,14 +139,14 @@ def example_llm_survey_interactive():
 
 ## Walking Through a Run
 
-**Step 1 — Prompt confirmation.** Trigger the DAG and navigate to the HITL review tab.
+**Step 1: Prompt confirmation.** Trigger the DAG and navigate to the HITL review tab.
 The default question appears in an editable field. Change it to anything the schema supports,
 or leave it as-is and confirm.
 
 > *"How does AI tool usage for writing Airflow code compare between Airflow 3 users and Airflow 2 users?"*
 
-**Step 2 — SQL generation.** `LLMSQLQueryOperator` receives the confirmed question, constructs
-a system prompt from `SURVEY_SCHEMA`, and calls the LLM. It returns validated SQL — sqlglot
+**Step 2: SQL generation.** `LLMSQLQueryOperator` receives the confirmed question, constructs
+a system prompt from `SURVEY_SCHEMA`, and calls the LLM. It returns validated SQL. sqlglot
 parses the output and rejects anything that isn't a `SELECT`. The generated query goes to XCom.
 
 ```sql
@@ -161,15 +161,15 @@ GROUP BY airflow_version, ai_usage
 ORDER BY airflow_version, respondents DESC
 ```
 
-**Step 3 — DataFusion execution.** `AnalyticsOperator` loads the CSV into a DataFusion
+**Step 3: DataFusion execution.** `AnalyticsOperator` loads the CSV into a DataFusion
 `SessionContext`, registers it as the `survey` table, and executes the SQL in-process.
 No database server, no network call. The 5,856-row CSV runs in under a second.
 
-**Step 4 — Extract data.** The raw JSON from `AnalyticsOperator` includes the original
+**Step 4: Extract data.** The raw JSON from `AnalyticsOperator` includes the original
 query string alongside the result rows. This `@task` strips the query so the reviewer
 isn't looking at SQL when they should be looking at data.
 
-**Step 5 — Result confirmation.** The data rows appear in the Airflow UI approval dialog.
+**Step 5: Result confirmation.** The data rows appear in the Airflow UI approval dialog.
 The analyst reads the result, clicks Approve (or Reject if something looks off), and the
 DAG completes.
 
@@ -192,7 +192,7 @@ with no human steps.
 
 The schema check at step 3 is worth calling out. `LLMSchemaCompareOperator` compares the
 live download against a reference file derived from `SURVEY_SCHEMA`. If the survey format
-changes between runs — a renamed column, a dropped field — the operator catches it before
+changes between runs (a renamed column, a dropped field), the operator catches it before
 any SQL runs, rather than failing silently mid-pipeline with a cryptic DataFusion error.
 
 ```python
@@ -284,7 +284,7 @@ Both DAGs use `llm_conn_id="pydanticai_default"`. Create a connection in the Air
 | Google Vertex | `pydanticai-vertex` | Extra: `{"model": "google-vertex:gemini-2.0-flash", "project": "...", "vertexai": true}` |
 | AWS Bedrock | `pydanticai-bedrock` | Extra: `{"model": "bedrock:us.anthropic.claude-opus-4-5", "region_name": "us-east-1"}` |
 
-Switch providers by changing the connection — neither DAG requires any code changes.
+Switch providers by changing the connection. Neither DAG requires any code changes.
 
 For the scheduled DAG, also create an HTTP connection named `airflow_website` with host
 `https://airflow.apache.org` (no auth required), and optionally set the `SMTP_CONN_ID`
@@ -304,13 +304,13 @@ worker. There's no database to configure, no connection to manage for the data i
 it at a file URI and it runs.
 
 **Schema-aware data validation.** `LLMSchemaCompareOperator` uses an LLM to compare schemas
-and surface structural changes in plain language — not a column count diff, but an explanation
+and surface structural changes in plain language, not a column count diff, but an explanation
 of what changed and why it matters for downstream queries. It turns a silent mid-pipeline
 failure into an early, actionable error.
 
 **Human oversight without blocking automation.** The `HITLEntryOperator` and `ApprovalOperator`
 are standard Airflow operators from `airflow.providers.standard.operators.hitl`. They have no
-AI imports — they just pause the DAG and wait. The interactive pipeline uses them at both ends;
+AI imports. They just pause the DAG and wait. The interactive pipeline uses them at both ends;
 the scheduled pipeline skips them entirely. Adding or removing human review requires no changes
 to the LLM or DataFusion steps.
 
@@ -338,7 +338,7 @@ For the scheduled DAG: create the `airflow_website` HTTP connection, set `SMTP_C
 `NOTIFY_EMAIL` if you want email delivery, and trigger `example_llm_survey_scheduled`.
 
 To go further, the follow-on post [Agentic Workloads on Airflow 3](https://airflow.apache.org/blog/agentic-workloads-airflow-3/)
-extends this example into a multi-query synthesis pattern — answering questions that require
+extends this example into a multi-query synthesis pattern, answering questions that require
 querying several dimensions in parallel and synthesizing the results with a second LLM call.
 
 Questions, feedback, and survey queries that stumped the LLM are all welcome on
