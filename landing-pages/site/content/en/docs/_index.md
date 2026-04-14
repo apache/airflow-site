@@ -109,6 +109,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-cohere/stable/index.html"><code>Cohere</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-common-ai/stable/index.html"><code>Common AI</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-common-compat/stable/index.html"><code>Common Compat</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-common-io/stable/index.html"><code>Common IO</code></a></li>
