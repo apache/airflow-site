@@ -191,7 +191,7 @@ Four toolsets ship with the provider:
 | **`SQLToolset`** | `list_tables`, `get_schema`, `query`, `check_query` for any `DbApiHook` database |
 | **`HookToolset`** | Wraps any Airflow hook's methods as agent tools |
 | **`MCPToolset`** | Connects to external [MCP](https://modelcontextprotocol.io/) servers via Airflow Connections |
-| **`DataFusionToolset`** | SQL over files in object storage (S3, GCS, Azure Blob) via Apache DataFusion |
+| **`DataFusionToolset`** | SQL over files in object storage (S3, other to come soon) via Apache DataFusion |
 
 All toolsets resolve connections lazily through `BaseHook.get_connection()`. No hardcoded keys.
 
