@@ -10,7 +10,7 @@ authors:
     linkedin: "pavan-kumar-gopidesu"
 description: "The Common AI Provider adds LLM and AI agent operators to Apache Airflow with 6 operators, 5 toolsets, and 20+ model providers in one package."
 tags: [Community, Release]
-date: "2026-04-03"
+date: "2026-04-14"
 images: ["/blog/common-ai-provider/images/common-ai-provider.png"]
 ---
 
