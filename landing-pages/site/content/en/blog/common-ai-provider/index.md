@@ -149,9 +149,7 @@ Point it at files in object storage (S3, GCS, local) and let the LLM analyze the
 
 ![LLM analyzing a CSV file — identifying columns, counting rows, computing totals](images/file-analysis-csv.png)
 
-It also handles multimodal input. Set `multi_modal=True` and the operator sends images and PDFs as binary attachments to the LLM:
-
-![Multimodal file analysis — LLM describing components from an architecture diagram image](images/file-analysis-image.png)
+It also handles multimodal input. Set `multi_modal=True` and the operator sends images and PDFs as binary attachments to the LLM.
 
 ### `@task.llm_schema_compare`: Cross-Database Schema Drift
 
