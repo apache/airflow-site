@@ -7,7 +7,7 @@ authors:
     linkedin: "vikramkoka"
 description: "A walkthrough of two natural language analysis pipelines over the 2025 Airflow Community Survey, covering an interactive human-in-the-loop version and a fully automated scheduled version, using operators from the common.ai and common.sql providers."
 tags: [Community, Tutorial]
-date: "2026-04-XX"
+date: "2026-04-15"
 ---
 
 The [2025 Airflow Community Survey](https://airflow.apache.org/survey/) collected responses

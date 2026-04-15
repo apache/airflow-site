@@ -7,7 +7,7 @@ authors:
     linkedin: "vikramkoka"
 description: "How Dynamic Task Mapping and the common.ai provider turn a multi-dimensional research question into a fan-out/fan-in pipeline where every LLM call is a named, logged, independently retryable task, not a hidden step inside a reasoning loop."
 tags: [Community, Tutorial]
-date: "2026-04-XX"
+date: "2026-04-15"
 images: ["/blog/agentic-workloads-airflow-3/images/agentic-approval-dialog.png"]
 ---
 
