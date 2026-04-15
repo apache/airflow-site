@@ -8,7 +8,7 @@ authors:
 description: "How Dynamic Task Mapping and the common.ai provider turn a multi-dimensional research question into a fan-out/fan-in pipeline where every LLM call is a named, logged, independently retryable task, not a hidden step inside a reasoning loop."
 tags: [Community, Tutorial]
 date: "2026-04-XX"
-images: ["/blog/agentic-workloads-airflow-3/images/agentic-fanout-dag.png"]
+images: ["/blog/blog-agentic-workloads-airflow-3/images/agentic-approval-dialog.png"]
 ---
 
 A question like "How does AI tool usage vary across Airflow versions?" has a natural SQL shape: one cross-tabulation, one result. A question like "What does a typical Airflow deployment look like for practitioners who are actively using AI in their workflow?" does not. It requires querying executor type, deployment method, cloud provider, and Airflow version independently, each filtered to the same respondent group, then synthesizing the results into a coherent picture. No single query returns the answer. The answer emerges from the relationship between all of them.
@@ -79,25 +79,23 @@ Seven tasks. Four of them run in parallel. Two LLM calls total: one for SQL gene
 @task
 def decompose_question() -> list[str]:
     return [
-        (
-            "Among respondents who use AI/LLM tools to write Airflow code, "
-            "what executor types (CeleryExecutor, KubernetesExecutor, LocalExecutor) "
-            "are most commonly enabled? Return the count per executor type."
-        ),
-        (
-            "Among respondents who use AI/LLM tools to write Airflow code, "
-            "how do they deploy Airflow? Return the count per deployment method."
-        ),
-        (
-            "Among respondents who use AI/LLM tools to write Airflow code, "
-            "which cloud providers are most commonly used for Airflow? "
-            "Return the count per cloud provider."
-        ),
-        (
-            "Among respondents who use AI/LLM tools to write Airflow code, "
-            "what version of Airflow are they currently running? "
-            "Return the count per version."
-        ),
+        """\
+Among respondents who use AI/LLM tools to write Airflow code,
+what executor types (CeleryExecutor, KubernetesExecutor, LocalExecutor)
+are most commonly enabled? Count an executor as enabled only if the
+column value is clearly affirmative. Treat blank, NULL, and negative
+values as not enabled. Return the count per executor type.""",
+        """\
+Among respondents who use AI/LLM tools to write Airflow code,
+how do they deploy Airflow? Return the count per deployment method.""",
+        """\
+Among respondents who use AI/LLM tools to write Airflow code,
+which cloud providers are most commonly used for Airflow?
+Return the count per cloud provider.""",
+        """\
+Among respondents who use AI/LLM tools to write Airflow code,
+what version of Airflow are they currently running?
+Return the count per version.""",
     ]
 
 sub_questions = decompose_question()
@@ -165,7 +163,7 @@ This is where independent retry earns its value. If the cloud provider query ret
 # Order must match the sub-questions returned by decompose_question.
 # Airflow preserves mapped task output ordering by index, so this zip is safe.
 
-@task(trigger_rule="all_success")
+@task
 def collect_results(results: list[str]) -> dict:
     labeled: dict[str, list] = {}
     for key, raw in zip(DIMENSION_KEYS, results):
@@ -195,22 +193,20 @@ All four result sets in one XCom entry. This is the input to the synthesis step.
 
 `LLMOperator` takes the collected results and produces a narrative. This is the synthesis step, the part of the pipeline that could not exist without all four sub-queries having completed first:
 
+The `generate_sql` step also receives a `system_prompt=SQL_SYSTEM_PROMPT` that instructs the LLM on quoting conventions, AI usage filter semantics, and how to handle blank/NULL/ambiguous values. That system prompt is defined once at the module level and shared across all four mapped instances.
+
 ```python
 synthesize_answer = LLMOperator(
     task_id="synthesize_answer",
     llm_conn_id=LLM_CONN_ID,
-    system_prompt=(
-        "You are a data analyst summarizing survey results about Apache Airflow practitioners. "
-        "Write in plain, concise language suitable for a technical audience. "
-        "Focus on patterns and proportions rather than raw counts."
-    ),
-    prompt=(
-        "Given these four independent survey query results about practitioners "
-        "who use AI tools to write Airflow code, write a 2-3 sentence "
-        "characterization of what a typical Airflow deployment looks like for "
-        "this group.\n\n"
-        "Results: {{ ti.xcom_pull(task_ids='collect_results') }}"
-    ),
+    system_prompt=SYNTHESIS_SYSTEM_PROMPT,
+    prompt="""\
+Given these four independent survey query results about practitioners
+who use AI tools to write Airflow code, write a 2-3 sentence
+characterization of what a typical Airflow deployment looks like for
+this group.
+
+Results: {{ ti.xcom_pull(task_ids='collect_results') }}""",
 )
 collected >> synthesize_answer
 ```
@@ -228,7 +224,11 @@ The output, a 2-3 sentence characterization, goes to XCom and then to the final 
 
 **Steps 2–4: Fan-out.** Twelve mapped task instances run: four `generate_sql`, four `wrap_query`, four `run_query`. In the Airflow UI, these appear as three rows of four parallel task instances. Each SQL generation call goes to the LLM; each DataFusion execution runs in-process against the CSV.
 
-<!-- SCREENSHOT PLACEHOLDER: Airflow UI Grid view showing the fan-out — three rows of four mapped instances (generate_sql[0..3], wrap_query[0..3], run_query[0..3]) all in success state, converging to collect_results → synthesize_answer → result_confirmation. Capture after a full successful run. -->
+{{< figure src="images/agentic-generate-sql-logs.png" alt="generate_sql[3] task logs showing the LLM-generated SQL query" caption="Each mapped generate_sql instance has its own log showing the prompt, generated SQL, and sqlglot validation." >}}
+
+{{< figure src="images/agentic-collect-results-xcom.png" alt="collect_results XCom showing labeled dimension data" caption="The collect_results task labels each sub-query result by dimension key. All four result sets are visible in XCom." >}}
+
+{{< figure src="images/agentic-approval-dialog.png" alt="ApprovalOperator showing the synthesized narrative" caption="The final ApprovalOperator presents the LLM-synthesized narrative for human review." >}}
 
 A representative generated query for the executor dimension:
 

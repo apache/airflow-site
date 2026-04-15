@@ -8,7 +8,6 @@ authors:
 description: "A walkthrough of two natural language analysis pipelines over the 2025 Airflow Community Survey, covering an interactive human-in-the-loop version and a fully automated scheduled version, using operators from the common.ai and common.sql providers."
 tags: [Community, Tutorial]
 date: "2026-04-XX"
-images: ["/blog/ai-survey-analysis-pipelines/images/survey-pipeline-dag.png"]
 ---
 
 The [2025 Airflow Community Survey](https://airflow.apache.org/survey/) collected responses
@@ -87,7 +86,7 @@ The LLM and DataFusion steps run unattended. The human shows up at step 1 to con
 question and at step 5 to sign off on the answer. Everything in between is automated.
 
 ```python
-@dag(schedule=None)
+@dag
 def example_llm_survey_interactive():
 
     prompt_confirmation = HITLEntryOperator(
@@ -95,7 +94,7 @@ def example_llm_survey_interactive():
         subject="Review the survey analysis question",
         params={
             "prompt": Param(
-                "How does AI tool usage for writing Airflow code compare between Airflow 3 users and Airflow 2 users?",
+                INTERACTIVE_PROMPT,
                 type="string",
                 description="The natural language question to answer via SQL",
             )
@@ -106,7 +105,7 @@ def example_llm_survey_interactive():
     generate_sql = LLMSQLQueryOperator(
         task_id="generate_sql",
         prompt="{{ ti.xcom_pull(task_ids='prompt_confirmation')['params_input']['prompt'] }}",
-        llm_conn_id="pydanticai_default",
+        llm_conn_id=LLM_CONN_ID,
         datasource_config=survey_datasource,
         schema_context=SURVEY_SCHEMA,
     )
@@ -129,11 +128,11 @@ def example_llm_survey_interactive():
     result_confirmation = ApprovalOperator(
         task_id="result_confirmation",
         subject="Review the survey query result",
-        body="{{ ti.xcom_pull(task_ids='extract_data') }}",
+        body=result_data,
         response_timeout=datetime.timedelta(hours=1),
     )
 
-    prompt_confirmation >> generate_sql >> run_query >> result_data >> result_confirmation
+    prompt_confirmation >> generate_sql >> run_query
 ```
 
 
@@ -188,7 +187,7 @@ with no human steps.
 | 4 | `LLMSQLQueryOperator` | Translates the fixed question into validated SQL. |
 | 5 | `AnalyticsOperator` | Executes the SQL via DataFusion. |
 | 6 | `@task extract_data` | Extracts data rows from the JSON result. |
-| 7 | `@task send_result` | Sends the result via `EmailOperator` if `SMTP_CONN_ID` and `NOTIFY_EMAIL` are set, otherwise logs to the task log. |
+| 7 | `@task send_result` | Sends the result via `SmtpHook` if `SMTP_CONN_ID` and `NOTIFY_EMAIL` are set, otherwise logs to the task log. |
 
 The schema check at step 3 is worth calling out. `LLMSchemaCompareOperator` compares the
 live download against a reference file derived from `SURVEY_SCHEMA`. If the survey format
@@ -196,15 +195,13 @@ changes between runs (a renamed column, a dropped field), the operator catches i
 any SQL runs, rather than failing silently mid-pipeline with a cryptic DataFusion error.
 
 ```python
-@dag(schedule="@monthly", start_date=None)
+@dag(schedule="@monthly", start_date=datetime.datetime(2025, 1, 1), catchup=False)
 def example_llm_survey_scheduled():
-
-    from airflow.providers.http.operators.http import HttpOperator
 
     download_survey = HttpOperator(
         task_id="download_survey",
-        http_conn_id="airflow_website",
-        endpoint="/survey/airflow-user-survey-2025.csv",
+        http_conn_id=AIRFLOW_WEBSITE_CONN_ID,
+        endpoint=SURVEY_CSV_ENDPOINT,
         method="GET",
         response_filter=lambda r: r.text,
         log_response=False,
@@ -212,7 +209,6 @@ def example_llm_survey_scheduled():
 
     @task
     def prepare_csv(csv_text: str) -> None:
-        import csv as csv_mod, os
         os.makedirs(os.path.dirname(SURVEY_CSV_PATH), exist_ok=True)
         with open(SURVEY_CSV_PATH, "w", encoding="utf-8") as f:
             f.write(csv_text)
@@ -225,7 +221,7 @@ def example_llm_survey_scheduled():
     check_schema = LLMSchemaCompareOperator(
         task_id="check_schema",
         prompt="Compare the survey CSV schema against the reference. Flag missing or renamed columns.",
-        llm_conn_id="pydanticai_default",
+        llm_conn_id=LLM_CONN_ID,
         data_sources=[survey_datasource, reference_datasource],
         context_strategy="basic",
     )
@@ -234,7 +230,7 @@ def example_llm_survey_scheduled():
     generate_sql = LLMSQLQueryOperator(
         task_id="generate_sql",
         prompt=SCHEDULED_PROMPT,
-        llm_conn_id="pydanticai_default",
+        llm_conn_id=LLM_CONN_ID,
         datasource_config=survey_datasource,
         schema_context=SURVEY_SCHEMA,
     )
@@ -258,14 +254,13 @@ def example_llm_survey_scheduled():
     @task
     def send_result(data: str) -> None:
         if SMTP_CONN_ID and NOTIFY_EMAIL:
-            from airflow.providers.smtp.operators.smtp import EmailOperator
-            EmailOperator(
-                task_id="_send_email",
-                smtp_conn_id=SMTP_CONN_ID,
-                to=NOTIFY_EMAIL,
-                subject=f"Airflow Survey Analysis: {SCHEDULED_PROMPT}",
-                html_content=f"<pre>{data}</pre>",
-            ).execute({})
+            from airflow.providers.smtp.hooks.smtp import SmtpHook
+            with SmtpHook(smtp_conn_id=SMTP_CONN_ID) as hook:
+                hook.send_email_smtp(
+                    to=NOTIFY_EMAIL,
+                    subject=f"Airflow Survey Analysis: {SCHEDULED_PROMPT}",
+                    html_content=f"<pre>{data}</pre>",
+                )
         else:
             print(f"Survey analysis result:\n{data}")
 
