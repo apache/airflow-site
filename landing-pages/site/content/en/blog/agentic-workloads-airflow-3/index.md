@@ -8,7 +8,7 @@ authors:
 description: "How Dynamic Task Mapping and the common.ai provider turn a multi-dimensional research question into a fan-out/fan-in pipeline where every LLM call is a named, logged, independently retryable task, not a hidden step inside a reasoning loop."
 tags: [Community, Tutorial]
 date: "2026-04-XX"
-images: ["/blog/blog-agentic-workloads-airflow-3/images/agentic-approval-dialog.png"]
+images: ["/blog/agentic-workloads-airflow-3/images/agentic-approval-dialog.png"]
 ---
 
 A question like "How does AI tool usage vary across Airflow versions?" has a natural SQL shape: one cross-tabulation, one result. A question like "What does a typical Airflow deployment look like for practitioners who are actively using AI in their workflow?" does not. It requires querying executor type, deployment method, cloud provider, and Airflow version independently, each filtered to the same respondent group, then synthesizing the results into a coherent picture. No single query returns the answer. The answer emerges from the relationship between all of them.
@@ -79,20 +79,20 @@ Seven tasks. Four of them run in parallel. Two LLM calls total: one for SQL gene
 @task
 def decompose_question() -> list[str]:
     return [
-        """\
+        """
 Among respondents who use AI/LLM tools to write Airflow code,
 what executor types (CeleryExecutor, KubernetesExecutor, LocalExecutor)
 are most commonly enabled? Count an executor as enabled only if the
 column value is clearly affirmative. Treat blank, NULL, and negative
 values as not enabled. Return the count per executor type.""",
-        """\
+        """
 Among respondents who use AI/LLM tools to write Airflow code,
 how do they deploy Airflow? Return the count per deployment method.""",
-        """\
+        """
 Among respondents who use AI/LLM tools to write Airflow code,
 which cloud providers are most commonly used for Airflow?
 Return the count per cloud provider.""",
-        """\
+        """
 Among respondents who use AI/LLM tools to write Airflow code,
 what version of Airflow are they currently running?
 Return the count per version.""",
@@ -200,7 +200,7 @@ synthesize_answer = LLMOperator(
     task_id="synthesize_answer",
     llm_conn_id=LLM_CONN_ID,
     system_prompt=SYNTHESIS_SYSTEM_PROMPT,
-    prompt="""\
+    prompt="""
 Given these four independent survey query results about practitioners
 who use AI tools to write Airflow code, write a 2-3 sentence
 characterization of what a typical Airflow deployment looks like for

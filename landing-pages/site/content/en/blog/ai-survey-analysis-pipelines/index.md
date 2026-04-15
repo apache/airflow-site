@@ -94,7 +94,8 @@ def example_llm_survey_interactive():
         subject="Review the survey analysis question",
         params={
             "prompt": Param(
-                INTERACTIVE_PROMPT,
+                "How does AI tool usage for writing Airflow code compare "
+                "between Airflow 3 users and Airflow 2 users?",
                 type="string",
                 description="The natural language question to answer via SQL",
             )
@@ -195,7 +196,7 @@ changes between runs (a renamed column, a dropped field), the operator catches i
 any SQL runs, rather than failing silently mid-pipeline with a cryptic DataFusion error.
 
 ```python
-@dag(schedule="@monthly", start_date=datetime.datetime(2025, 1, 1), catchup=False)
+@dag
 def example_llm_survey_scheduled():
 
     download_survey = HttpOperator(
