@@ -17,7 +17,7 @@ the query, run it, and bring the result back for your approval?
 
 This post builds two pipelines that do exactly that, using the
 [`apache-airflow-providers-common-ai`](https://pypi.org/project/apache-airflow-providers-common-ai/)
-provider released with Airflow 3.
+provider for Airflow 3.
 
 The first pipeline is **interactive**: a human reviews the question before it reaches the LLM
 and approves the result before the DAG finishes. The second is **scheduled**: it downloads
