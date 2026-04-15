@@ -20,9 +20,9 @@
 {{ printf "<?xml version=\"1.0\" encoding=\"utf-8\"?>" | safeHTML }}
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>{{ .Site.Title }} Blog</title>
-  <link href="{{ $base }}{{ .Permalink }}" rel="alternate"/>
-  <link href="{{ $base }}{{ .Permalink }}index.xml" rel="self" type="application/atom+xml"/>
-  <id>{{ $base }}{{ .Permalink }}</id>
+  <link href="{{ $base }}{{ .RelPermalink }}" rel="alternate"/>
+  <link href="{{ $base }}{{ .RelPermalink }}index.xml" rel="self" type="application/atom+xml"/>
+  <id>{{ $base }}{{ .RelPermalink }}</id>
 {{ $pages := sort .Pages "Lastmod" "desc" }}
 {{ with index $pages 0 }}
   <updated>{{ .Lastmod.Format "2006-01-02T15:04:05Z" }}</updated>
@@ -30,14 +30,15 @@
 {{ range sort .Pages "Lastmod" "desc" }}
   <entry>
     <title>{{ .Title }}</title>
-    <link href="{{ $base }}{{ .Permalink }}" rel="alternate"/>
-    <id>{{ $base }}{{ .Permalink }}</id>
+    <link href="{{ $base }}{{ .RelPermalink }}" rel="alternate"/>
+    <id>{{ $base }}{{ .RelPermalink }}</id>
     <published>{{ .PublishDate.Format "2006-01-02T15:04:05Z" }}</published>
     <updated>{{ .Lastmod.Format "2006-01-02T15:04:05Z" }}</updated>
     <author>
       <name>Apache Airflow</name>
     </author>
-    <content type="html">{{ printf "<![CDATA[%s]]>" .Content | safeHTML }}</content>
+    {{- $content := replace .Content "]]>" "]]]]><![CDATA[>" -}}
+    <content type="html">{{ printf "<![CDATA[%s]]>" $content | safeHTML }}</content>
   </entry>
   {{ end }}
 </feed>
