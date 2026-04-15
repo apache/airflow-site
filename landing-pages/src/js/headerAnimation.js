@@ -239,7 +239,7 @@ export function initHeaderAnimation() {
         // Dark mode support: dynamically set canvas background based on theme
         const isDarkMode = document.documentElement.getAttribute("data-bs-theme") === "dark";
         if (isDarkMode) {
-          sketch.background(26, 26, 26); // #1a1a1a to match dark navbar background
+          sketch.background(15, 17, 23); // #0f1117 to match dark body background
         } else {
           sketch.background(255, 255, 255);
         }
