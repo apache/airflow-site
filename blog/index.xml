@@ -6,15 +6,711 @@
   <id>https://airflow.apache.org/blog/</id>
 
 
-  <updated>2026-04-15T22:11:46Z</updated>
+  <updated>2026-04-15T14:55:13Z</updated>
 
 
+  <entry>
+    <title>Agentic Workloads on Airflow: Observable, Retryable, and Auditable by Design</title>
+    <link href="https://airflow.apache.org/blog/agentic-workloads-airflow-3/" rel="alternate"/>
+    <id>https://airflow.apache.org/blog/agentic-workloads-airflow-3/</id>
+    <published>2026-04-15T00:00:00Z</published>
+    <updated>2026-04-15T14:55:13Z</updated>
+    <author>
+      <name>Apache Airflow</name>
+    </author><content type="html"><![CDATA[<p>A question like &ldquo;How does AI tool usage vary across Airflow versions?&rdquo; has a natural SQL shape: one cross-tabulation, one result. A question like &ldquo;What does a typical Airflow deployment look like for practitioners who are actively using AI in their workflow?&rdquo; does not. It requires querying executor type, deployment method, cloud provider, and Airflow version independently, each filtered to the same respondent group, then synthesizing the results into a coherent picture. No single query returns the answer. The answer emerges from the relationship between all of them.</p>
+<p>This is where Airflow&rsquo;s agentic pattern begins: not when you add an LLM to a workflow, but when the structure of the work itself depends on running multiple LLM calls whose outputs feed a synthesis step. This post builds that pattern using the <a href="https://airflow.apache.org/survey/">2025 Airflow Community Survey</a> data set and the <a href="https://airflow.apache.org/blog/common-ai-provider/"><code>apache-airflow-providers-common-ai</code></a> provider for Airflow 3.</p>
+<p>If you haven&rsquo;t read the <a href="https://airflow.apache.org/blog/ai-survey-analysis-pipelines/">introductory survey analysis post</a> yet, start there for a walkthrough of the single-query interactive and scheduled pipelines. This post picks up where that one ends.</p>
+<h2 id="the-agentic-gap-in-the-single-query-pattern">The Agentic Gap in the Single-Query Pattern</h2>
+<p>The interactive and scheduled survey DAGs from the introductory post each do one thing: translate a natural language question into SQL, execute it against the CSV, and return the result. The LLM is involved once. The structure of the pipeline does not change based on what that LLM call returns.</p>
+<p>That is not a limitation to fix. It is the right design for that class of question. For a large fraction of production AI workflows, a single well-structured LLM call with good context is sufficient and preferable.</p>
+<p>The pattern becomes agentic when two things are true simultaneously:</p>
+<ol>
+<li>The question requires querying multiple independent dimensions</li>
+<li>The synthesis step, the thing that produces the final answer, depends on <em>all</em> of those results</li>
+</ol>
+<p>In an agent harness framework, this would be handled inside a reasoning loop: the LLM decides to call a tool, receives a result, calls another tool, accumulates context, and eventually produces a synthesis. Each tool call is invisible to any outside observer. If one tool call fails, the loop either retries internally or fails entirely.</p>
+<p>In Airflow, the same logic takes a different shape. Each sub-query becomes a named task. The fan-out is Dynamic Task Mapping. The synthesis is a named task with its inputs in XCom. Every step is observable, independently retryable, and logged.</p>
+<h2 id="the-dag-example_llm_survey_agentic">The DAG: <code>example_llm_survey_agentic</code></h2>
+<p>The full DAG is in
+<a href="https://github.com/apache/airflow/tree/main/providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_survey_agentic.py"><code>example_llm_survey_agentic.py</code></a>.</p>
+<p><strong>Question:</strong> <em>&ldquo;What does a typical Airflow deployment look like for practitioners who actively use AI tools in their workflow?&rdquo;</em></p>
+<p><strong>Task graph:</strong></p>
+<pre tabindex="0"><code>decompose_question  →  generate_sql (×4)  →  wrap_query (×4)  →  run_query (×4)
+   (@task)              (LLMSQLQuery,          (@task,              (Analytics,
+                         mapped)                mapped)              mapped)
+                                                                         ↓
+                                                                  collect_results
+                                                                     (@task)
+                                                                         ↓
+                                                                  synthesize_answer
+                                                                    (LLMOperator)
+                                                                         ↓
+                                                                  result_confirmation
+                                                                   (ApprovalOperator)
+</code></pre><p>Seven tasks. Four of them run in parallel. Two LLM calls total: one for SQL generation (four instances), one for synthesis. One human review at the end.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Step</th>
+          <th>Operator</th>
+          <th>What happens</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td><code>@task decompose_question</code></td>
+          <td>Returns a list of four sub-questions, one per dimension.</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td><code>LLMSQLQueryOperator</code> (mapped ×4)</td>
+          <td>Each sub-question becomes one SQL query, translated and validated in parallel.</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td><code>@task wrap_query</code> (mapped ×4)</td>
+          <td>Wraps each SQL string into a single-element list for <code>AnalyticsOperator</code>.</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td><code>AnalyticsOperator</code> (mapped ×4)</td>
+          <td>Apache DataFusion executes all four queries in parallel against the local CSV.</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td><code>@task collect_results</code></td>
+          <td>Gathers the four JSON results and labels each by dimension.</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td><code>LLMOperator</code></td>
+          <td>Reads all four labeled result sets and writes a narrative characterization.</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td><code>ApprovalOperator</code></td>
+          <td>Human reviews the synthesized narrative before the DAG completes.</td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="decomposing-the-question">Decomposing the Question</h2>
+<p><code>decompose_question</code> is a plain <code>@task</code> that returns the list of sub-questions. In this example, the list is static: the four dimensions are hardcoded as strings:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@task</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">decompose_question</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">[</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&#34;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">Among respondents who use AI/LLM tools to write Airflow code,
+</span></span></span><span class="line"><span class="cl"><span class="s2">what executor types (CeleryExecutor, KubernetesExecutor, LocalExecutor)
+</span></span></span><span class="line"><span class="cl"><span class="s2">are most commonly enabled? Count an executor as enabled only if the
+</span></span></span><span class="line"><span class="cl"><span class="s2">column value is clearly affirmative. Treat blank, NULL, and negative
+</span></span></span><span class="line"><span class="cl"><span class="s2">values as not enabled. Return the count per executor type.&#34;&#34;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&#34;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">Among respondents who use AI/LLM tools to write Airflow code,
+</span></span></span><span class="line"><span class="cl"><span class="s2">how do they deploy Airflow? Return the count per deployment method.&#34;&#34;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&#34;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">Among respondents who use AI/LLM tools to write Airflow code,
+</span></span></span><span class="line"><span class="cl"><span class="s2">which cloud providers are most commonly used for Airflow?
+</span></span></span><span class="line"><span class="cl"><span class="s2">Return the count per cloud provider.&#34;&#34;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&#34;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">Among respondents who use AI/LLM tools to write Airflow code,
+</span></span></span><span class="line"><span class="cl"><span class="s2">what version of Airflow are they currently running?
+</span></span></span><span class="line"><span class="cl"><span class="s2">Return the count per version.&#34;&#34;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">sub_questions</span> <span class="o">=</span> <span class="n">decompose_question</span><span class="p">()</span>
+</span></span></code></pre></div><p>The output of this task, a list of four strings, becomes the input to the <code>expand()</code> call on <code>LLMSQLQueryOperator</code> in the next step. Airflow creates one mapped task instance per list element.</p>
+<blockquote>
+<p><strong>Why keep this static?</strong> A dynamic version, where the LLM itself decomposes the high-level question into sub-questions at runtime, is possible and more agentic. It adds an LLM call before any SQL runs, which introduces latency and a failure point early in the graph. For a first example, static decomposition is clearer. The dynamic variant is a follow-on pattern.</p></blockquote>
+<h2 id="sql-generation-mapping-over-sub-questions">SQL Generation: Mapping Over Sub-Questions</h2>
+<p><code>LLMSQLQueryOperator.partial().expand()</code> creates one mapped task instance per sub-question. All four run in parallel, each translating one natural language question into validated SQL against the survey schema:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">generate_sql</span> <span class="o">=</span> <span class="n">LLMSQLQueryOperator</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;generate_sql&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">llm_conn_id</span><span class="o">=</span><span class="n">LLM_CONN_ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">datasource_config</span><span class="o">=</span><span class="n">survey_datasource</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">schema_context</span><span class="o">=</span><span class="n">SURVEY_SCHEMA</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="n">sub_questions</span><span class="p">)</span>
+</span></span></code></pre></div><p>In the Airflow UI, this renders as four task instances: <code>generate_sql[0]</code>, <code>generate_sql[1]</code>, <code>generate_sql[2]</code>, <code>generate_sql[3]</code>. Each has its own log, retry counter, and XCom entry. This is what an agent harness&rsquo;s parallel tool calls look like when they are made explicit.</p>
+<p>Each instance returns a single SQL string. <code>LLMSQLQueryOperator</code> validates the output with sqlglot before returning it. Anything that is not a <code>SELECT</code> statement is rejected.</p>
+<h2 id="the-wrap_query-bridge">The <code>wrap_query</code> Bridge</h2>
+<p><code>AnalyticsOperator</code> expects <code>queries: list[str]</code>, a list because it can run multiple queries in one execution. <code>LLMSQLQueryOperator</code> returns a single <code>str</code>. A small <code>@task</code> bridges the interface:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@task</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">wrap_query</span><span class="p">(</span><span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">[</span><span class="n">sql</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">wrapped_queries</span> <span class="o">=</span> <span class="n">wrap_query</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">sql</span><span class="o">=</span><span class="n">generate_sql</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</span></span></code></pre></div><p>This step is an implementation detail, not a conceptual one. Four mapped instances of <code>wrap_query</code> run in parallel, each converting one SQL string into a one-element list. The result is four <code>list[str]</code> values that <code>AnalyticsOperator</code> can consume directly.</p>
+<h2 id="parallel-execution-via-datafusion">Parallel Execution via DataFusion</h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">run_query</span> <span class="o">=</span> <span class="n">AnalyticsOperator</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;run_query&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">datasource_configs</span><span class="o">=</span><span class="p">[</span><span class="n">survey_datasource</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">    <span class="n">result_output_format</span><span class="o">=</span><span class="s2">&#34;json&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">queries</span><span class="o">=</span><span class="n">wrapped_queries</span><span class="p">)</span>
+</span></span></code></pre></div><p>Four mapped instances of <code>AnalyticsOperator</code> run in parallel. Each loads the survey CSV into an Apache DataFusion <code>SessionContext</code> in-process and executes its SQL against it. No database server, no shared state between instances.</p>
+<p>This is where independent retry earns its value. If the cloud provider query returns a DataFusion error due to a null value in that column, only <code>run_query[2]</code> fails. <code>run_query[0]</code>, <code>run_query[1]</code>, and <code>run_query[3]</code> have already succeeded and their results are in XCom. When <code>run_query[2]</code> is cleared and retried, the other three results are preserved.</p>
+<h2 id="collecting-and-labeling-results">Collecting and Labeling Results</h2>
+<p><code>collect_results</code> gathers all four outputs from <code>run_query</code> (Airflow passes the list of mapped outputs directly) and labels each one by dimension key:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># DIMENSION_KEYS = [&#34;executor&#34;, &#34;deployment&#34;, &#34;cloud&#34;, &#34;airflow_version&#34;]</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Order must match the sub-questions returned by decompose_question.</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Airflow preserves mapped task output ordering by index, so this zip is safe.</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@task</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">collect_results</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">labeled</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">DIMENSION_KEYS</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">items</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">&#34;data&#34;</span><span class="p">]]</span>
+</span></span><span class="line"><span class="cl">        <span class="n">labeled</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">labeled</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">collected</span> <span class="o">=</span> <span class="n">collect_results</span><span class="p">(</span><span class="n">run_query</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</span></span></code></pre></div><p>The output is a dict like:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;executor&#34;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&#34;KubernetesExecutor&#34;</span><span class="p">:</span> <span class="s2">&#34;Yes&#34;</span><span class="p">,</span> <span class="nt">&#34;count&#34;</span><span class="p">:</span> <span class="mi">847</span><span class="p">},</span> <span class="err">...</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;deployment&#34;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&#34;How do you deploy Airflow?&#34;</span><span class="p">:</span> <span class="s2">&#34;Managed Cloud Service&#34;</span><span class="p">,</span> <span class="nt">&#34;count&#34;</span><span class="p">:</span> <span class="mi">1203</span><span class="p">},</span> <span class="err">...</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;cloud&#34;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&#34;primary_cloud&#34;</span><span class="p">:</span> <span class="s2">&#34;AWS&#34;</span><span class="p">,</span> <span class="nt">&#34;count&#34;</span><span class="p">:</span> <span class="mi">891</span><span class="p">},</span> <span class="err">...</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;airflow_version&#34;</span><span class="p">:</span> <span class="p">[{</span><span class="nt">&#34;version&#34;</span><span class="p">:</span> <span class="s2">&#34;3.x&#34;</span><span class="p">,</span> <span class="nt">&#34;count&#34;</span><span class="p">:</span> <span class="mi">412</span><span class="p">},</span> <span class="err">...</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>All four result sets in one XCom entry. This is the input to the synthesis step.</p>
+<h2 id="synthesis-the-second-llm-call">Synthesis: The Second LLM Call</h2>
+<p><code>LLMOperator</code> takes the collected results and produces a narrative. This is the synthesis step, the part of the pipeline that could not exist without all four sub-queries having completed first:</p>
+<p>The <code>generate_sql</code> step also receives a <code>system_prompt=SQL_SYSTEM_PROMPT</code> that instructs the LLM on quoting conventions, AI usage filter semantics, and how to handle blank/NULL/ambiguous values. That system prompt is defined once at the module level and shared across all four mapped instances.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">synthesize_answer</span> <span class="o">=</span> <span class="n">LLMOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;synthesize_answer&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">llm_conn_id</span><span class="o">=</span><span class="n">LLM_CONN_ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">system_prompt</span><span class="o">=</span><span class="n">SYNTHESIS_SYSTEM_PROMPT</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">prompt</span><span class="o">=</span><span class="s2">&#34;&#34;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">Given these four independent survey query results about practitioners
+</span></span></span><span class="line"><span class="cl"><span class="s2">who use AI tools to write Airflow code, write a 2-3 sentence
+</span></span></span><span class="line"><span class="cl"><span class="s2">characterization of what a typical Airflow deployment looks like for
+</span></span></span><span class="line"><span class="cl"><span class="s2">this group.
+</span></span></span><span class="line"><span class="cl"><span class="s2">
+</span></span></span><span class="line"><span class="cl"><span class="s2">Results: {{ ti.xcom_pull(task_ids=&#39;collect_results&#39;) }}&#34;&#34;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">collected</span> <span class="o">&gt;&gt;</span> <span class="n">synthesize_answer</span>
+</span></span></code></pre></div><p><code>prompt</code> is a template field, so <code>{{ ti.xcom_pull(task_ids='collect_results') }}</code> renders the full dict at execution time. <code>system_prompt</code> maps to the PydanticAI agent&rsquo;s <code>instructions</code> parameter, so the framing instruction carries into every token the model generates.</p>
+<p>The output, a 2-3 sentence characterization, goes to XCom and then to the final approval step.</p>
+<blockquote>
+<p><strong>Inline HITL alternative:</strong> <code>LLMOperator</code> supports <code>require_approval=True</code> and <code>allow_modifications=True</code> as constructor parameters, via <code>LLMApprovalMixin</code>. Setting these eliminates the separate <code>ApprovalOperator</code> task and lets the reviewer edit the synthesized narrative directly before approving. Whether to use inline approval or a separate <code>ApprovalOperator</code> is a design choice; both produce the same result.</p></blockquote>
+<h2 id="walking-through-a-run">Walking Through a Run</h2>
+<p><strong>Step 1: Decompose.</strong> Trigger the DAG. <code>decompose_question</code> completes in milliseconds and returns the four sub-question strings.</p>
+<p><strong>Steps 2–4: Fan-out.</strong> Twelve mapped task instances run: four <code>generate_sql</code>, four <code>wrap_query</code>, four <code>run_query</code>. In the Airflow UI, these appear as three rows of four parallel task instances. Each SQL generation call goes to the LLM; each DataFusion execution runs in-process against the CSV.</p>
+<figure><img src="/blog/agentic-workloads-airflow-3/images/agentic-generate-sql-logs.png"
+    alt="generate_sql[3] task logs showing the LLM-generated SQL query"><figcaption>
+      <p>Each mapped generate_sql instance has its own log showing the prompt, generated SQL, and sqlglot validation.</p>
+    </figcaption>
+</figure>
+
+<figure><img src="/blog/agentic-workloads-airflow-3/images/agentic-collect-results-xcom.png"
+    alt="collect_results XCom showing labeled dimension data"><figcaption>
+      <p>The collect_results task labels each sub-query result by dimension key. All four result sets are visible in XCom.</p>
+    </figcaption>
+</figure>
+
+<figure><img src="/blog/agentic-workloads-airflow-3/images/agentic-approval-dialog.png"
+    alt="ApprovalOperator showing the synthesized narrative"><figcaption>
+      <p>The final ApprovalOperator presents the LLM-synthesized narrative for human review.</p>
+    </figcaption>
+</figure>
+
+<p>A representative generated query for the executor dimension:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="s2">&#34;CeleryExecutor&#34;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">&#39;CeleryExecutor&#39;</span><span class="w"> </span><span class="k">END</span><span class="w">        </span><span class="k">AS</span><span class="w"> </span><span class="n">executor_type</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">count</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="n">survey</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="s2">&#34;Are you using AI/LLM (ChatGPT/Cursor/Claude etc) to assist you in writing Airflow code?&#34;</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s1">&#39;No, I don&#39;&#39;t use AI to write Airflow code&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="s2">&#34;CeleryExecutor&#34;</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">executor_type</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="s2">&#34;KubernetesExecutor&#34;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">&#39;KubernetesExecutor&#39;</span><span class="w"> </span><span class="k">END</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="n">survey</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="s2">&#34;Are you using AI/LLM (ChatGPT/Cursor/Claude etc) to assist you in writing Airflow code?&#34;</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s1">&#39;No, I don&#39;&#39;t use AI to write Airflow code&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="s2">&#34;KubernetesExecutor&#34;</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- ... and so on
+</span></span></span></code></pre></div><p><strong>Step 5: Collect.</strong> <code>collect_results</code> assembles the four result sets into a labeled dict.</p>
+<p><strong>Step 6: Synthesize.</strong> <code>LLMOperator</code> calls the LLM once with all four result sets as context. A representative output:</p>
+<blockquote>
+<p>&ldquo;Among practitioners who actively use AI tools to write Airflow code, the majority (61%) deploy on a managed cloud service or cloud-native setup, with AWS as the primary cloud provider (38%). KubernetesExecutor is the dominant choice (54%), and this group is adopting Airflow 3.x at a notably higher rate than the survey population as a whole (29% vs. 21% overall).&rdquo;</p></blockquote>
+<p><strong>Step 7: Review.</strong> The <code>ApprovalOperator</code> presents the narrative in the Airflow UI. Approve to complete the DAG; reject to fail it and trigger a retry from the synthesis step if desired.</p>
+<h2 id="what-the-dag-topology-makes-explicit">What the DAG Topology Makes Explicit</h2>
+<p>The core difference between this pattern and the equivalent agent harness implementation is not the output. It is what is auditable after the run.</p>
+<table>
+  <thead>
+      <tr>
+          <th>What&rsquo;s happening</th>
+          <th>In an agent harness</th>
+          <th>In this DAG</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Sub-query: executor distribution</td>
+          <td>LLM internal tool call, no external artifact</td>
+          <td>Task <code>generate_sql[0]</code>: SQL in XCom, full log</td>
+      </tr>
+      <tr>
+          <td>Sub-query: cloud provider</td>
+          <td>LLM internal tool call</td>
+          <td>Task <code>generate_sql[2]</code>: SQL in XCom, full log</td>
+      </tr>
+      <tr>
+          <td>Parallel execution</td>
+          <td>Concurrent or sequential, implementation-dependent</td>
+          <td>Explicit mapped instances, each on its own worker</td>
+      </tr>
+      <tr>
+          <td>cloud_provider query fails</td>
+          <td>Entire run restarts from the top, or fails</td>
+          <td>Only <code>run_query[2]</code> retries; other three results preserved</td>
+      </tr>
+      <tr>
+          <td>Synthesis inputs</td>
+          <td>Accumulated context in the LLM&rsquo;s reasoning loop</td>
+          <td><code>collect_results</code> XCom entry: the exact dict the LLM received</td>
+      </tr>
+      <tr>
+          <td>Why did it characterize it that way?</td>
+          <td>No artifact</td>
+          <td><code>synthesize_answer</code> XCom: input dict and output string both stored</td>
+      </tr>
+  </tbody>
+</table>
+<p>Each <code>generate_sql[i]</code> task log contains the prompt the LLM received, the SQL it returned, and the validation result from sqlglot. Each <code>run_query[i]</code> log contains the DataFusion execution details and the row count returned. The synthesis step&rsquo;s XCom entry contains the exact dict that was passed as context.</p>
+<p>This is the same information an agent harness has internally. The difference is that Airflow surfaces it as first-class task artifacts, accessible from the Airflow UI without instrumenting or patching the reasoning loop.</p>
+<h2 id="connecting-your-llm">Connecting Your LLM</h2>
+<p>Both <code>LLMSQLQueryOperator</code> and <code>LLMOperator</code> use <code>llm_conn_id=&quot;pydanticai_default&quot;</code>. The same connection table from the introductory post applies:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Provider</th>
+          <th>Connection type</th>
+          <th>Required fields</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>OpenAI</td>
+          <td><code>pydanticai</code></td>
+          <td>Password: API key. Extra: <code>{&quot;model&quot;: &quot;openai:gpt-4o&quot;}</code></td>
+      </tr>
+      <tr>
+          <td>Anthropic</td>
+          <td><code>pydanticai</code></td>
+          <td>Password: API key. Extra: <code>{&quot;model&quot;: &quot;anthropic:claude-haiku-4-5-20251001&quot;}</code></td>
+      </tr>
+      <tr>
+          <td>Google Vertex</td>
+          <td><code>pydanticai-vertex</code></td>
+          <td>Extra: <code>{&quot;model&quot;: &quot;google-vertex:gemini-2.0-flash&quot;, &quot;project&quot;: &quot;...&quot;, &quot;vertexai&quot;: true}</code></td>
+      </tr>
+      <tr>
+          <td>AWS Bedrock</td>
+          <td><code>pydanticai-bedrock</code></td>
+          <td>Extra: <code>{&quot;model&quot;: &quot;bedrock:us.anthropic.claude-opus-4-5&quot;, &quot;region_name&quot;: &quot;us-east-1&quot;}</code></td>
+      </tr>
+  </tbody>
+</table>
+<p>One connection serves both operators. The synthesis step and the SQL generation steps can use different connections if you want a stronger model for synthesis and a faster one for the SQL generation pass. Set <code>model_id</code> on the <code>LLMOperator</code> to override the connection&rsquo;s default.</p>
+<h2 id="the-multi-agent-pattern-hidden-in-plain-sight">The Multi-Agent Pattern Hidden in Plain Sight</h2>
+<p>This DAG was not designed around multi-agent frameworks, but it accidentally implements one of the most common separation-of-concerns patterns in that space: the <strong>SQL Architect / Critic / Narrator</strong> triad.</p>
+<p>In agent harness frameworks, these three roles are typically implemented as distinct agent instances that coordinate through an internal routing layer. The underlying rationale is that mixing generation, evaluation, and communication into a single agent produces outputs that are mediocre at all three jobs. Separating them forces each role to reason only about what it is responsible for.</p>
+<p>The survey DAG lands in the same place through a different path: the task boundary enforces the separation.</p>
+<p><strong>SQL Architect → <code>generate_sql[0..3]</code> (<code>LLMSQLQueryOperator</code>).</strong>
+Each mapped instance receives one natural language sub-question and produces one SQL query. Schema context is passed as a system-level framing, not as part of the user prompt, so the model reasons about structure before generating syntax. The Architect role is strict: produce a valid <code>SELECT</code> statement or fail.</p>
+<p><strong>Critic → two layers.</strong>
+The first layer is embedded in <code>LLMSQLQueryOperator</code>: sqlglot parses and validates the generated SQL before the task returns. This is a syntax-level Critic: it rejects anything that is not a <code>SELECT</code>. The second and fuller layer is the <code>LLMBranchOperator</code> pattern: an explicit task that evaluates result quality and decides whether the finding is reportable, needs a drill-down, or warrants a pivot to a different hypothesis. That task does what the Critic does in a multi-agent system. It challenges the output rather than accepting it.</p>
+<p><strong>Narrator → <code>synthesize_answer</code> (<code>LLMOperator</code>).</strong>
+Receives the labeled result sets from all four dimensions and produces a plain-language characterization. The Narrator&rsquo;s role is bounded by design: it receives structured data rows, not the intermediate SQL or any reasoning artifacts, and its system prompt constrains it to communication: &ldquo;focus on patterns and proportions rather than raw counts.&rdquo; The role separation is enforced by what is in XCom, not by agent routing logic.</p>
+<p>One genuine structural difference remains. In a multi-agent system, the Critic can loop back to the Architect with feedback (&ldquo;this query has a NULL handling problem, try again&rdquo;) and the cycle runs until the output meets a quality bar. Airflow DAGs are acyclic. The Critic either raises an exception and triggers a task-level retry of the Architect instance (automatic but blunt), or routes to an alternative path via <code>LLMBranchOperator</code> (explicit and auditable, but the alternative path must be wired in at authoring time). Neither is a pure generative feedback loop.</p>
+<p>That acyclicity is a deliberate tradeoff: it is also what makes the DAG&rsquo;s execution fully auditable and its failure modes predictable. The feedback loop pattern, and the open question of how far it can be supported within a structured workflow model, is part of what Airflow&rsquo;s roadmap is actively working through.</p>
+<hr>
+<h2 id="try-it">Try It</h2>
+<p>The DAG is in the <code>common.ai</code> provider example DAGs:
+<a href="https://github.com/apache/airflow/tree/main/providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_survey_agentic.py"><code>example_llm_survey_agentic.py</code></a>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">pip install <span class="s1">&#39;apache-airflow-providers-common-ai&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>            <span class="s1">&#39;apache-airflow-providers-common-sql[datafusion]&#39;</span>
+</span></span></code></pre></div><p>Requires Apache Airflow 3.0+.</p>
+<p>Set <code>SURVEY_CSV_PATH</code> to your local cleaned copy of the survey CSV, create a <code>pydanticai_default</code> connection, and trigger <code>example_llm_survey_agentic</code>.</p>
+<p>The Airflow UI will show the four parallel <code>generate_sql</code> and <code>run_query</code> instances fanning out and converging to <code>collect_results</code>. That visual is the clearest way to see what distinguishes the agentic pattern from a single-query run.</p>
+<p>Questions, results, and sub-questions that surprised the LLM are welcome on <a href="https://s.apache.org/airflow-slack">Airflow Slack</a> in <code>#airflow-ai</code>.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title>Ask Your Survey Anything: Building AI Analysis Pipelines with Airflow 3</title>
+    <link href="https://airflow.apache.org/blog/ai-survey-analysis-pipelines/" rel="alternate"/>
+    <id>https://airflow.apache.org/blog/ai-survey-analysis-pipelines/</id>
+    <published>2026-04-15T00:00:00Z</published>
+    <updated>2026-04-15T14:55:13Z</updated>
+    <author>
+      <name>Apache Airflow</name>
+    </author><content type="html"><![CDATA[<p>The <a href="https://airflow.apache.org/survey/">2025 Airflow Community Survey</a> collected responses
+from nearly 6,000 practitioners across 168 questions. You can open a spreadsheet and filter,
+or write SQL by hand. But what if you could just ask a question and have Airflow figure out
+the query, run it, and bring the result back for your approval?</p>
+<p>This post builds two pipelines that do exactly that, using the
+<a href="https://pypi.org/project/apache-airflow-providers-common-ai/"><code>apache-airflow-providers-common-ai</code></a>
+provider for Airflow 3.</p>
+<p>The first pipeline is <strong>interactive</strong>: a human reviews the question before it reaches the LLM
+and approves the result before the DAG finishes. The second is <strong>scheduled</strong>: it downloads
+fresh survey data, validates the schema, runs the query unattended, and emails the result.</p>
+<p>If you haven&rsquo;t seen the <a href="https://airflow.apache.org/blog/common-ai-provider/">common.ai provider overview</a> yet, start there for a tour of all the
+operators. This post goes deep on a concrete end-to-end example.</p>
+<h2 id="two-pipelines-one-example-file">Two Pipelines, One Example File</h2>
+<p>Both DAGs live in
+<a href="https://github.com/apache/airflow/tree/main/providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_survey_analysis.py"><code>example_llm_survey_analysis.py</code></a>
+and share the same schema context and datasource configuration.</p>
+<p><strong><code>example_llm_survey_interactive</code></strong>: trigger manually, review at both ends:</p>
+<pre tabindex="0"><code>prompt_confirmation  →  generate_sql  →  run_query  →  extract_data  →  result_confirmation
+(HITLEntryOperator)     (LLMSQLQuery)    (Analytics)    (@task)          (ApprovalOperator)
+</code></pre><p><strong><code>example_llm_survey_scheduled</code></strong>: runs <code>@monthly</code>, no human in the loop:</p>
+<pre tabindex="0"><code>download_survey  →  prepare_csv  →  check_schema  →  generate_sql  →  run_query  →  extract_data  →  send_result
+(HttpOperator)      (@task)         (LLMSchema       (LLMSQLQuery)    (Analytics)    (@task)          (@task / Email)
+                                     Compare)
+</code></pre><h2 id="the-data">The Data</h2>
+<p>The <a href="https://airflow.apache.org/survey/">Airflow Community Survey 2025</a> CSV has 5,856 rows
+and 168 columns covering everything from Airflow version and executor type to cloud provider,
+company size, and AI tool usage. A few highlights from the data:</p>
+<ul>
+<li><strong>3,320</strong> respondents identify as Data Engineers</li>
+<li><strong>2,032</strong> use AWS as their primary cloud provider for Airflow</li>
+<li><strong>1,445</strong> are already running Airflow 3</li>
+<li><strong>1,351</strong> say they <em>often</em> use AI tools to write Airflow code</li>
+</ul>
+<p>Those last two numbers together are part of why this example exists: the people most likely
+to use this pipeline are already using Airflow 3 and already using AI in their workflow.</p>
+<blockquote>
+<p><strong>Data prep note:</strong> Apache DataFusion is strict about CSV schemas. The raw survey export
+has 22 duplicate <code>&quot;Other&quot;</code> column names and some free-text cells with embedded newlines.
+Both need cleaning before DataFusion will parse the file. The interactive DAG assumes a
+cleaned copy at the path set by the <code>SURVEY_CSV_PATH</code> environment variable. The scheduled
+DAG downloads the file at runtime and the <code>prepare_csv</code> step handles writing it to disk.</p></blockquote>
+<h2 id="the-interactive-pipeline">The Interactive Pipeline</h2>
+<p>Five tasks. No external services beyond your LLM provider and a local copy of the CSV.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Step</th>
+          <th>Operator</th>
+          <th>What happens</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td><code>HITLEntryOperator</code></td>
+          <td>DAG pauses. Human reviews and optionally edits the question.</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td><code>LLMSQLQueryOperator</code></td>
+          <td>LLM translates the confirmed question into SQL, validated by sqlglot.</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td><code>AnalyticsOperator</code></td>
+          <td>Apache DataFusion executes the SQL against the local CSV.</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td><code>@task extract_data</code></td>
+          <td>Strips the query from the JSON result so the reviewer sees only data rows.</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td><code>ApprovalOperator</code></td>
+          <td>DAG pauses again. Human approves or rejects the result.</td>
+      </tr>
+  </tbody>
+</table>
+<p>The LLM and DataFusion steps run unattended. The human shows up at step 1 to confirm the
+question and at step 5 to sign off on the answer. Everything in between is automated.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@dag</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">example_llm_survey_interactive</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">prompt_confirmation</span> <span class="o">=</span> <span class="n">HITLEntryOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;prompt_confirmation&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">subject</span><span class="o">=</span><span class="s2">&#34;Review the survey analysis question&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s2">&#34;prompt&#34;</span><span class="p">:</span> <span class="n">Param</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="s2">&#34;How does AI tool usage for writing Airflow code compare &#34;</span>
+</span></span><span class="line"><span class="cl">                <span class="s2">&#34;between Airflow 3 users and Airflow 2 users?&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">type</span><span class="o">=</span><span class="s2">&#34;string&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">description</span><span class="o">=</span><span class="s2">&#34;The natural language question to answer via SQL&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="n">response_timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">generate_sql</span> <span class="o">=</span> <span class="n">LLMSQLQueryOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;generate_sql&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">prompt</span><span class="o">=</span><span class="s2">&#34;{{ ti.xcom_pull(task_ids=&#39;prompt_confirmation&#39;)[&#39;params_input&#39;][&#39;prompt&#39;] }}&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">llm_conn_id</span><span class="o">=</span><span class="n">LLM_CONN_ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">datasource_config</span><span class="o">=</span><span class="n">survey_datasource</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">schema_context</span><span class="o">=</span><span class="n">SURVEY_SCHEMA</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">run_query</span> <span class="o">=</span> <span class="n">AnalyticsOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;run_query&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">datasource_configs</span><span class="o">=</span><span class="p">[</span><span class="n">survey_datasource</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">        <span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&#34;{{ ti.xcom_pull(task_ids=&#39;generate_sql&#39;) }}&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">        <span class="n">result_output_format</span><span class="o">=</span><span class="s2">&#34;json&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">extract_data</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">&#34;data&#34;</span><span class="p">]]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">result_data</span> <span class="o">=</span> <span class="n">extract_data</span><span class="p">(</span><span class="n">run_query</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">result_confirmation</span> <span class="o">=</span> <span class="n">ApprovalOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;result_confirmation&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">subject</span><span class="o">=</span><span class="s2">&#34;Review the survey query result&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">body</span><span class="o">=</span><span class="n">result_data</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">response_timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">prompt_confirmation</span> <span class="o">&gt;&gt;</span> <span class="n">generate_sql</span> <span class="o">&gt;&gt;</span> <span class="n">run_query</span>
+</span></span></code></pre></div><h2 id="walking-through-a-run">Walking Through a Run</h2>
+<p><strong>Step 1: Prompt confirmation.</strong> Trigger the DAG and navigate to the HITL review tab.
+The default question appears in an editable field. Change it to anything the schema supports,
+or leave it as-is and confirm.</p>
+<blockquote>
+<p><em>&ldquo;How does AI tool usage for writing Airflow code compare between Airflow 3 users and Airflow 2 users?&rdquo;</em></p></blockquote>
+<p><strong>Step 2: SQL generation.</strong> <code>LLMSQLQueryOperator</code> receives the confirmed question, constructs
+a system prompt from <code>SURVEY_SCHEMA</code>, and calls the LLM. It returns validated SQL. sqlglot
+parses the output and rejects anything that isn&rsquo;t a <code>SELECT</code>. The generated query goes to XCom.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="s2">&#34;Which version of Airflow do you currently use?&#34;</span><span class="w">                                </span><span class="k">AS</span><span class="w"> </span><span class="n">airflow_version</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="s2">&#34;Are you using AI/LLM (ChatGPT/Cursor/Claude etc) to assist you in writing Airflow code?&#34;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">ai_usage</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">respondents</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="n">survey</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="s2">&#34;Which version of Airflow do you currently use?&#34;</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="s2">&#34;Are you using AI/LLM (ChatGPT/Cursor/Claude etc) to assist you in writing Airflow code?&#34;</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">airflow_version</span><span class="p">,</span><span class="w"> </span><span class="n">ai_usage</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">airflow_version</span><span class="p">,</span><span class="w"> </span><span class="n">respondents</span><span class="w"> </span><span class="k">DESC</span><span class="w">
+</span></span></span></code></pre></div><p><strong>Step 3: DataFusion execution.</strong> <code>AnalyticsOperator</code> loads the CSV into a DataFusion
+<code>SessionContext</code>, registers it as the <code>survey</code> table, and executes the SQL in-process.
+No database server, no network call. The 5,856-row CSV runs in under a second.</p>
+<p><strong>Step 4: Extract data.</strong> The raw JSON from <code>AnalyticsOperator</code> includes the original
+query string alongside the result rows. This <code>@task</code> strips the query so the reviewer
+isn&rsquo;t looking at SQL when they should be looking at data.</p>
+<p><strong>Step 5: Result confirmation.</strong> The data rows appear in the Airflow UI approval dialog.
+The analyst reads the result, clicks Approve (or Reject if something looks off), and the
+DAG completes.</p>
+<h2 id="the-scheduled-pipeline">The Scheduled Pipeline</h2>
+<p>The scheduled variant adds three capabilities the interactive version intentionally omits:
+data acquisition, schema validation, and result delivery. It runs <code>@monthly</code> (configurable)
+with no human steps.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Step</th>
+          <th>Operator</th>
+          <th>What happens</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td><code>HttpOperator</code></td>
+          <td>Downloads the survey CSV from <code>airflow.apache.org</code>.</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td><code>@task prepare_csv</code></td>
+          <td>Writes the CSV to disk and generates a reference schema file from <code>SURVEY_SCHEMA</code>.</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td><code>LLMSchemaCompareOperator</code></td>
+          <td>LLM compares the downloaded CSV schema against the reference. Raises if critical columns are missing or renamed.</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td><code>LLMSQLQueryOperator</code></td>
+          <td>Translates the fixed question into validated SQL.</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td><code>AnalyticsOperator</code></td>
+          <td>Executes the SQL via DataFusion.</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td><code>@task extract_data</code></td>
+          <td>Extracts data rows from the JSON result.</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td><code>@task send_result</code></td>
+          <td>Sends the result via <code>SmtpHook</code> if <code>SMTP_CONN_ID</code> and <code>NOTIFY_EMAIL</code> are set, otherwise logs to the task log.</td>
+      </tr>
+  </tbody>
+</table>
+<p>The schema check at step 3 is worth calling out. <code>LLMSchemaCompareOperator</code> compares the
+live download against a reference file derived from <code>SURVEY_SCHEMA</code>. If the survey format
+changes between runs (a renamed column, a dropped field), the operator catches it before
+any SQL runs, rather than failing silently mid-pipeline with a cryptic DataFusion error.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@dag</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">example_llm_survey_scheduled</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">download_survey</span> <span class="o">=</span> <span class="n">HttpOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;download_survey&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">http_conn_id</span><span class="o">=</span><span class="n">AIRFLOW_WEBSITE_CONN_ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">endpoint</span><span class="o">=</span><span class="n">SURVEY_CSV_ENDPOINT</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">method</span><span class="o">=</span><span class="s2">&#34;GET&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">response_filter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">log_response</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">prepare_csv</span><span class="p">(</span><span class="n">csv_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">SURVEY_CSV_PATH</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SURVEY_CSV_PATH</span><span class="p">,</span> <span class="s2">&#34;w&#34;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&#34;utf-8&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv_text</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&#34;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">SURVEY_SCHEMA</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;&#34;&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">REFERENCE_CSV_PATH</span><span class="p">,</span> <span class="s2">&#34;w&#34;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&#34;utf-8&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ref</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">csv_mod</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">csv_ready</span> <span class="o">=</span> <span class="n">prepare_csv</span><span class="p">(</span><span class="n">download_survey</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">check_schema</span> <span class="o">=</span> <span class="n">LLMSchemaCompareOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;check_schema&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">prompt</span><span class="o">=</span><span class="s2">&#34;Compare the survey CSV schema against the reference. Flag missing or renamed columns.&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">llm_conn_id</span><span class="o">=</span><span class="n">LLM_CONN_ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">data_sources</span><span class="o">=</span><span class="p">[</span><span class="n">survey_datasource</span><span class="p">,</span> <span class="n">reference_datasource</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">        <span class="n">context_strategy</span><span class="o">=</span><span class="s2">&#34;basic&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">csv_ready</span> <span class="o">&gt;&gt;</span> <span class="n">check_schema</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">generate_sql</span> <span class="o">=</span> <span class="n">LLMSQLQueryOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;generate_sql&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">prompt</span><span class="o">=</span><span class="n">SCHEDULED_PROMPT</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">llm_conn_id</span><span class="o">=</span><span class="n">LLM_CONN_ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">datasource_config</span><span class="o">=</span><span class="n">survey_datasource</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">schema_context</span><span class="o">=</span><span class="n">SURVEY_SCHEMA</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">check_schema</span> <span class="o">&gt;&gt;</span> <span class="n">generate_sql</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">run_query</span> <span class="o">=</span> <span class="n">AnalyticsOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;run_query&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">datasource_configs</span><span class="o">=</span><span class="p">[</span><span class="n">survey_datasource</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">        <span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&#34;{{ ti.xcom_pull(task_ids=&#39;generate_sql&#39;) }}&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">        <span class="n">result_output_format</span><span class="o">=</span><span class="s2">&#34;json&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">extract_data</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">&#34;data&#34;</span><span class="p">]]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">result_data</span> <span class="o">=</span> <span class="n">extract_data</span><span class="p">(</span><span class="n">run_query</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">send_result</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">SMTP_CONN_ID</span> <span class="ow">and</span> <span class="n">NOTIFY_EMAIL</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="kn">from</span> <span class="nn">airflow.providers.smtp.hooks.smtp</span> <span class="kn">import</span> <span class="n">SmtpHook</span>
+</span></span><span class="line"><span class="cl">            <span class="k">with</span> <span class="n">SmtpHook</span><span class="p">(</span><span class="n">smtp_conn_id</span><span class="o">=</span><span class="n">SMTP_CONN_ID</span><span class="p">)</span> <span class="k">as</span> <span class="n">hook</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">hook</span><span class="o">.</span><span class="n">send_email_smtp</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">to</span><span class="o">=</span><span class="n">NOTIFY_EMAIL</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">subject</span><span class="o">=</span><span class="sa">f</span><span class="s2">&#34;Airflow Survey Analysis: </span><span class="si">{</span><span class="n">SCHEDULED_PROMPT</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">html_content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&#34;&lt;pre&gt;</span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s2">&lt;/pre&gt;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Survey analysis result:</span><span class="se">\n</span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">generate_sql</span> <span class="o">&gt;&gt;</span> <span class="n">run_query</span> <span class="o">&gt;&gt;</span> <span class="n">result_data</span> <span class="o">&gt;&gt;</span> <span class="n">send_result</span><span class="p">(</span><span class="n">result_data</span><span class="p">)</span>
+</span></span></code></pre></div><h2 id="connecting-your-llm">Connecting Your LLM</h2>
+<p>Both DAGs use <code>llm_conn_id=&quot;pydanticai_default&quot;</code>. Create a connection in the Airflow UI:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Provider</th>
+          <th>Connection type</th>
+          <th>Required fields</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>OpenAI</td>
+          <td><code>pydanticai</code></td>
+          <td>Password: API key. Extra: <code>{&quot;model&quot;: &quot;openai:gpt-4o&quot;}</code></td>
+      </tr>
+      <tr>
+          <td>Anthropic</td>
+          <td><code>pydanticai</code></td>
+          <td>Password: API key. Extra: <code>{&quot;model&quot;: &quot;anthropic:claude-haiku-4-5-20251001&quot;}</code></td>
+      </tr>
+      <tr>
+          <td>Google Vertex</td>
+          <td><code>pydanticai-vertex</code></td>
+          <td>Extra: <code>{&quot;model&quot;: &quot;google-vertex:gemini-2.0-flash&quot;, &quot;project&quot;: &quot;...&quot;, &quot;vertexai&quot;: true}</code></td>
+      </tr>
+      <tr>
+          <td>AWS Bedrock</td>
+          <td><code>pydanticai-bedrock</code></td>
+          <td>Extra: <code>{&quot;model&quot;: &quot;bedrock:us.anthropic.claude-opus-4-5&quot;, &quot;region_name&quot;: &quot;us-east-1&quot;}</code></td>
+      </tr>
+  </tbody>
+</table>
+<p>Switch providers by changing the connection. Neither DAG requires any code changes.</p>
+<p>For the scheduled DAG, also create an HTTP connection named <code>airflow_website</code> with host
+<code>https://airflow.apache.org</code> (no auth required), and optionally set the <code>SMTP_CONN_ID</code>
+and <code>NOTIFY_EMAIL</code> environment variables to enable email delivery.</p>
+<h2 id="what-this-shows">What This Shows</h2>
+<p>Four capabilities come together across these two pipelines that haven&rsquo;t been easy to combine before:</p>
+<p><strong>Natural language as the interface.</strong> Neither pipeline requires the analyst to write SQL.
+<code>LLMSQLQueryOperator</code> handles schema awareness, column quoting, and query structure. The
+<code>SURVEY_SCHEMA</code> context is the only thing it needs.</p>
+<p><strong>In-process query execution.</strong> <code>AnalyticsOperator</code> runs Apache DataFusion inside the Airflow
+worker. There&rsquo;s no database to configure, no connection to manage for the data itself. Point
+it at a file URI and it runs.</p>
+<p><strong>Schema-aware data validation.</strong> <code>LLMSchemaCompareOperator</code> uses an LLM to compare schemas
+and surface structural changes in plain language, not a column count diff, but an explanation
+of what changed and why it matters for downstream queries. It turns a silent mid-pipeline
+failure into an early, actionable error.</p>
+<p><strong>Human oversight without blocking automation.</strong> The <code>HITLEntryOperator</code> and <code>ApprovalOperator</code>
+are standard Airflow operators from <code>airflow.providers.standard.operators.hitl</code>. They have no
+AI imports. They just pause the DAG and wait. The interactive pipeline uses them at both ends;
+the scheduled pipeline skips them entirely. Adding or removing human review requires no changes
+to the LLM or DataFusion steps.</p>
+<h2 id="try-it">Try It</h2>
+<p>Both DAGs are in the <code>common.ai</code> provider example DAGs:
+<a href="https://github.com/apache/airflow/tree/main/providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_survey_analysis.py"><code>example_llm_survey_analysis.py</code></a>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">pip install <span class="s1">&#39;apache-airflow-providers-common-ai&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>            <span class="s1">&#39;apache-airflow-providers-common-sql[datafusion]&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>            <span class="s1">&#39;apache-airflow-providers-http&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>            <span class="s1">&#39;apache-airflow-providers-smtp&#39;</span>   <span class="c1"># optional, for email delivery</span>
+</span></span></code></pre></div><p>Requires Apache Airflow 3.0+. <code>apache-airflow-providers-standard</code> (which provides
+<code>HITLEntryOperator</code> and <code>ApprovalOperator</code>) ships with Airflow 3 and does not need
+a separate install.</p>
+<p>For the interactive DAG: set <code>SURVEY_CSV_PATH</code> to your local copy of the survey CSV, create
+a <code>pydanticai_default</code> connection, and trigger <code>example_llm_survey_interactive</code>.</p>
+<p>For the scheduled DAG: create the <code>airflow_website</code> HTTP connection, set <code>SMTP_CONN_ID</code> and
+<code>NOTIFY_EMAIL</code> if you want email delivery, and trigger <code>example_llm_survey_scheduled</code>.</p>
+<p>To go further, the follow-on post <a href="https://airflow.apache.org/blog/agentic-workloads-airflow-3/">Agentic Workloads on Airflow 3</a>
+extends this example into a multi-query synthesis pattern, answering questions that require
+querying several dimensions in parallel and synthesizing the results with a second LLM call.</p>
+<p>Questions, feedback, and survey queries that stumped the LLM are all welcome on
+<a href="https://s.apache.org/airflow-slack">Airflow Slack</a> in <code>#airflow-ai</code>.</p>
+]]></content>
+  </entry>
+  
   <entry>
     <title>Introducing the Common AI Provider: LLM and AI Agent Support for Apache Airflow</title>
     <link href="https://airflow.apache.org/blog/common-ai-provider/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/common-ai-provider/</id>
     <published>2026-04-14T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>At <a href="https://airflowsummit.org/sessions/2025/airflow-as-an-ai-agents-toolkit-unlocking-1000-integrations-with-mcp/">Airflow Summit 2025</a>, we previewed what native AI integration in Apache Airflow could look like. Today we&rsquo;re shipping it.</p>
@@ -322,7 +1018,7 @@
     <link href="https://airflow.apache.org/blog/airflow-3.2.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.2.0/</id>
     <published>2026-04-07T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We&rsquo;re proud to announce the release of <strong>Apache Airflow 3.2.0</strong>! Airflow 3.1 puts humans at the center of automated workflows. 3.2 brings that same precision to data: Asset partitioning for granular pipeline orchestration, multi-team deployments for enterprise scale, synchronous deadline alert callbacks, and continued progress toward full Task SDK separation.</p>
@@ -535,7 +1231,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflow-registry/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-registry/</id>
     <published>2026-03-19T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Today we&rsquo;re launching the <strong><a href="https://airflow.apache.org/registry/">Apache Airflow Registry</a></strong> — a searchable catalog of every official Airflow provider and its modules, live at <a href="https://airflow.apache.org/registry/">airflow.apache.org/registry/</a>.</p>
@@ -616,7 +1312,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflow-survey-2025/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2025/</id>
     <published>2026-01-22T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2025/images/Airflow-Survey-2025-Results.png" alt="Airflow Survey 2025" title="airflow_survey_2025"></p>
@@ -637,7 +1333,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflowctl-0.1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflowctl-0.1.0/</id>
     <published>2025-10-15T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We are thrilled to announce the first major release of <strong><code>airflowctl</code> 0.1.0</strong>, the new <strong>secure, API-driven command-line interface (CLI)</strong> for Apache Airflow — built under <a href="https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81&#43;Enhanced&#43;Security&#43;in&#43;CLI&#43;via&#43;Integration&#43;of&#43;API"><strong>AIP-81</strong></a>.</p>
@@ -798,7 +1494,7 @@ The secure CLI foundation lays the groundwork for Airflow’s next generation. A
     <link href="https://airflow.apache.org/blog/airflow-3.1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.1.0/</id>
     <published>2025-09-25T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We are thrilled to announce the release of <strong>Apache Airflow 3.1.0</strong>, an update that puts humans at the center of data
@@ -982,7 +1678,7 @@ human-centered. We can&rsquo;t wait to see what you build with it!</p>
     <link href="https://airflow.apache.org/blog/airflow-three-point-oh-is-here/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-three-point-oh-is-here/</id>
     <published>2025-04-22T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We announced our intent to focus on Apache Airflow 3.0® as the next big milestone for the Airflow project at the Airflow Summit in September 2024. We are delighted to announce that Airflow 3.0 is now released!</p>
@@ -1387,7 +2083,7 @@ Let’s build the future of data orchestration—together.</p>
     <link href="https://airflow.apache.org/blog/airflow-survey-2024/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2024/</id>
     <published>2025-02-27T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2024/images/Airflow-Survey-2024-Results-v2.png" alt="Airflow Survey 2024" title="airflow_survey_2024"></p>
@@ -1408,7 +2104,7 @@ Let’s build the future of data orchestration—together.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.10.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.10.0/</id>
     <published>2024-08-08T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I&rsquo;m happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.</p>
@@ -1531,7 +2227,7 @@ executor = &#39;LocalExecutor,KubernetesExecutor,my.custom.module.ExecutorClass:
     <link href="https://airflow.apache.org/blog/airflow-2.9.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.9.0/</id>
     <published>2024-04-08T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m happy to announce that Apache Airflow 2.9.0 has been released! This time around we have new features for data-aware scheduling and a bunch of UI-related improvements.</p>
@@ -1652,7 +2348,7 @@ xcom_objectstorage_compression = gzip
     <link href="https://airflow.apache.org/blog/fab-oid-vulnerability/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/fab-oid-vulnerability/</id>
     <published>2024-02-26T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="vulnerability-in-long-deprecated-openid-authentication-method-in-flask-appbuilder">Vulnerability in long deprecated OpenID authentication method in Flask AppBuilder</h1>
@@ -1738,7 +2434,7 @@ where Flask AppBuilder is also used.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.8.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.8.0/</id>
     <published>2023-12-15T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am thrilled to announce the release of Apache Airflow 2.8.0, featuring a host of significant enhancements and new features that will greatly benefit our community.</p>
@@ -1818,7 +2514,7 @@ We care for your security, and &ldquo;secure by default&rdquo; is one of the thi
     <link href="https://airflow.apache.org/blog/airflow-survey-2023/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2023/</id>
     <published>2023-09-21T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2023/images/Astronomer_Demographics.png" alt="Demographics" title="airflow_usage">
@@ -1836,7 +2532,7 @@ We care for your security, and &ldquo;secure by default&rdquo; is one of the thi
     <link href="https://airflow.apache.org/blog/airflow-2.7.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.7.0/</id>
     <published>2023-08-18T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m happy to announce that Apache Airflow 2.7.0 has been released! Some notable features have been added that we are excited for the community to use.</p>
@@ -1898,7 +2594,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/introducing_setup_teardown/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/introducing_setup_teardown/</id>
     <published>2023-08-18T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>In data pipelines, commonly we need to create infrastructure resources, like a cluster or GPU nodes in an existing cluster, before doing the actual “work” and delete them after the work is done. Airflow 2.7 adds “setup” and “teardown” tasks to better support this type of pipeline. This blog post aims to highlight the key features so you know what’s possible. For full documentation on how to use setup and teardown tasks, see the <a href="https://airflow.apache.org/docs/apache-airflow/2.7.0/howto/setup-and-teardown.html">setup and teardown docs</a>.</p>
@@ -1946,7 +2642,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/airflow-2.6.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.6.0/</id>
     <published>2023-04-30T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am excited to announce that Apache Airflow 2.6.0 has been released, bringing many minor features and improvements to the community.</p>
@@ -2005,7 +2701,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/airflow-2.5.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.5.0/</id>
     <published>2022-12-02T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.5 has just been released, barely two and a half months after 2.4!</p>
@@ -2040,7 +2736,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow-2.4.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.4.0/</id>
     <published>2022-09-19T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.4.0 contains over 650 &ldquo;user-facing&rdquo; commits (excluding commits to providers or chart) and over 870 total. That includes 46 new features, 39 improvements, 52 bug fixes, and several documentation changes.</p>
@@ -2144,7 +2840,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow-survey-2022/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2022/</id>
     <published>2022-06-17T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="airflow-user-survey-2022">Airflow User Survey 2022</h1>
@@ -3834,7 +4530,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow_summit_2022/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow_summit_2022/</id>
     <published>2022-05-16T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The biggest Airflow Event of the Year returns May 23–27! Airflow Summit 2022 will bring together the global
@@ -3858,7 +4554,7 @@ communities to watch the event and network.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.3.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.3.0/</id>
     <published>2022-04-30T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.3.0 contains over 700 commits since 2.2.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.</p>
@@ -3959,7 +4655,7 @@ Sade&rsquo;s &ldquo;Smooth Operator&rdquo;. Enjoy!</li>
     <link href="https://airflow.apache.org/blog/airflow-2.2.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.2.0/</id>
     <published>2021-10-11T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m proud to announce that Apache Airflow 2.2.0 has been released. It contains over 600 commits since 2.1.4 and includes 30 new features, 84 improvements, 85 bug fixes, and many internal and doc changes.</p>
@@ -4014,7 +4710,7 @@ Sade&rsquo;s &ldquo;Smooth Operator&rdquo;. Enjoy!</li>
     <link href="https://airflow.apache.org/blog/airflow_summit_2021/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow_summit_2021/</id>
     <published>2021-03-21T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="airflow-summit-2021-is-here">Airflow Summit 2021 is here!</h2>
@@ -4035,7 +4731,7 @@ participate in its development.</p>
     <link href="https://airflow.apache.org/blog/airflow-survey-2020/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2020/</id>
     <published>2021-03-09T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="apache-airflow-survey-2020">Apache Airflow Survey 2020</h1>
@@ -5359,7 +6055,7 @@ to share their experience and tools.</p>
     <link href="https://airflow.apache.org/blog/airflow-two-point-oh-is-here/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-two-point-oh-is-here/</id>
     <published>2020-12-17T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am proud to announce that Apache Airflow 2.0.0 has been released.</p>
@@ -5452,7 +6148,7 @@ Docs on <a href="http://airflow.apache.org/docs/apache-airflow-providers/package
     <link href="https://airflow.apache.org/blog/experience-with-airflow-as-an-outreachy-intern/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/experience-with-airflow-as-an-outreachy-intern/</id>
     <published>2020-08-30T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><a href="https://www.outreachy.org/">Outreachy</a> is a program which organises three months paid internships with FOSS
@@ -5512,7 +6208,7 @@ community that has been made my summer, one to remember.</p>
     <link href="https://airflow.apache.org/blog/airflow-1.10.12/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.12/</id>
     <published>2020-08-25T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.12 contains 113 commits since 1.10.11 and includes 5 new features, 23 improvements, 23 bug fixes,
@@ -5632,7 +6328,7 @@ William Tran, Xiaodong Deng, YI FU, Zikun Zhu, dewaldabrie, pulsar314, retornam,
     <link href="https://airflow.apache.org/blog/apache-airflow-for-newcomers/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/apache-airflow-for-newcomers/</id>
     <published>2020-08-17T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow is a platform to programmatically author, schedule, and monitor workflows.
@@ -5744,7 +6440,7 @@ and <a href="https://github.com/turbaszek">Tomek</a> for all their support. I&rs
     <link href="https://airflow.apache.org/blog/implementing-stable-api-for-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/implementing-stable-api-for-apache-airflow/</id>
     <published>2020-07-19T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>My <a href="https://outreachy.org">Outreachy internship</a> is coming to its ends which is also the best time to look back and
@@ -5829,7 +6525,7 @@ wonderful reviews. I&rsquo;m grateful.</p>
     <link href="https://airflow.apache.org/blog/airflow-1.10.10/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.10/</id>
     <published>2020-04-09T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.10 contains 199 commits since 1.10.9 and includes 11 new features, 43 improvements, 44 bug fixes, and several doc changes.</p>
@@ -5971,7 +6667,7 @@ objc[1873]: +[__NSPlaceholderDate initialize] may have been in progress in anoth
     <link href="https://airflow.apache.org/blog/airflow-1.10.8-1.10.9/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.8-1.10.9/</id>
     <published>2020-02-23T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.8 contains 160 commits since 1.10.7 and includes 4 new features, 42 improvements, 36 bug fixes, and several doc changes.</p>
@@ -6025,7 +6721,7 @@ for 1.10.* series but would no longer be available from Airflow 2.0</p>
     <link href="https://airflow.apache.org/blog/experience-in-google-season-of-docs-2019-with-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/experience-in-google-season-of-docs-2019-with-apache-airflow/</id>
     <published>2019-12-20T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I came across <a href="https://developers.google.com/season-of-docs">Google Season of Docs</a> (GSoD) almost by accident, thanks to my extensive HackerNews and Twitter addiction.  I was familiar with the Google Summer of Code but not with this program.
@@ -6122,7 +6818,7 @@ After a lot of trial and error, we arrived at a version with which both of us co
     <link href="https://airflow.apache.org/blog/airflow-survey/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey/</id>
     <published>2019-12-11T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="apache-airflow-survey-2019">Apache Airflow Survey 2019</h1>
@@ -6924,7 +7620,7 @@ declare DAGs.</p>
     <link href="https://airflow.apache.org/blog/announcing-new-website/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/announcing-new-website/</id>
     <published>2019-12-11T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The brand <a href="https://airflow.apache.org/">new Airflow website</a> has arrived! Those who have been following the process know that the journey to update <a href="https://airflow.readthedocs.io/en/1.10.6/">the old Airflow website</a> started at the beginning of the year.
@@ -6955,7 +7651,7 @@ and that its improved accessibility increases adoption and use of Apache Airflow
     <link href="https://airflow.apache.org/blog/apache-con-europe-2019-thoughts-and-insights-by-airflow-committers/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/apache-con-europe-2019-thoughts-and-insights-by-airflow-committers/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Is it possible to create an organization that delivers tens of projects used by millions, nearly no one is paid for doing their job, and still, it has been fruitfully carrying on for more than 20 years? Apache Software Foundation proves it is possible. For the last two decades, ASF has been crafting a model called the Apache Way—a way of organizing and leading tech open source projects. Due to this approach, which is strongly based on the “community over code” motto, we can enjoy such awesome projects like Apache Spark, Flink, Beam, or Airflow (and many more).</p>
@@ -6969,7 +7665,7 @@ and that its improved accessibility increases adoption and use of Apache Airflow
     <link href="https://airflow.apache.org/blog/documenting-using-local-development-environments/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/documenting-using-local-development-environments/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="documenting-local-development-environment-of-apache-airflow">Documenting local development environment of Apache Airflow</h2>
@@ -7007,7 +7703,7 @@ a team for 3 months.</p>
     <link href="https://airflow.apache.org/blog/its-a-breeze-to-develop-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/its-a-breeze-to-develop-apache-airflow/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-04-15T22:11:46Z</updated>
+    <updated>2026-04-15T14:55:13Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="the-story-behind-the-airflow-breeze-tool">The story behind the Airflow Breeze tool</h2>
