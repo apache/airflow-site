@@ -17,16 +17,6 @@
  * under the License.
  */
 
-/*!
- * This is a Docsy-adapted version of https://github.com/twbs/examples/blob/main/color-modes/js/color-modes.js.
- *
- * Original header:
- *
- * Color mode toggler for Bootstrap's docs (https://getbootstrap.com/)
- * Copyright 2011-2024 The Bootstrap Authors
- * Licensed under the Creative Commons Attribution 3.0 Unported License.
- */
-
 (() => {
   'use strict'
 
@@ -39,82 +29,44 @@
     if (storedTheme) {
       return storedTheme
     }
-
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
 
   const setTheme = theme => {
-    if (theme === 'auto') {
-      document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
-    } else {
-      document.documentElement.setAttribute('data-bs-theme', theme)
-    }
+    document.documentElement.setAttribute('data-bs-theme', theme)
   }
 
-  setTheme(getPreferredTheme())
-
-  const showActiveTheme = (theme, focus = false) => {
-    const themeSwitchers = document.querySelectorAll('#bd-theme')
-
-    if (!themeSwitchers.length) {
-      return
-    }
-
-    themeSwitchers.forEach(themeSwitcher => {
-        const themeSwitcherText = document.querySelector('#bd-theme-text')
-        const activeThemeIcon = themeSwitcher.querySelector('.theme-icon-active use')
-        const dropdownMenu = themeSwitcher.nextElementSibling
-
-        if (!dropdownMenu) return
-
-        const btnToActive = dropdownMenu.querySelector(`[data-bs-theme-value="${theme}"]`)
-
-        if (!btnToActive) return
-
-        const svgOfActiveBtn = btnToActive.querySelector('svg use').getAttribute('href')
-
-        dropdownMenu.querySelectorAll('[data-bs-theme-value]').forEach(element => {
-            element.classList.remove('active')
-            element.setAttribute('aria-pressed', 'false')
-        })
-
-        btnToActive.classList.add('active')
-        btnToActive.setAttribute('aria-pressed', 'true')
-
-        if (activeThemeIcon) {
-             activeThemeIcon.setAttribute('href', svgOfActiveBtn)
-        }
-
-        if (themeSwitcherText) {
-            const themeSwitcherLabel = `${themeSwitcherText.textContent} (${btnToActive.dataset.bsThemeValue})`
-            themeSwitcher.setAttribute('aria-label', themeSwitcherLabel)
-        }
-
-        if (focus) {
-            themeSwitcher.focus()
-        }
+  const updateToggle = (theme) => {
+    document.querySelectorAll('.theme-toggle-pill__btn').forEach(btn => {
+      const isActive = btn.getAttribute('data-theme-value') === theme
+      btn.classList.toggle('active', isActive)
+      btn.setAttribute('aria-pressed', isActive)
     })
   }
 
+  // Apply theme immediately (before DOM ready) to prevent flash
+  setTheme(getPreferredTheme())
+
+  // Follow system preference changes when no explicit choice stored
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    const storedTheme = getStoredTheme()
-    if (storedTheme !== 'light' && storedTheme !== 'dark') {
-      setTheme(getPreferredTheme())
+    if (!getStoredTheme()) {
+      const theme = getPreferredTheme()
+      setTheme(theme)
+      updateToggle(theme)
     }
   })
 
   const init = () => {
-    showActiveTheme(getPreferredTheme())
+    updateToggle(getPreferredTheme())
 
-    document.querySelectorAll('[data-bs-theme-value]')
-      .forEach(toggle => {
-        toggle.addEventListener('click', () => {
-          const theme = toggle.getAttribute('data-bs-theme-value')
-          setStoredTheme(theme)
-          setTheme(theme)
-          showActiveTheme(theme, true)
-        })
+    document.querySelectorAll('.theme-toggle-pill__btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.getAttribute('data-theme-value')
+        setStoredTheme(theme)
+        setTheme(theme)
+        updateToggle(theme)
       })
+    })
   }
 
   if (document.readyState === 'loading') {
