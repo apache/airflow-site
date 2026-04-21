@@ -47,6 +47,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Yandex Managed Service for Apache Airflow](https://cloud.yandex.com/en/services/managed-airflow) - Managed Apache Airflow on Yandex Cloud
 
+[STACKIT Workflows](https://docs.stackit.cloud/products/data-and-ai/workflows/) - Managed Apache Airflow on STACKIT Cloud
+
 &nbsp;
 
 ## Airflow Technology Consultancy Support
