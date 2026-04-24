@@ -11,6 +11,14 @@ menu:
 &nbsp;
 &nbsp;
 
+# April 24, 2026
+
+We've just released Apache Airflow Helm Chart 1.21.0 🎉
+
+📦 ArtifactHub: https://artifacthub.io/packages/helm/apache-airflow/airflow \
+📚 Docs: https://airflow.apache.org/docs/helm-chart/1.21.0/ \
+🛠 Release Notes: https://airflow.apache.org/docs/helm-chart/1.21.0/release_notes.html
+
 # April 22, 2026
 
 We've just released Apache Airflow 3.2.1 🎉
