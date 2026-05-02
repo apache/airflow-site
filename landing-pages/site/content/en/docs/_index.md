@@ -57,6 +57,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-airbyte/stable/index.html"><code>Airbyte</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-akeyless/stable/index.html"><code>Akeyless</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-alibaba/stable/index.html"><code>Alibaba</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
@@ -246,6 +248,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-trino/stable/index.html"><code>Trino</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-vertica/stable/index.html"><code>Vertica</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-vespa/stable/index.html"><code>Vespa</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-weaviate/stable/index.html"><code>Weaviate</code></a></li>
 
