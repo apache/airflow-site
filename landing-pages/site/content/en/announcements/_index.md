@@ -8,8 +8,6 @@ menu:
 
 ---
 
-&nbsp;
-&nbsp;
 
 # April 24, 2026
 
