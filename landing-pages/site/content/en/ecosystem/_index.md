@@ -6,8 +6,6 @@ menu:
     weight: 30
 ---
 
-&nbsp;
-&nbsp;
 
 # Ecosystem
 
