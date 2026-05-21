@@ -9,6 +9,10 @@ menu:
 ---
 
 
+# May 21, 2026
+
+Airflow PMC welcomes new Airflow PMC Member: **Niko Oliveira** ([@o-nikolas](https://github.com/o-nikolas))
+
 # April 24, 2026
 
 We've just released Apache Airflow Helm Chart 1.21.0 🎉
