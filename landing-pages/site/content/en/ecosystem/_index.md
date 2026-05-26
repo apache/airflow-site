@@ -163,6 +163,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Astro SDK](https://github.com/astronomer/astro-sdk) - Astro SDK allows rapid and clean development of Extract, Load, Transform workflows using Python and SQL, powered by Apache Airflow and maintained by Astronomer.
 
+[Bilig WorkPaper](https://proompteng.github.io/bilig/airflow-workpaper-dag.html) - Third-party Airflow DAG example for running formula-backed WorkPaper calculations with compact XCom proof and JSON readback verification.
+
 [Chartis](https://github.com/trejas/chartis) - Python package to convert Common Workflow Language (CWL) into Airflow DAG.
 
 [CWL-Airflow](https://github.com/Barski-lab/cwl-airflow) - Python package to extend Apache-Airflow 1.10.11 functionality with CWL v1.2 support.
