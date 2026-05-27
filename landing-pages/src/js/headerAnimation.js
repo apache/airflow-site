@@ -209,6 +209,8 @@ export function initHeaderAnimation() {
   const subtitle = document.querySelector("#header-lead");
   const button = document.querySelector("#header-button");
 
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   documentReady(function() {
     new p5((sketch) => {
 
@@ -232,7 +234,13 @@ export function initHeaderAnimation() {
         ];
         logoArea = createLogoArea(sketch, canvas, title, subtitle, button);
         boxes = createBoxes(sketch, vw, vh, logoArea, colors);
-        sketch.createCanvas(vw, vh);
+        const p5Canvas = sketch.createCanvas(vw, vh);
+        p5Canvas.elt.setAttribute("aria-hidden", "true");
+        p5Canvas.elt.setAttribute("focusable", "false");
+
+        if (prefersReducedMotion) {
+          sketch.noLoop();
+        }
       };
 
       sketch.draw = () => {
