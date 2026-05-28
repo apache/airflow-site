@@ -27,6 +27,10 @@ const toggleDrawer = () => {
   drawer.classList.toggle("navbar__drawer--open");
   hamburgerIcon.classList.toggle("visible");
   closeIcon.classList.toggle("visible");
+
+  const isOpen = drawer.classList.contains("navbar__drawer--open");
+  toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  toggleButton.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
 };
 
 if (toggleButton && !toggleButton.dataset.drawerInitialized) {
