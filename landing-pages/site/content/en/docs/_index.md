@@ -12,32 +12,32 @@ menu:
 ## [Apache Airflow®](/docs/apache-airflow/stable/index.html)
 
 Apache Airflow Core, which includes webserver, scheduler, CLI and other components that are needed for minimal Airflow installation.
-[Read the documentation >>](/docs/apache-airflow/stable/index.html)
+[Read Apache Airflow documentation >>](/docs/apache-airflow/stable/index.html)
 
 ## [Apache Airflow CTL (airflowctl)](/docs/apache-airflow-ctl/stable/index.html)
 
 Apache Airflow CTL (airflowctl) is a command-line interface (CLI) for Apache Airflow that interacts exclusively with the Airflow REST API. It provides a secure, auditable, and consistent way to manage Airflow deployments — without direct access to the metadata database.
-[Read the documentation >>](/docs/apache-airflow-ctl/stable/index.html)
+[Read airflowctl documentation >>](/docs/apache-airflow-ctl/stable/index.html)
 
 ## [Task SDK](/docs/task-sdk/stable/index.html)
 
 The Task SDK provides python-native interfaces for defining DAGs,
 executing tasks in isolated subprocesses and interacting with Airflow resources
 (e.g., Connections, Variables, XComs, Metrics, Logs, and OpenLineage events) at runtime. The goal of task-sdk is to decouple DAG authoring from Airflow internals (Scheduler, API Server, etc.), providing a forward-compatible, stable interface for writing and maintaining DAGs across Airflow versions.
-[Read the documentation >>](/docs/task-sdk/stable/index.html)
+[Read Task SDK documentation >>](/docs/task-sdk/stable/index.html)
 
 ## [Docker stack](/docs/docker-stack/index.html)
 
 Airflow has an official Dockerfile and Docker image published in DockerHub as a convenience package for
 installation. You can extend and customize the image according to your requirements and use it in
 your own deployments.
-[Read the documentation >>](/docs/docker-stack/index.html)
+[Read Docker stack documentation >>](/docs/docker-stack/index.html)
 
 
 ## [Helm Chart](/docs/helm-chart/stable/index.html)
 
 Airflow has an official Helm Chart that will help you set up your own Airflow on a cloud/on-prem Kubernetes environment and leverage its scalable nature to support a large group of users. Thanks to Kubernetes, we are not tied to a specific cloud provider.
-[Read the documentation >>](/docs/helm-chart/stable/index.html)
+[Read Helm Chart documentation >>](/docs/helm-chart/stable/index.html)
 
 ## [Python API Client](https://github.com/apache/airflow-client-python)
 
@@ -47,7 +47,7 @@ Airflow releases official Python API client that can be used to easily interact 
 ## [Providers packages](/docs/apache-airflow-providers/index.html)
 
 Providers packages include integrations with third party projects. They are versioned and released independently of the Apache Airflow core.
-[Read the documentation >>](/docs/apache-airflow-providers/index.html)
+[Read Providers documentation >>](/docs/apache-airflow-providers/index.html)
 
 ### Active providers
 

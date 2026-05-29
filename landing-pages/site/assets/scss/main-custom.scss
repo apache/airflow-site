@@ -60,36 +60,124 @@
 @import "survey";
 @import "suggest-change";
 
+/* Override Bootstrap's default --bs-code-color (#d63384, 4.2:1 vs white) with an
+   accessible shade. Using `html` (specificity 0,0,1) so that the dark-mode override
+   in _colors.scss ([data-bs-theme="dark"], specificity 0,1,0) always wins. */
+html {
+  --bs-code-color: #{map-get($colors, code-magenta)};
+}
+
 /* Accessibility: .btn-filled uses #017cee (cerulean-blue) background with white text.
    WCAG AA requires 4.5:1; #017cee gives ~4.1:1. Override the button background with
-   a slightly darker shade (#016bdb) that achieves 4.7:1 while staying brand-adjacent. */
+   cerulean-blue-aa (#0052a3, 6.8:1) while staying brand-adjacent. */
+button.btn-filled,
 .btn-filled {
-  background-color: #016bdb;
-  border-color: #016bdb;
+  background-color: map-get($colors, cerulean-blue-aa);
+  border-color: map-get($colors, cerulean-blue-aa);
+  color: #fff !important;
 
   &:focus {
-    background-color: #017cee;
-    border-color: #017cee;
+    background-color: map-get($colors, cerulean-blue-aa-hover);
+    border-color: map-get($colors, cerulean-blue-aa-hover);
   }
 
   &:hover {
-    background-color: #017cee;
-    border-color: #017cee;
+    background-color: map-get($colors, cerulean-blue-aa-hover);
+    border-color: map-get($colors, cerulean-blue-aa-hover);
   }
 }
 
+/* button.btn-hollow.btn-blue: _buttons.scss uses cerulean-blue (#017cee, 3.8:1 vs white)
+   which fails WCAG AA. Override to cerulean-blue-aa (#0052a3, 6.8:1) in light mode only. */
+button.btn-hollow.btn-blue {
+  color: map-get($colors, cerulean-blue-aa) !important;
+  border-color: map-get($colors, cerulean-blue-aa) !important;
+}
+
+[data-bs-theme="dark"] button.btn-hollow.btn-blue {
+  color: var(--bs-link-color) !important;
+  border-color: var(--bs-link-color) !important;
+}
+
+/* Button-styled anchor links (meetups, events) — full hover effect */
+a.btn-hollow.btn-blue {
+  display: inline-block;
+  background-color: #fff;
+  border: 1px solid map-get($colors, cerulean-blue-aa);
+  border-radius: 5px;
+  padding: 9px 29px;
+  color: map-get($colors, cerulean-blue-aa);
+  cursor: pointer;
+  transition: all ease-out 0.2s;
+  text-decoration: none !important;
+
+  &:hover,
+  &:focus {
+    background-color: map-get($colors, cerulean-blue-aa);
+    border-color: map-get($colors, cerulean-blue-aa);
+    color: #fff;
+    text-decoration: none !important;
+  }
+}
+
+[data-bs-theme="dark"] a.btn-hollow.btn-blue {
+  background-color: #1e1919;
+  color: var(--bs-link-color);
+  border-color: var(--bs-link-color);
+
+  &:hover,
+  &:focus {
+    background-color: var(--bs-link-color);
+    border-color: var(--bs-link-color);
+    color: var(--bs-body-bg);
+  }
+}
+
+/* Use-case & testimonial card "Learn more" span (inside <a>, cannot be <button>) */
+.use-case-link-cta {
+  display: inline-block;
+  background-color: #fff;
+  border: 1px solid map-get($colors, cerulean-blue-aa);
+  border-radius: 5px;
+  padding: 9px 29px;
+  color: map-get($colors, cerulean-blue-aa) !important;
+  transition: all ease-out 0.2s;
+}
+
+[data-bs-theme="dark"] .use-case-link-cta {
+  background-color: #1e1919;
+  color: var(--bs-link-color) !important;
+  border-color: var(--bs-link-color);
+}
+
+a:hover .use-case-link-cta,
+a:focus-visible .use-case-link-cta {
+  background-color: map-get($colors, cerulean-blue-aa);
+  border-color: map-get($colors, cerulean-blue-aa);
+  color: #fff !important;
+}
+
+[data-bs-theme="dark"] a:hover .use-case-link-cta,
+[data-bs-theme="dark"] a:focus-visible .use-case-link-cta {
+  background-color: var(--bs-link-color);
+  border-color: var(--bs-link-color);
+  color: var(--bs-body-bg) !important;
+}
+
+[data-bs-theme="dark"] button.btn-filled,
 [data-bs-theme="dark"] .btn-filled {
-  background-color: #016bdb;
-  border-color: #016bdb;
+  background-color: map-get($colors, cerulean-blue-aa-hover);
+  border-color: map-get($colors, cerulean-blue-aa-hover);
+  color: #fff !important;
 
   &:focus {
-    background-color: #0188ff;
-    border-color: #0188ff;
+    background-color: map-get($colors, cerulean-blue-aa-dark-hover);
+    border-color: map-get($colors, cerulean-blue-aa-dark-hover);
   }
 
   &:hover {
-    background-color: #0188ff;
-    border-color: #0188ff;
+    background-color: map-get($colors, cerulean-blue-aa-dark-hover);
+    border-color: map-get($colors, cerulean-blue-aa-dark-hover);
   }
 }
 
@@ -100,7 +188,7 @@
   left: 0;
   z-index: 9999;
   padding: 0.75rem 1.25rem;
-  background: #017cee;
+  background: map-get($colors, cerulean-blue-aa);
   color: #fff;
   font-weight: 600;
   font-size: 1rem;
@@ -125,6 +213,75 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Links in body text: subtle underline at rest (satisfies WCAG 1.4.1 / axe link-in-text-block),
+   solid on hover/focus (expected interaction). Bootstrap removes underline on :hover by default
+   so we must be explicit on both states.
+
+   no-descending-specificity is disabled for this region: the base / :hover / :focus and
+   light / dark-mode variants are intentionally grouped by readability, not by ascending
+   specificity. The dark-mode selectors carry [data-bs-theme="dark"] so they always win
+   regardless of source order, so the ordering does not affect the cascade. */
+/* stylelint-disable no-descending-specificity */
+main p a,
+main li a,
+.markdown-content p a,
+.rst-content p a,
+.rst-content li a {
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.22);
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 0.07em;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 0.15em;
+  }
+}
+
+[data-bs-theme="dark"] main p a,
+[data-bs-theme="dark"] main li a,
+[data-bs-theme="dark"] .markdown-content p a,
+[data-bs-theme="dark"] .rst-content p a,
+[data-bs-theme="dark"] .rst-content li a {
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+
+  &:hover,
+  &:focus {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* Directory-style lists (e.g. providers index) — links ARE the entire list item,
+   so no underline at rest; axe link-in-text-block does not apply when there is
+   no surrounding non-link text in the <li>. Show underline on hover for feedback. */
+.list-providers li a {
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
+  }
+}
+/* stylelint-enable no-descending-specificity */
+
+main p code,
+main li code,
+.markdown-content code {
+  color: map-get($colors, code-magenta);
+  background-color: #f3f5f7;
+  padding: 0 5px;
+  border-radius: 3px;
+}
+
+[data-bs-theme="dark"] main p code,
+[data-bs-theme="dark"] main li code,
+[data-bs-theme="dark"] .markdown-content code {
+  color: #f0abfc;
+  background-color: #1a1f2e;
 }
 
 /* Focus-visible enhancement for interactive elements */
@@ -237,6 +394,9 @@
     font-size: 1.1rem;
 }
 
+/* stylelint-disable no-descending-specificity --
+   flagged only because the body-link rules added above are more specific; the cascade here
+   is unaffected (.blog-snippet-title links are a distinct component). */
 .blog-snippet-title a {
     text-decoration: none;
 }
@@ -244,6 +404,7 @@
 .blog-snippet-title a:hover {
     text-decoration: underline;
 }
+/* stylelint-enable no-descending-specificity */
 
 .blog-snippet-excerpt {
     margin: 0;
