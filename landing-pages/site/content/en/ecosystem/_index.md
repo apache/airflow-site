@@ -111,6 +111,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Watcher](https://github.com/ram07eng/airflow-watcher) - An Airflow UI plugin for monitoring DAG failures, SLA misses, task health, scheduling lag, and cross-DAG dependencies. Includes dashboard views, REST API, and multi-channel alerting (Slack, PagerDuty, Email) with StatsD and Prometheus metrics export. Available on [PyPI](https://pypi.org/project/airflow-watcher/).
 
+[Airflow Plugin Watchdog](https://github.com/Redevil10/airflow-plugin-watchdog) - A lightweight, zero-dependency Airflow 3 plugin that monitors DAG and task health by querying the metadata database — detecting runtime anomalies, failure spikes, missed deadlines, stuck tasks, and schedule anomalies. Adds a dashboard and a configuration UI to the Airflow navbar, with email and webhook alerting. Available on [PyPI](https://pypi.org/project/airflow-plugin-watchdog/).
+
 &nbsp;
 
 ## Async Providers
