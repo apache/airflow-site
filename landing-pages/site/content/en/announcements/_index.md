@@ -8,6 +8,21 @@ menu:
 
 ---
 
+# June 3, 2026
+
+We've just released Apache Airflow CTL 0.1.5 🎉
+
+Highlights:
+- New Dag Next Execution Command
+- Bulk Delete Dag Runs
+- Rerun Latest Dag Version
+- Positional Arguments Simplified
+- JSON Backfill Payload Support
+
+📦 PyPI: https://pypi.org/project/apache-airflow-ctl/0.1.5
+📚 Docs: https://airflow.apache.org/docs/apache-airflow-ctl/0.1.5
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow-ctl/0.1.5/release_notes.html
+
 # May 29, 2026
 
 We've just released Apache Airflow 3.2.2 🎉
