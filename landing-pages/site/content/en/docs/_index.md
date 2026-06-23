@@ -105,6 +105,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-celery/stable/index.html"><code>Celery</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-clickhousedb/stable/index.html"><code>ClickHouse</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>Cloudant</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-cncf-kubernetes/stable/index.html"><code>CNCF Kubernetes</code></a></li>
