@@ -8,6 +8,13 @@ menu:
 
 ---
 
+# July 1, 2026
+
+Airflow PMC welcomes new Airflow Committers:
+
+* **Przemysław Mirowski** ([@Miretpl](https://github.com/Miretpl))
+* **Henry Chen** ([@henry3260](https://github.com/henry3260))
+
 # June 3, 2026
 
 We've just released Apache Airflow CTL 0.1.5 🎉
