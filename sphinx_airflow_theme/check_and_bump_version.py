@@ -40,14 +40,45 @@ VERSION_FILE = THEME_DIR / "LATEST_VERSION.txt"
 INIT_FILE = THEME_MODULE / "__init__.py"
 
 
+def _gitignored_paths_under(directory: Path) -> set[str]:
+    """Return the set of gitignored file paths under *directory*, relative to REPO_ROOT.
+
+    Uses ``git ls-files --others --ignored --exclude-standard`` so the same rules
+    a fresh CI checkout applies are used here — otherwise files that only exist
+    locally (e.g. ``static/_gen/`` populated by ``./site.sh build-site``) would
+    make the local hash diverge from the one CI computes.
+    """
+    try:
+        output = subprocess.check_output(
+            [
+                "git",
+                "ls-files",
+                "--others",
+                "--ignored",
+                "--exclude-standard",
+                "--",
+                str(directory),
+            ],
+            cwd=REPO_ROOT,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return set()
+    return {line.strip() for line in output.splitlines() if line.strip()}
+
+
 def compute_theme_hash() -> str:
     """Hash all theme files (excluding version lines in __init__.py) plus pyproject.toml.
 
     File paths are included as relative paths so the hash is stable regardless of working directory.
+    Gitignored paths are skipped so the hash matches on any checkout (local or CI).
     """
     h = hashlib.sha256()
+    gitignored = _gitignored_paths_under(THEME_MODULE)
     for f in sorted(THEME_MODULE.rglob("*")):
         if not f.is_file() or "__pycache__" in f.parts or f.name == ".DS_Store":
+            continue
+        if str(f.relative_to(REPO_ROOT)) in gitignored:
             continue
         relative = f.relative_to(REPO_ROOT)
         h.update(f"{relative}\n".encode())
