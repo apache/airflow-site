@@ -6,15 +6,247 @@
   <id>https://airflow.apache.org/blog/</id>
 
 
-  <updated>2026-07-03T20:04:34Z</updated>
+  <updated>2026-07-06T20:38:03Z</updated>
 
 
+  <entry>
+    <title>Apache Airflow 3.3.0: Stateful Tasks and Multi-Language Support</title>
+    <link href="https://airflow.apache.org/blog/airflow-3.3.0/" rel="alternate"/>
+    <id>https://airflow.apache.org/blog/airflow-3.3.0/</id>
+    <published>2026-07-06T00:00:00Z</published>
+    <updated>2026-07-06T20:38:03Z</updated>
+    <author>
+      <name>Apache Airflow</name>
+    </author><content type="html"><![CDATA[<p>We&rsquo;re proud to announce the release of <strong>Apache Airflow 3.3.0</strong>! Where 3.2 brought precision to <em>data</em> with asset partitioning, 3.3 gives your <em>tasks</em> memory and multi-language support: a first-class state store for tasks and assets, a Language Task SDK for writing task logic in Java and Go, a major expansion of asset partitioning, and pluggable retry policies.</p>
+<p><strong>🎯 Release Highlights</strong></p>
+<p>📦 PyPI: <a href="https://pypi.org/project/apache-airflow/3.3.0/">https://pypi.org/project/apache-airflow/3.3.0/</a> <br>
+📚 Docs: <a href="https://airflow.apache.org/docs/apache-airflow/3.3.0/">https://airflow.apache.org/docs/apache-airflow/3.3.0/</a> <br>
+🛠️ Release Notes: <a href="https://airflow.apache.org/docs/apache-airflow/3.3.0/release_notes.html">https://airflow.apache.org/docs/apache-airflow/3.3.0/release_notes.html</a> <br>
+🐳 Docker Image: <code>docker pull apache/airflow:3.3.0</code> <br>
+🚏 Constraints: <a href="https://github.com/apache/airflow/tree/constraints-3.3.0">https://github.com/apache/airflow/tree/constraints-3.3.0</a></p>
+<h1 id="-task--asset-state-store-aip-103-tasks-that-remember">🗃️ Task &amp; Asset State Store (AIP-103): Tasks That Remember</h1>
+<p>Until now, if a task needed to remember something across retries or runs — a cursor, a checkpoint, a high-water mark — you reached for XComs, an external store, or a clever Variable hack. Airflow 3.3 makes durable task state a first-class concept.</p>
+<p>Tasks can persist arbitrary key-value state that survives across retries and runs via a new <code>task_state_store</code> accessor, and assets can carry their own state via <code>asset_state_store</code> — both available directly from the Task SDK. State lives in the metadata database by default, or in a custom worker-side backend (<code>[workers] state_store_backend</code>), supports per-key retention with periodic garbage collection and an optional <code>clear_on_success</code>, and is fully manageable through the Core API and Execution API.</p>
+<h2 id="task-state-store">Task State Store</h2>
+<p>Task state is scoped to a specific task instance and persists across retries. Use it to track coordination state like remote job IDs, cursors, or progress checkpoints:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@task</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">extract_data</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_state</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s2">&#34;task_state_store&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># Resume from where we left off on retry</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cursor</span> <span class="o">=</span> <span class="n">task_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&#34;last_cursor&#34;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">records</span> <span class="o">=</span> <span class="n">fetch_records</span><span class="p">(</span><span class="n">since</span><span class="o">=</span><span class="n">cursor</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">new_cursor</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&#34;id&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&#34;last_cursor&#34;</span><span class="p">,</span> <span class="n">new_cursor</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">records</span>
+</span></span></code></pre></div><p>Persisted state is visible per task instance in the UI, and you can add or edit entries (with an optional custom expiry) directly:</p>
+<p><img src="/blog/airflow-3.3.0/images/task-state-store-ui.png" alt="Task State Store in the task instance UI"></p>
+<p><img src="/blog/airflow-3.3.0/images/task-state-store-add.png" alt="Adding a Task State Store entry with a custom expiration"></p>
+<h2 id="asset-state-store">Asset State Store</h2>
+<p>Asset state is scoped to an asset, so any task that produces or consumes it can read and write the same state. Ideal for shared watermarks:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">airflow.sdk</span> <span class="kn">import</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">task</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">warehouse</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">(</span><span class="s2">&#34;s3://warehouse/orders&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@task</span><span class="p">(</span><span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="n">warehouse</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">load_to_warehouse</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">asset_state</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s2">&#34;asset_state_store&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">last_loaded_at</span> <span class="o">=</span> <span class="n">asset_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&#34;last_loaded_at&#34;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fetch_all_rows</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">last_loaded_at</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">r</span><span class="p">[</span><span class="s2">&#34;created_at&#34;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">last_loaded_at</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="n">load</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">asset_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&#34;last_loaded_at&#34;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">())</span>
+</span></span></code></pre></div><p>Asset state is browsable from the asset view, including which task last wrote each entry:</p>
+<p><img src="/blog/airflow-3.3.0/images/asset-state-store-ui.png" alt="Asset State Store in the asset UI"></p>
+<p><img src="/blog/airflow-3.3.0/images/asset-state-store-add.png" alt="Adding an Asset State Store entry"></p>
+<h2 id="durable--crash-safe-execution">Durable / Crash-Safe Execution</h2>
+<p>The clearest demonstration of what AIP-103 enables is <code>ResumableJobMixin</code>, which <code>SparkSubmitOperator</code> now uses. If the Airflow worker dies mid-run, the retry reconnects to the existing Spark job instead of submitting a new one — this is on by default (<code>durable=True</code>):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">SparkSubmitOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;submit_spark_job&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">application</span><span class="o">=</span><span class="s2">&#34;my_app.py&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">durable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># survives worker failures, reconnects to the existing job on retry</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><h2 id="configuration">Configuration</h2>
+<p>By default, state persists in the Airflow metadata database:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[state_store]</span>
+</span></span><span class="line"><span class="cl"><span class="na">backend</span> <span class="o">=</span> <span class="s">airflow.state.metastore.MetastoreBackend</span>
+</span></span><span class="line"><span class="cl"><span class="na">default_retention_days</span> <span class="o">=</span> <span class="s">30       # Set to 0 to disable time-based cleanup</span>
+</span></span><span class="line"><span class="cl"><span class="na">clear_on_success</span> <span class="o">=</span> <span class="s">False          # Set True for automatic post-success cleanup</span>
+</span></span><span class="line"><span class="cl"><span class="na">max_value_storage_bytes</span> <span class="o">=</span> <span class="s">65535   # 64 KB cap on REST API writes; 0 = no limit</span>
+</span></span></code></pre></div><p>For large payloads or credentialed storage, route writes through a worker-side backend. The Execution API still records a reference string in the database:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[workers]</span>
+</span></span><span class="line"><span class="cl"><span class="na">state_store_backend</span> <span class="o">=</span> <span class="s">mypackage.state.CustomStateBackend</span>
+</span></span></code></pre></div><h2 id="key-capabilities">Key Capabilities</h2>
+<ul>
+<li><strong>Durable task state</strong> that survives retries and reruns via the <code>task_state_store</code> accessor</li>
+<li><strong>Asset state</strong> carried alongside assets via <code>asset_state_store</code></li>
+<li><strong>Pluggable backend</strong>: metadata DB by default, or a custom worker-side backend (<code>[workers] state_store_backend</code>)</li>
+<li><strong>Retention &amp; GC</strong>: per-key retention with periodic garbage collection for the task state store; asset state persists indefinitely until explicitly deleted. Optional <code>clear_on_success</code> for task state.</li>
+<li><strong>Fully managed via API</strong>: Core API + Execution API support, and new UI views for the asset and task stores (#67292)</li>
+</ul>
+<p>(#65759, #66073, #66160, #66463, #66586, #66859, #67041, #67319)</p>
+<h1 id="-language-task-sdk-aip-108-write-tasks-in-java-and-go">🌐 Language Task SDK (AIP-108): Write Tasks in Java and Go</h1>
+<p>Airflow has always been Python-first for both orchestration <em>and</em> task logic. 3.3 keeps the orchestration in Python but lets individual <strong>task implementations</strong> be written in Java or Go and run on the <strong>standard Airflow workers</strong> you already operate. A new <strong>Coordinator</strong> layer routes a task to its language runtime — <code>JavaCoordinator</code> for the JVM, <code>ExecutableCoordinator</code> for self-contained native binaries such as Go — runs your code there, and proxies Variables, Connections, and XComs back through the Execution API. Your team&rsquo;s existing Java or Go code becomes a first-class Airflow task without a Python rewrite.</p>
+<blockquote>
+<p>⚠️ <strong>Experimental in 3.3.</strong> The SDK APIs and wire protocol may change between releases. The Java and Go SDKs ship as <strong>separate artifacts</strong> (a Maven/Gradle dependency and a Go module + coordinator), <strong>not</strong> in the <code>apache-airflow</code> pip package.</p></blockquote>
+<h2 id="author-two-things-a-python-stub-dag--the-language-task">Author two things: a Python stub Dag + the language task</h2>
+<p>In this release the Dag <em>shape</em> is still declared in Python with <code>@task.stub</code>, while the <em>implementation</em> lives in your Go binary or Java jar. The <code>dag_id</code> and task ids must match across both so the coordinator can locate the right artifact. The <code>queue=</code> on each stub routes it to a coordinator.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># Python stub Dag - declares the shape, routes Go/Java tasks by queue</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">airflow.sdk</span> <span class="kn">import</span> <span class="n">dag</span><span class="p">,</span> <span class="n">task</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@task</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">python_extract</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">{</span><span class="s2">&#34;records&#34;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">16</span><span class="p">]}</span>  <span class="c1"># XCom: Python -&gt; Go</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@task.stub</span><span class="p">(</span><span class="n">queue</span><span class="o">=</span><span class="s2">&#34;golang&#34;</span><span class="p">)</span>  <span class="c1"># -&gt; ExecutableCoordinator (Go binary)</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">go_transform</span><span class="p">():</span> <span class="o">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@task.stub</span><span class="p">(</span><span class="n">queue</span><span class="o">=</span><span class="s2">&#34;java&#34;</span><span class="p">)</span>    <span class="c1"># -&gt; JavaCoordinator (JVM jar)</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">java_load</span><span class="p">():</span> <span class="o">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@task</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">python_report</span><span class="p">(</span><span class="n">loaded</span><span class="p">):</span>  <span class="c1"># XCom: Java -&gt; Python</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">loaded</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@dag</span><span class="p">(</span><span class="n">dag_id</span><span class="o">=</span><span class="s2">&#34;multilang_etl&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">multilang_etl</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="n">extracted</span><span class="p">,</span> <span class="n">transformed</span><span class="p">,</span> <span class="n">loaded</span> <span class="o">=</span> <span class="n">python_extract</span><span class="p">(),</span> <span class="n">go_transform</span><span class="p">(),</span> <span class="n">java_load</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="n">extracted</span> <span class="o">&gt;&gt;</span> <span class="n">transformed</span> <span class="o">&gt;&gt;</span> <span class="n">loaded</span>
+</span></span><span class="line"><span class="cl">    <span class="n">python_report</span><span class="p">(</span><span class="n">loaded</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">multilang_etl</span><span class="p">()</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Go task - same dag_id; reads the Python task&#39;s XCom, returns its own</span>
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">bundle</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">bundle</span><span class="p">)</span> <span class="nf">RegisterDags</span><span class="p">(</span><span class="nx">dagbag</span> <span class="nx">v1</span><span class="p">.</span><span class="nx">Registry</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">dag</span> <span class="o">:=</span> <span class="nx">dagbag</span><span class="p">.</span><span class="nf">AddDag</span><span class="p">(</span><span class="s">&#34;multilang_etl&#34;</span><span class="p">)</span> <span class="c1">// matches the Python stub</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">dag</span><span class="p">.</span><span class="nf">AddTaskWithName</span><span class="p">(</span><span class="s">&#34;go_transform&#34;</span><span class="p">,</span> <span class="nx">goTransform</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">goTransform</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">sdk</span><span class="p">.</span><span class="nx">TIRunContext</span><span class="p">,</span> <span class="nx">client</span> <span class="nx">sdk</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span> <span class="nx">log</span> <span class="o">*</span><span class="nx">slog</span><span class="p">.</span><span class="nx">Logger</span><span class="p">)</span> <span class="p">(</span><span class="kt">any</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ti</span> <span class="o">:=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">TaskInstance</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">in</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nf">GetXCom</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">ti</span><span class="p">.</span><span class="nx">DagID</span><span class="p">,</span> <span class="nx">ti</span><span class="p">.</span><span class="nx">RunID</span><span class="p">,</span> <span class="s">&#34;python_extract&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">api</span><span class="p">.</span><span class="nx">XComReturnValueKey</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">log</span><span class="p">.</span><span class="nf">InfoContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;got XCom from python_extract&#34;</span><span class="p">,</span> <span class="s">&#34;value&#34;</span><span class="p">,</span> <span class="nx">in</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&#34;stage&#34;</span><span class="p">:</span> <span class="s">&#34;go_transform&#34;</span><span class="p">},</span> <span class="kc">nil</span> <span class="c1">// XCom: Go -&gt; Java</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">bundlev1server</span><span class="p">.</span><span class="nf">Serve</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">bundle</span><span class="p">{});</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">log</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// + GetBundleVersion() completes the BundleProvider</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// Java task - same dag_id; XCom crosses languages</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MultilangEtlBundle</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">BundleBuilder</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Dag</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">getDags</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">List</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Dag</span><span class="p">(</span><span class="s">&#34;multilang_etl&#34;</span><span class="p">).</span><span class="na">addTask</span><span class="p">(</span><span class="s">&#34;java_load&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">JavaLoad</span><span class="p">.</span><span class="na">class</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Server</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="n">args</span><span class="p">).</span><span class="na">serve</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">MultilangEtlBundle</span><span class="p">().</span><span class="na">build</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">class</span> <span class="nc">JavaLoad</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">Task</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="n">Context</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">client</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">var</span><span class="w"> </span><span class="n">fromGo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="na">getXCom</span><span class="p">(</span><span class="s">&#34;go_transform&#34;</span><span class="p">);</span><span class="w"> </span><span class="c1">// read the Go task&#39;s XCom from Java</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">var</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="na">getConnection</span><span class="p">(</span><span class="s">&#34;test_http&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">client</span><span class="p">.</span><span class="na">setXCom</span><span class="p">(</span><span class="n">Map</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;status&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;loaded&#34;</span><span class="p">));</span><span class="w">   </span><span class="c1">// XCom: Java -&gt; Python</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>One run of the combined Dag chains Python, Go, and Java tasks in a single graph — all three task types succeed and their native logs stream straight into the Airflow UI:</p>
+<p><img src="/blog/airflow-3.3.0/images/multilang-run-go.png" alt="Cross-language Dag run — Go task logs"></p>
+<p><img src="/blog/airflow-3.3.0/images/multilang-run-java.png" alt="Cross-language Dag run — Java task logs"></p>
+<h2 id="authoring--build-tooling">Authoring &amp; build tooling</h2>
+<ul>
+<li><strong>Go</strong> — write tasks in a bundle package, then pack a deployable binary (executable + embedded source + manifest) with the <code>airflow-go-pack</code> tool: <code>go tool airflow-go-pack ./example/bundle</code></li>
+<li><strong>Java</strong> — apply the <code>org.apache.airflow.sdk</code> Gradle plugin and run the <code>bundle</code> task to produce a deploy-ready fat jar in <code>build/bundle/</code>: <code>./gradlew bundle</code></li>
+</ul>
+<h2 id="configuration-1">Configuration</h2>
+<p>Declare one coordinator per language runtime under <code>[sdk]</code> and bind each to the queues your stub tasks use:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[sdk]</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># One coordinator per language runtime</span>
+</span></span><span class="line"><span class="cl"><span class="na">coordinators</span> <span class="o">=</span> <span class="s">{
+</span></span></span><span class="line"><span class="cl"><span class="s">    &#34;go&#34;: {&#34;classpath&#34;: &#34;airflow.sdk.coordinators.executable.ExecutableCoordinator&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="s">           &#34;kwargs&#34;: {&#34;executables_root&#34;: [&#34;~/airflow/executable-bundles&#34;]}},
+</span></span></span><span class="line"><span class="cl"><span class="s">    &#34;jdk-17&#34;: {&#34;classpath&#34;: &#34;airflow.sdk.coordinators.java.JavaCoordinator&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="s">               &#34;kwargs&#34;: {&#34;jars_root&#34;: [&#34;~/airflow/jars&#34;]}}</span>
+</span></span><span class="line"><span class="cl"><span class="na">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Map @task.stub(queue=...) to a coordinator</span>
+</span></span><span class="line"><span class="cl"><span class="na">queue_to_coordinator</span> <span class="o">=</span> <span class="s">{&#34;golang&#34;: &#34;go&#34;, &#34;java&#34;: &#34;jdk-17&#34;}</span>
+</span></span></code></pre></div><h2 id="key-capabilities-1">Key Capabilities</h2>
+<ul>
+<li><strong>Native Airflow model access</strong>: read and write XComs, Variables, and Connections from Go and Java through the same Execution API the Python SDK uses</li>
+<li><strong>Airflow logging + remote logging</strong>: task logs stream over the coordinator into Airflow&rsquo;s normal logging stack, so they show up in the UI and honor your remote logging (S3/GCS/…) setup. The SDKs bridge native loggers (Java ships <code>System.Logger</code> / SLF4J adapters; Go bridges <code>log/slog</code>)</li>
+<li><strong>Truly cross-language Dag</strong>: one Dag can chain Python, Go, and Java tasks, and XCom round-trips between any of them — Python → Go/Java and back</li>
+<li><strong>Task-level retries</strong>: set <code>retries</code> on the Python stub task (e.g. <code>@task.stub(queue=…, retries=2)</code>); the Go and Java SDKs honor it — a failed task with retries left moves to <code>up_for_retry</code> and runs again, instead of failing terminally</li>
+<li><strong>Works across executors</strong>: runs on <code>LocalExecutor</code>, <code>CeleryExecutor</code>, and <code>KubernetesExecutor</code> (<code>KubernetesExecutor</code> needs some extra configuration)</li>
+</ul>
+<p>(#65958, #67161, #67635, #67699)</p>
+<h1 id="-asset-partitioning-more-mappers-windows-and-wait-policies">🧩 Asset Partitioning: More Mappers, Windows, and Wait Policies</h1>
+<p>Building on the asset partitioning introduced in 3.2.0, Airflow 3.3 substantially expands how a single upstream asset event fans out to partitioned downstream Dag runs.</p>
+<p>New partition mappers — <code>FanOutMapper</code> (one-to-many) and <code>FixedKeyMapper</code> + <code>SegmentWindow</code> (categorical rollup) — join <code>RollupMapper</code>, and compose with time windows (day / week / month / quarter / year) and a <code>wait_policy</code> (<code>WaitForAll</code> or <code>MinimumCount(n)</code>) to control exactly when partitioned runs fire.</p>
+<h2 id="key-capabilities-2">Key Capabilities</h2>
+<ul>
+<li><strong>New mappers</strong>: <code>FanOutMapper</code> for one-to-many fan-out, <code>FixedKeyMapper</code> + <code>SegmentWindow</code> for categorical rollup (#67716, #66030)</li>
+<li><strong>Time windows</strong> that fan out forward <em>or</em> backward in time (day/week/month/quarter/year)</li>
+<li><strong>Wait policies</strong>: fire on <code>WaitForAll</code> or <code>MinimumCount(n)</code> of the upstream window (#66848)</li>
+<li><strong>Per-mapper fan-out cap</strong> plus the global <code>[scheduler] partition_mapper_max_downstream_keys</code> bound (#67184)</li>
+<li><strong>Forward or backward fan-out</strong> via <code>direction=Window.Direction.FORWARD</code> / <code>Window.Direction.BACKWARD</code> (default <code>FORWARD</code>) (#67475)</li>
+</ul>
+<p>For detailed usage, see the <a href="https://airflow.apache.org/docs/apache-airflow/3.3.0/authoring-and-scheduling/assets.html">asset authoring &amp; scheduling guide</a>.</p>
+<h1 id="-pluggable-retry-policies-aip-105">🔁 Pluggable Retry Policies (AIP-105)</h1>
+<p>Task retry behaviour is now pluggable. In addition to a fixed <code>retries</code> count, you can attach a custom retry policy that decides <strong>whether and when</strong> a task is retried — enabling strategies such as retrying only on specific exceptions, or backing off based on your own logic. (#65474)</p>
+<h1 id="-dag-results-call-a-dag-and-get-a-value-back">🎯 Dag Results: Call a Dag and Get a Value Back</h1>
+<p>You can now designate a task as a Dag&rsquo;s <strong>result</strong> with the <code>@result</code> decorator, then call <code>GET /api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/wait</code> to block until the run finishes and get the value back. The endpoint streams newline-delimited JSON (NDJSON) — the run state as it progresses, and on completion the result task&rsquo;s return value keyed by task id — which makes it easy to embed an Airflow Dag behind an API endpoint.</p>
+<blockquote>
+<p>⚠️ <strong>Experimental</strong> in 3.3.0 and may change in future releases. (#64563)</p></blockquote>
+<h1 id="-dag-bundle-version-control-on-clear-rerun-and-backfill">📦 Dag Bundle Version Control on Clear, Rerun, and Backfill</h1>
+<p>Airflow 2.x always reran with the latest code; 3.x introduced bundle versioning that defaults to the <em>original</em> version. 3.3 adds per-run control over whether a cleared, rerun, or backfilled Dag run uses the latest bundle version or the original, resolved by precedence: an explicit request parameter <code>run_on_latest_version</code> (exposed as a CLI flag for <strong>backfill</strong> only) → the Dag-level <code>rerun_with_latest_version</code> → <code>[core] rerun_with_latest_version</code> → finally <code>False</code> for clear/rerun and <code>True</code> for backfills (preserving historical behaviour). (#63884)</p>
+<h1 id="-ui-enhancements">🖥️ UI Enhancements</h1>
+<ul>
+<li><strong>Asset &amp; task store views</strong>: Inspect persisted task and asset state directly in the UI (#67292), including a column linking to the task instance that wrote each entry (#68395) and a custom expiration picker for the task store (#68394)</li>
+<li><strong><code>awaiting_input</code> HITL state</strong>: Human-in-the-Loop tasks awaiting input now run off the triggerer with a dedicated state (#68028)</li>
+<li><strong>Bulk actions</strong>: Bulk-mark Dag runs as success/failed (#68278, #67948) and bulk-clear task instance selections (#68029)</li>
+<li><strong>Details tab for mapped task instances</strong> (#68340) and additional task-instance attributes in the details section (#68378)</li>
+<li><strong>Team name in the asset graph view</strong> for multi-team deployments (#68457)</li>
+<li><strong>Full-screen toggle</strong> in the code viewer (#68044)</li>
+</ul>
+<h1 id="-observability--operations">🔭 Observability &amp; Operations</h1>
+<ul>
+<li><strong>OpenTelemetry Histograms</strong>: Timer and timing metrics are now recorded as Histograms instead of Gauges, preserving count, sum, and bucket distribution across recordings. <strong>⚠️ Breaking for existing dashboards/alerts</strong> — queries built on the old Gauge series need updating. (#64207)</li>
+<li><strong>Tagged Dag-processing metric</strong>: <code>dag_processing.last_run.seconds_ago</code> is now emitted with <code>file_path</code>, <code>bundle_name</code>, and <code>file_name</code> tags instead of baking the file name into the metric path. <strong>⚠️ Breaking</strong> — dashboards/alerts parsing the old <code>…seconds_ago.{dag_file}</code> path must switch to the tagged form. (#62487)</li>
+<li><strong>New Deadlines page</strong>: A <strong>Deadlines</strong> page under the Browse menu, available to any role with <code>can_read</code> + <code>menu_access</code> on <strong>Dag Runs</strong> (#67586)</li>
+<li><strong>Remote logging resolution refactor</strong>: Remote task-log handler resolution now lives in the shared <code>airflow_shared.logging.factory</code> with a single, well-defined precedence, lazy resolution on first use, and a <code>from_config()</code> contract for provider <code>RemoteLogIO</code> classes (#67056)</li>
+</ul>
+<h1 id="-upgrading-to-330">⬆️ Upgrading to 3.3.0</h1>
+<p>Before upgrading, review the <a href="https://airflow.apache.org/docs/apache-airflow/3.3.0/release_notes.html">Significant Changes</a> in the release notes. In particular, the OpenTelemetry metrics changes above are <strong>breaking for existing dashboards and alerts</strong>, so plan to update any queries built on the previous Gauge series or the old <code>dag_processing.last_run.seconds_ago.{dag_file}</code> metric path.</p>
+<h1 id="-community-appreciation">🙏 Community Appreciation</h1>
+<p>This release represents the collaborative effort of hundreds of contributors from around the world. Special thanks to our release manager and all the developers, documentarians, testers, and community members who made Airflow 3.3.0 possible.</p>
+<p>Thanks to contributors like you, the Airflow project continues to thrive. Whether you&rsquo;re filing issues, submitting PRs, improving documentation, or helping others in the community, every contribution matters.</p>
+<h1 id="-get-involved">🔗 Get Involved</h1>
+<ul>
+<li><strong>Try the Release</strong>: Upgrade your development environment and explore the new features</li>
+<li><strong>Join the Conversation</strong>: Connect with us on <a href="https://s.apache.org/airflow-slack">Slack</a> and the <a href="https://airflow.apache.org/community/">dev mailing list</a></li>
+<li><strong>Contribute</strong>: Check out our <a href="https://github.com/apache/airflow/blob/main/contributing-docs/README.rst">contribution guide</a></li>
+<li><strong>Provide Feedback</strong>: Share your experiences and suggestions on <a href="https://github.com/apache/airflow">GitHub</a></li>
+</ul>
+<p>Apache Airflow 3.3.0 gives your tasks memory and multi-language support. We can&rsquo;t wait to see what you build with it!</p>
+]]></content>
+  </entry>
+  
   <entry>
     <title>Agentic Workloads on Airflow: Observable, Retryable, and Auditable by Design</title>
     <link href="https://airflow.apache.org/blog/agentic-workloads-airflow-3/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/agentic-workloads-airflow-3/</id>
     <published>2026-04-15T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>A question like &ldquo;How does AI tool usage vary across Airflow versions?&rdquo; has a natural SQL shape: one cross-tabulation, one result. A question like &ldquo;What does a typical Airflow deployment look like for practitioners who are actively using AI in their workflow?&rdquo; does not. It requires querying executor type, deployment method, cloud provider, and Airflow version independently, each filtered to the same respondent group, then synthesizing the results into a coherent picture. No single query returns the answer. The answer emerges from the relationship between all of them.</p>
@@ -346,7 +578,7 @@ Receives the labeled result sets from all four dimensions and produces a plain-l
     <link href="https://airflow.apache.org/blog/ai-survey-analysis-pipelines/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/ai-survey-analysis-pipelines/</id>
     <published>2026-04-15T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The <a href="https://airflow.apache.org/survey/">2025 Airflow Community Survey</a> collected responses
@@ -710,7 +942,7 @@ querying several dimensions in parallel and synthesizing the results with a seco
     <link href="https://airflow.apache.org/blog/common-ai-provider/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/common-ai-provider/</id>
     <published>2026-04-14T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>At <a href="https://airflowsummit.org/sessions/2025/airflow-as-an-ai-agents-toolkit-unlocking-1000-integrations-with-mcp/">Airflow Summit 2025</a>, we previewed what native AI integration in Apache Airflow could look like. Today we&rsquo;re shipping it.</p>
@@ -1018,7 +1250,7 @@ querying several dimensions in parallel and synthesizing the results with a seco
     <link href="https://airflow.apache.org/blog/airflow-3.2.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.2.0/</id>
     <published>2026-04-07T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We&rsquo;re proud to announce the release of <strong>Apache Airflow 3.2.0</strong>! Airflow 3.1 puts humans at the center of automated workflows. 3.2 brings that same precision to data: Asset partitioning for granular pipeline orchestration, multi-team deployments for enterprise scale, synchronous deadline alert callbacks, and continued progress toward full Task SDK separation.</p>
@@ -1231,7 +1463,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflow-registry/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-registry/</id>
     <published>2026-03-19T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Today we&rsquo;re launching the <strong><a href="https://airflow.apache.org/registry/">Apache Airflow Registry</a></strong> — a searchable catalog of every official Airflow provider and its modules, live at <a href="https://airflow.apache.org/registry/">airflow.apache.org/registry/</a>.</p>
@@ -1312,7 +1544,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflow-survey-2025/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2025/</id>
     <published>2026-01-22T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2025/images/Airflow-Survey-2025-Results.png" alt="Airflow Survey 2025" title="airflow_survey_2025"></p>
@@ -1333,7 +1565,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflowctl-0.1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflowctl-0.1.0/</id>
     <published>2025-10-15T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We are thrilled to announce the first major release of <strong><code>airflowctl</code> 0.1.0</strong>, the new <strong>secure, API-driven command-line interface (CLI)</strong> for Apache Airflow — built under <a href="https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81&#43;Enhanced&#43;Security&#43;in&#43;CLI&#43;via&#43;Integration&#43;of&#43;API"><strong>AIP-81</strong></a>.</p>
@@ -1494,7 +1726,7 @@ The secure CLI foundation lays the groundwork for Airflow’s next generation. A
     <link href="https://airflow.apache.org/blog/airflow-3.1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.1.0/</id>
     <published>2025-09-25T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We are thrilled to announce the release of <strong>Apache Airflow 3.1.0</strong>, an update that puts humans at the center of data
@@ -1678,7 +1910,7 @@ human-centered. We can&rsquo;t wait to see what you build with it!</p>
     <link href="https://airflow.apache.org/blog/airflow-three-point-oh-is-here/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-three-point-oh-is-here/</id>
     <published>2025-04-22T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We announced our intent to focus on Apache Airflow 3.0® as the next big milestone for the Airflow project at the Airflow Summit in September 2024. We are delighted to announce that Airflow 3.0 is now released!</p>
@@ -2083,7 +2315,7 @@ Let’s build the future of data orchestration—together.</p>
     <link href="https://airflow.apache.org/blog/airflow-survey-2024/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2024/</id>
     <published>2025-02-27T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2024/images/Airflow-Survey-2024-Results-v2.png" alt="Airflow Survey 2024" title="airflow_survey_2024"></p>
@@ -2104,7 +2336,7 @@ Let’s build the future of data orchestration—together.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.10.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.10.0/</id>
     <published>2024-08-08T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I&rsquo;m happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.</p>
@@ -2227,7 +2459,7 @@ executor = &#39;LocalExecutor,KubernetesExecutor,my.custom.module.ExecutorClass:
     <link href="https://airflow.apache.org/blog/airflow-2.9.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.9.0/</id>
     <published>2024-04-08T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m happy to announce that Apache Airflow 2.9.0 has been released! This time around we have new features for data-aware scheduling and a bunch of UI-related improvements.</p>
@@ -2348,7 +2580,7 @@ xcom_objectstorage_compression = gzip
     <link href="https://airflow.apache.org/blog/fab-oid-vulnerability/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/fab-oid-vulnerability/</id>
     <published>2024-02-26T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="vulnerability-in-long-deprecated-openid-authentication-method-in-flask-appbuilder">Vulnerability in long deprecated OpenID authentication method in Flask AppBuilder</h1>
@@ -2434,7 +2666,7 @@ where Flask AppBuilder is also used.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.8.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.8.0/</id>
     <published>2023-12-15T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am thrilled to announce the release of Apache Airflow 2.8.0, featuring a host of significant enhancements and new features that will greatly benefit our community.</p>
@@ -2514,7 +2746,7 @@ We care for your security, and &ldquo;secure by default&rdquo; is one of the thi
     <link href="https://airflow.apache.org/blog/airflow-survey-2023/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2023/</id>
     <published>2023-09-21T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2023/images/Astronomer_Demographics.png" alt="Demographics" title="airflow_usage">
@@ -2532,7 +2764,7 @@ We care for your security, and &ldquo;secure by default&rdquo; is one of the thi
     <link href="https://airflow.apache.org/blog/airflow-2.7.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.7.0/</id>
     <published>2023-08-18T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m happy to announce that Apache Airflow 2.7.0 has been released! Some notable features have been added that we are excited for the community to use.</p>
@@ -2594,7 +2826,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/introducing_setup_teardown/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/introducing_setup_teardown/</id>
     <published>2023-08-18T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>In data pipelines, commonly we need to create infrastructure resources, like a cluster or GPU nodes in an existing cluster, before doing the actual “work” and delete them after the work is done. Airflow 2.7 adds “setup” and “teardown” tasks to better support this type of pipeline. This blog post aims to highlight the key features so you know what’s possible. For full documentation on how to use setup and teardown tasks, see the <a href="https://airflow.apache.org/docs/apache-airflow/2.7.0/howto/setup-and-teardown.html">setup and teardown docs</a>.</p>
@@ -2642,7 +2874,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/airflow-2.6.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.6.0/</id>
     <published>2023-04-30T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am excited to announce that Apache Airflow 2.6.0 has been released, bringing many minor features and improvements to the community.</p>
@@ -2701,7 +2933,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/airflow-2.5.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.5.0/</id>
     <published>2022-12-02T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.5 has just been released, barely two and a half months after 2.4!</p>
@@ -2736,7 +2968,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow-2.4.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.4.0/</id>
     <published>2022-09-19T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.4.0 contains over 650 &ldquo;user-facing&rdquo; commits (excluding commits to providers or chart) and over 870 total. That includes 46 new features, 39 improvements, 52 bug fixes, and several documentation changes.</p>
@@ -2840,7 +3072,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow-survey-2022/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2022/</id>
     <published>2022-06-17T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="airflow-user-survey-2022">Airflow User Survey 2022</h1>
@@ -4530,7 +4762,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow_summit_2022/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow_summit_2022/</id>
     <published>2022-05-16T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The biggest Airflow Event of the Year returns May 23–27! Airflow Summit 2022 will bring together the global
@@ -4554,7 +4786,7 @@ communities to watch the event and network.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.3.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.3.0/</id>
     <published>2022-04-30T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.3.0 contains over 700 commits since 2.2.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.</p>
@@ -4655,7 +4887,7 @@ Sade&rsquo;s &ldquo;Smooth Operator&rdquo;. Enjoy!</li>
     <link href="https://airflow.apache.org/blog/airflow-2.2.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.2.0/</id>
     <published>2021-10-11T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m proud to announce that Apache Airflow 2.2.0 has been released. It contains over 600 commits since 2.1.4 and includes 30 new features, 84 improvements, 85 bug fixes, and many internal and doc changes.</p>
@@ -4710,7 +4942,7 @@ Sade&rsquo;s &ldquo;Smooth Operator&rdquo;. Enjoy!</li>
     <link href="https://airflow.apache.org/blog/airflow_summit_2021/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow_summit_2021/</id>
     <published>2021-03-21T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="airflow-summit-2021-is-here">Airflow Summit 2021 is here!</h2>
@@ -4731,7 +4963,7 @@ participate in its development.</p>
     <link href="https://airflow.apache.org/blog/airflow-survey-2020/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2020/</id>
     <published>2021-03-09T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="apache-airflow-survey-2020">Apache Airflow Survey 2020</h1>
@@ -6055,7 +6287,7 @@ to share their experience and tools.</p>
     <link href="https://airflow.apache.org/blog/airflow-two-point-oh-is-here/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-two-point-oh-is-here/</id>
     <published>2020-12-17T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am proud to announce that Apache Airflow 2.0.0 has been released.</p>
@@ -6148,7 +6380,7 @@ Docs on <a href="http://airflow.apache.org/docs/apache-airflow-providers/package
     <link href="https://airflow.apache.org/blog/experience-with-airflow-as-an-outreachy-intern/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/experience-with-airflow-as-an-outreachy-intern/</id>
     <published>2020-08-30T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><a href="https://www.outreachy.org/">Outreachy</a> is a program which organises three months paid internships with FOSS
@@ -6208,7 +6440,7 @@ community that has been made my summer, one to remember.</p>
     <link href="https://airflow.apache.org/blog/airflow-1.10.12/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.12/</id>
     <published>2020-08-25T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.12 contains 113 commits since 1.10.11 and includes 5 new features, 23 improvements, 23 bug fixes,
@@ -6328,7 +6560,7 @@ William Tran, Xiaodong Deng, YI FU, Zikun Zhu, dewaldabrie, pulsar314, retornam,
     <link href="https://airflow.apache.org/blog/apache-airflow-for-newcomers/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/apache-airflow-for-newcomers/</id>
     <published>2020-08-17T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow is a platform to programmatically author, schedule, and monitor workflows.
@@ -6440,7 +6672,7 @@ and <a href="https://github.com/turbaszek">Tomek</a> for all their support. I&rs
     <link href="https://airflow.apache.org/blog/implementing-stable-api-for-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/implementing-stable-api-for-apache-airflow/</id>
     <published>2020-07-19T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>My <a href="https://outreachy.org">Outreachy internship</a> is coming to its ends which is also the best time to look back and
@@ -6525,7 +6757,7 @@ wonderful reviews. I&rsquo;m grateful.</p>
     <link href="https://airflow.apache.org/blog/airflow-1.10.10/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.10/</id>
     <published>2020-04-09T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.10 contains 199 commits since 1.10.9 and includes 11 new features, 43 improvements, 44 bug fixes, and several doc changes.</p>
@@ -6667,7 +6899,7 @@ objc[1873]: +[__NSPlaceholderDate initialize] may have been in progress in anoth
     <link href="https://airflow.apache.org/blog/airflow-1.10.8-1.10.9/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.8-1.10.9/</id>
     <published>2020-02-23T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.8 contains 160 commits since 1.10.7 and includes 4 new features, 42 improvements, 36 bug fixes, and several doc changes.</p>
@@ -6721,7 +6953,7 @@ for 1.10.* series but would no longer be available from Airflow 2.0</p>
     <link href="https://airflow.apache.org/blog/experience-in-google-season-of-docs-2019-with-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/experience-in-google-season-of-docs-2019-with-apache-airflow/</id>
     <published>2019-12-20T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I came across <a href="https://developers.google.com/season-of-docs">Google Season of Docs</a> (GSoD) almost by accident, thanks to my extensive HackerNews and Twitter addiction.  I was familiar with the Google Summer of Code but not with this program.
@@ -6818,7 +7050,7 @@ After a lot of trial and error, we arrived at a version with which both of us co
     <link href="https://airflow.apache.org/blog/airflow-survey/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey/</id>
     <published>2019-12-11T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="apache-airflow-survey-2019">Apache Airflow Survey 2019</h1>
@@ -7620,7 +7852,7 @@ declare DAGs.</p>
     <link href="https://airflow.apache.org/blog/announcing-new-website/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/announcing-new-website/</id>
     <published>2019-12-11T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The brand <a href="https://airflow.apache.org/">new Airflow website</a> has arrived! Those who have been following the process know that the journey to update <a href="https://airflow.readthedocs.io/en/1.10.6/">the old Airflow website</a> started at the beginning of the year.
@@ -7651,7 +7883,7 @@ and that its improved accessibility increases adoption and use of Apache Airflow
     <link href="https://airflow.apache.org/blog/apache-con-europe-2019-thoughts-and-insights-by-airflow-committers/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/apache-con-europe-2019-thoughts-and-insights-by-airflow-committers/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Is it possible to create an organization that delivers tens of projects used by millions, nearly no one is paid for doing their job, and still, it has been fruitfully carrying on for more than 20 years? Apache Software Foundation proves it is possible. For the last two decades, ASF has been crafting a model called the Apache Way—a way of organizing and leading tech open source projects. Due to this approach, which is strongly based on the “community over code” motto, we can enjoy such awesome projects like Apache Spark, Flink, Beam, or Airflow (and many more).</p>
@@ -7665,7 +7897,7 @@ and that its improved accessibility increases adoption and use of Apache Airflow
     <link href="https://airflow.apache.org/blog/documenting-using-local-development-environments/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/documenting-using-local-development-environments/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="documenting-local-development-environment-of-apache-airflow">Documenting local development environment of Apache Airflow</h2>
@@ -7703,7 +7935,7 @@ a team for 3 months.</p>
     <link href="https://airflow.apache.org/blog/its-a-breeze-to-develop-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/its-a-breeze-to-develop-apache-airflow/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-07-03T20:04:34Z</updated>
+    <updated>2026-07-06T20:38:03Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="the-story-behind-the-airflow-breeze-tool">The story behind the Airflow Breeze tool</h2>
