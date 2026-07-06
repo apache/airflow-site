@@ -78,7 +78,7 @@ Asset state is browsable from the asset view, including which task last wrote ea
 
 ## Durable / Crash-Safe Execution
 
-The clearest demonstration of what AIP-103 enables is `ResumableJobMixin`, which `SparkSubmitOperator` now uses. If the Airflow worker dies mid-run, the retry reconnects to the existing Spark job instead of submitting a new one — just opt in with `durable=True`:
+The clearest demonstration of what AIP-103 enables is `ResumableJobMixin`, which `SparkSubmitOperator` now uses. If the Airflow worker dies mid-run, the retry reconnects to the existing Spark job instead of submitting a new one — this is on by default (`durable=True`):
 
 ```python
 SparkSubmitOperator(
@@ -263,7 +263,7 @@ Task retry behaviour is now pluggable. In addition to a fixed `retries` count, y
 
 # 🎯 Dag Results: Call a Dag and Get a Value Back
 
-You can now designate a task as a Dag's **result** with the `@result` decorator, then call `GET /api/v2/dags/{dag_id}/dagRuns/{run_id}/wait` to block until the run finishes and get the value back. The endpoint streams newline-delimited JSON (NDJSON) — the run state as it progresses, and on completion the result task's return value keyed by task id — which makes it easy to embed an Airflow Dag behind an API endpoint.
+You can now designate a task as a Dag's **result** with the `@result` decorator, then call `GET /api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/wait` to block until the run finishes and get the value back. The endpoint streams newline-delimited JSON (NDJSON) — the run state as it progresses, and on completion the result task's return value keyed by task id — which makes it easy to embed an Airflow Dag behind an API endpoint.
 
 > ⚠️ **Experimental** in 3.3.0 and may change in future releases. (#64563)
 
