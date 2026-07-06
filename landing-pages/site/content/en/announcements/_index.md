@@ -8,6 +8,16 @@ menu:
 
 ---
 
+# July 06, 2026
+
+We've just released Apache Airflow 3.3.0 🎉
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.3.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.3.0/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.3.0/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.3.0" \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.3.0
+
 # July 1, 2026
 
 Airflow PMC welcomes new Airflow Committers:
