@@ -6,7 +6,7 @@ github: "vatsrahul1001"
 linkedin: "vats-rahul"
 description: "Apache Airflow 3.3.0 introduces a first-class state store for tasks and assets (AIP-103), a Language Task SDK for writing tasks in Java and Go (AIP-108), a major expansion of asset partitioning, and pluggable retry policies."
 tags: [Release]
-date: "2026-07-XX"
+date: "2026-07-06"
 images: ["/blog/airflow-3.3.0/images/3.3.0.jpg"]
 ---
 
