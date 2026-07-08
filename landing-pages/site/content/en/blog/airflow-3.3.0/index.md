@@ -121,7 +121,7 @@ state_store_backend = mypackage.state.CustomStateBackend
 
 Airflow has always been Python-first for both orchestration *and* task logic. 3.3 keeps the orchestration in Python but lets individual **task implementations** be written in Java or Go and run on the **standard Airflow workers** you already operate. A new **Coordinator** layer routes a task to its language runtime — `JavaCoordinator` for the JVM, `ExecutableCoordinator` for self-contained native binaries such as Go — runs your code there, and proxies Variables, Connections, and XComs back through the Execution API. Your team's existing Java or Go code becomes a first-class Airflow task without a Python rewrite.
 
-> ⚠️ **Experimental in 3.3.** The SDK APIs and wire protocol may change between releases. The Java and Go SDKs ship as **separate artifacts** (a Maven/Gradle dependency and a Go module + coordinator), **not** in the `apache-airflow` pip package.
+> ⚠️ **Experimental in 3.3.0** The SDK APIs and wire protocol may change between releases. The Java and Go SDKs ship as **separate artifacts** (a Maven/Gradle dependency and a Go module + coordinator), **not** in the `apache-airflow` pip package.
 
 ## Author two things: a Python stub Dag + the language task
 
@@ -265,7 +265,7 @@ Task retry behaviour is now pluggable. In addition to a fixed `retries` count, y
 
 You can now designate a task as a Dag's **result** with the `@result` decorator, then call `GET /api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/wait` to block until the run finishes and get the value back. The endpoint streams newline-delimited JSON (NDJSON) — the run state as it progresses, and on completion the result task's return value keyed by task id — which makes it easy to embed an Airflow Dag behind an API endpoint.
 
-> ⚠️ **Experimental** in 3.3.0 and may change in future releases. (#64563)
+> ⚠️ **Experimental in 3.3.0** and may change in future releases. (#64563)
 
 # 📦 Dag Bundle Version Control on Clear, Rerun, and Backfill
 
