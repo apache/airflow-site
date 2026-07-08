@@ -31,14 +31,14 @@
   <meta property="og:type" content="article">
     <meta property="article:section" content="blog">
     <meta property="article:published_time" content="2026-07-06T00:00:00+00:00">
-    <meta property="article:modified_time" content="2026-07-07T17:32:24+02:00">
+    <meta property="article:modified_time" content="2026-07-08T11:57:21+05:30">
     <meta property="article:tag" content="Release">
     <meta property="og:image" content="/blog/airflow-3.3.0/images/3.3.0.jpg">
 
   <meta itemprop="name" content="Apache Airflow 3.3.0: Stateful Tasks and Multi-Language Support">
   <meta itemprop="description" content="Apache Airflow 3.3.0 introduces a first-class state store for tasks and assets (AIP-103), a Language Task SDK for writing tasks in Java and Go (AIP-108), a major expansion of asset partitioning, and pluggable retry policies.">
   <meta itemprop="datePublished" content="2026-07-06T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2026-07-07T17:32:24+02:00">
+  <meta itemprop="dateModified" content="2026-07-08T11:57:21+05:30">
   <meta itemprop="wordCount" content="2142">
   <meta itemprop="image" content="/blog/airflow-3.3.0/images/3.3.0.jpg">
   <meta itemprop="keywords" content="Release">
@@ -597,7 +597,7 @@
 <h1 id="-language-task-sdk-aip-108-write-tasks-in-java-and-go">🌐 Language Task SDK (AIP-108): Write Tasks in Java and Go</h1>
 <p>Airflow has always been Python-first for both orchestration <em>and</em> task logic. 3.3 keeps the orchestration in Python but lets individual <strong>task implementations</strong> be written in Java or Go and run on the <strong>standard Airflow workers</strong> you already operate. A new <strong>Coordinator</strong> layer routes a task to its language runtime — <code>JavaCoordinator</code> for the JVM, <code>ExecutableCoordinator</code> for self-contained native binaries such as Go — runs your code there, and proxies Variables, Connections, and XComs back through the Execution API. Your team&rsquo;s existing Java or Go code becomes a first-class Airflow task without a Python rewrite.</p>
 <blockquote>
-<p>⚠️ <strong>Experimental in 3.3.</strong> The SDK APIs and wire protocol may change between releases. The Java and Go SDKs ship as <strong>separate artifacts</strong> (a Maven/Gradle dependency and a Go module + coordinator), <strong>not</strong> in the <code>apache-airflow</code> pip package.</p></blockquote>
+<p>⚠️ <strong>Experimental in 3.3.0</strong> The SDK APIs and wire protocol may change between releases. The Java and Go SDKs ship as <strong>separate artifacts</strong> (a Maven/Gradle dependency and a Go module + coordinator), <strong>not</strong> in the <code>apache-airflow</code> pip package.</p></blockquote>
 <h2 id="author-two-things-a-python-stub-dag--the-language-task">Author two things: a Python stub Dag + the language task</h2>
 <p>In this release the Dag <em>shape</em> is still declared in Python with <code>@task.stub</code>, while the <em>implementation</em> lives in your Go binary or Java jar. The <code>dag_id</code> and task ids must match across both so the coordinator can locate the right artifact. The <code>queue=</code> on each stub routes it to a coordinator.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># Python stub Dag - declares the shape, routes Go/Java tasks by queue</span>
@@ -713,7 +713,7 @@
 <h1 id="-dag-results-call-a-dag-and-get-a-value-back">🎯 Dag Results: Call a Dag and Get a Value Back</h1>
 <p>You can now designate a task as a Dag&rsquo;s <strong>result</strong> with the <code>@result</code> decorator, then call <code>GET /api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/wait</code> to block until the run finishes and get the value back. The endpoint streams newline-delimited JSON (NDJSON) — the run state as it progresses, and on completion the result task&rsquo;s return value keyed by task id — which makes it easy to embed an Airflow Dag behind an API endpoint.</p>
 <blockquote>
-<p>⚠️ <strong>Experimental</strong> in 3.3.0 and may change in future releases. (#64563)</p></blockquote>
+<p>⚠️ <strong>Experimental in 3.3.0</strong> and may change in future releases. (#64563)</p></blockquote>
 <h1 id="-dag-bundle-version-control-on-clear-rerun-and-backfill">📦 Dag Bundle Version Control on Clear, Rerun, and Backfill</h1>
 <p>Airflow 2.x always reran with the latest code; 3.x introduced bundle versioning that defaults to the <em>original</em> version. 3.3 adds per-run control over whether a cleared, rerun, or backfilled Dag run uses the latest bundle version or the original, resolved by precedence: an explicit request parameter <code>run_on_latest_version</code> (exposed as a CLI flag for <strong>backfill</strong> only) → the Dag-level <code>rerun_with_latest_version</code> → <code>[core] rerun_with_latest_version</code> → finally <code>False</code> for clear/rerun and <code>True</code> for backfills (preserving historical behaviour). (#63884)</p>
 <h1 id="-ui-enhancements">🖥️ UI Enhancements</h1>
