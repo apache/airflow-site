@@ -63,6 +63,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-amazon/stable/index.html"><code>Amazon</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-anthropic/stable/index.html"><code>Anthropic</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-beam/stable/index.html"><code>Apache Beam</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-cassandra/stable/index.html"><code>Apache Cassandra</code></a></li>
