@@ -193,6 +193,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [gusty](https://github.com/chriscardillo/gusty) - Create a DAG using any number of YAML, Python, Jupyter Notebook, or R Markdown files that represent individual tasks in the DAG. gusty also configures dependencies, DAGs, and TaskGroups, features support for your local operators, and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
 
+[Heimdall](https://github.com/patterninc/heimdall) - A lightweight, pluggable data orchestration and job execution platform (inspired by [Netflix Genie](https://github.com/Netflix/genie)) that abstracts data infrastructure behind a secure, consistent API. Airflow DAGs can submit and monitor jobs across engines like Spark, Snowflake, Trino, Clickhouse, Starrocks, and more without embedding credentials or infrastructure logic in the pipeline.
+
 [Marquez](https://marquezproject.ai) - Marquez is an open source metadata service that maintains data provenance, shows how datasets are consumed and produced and centralizes dataset lifecycle management. Marquez can be used with Apache Airflow as an OpenLineage backend.
 
 [Meltano](https://www.meltano.com/) - Open source, self-hosted, CLI-first, debuggable, and extensible ELT tool that embraces [Singer](https://www.singer.io) for extraction and loading, leverages [dbt](https://www.getdbt.com) for transformation, and [integrates with Airflow for orchestration](https://meltano.com/#orchestration).
