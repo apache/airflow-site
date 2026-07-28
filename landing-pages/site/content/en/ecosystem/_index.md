@@ -189,6 +189,8 @@ Apache Airflow releases the [Official Apache Airflow Community Chart](https://ai
 
 [Elyra](https://github.com/elyra-ai/elyra) - Elyra provides a visual editor that enables data scientists to create AI pipelines in a low-code/no-code fashion.
 
+[Enola](https://github.com/enola-labs/enola) - A cross-repo architecture intelligence layer for AI coding agents that maps dependencies, symbols, and routes across files, languages, and repositories. Useful for Airflow contributors to understand complex codebase dependencies at scale and improve their code quality.
+
 [Flowrs](https://github.com/jvanbuel/flowrs) - Flowrs is a TUI application for Apache Airflow that allows you to monitor, inspect and trigger Airflow DAGs from the comforts of your terminal.
 
 [gusty](https://github.com/chriscardillo/gusty) - Create a DAG using any number of YAML, Python, Jupyter Notebook, or R Markdown files that represent individual tasks in the DAG. gusty also configures dependencies, DAGs, and TaskGroups, features support for your local operators, and more. A fully containerized demo is available [here](https://github.com/chriscardillo/gusty-demo).
