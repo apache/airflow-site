@@ -19,6 +19,12 @@ Apache Airflow Core, which includes webserver, scheduler, CLI and other componen
 Apache Airflow CTL (airflowctl) is a command-line interface (CLI) for Apache Airflow that interacts exclusively with the Airflow REST API. It provides a secure, auditable, and consistent way to manage Airflow deployments — without direct access to the metadata database.
 [Read airflowctl documentation >>](/docs/apache-airflow-ctl/stable/index.html)
 
+## [Apache Airflow Mypy plugins](/docs/apache-airflow-mypy/stable/index.html)
+
+Apache Airflow Mypy provides optional, independently versioned plugins that improve static type checking
+for Dags, custom operators, hooks, typed decorators, and task outputs.
+[Read Apache Airflow Mypy documentation >>](/docs/apache-airflow-mypy/stable/index.html)
+
 ## [Task SDK](/docs/task-sdk/stable/index.html)
 
 The Task SDK provides python-native interfaces for defining DAGs,
