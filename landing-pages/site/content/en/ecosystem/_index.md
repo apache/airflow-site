@@ -47,6 +47,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [STACKIT Workflows](https://docs.stackit.cloud/products/data-and-ai/workflows/) - Managed Apache Airflow on STACKIT Cloud
 
+[OptimaFlo](https://optimaflo.io) - Managed Apache Airflow inside your own AWS or GCP account, as part of an AI-operated data platform on Apache Iceberg
+
 &nbsp;
 
 ## Airflow Technology Consultancy Support
