@@ -115,6 +115,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Plugin Watchdog](https://github.com/Redevil10/airflow-plugin-watchdog) - A lightweight, zero-dependency Airflow 3 plugin that monitors DAG and task health by querying the metadata database — detecting runtime anomalies, failure spikes, missed deadlines, stuck tasks, and schedule anomalies. Adds a dashboard and a configuration UI to the Airflow navbar, with email and webhook alerting. Available on [PyPI](https://pypi.org/project/airflow-plugin-watchdog/).
 
+[Airflow Datris Provider](https://github.com/datris/airflow-provider-datris) - Provides a Hook and Operator to trigger [Datris](https://datris.ai) data pipelines (taps) from a DAG, wait for the run to reach a terminal state, stream Datris logs into the task log, and push run metrics as XComs. Airflow orchestrates, Datris executes. Supports Airflow 3.x.
+
 &nbsp;
 
 ## Async Providers
