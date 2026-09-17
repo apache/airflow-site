@@ -117,6 +117,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Datris Provider](https://github.com/datris/airflow-provider-datris) - Provides a Hook and Operator to trigger [Datris](https://datris.ai) data pipelines (taps) from a DAG, wait for the run to reach a terminal state, stream Datris logs into the task log, and push run metrics as XComs. Airflow orchestrates, Datris executes. Supports Airflow 3.x.
 
+[Airflow DataExpress Provider](https://github.com/riverbed/DataExpress-Airflow-Provider) - Allows Airflow DAGs to orchestrate high-speed data transfers with Riverbed Data Express(https://www.riverbed.com/products/data-express/)
+
 &nbsp;
 
 ## Async Providers
