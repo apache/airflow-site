@@ -16,73 +16,58 @@
 # under the License.
 
 ---
-name: Force push staging to main
+name: Reset staging to main
 
 "on":
   workflow_dispatch:
-    inputs:
-      confirm:
-        description: >-
-          Type "staging-to-main" to confirm. This OVERWRITES main with the
-          current content of the staging branch.
-        required: true
-        type: string
 permissions:
   contents: read
 concurrency:
-  group: promote-staging-to-main
+  group: reset-staging-to-main
   cancel-in-progress: false
 jobs:
-  promote:
+  reset-staging:
     runs-on: ubuntu-latest
     permissions:
-      # Needed to force push to main
+      # Needed to force push to staging
       contents: write
-      # Needed to trigger the "Build docs" workflow on main
+      # Needed to trigger the "Build docs" workflow on staging
       actions: write
     steps:
-      - name: ✋ Check confirmation
-        env:
-          CONFIRM: ${{ inputs.confirm }}
-        run: |
-          if [[ "${CONFIRM}" != "staging-to-main" ]]; then
-            echo "::error::Confirmation mismatch. Type 'staging-to-main' to run this workflow."
-            exit 1
-          fi
-      - name: 🗂 Checkout staging
+      - name: 🗂 Checkout main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: staging
+          ref: main
           fetch-depth: 0
           persist-credentials: false
-      - name: 🚀 Force push staging to main
+      - name: 🚀 Force push main to staging
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          STAGING_SHA="$(git rev-parse origin/staging)"
           MAIN_SHA="$(git rev-parse origin/main)"
-          echo "Previous main: ${MAIN_SHA}"
-          echo "New main (staging): ${STAGING_SHA}"
+          STAGING_SHA="$(git rev-parse origin/staging)"
+          echo "Previous staging: ${STAGING_SHA}"
+          echo "New staging (main): ${MAIN_SHA}"
           {
-            echo "### Force pushed staging to main"
+            echo "### Reset staging to main"
             echo ""
-            echo "- Previous main: \`${MAIN_SHA}\` (restore with \`git push --force origin ${MAIN_SHA}:main\`)"
-            echo "- New main: \`${STAGING_SHA}\`"
+            echo "- Previous staging: \`${STAGING_SHA}\`"
+            echo "- New staging: \`${MAIN_SHA}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
-          if [[ "${STAGING_SHA}" == "${MAIN_SHA}" ]]; then
-            echo "main is already at staging, nothing to push."
+          if [[ "${MAIN_SHA}" == "${STAGING_SHA}" ]]; then
+            echo "staging already points to main, nothing to push."
             exit 0
           fi
-          git push --force-with-lease="main:${MAIN_SHA}" \
+          git push --force-with-lease="staging:${STAGING_SHA}" \
             "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git" \
-            "${STAGING_SHA}:refs/heads/main"
-      - name: 🔧 Trigger "Build docs" on main
+            "${MAIN_SHA}:refs/heads/staging"
+      - name: 🔧 Trigger "Build docs" on staging
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
         run: |
           # Pushes made with GITHUB_TOKEN do not trigger other workflows,
-          # so the production build has to be dispatched explicitly.
-          gh workflow run build.yml --repo "${REPOSITORY}" --ref main
+          # so the staging build has to be dispatched explicitly.
+          gh workflow run build.yml --repo "${REPOSITORY}" --ref staging
