@@ -1,0 +1,73 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+---
+name: Reset staging to main
+
+"on":
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: reset-staging-to-main
+  cancel-in-progress: false
+jobs:
+  reset-staging:
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed to force push to staging
+      contents: write
+      # Needed to trigger the "Build docs" workflow on staging
+      actions: write
+    steps:
+      - name: 🗂 Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 🚀 Force push main to staging
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          MAIN_SHA="$(git rev-parse origin/main)"
+          STAGING_SHA="$(git rev-parse origin/staging)"
+          echo "Previous staging: ${STAGING_SHA}"
+          echo "New staging (main): ${MAIN_SHA}"
+          {
+            echo "### Reset staging to main"
+            echo ""
+            echo "- Previous staging: \`${STAGING_SHA}\`"
+            echo "- New staging: \`${MAIN_SHA}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+          if [[ "${MAIN_SHA}" == "${STAGING_SHA}" ]]; then
+            echo "staging already points to main, nothing to push."
+            exit 0
+          fi
+          git push --force-with-lease="staging:${STAGING_SHA}" \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git" \
+            "${MAIN_SHA}:refs/heads/staging"
+      - name: 🔧 Trigger "Build docs" on staging
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          # Pushes made with GITHUB_TOKEN do not trigger other workflows,
+          # so the staging build has to be dispatched explicitly.
+          gh workflow run build.yml --repo "${REPOSITORY}" --ref staging
