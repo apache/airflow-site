@@ -135,7 +135,9 @@ const runVersionSelector = () => {
     return;
   }
 
-  fetch("/_gen/packages-metadata.json")
+  // Revalidate on every page view so the dropdown never lags a docs publish; the server
+  // ETag makes this a cheap 304 round trip.
+  fetch("/_gen/packages-metadata.json", {cache: "no-cache"})
     .then((resp) => resp.json())
     .then((packageInfos) => {
       const {currentPackageName} = getCurrentPageInfo();
