@@ -121,6 +121,9 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow DataExpress Provider](https://github.com/riverbed/DataExpress-Airflow-Provider) - Allows Airflow DAGs to orchestrate high-speed data transfers with Riverbed Data Express(https://www.riverbed.com/products/data-express/)
 
+[Airflow Darkmoon Provider](https://github.com/ASCIT31/airflow-provider-darkmoon) - Provides a Hook, Operators and a Sensor to run [Darkmoon](https://github.com/ASCIT31/Dark-Moon) autonomous AI pentest campaigns from a DAG, wait for the run and gate a pipeline on finding severity. Connects to the Dashboard API of a self-hosted Darkmoon Pro deployment (the Darkmoon engine and CLI are open source, GPL-3.0).
+
+
 &nbsp;
 
 ## Async Providers
