@@ -3,20 +3,6 @@ RewriteEngine On
 # Redirect bare /registry to /registry/ for consistent trailing-slash URLs
 RewriteRule ^registry$ /registry/ [R=301,L]
 
-# STAGING TEST ONLY - Markdown for coding agents (Accept: text/markdown).
-# Stand-in target: the page's _sources/*.rst.txt, until the docs build publishes page.html.md.
-RewriteCond %{HTTP:Accept} text/markdown [NC]
-RewriteRule ^docs/apache-airflow-providers-common-ai/([^/]+)/(.+)\.html$ https://d3a2du7x0n8ydr.cloudfront.net/docs/apache-airflow-providers-common-ai/$1/_sources/$2.rst.txt [P,L]
-RewriteCond %{HTTP:Accept} text/markdown [NC]
-RewriteRule ^docs/apache-airflow-providers-common-ai/([^/]+)/((?:.+/)?)$ https://d3a2du7x0n8ydr.cloudfront.net/docs/apache-airflow-providers-common-ai/$1/_sources/$2index.rst.txt [P,L]
-<IfModule mod_headers.c>
-    # Caches must keep the HTML and Markdown answers apart. THE_REQUEST is the original
-    # request line, unaffected by the rewrite to the proxy URL.
-    Header merge Vary Accept "expr=%{THE_REQUEST} =~ m# /docs/apache-airflow-providers-common-ai/#"
-    # S3 sends .md and .txt without a charset.
-    Header edit Content-Type "^(text/(markdown|plain))$" "$1; charset=utf-8" "expr=%{THE_REQUEST} =~ m# /docs/#"
-</IfModule>
-
 RewriteCond %{REQUEST_URI} ^/docs [OR]
 RewriteCond %{REQUEST_URI} ^/schemas/ [OR]
 RewriteCond %{REQUEST_URI} ^/registry/
