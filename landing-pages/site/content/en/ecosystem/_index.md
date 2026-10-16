@@ -123,6 +123,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Darkmoon Provider](https://github.com/ASCIT31/airflow-provider-darkmoon) - Provides a Hook, Operators and a Sensor to run [Darkmoon](https://github.com/ASCIT31/Dark-Moon) autonomous AI pentest campaigns from a DAG, wait for the run and gate a pipeline on finding severity. Connects to the Dashboard API of a self-hosted Darkmoon Pro deployment (the Darkmoon engine and CLI are open source, GPL-3.0).
 
+[Airflow Inbound Webhooks Provider](https://github.com/dheerajturaga/airflow-provider-inbound-webhooks) - Adds an endpoint to the Airflow API server that verifies incoming webhooks and turns each delivery into an asset event that Dags can schedule on, with no relay service or polling sensors. GitHub, GitLab and Jira are built in, and any service that signs with HMAC-SHA256 or sends a secret header works through a connection. Supports Airflow 3.1.1+. Available on [PyPI](https://pypi.org/project/airflow-provider-inbound-webhooks/).
+
 
 &nbsp;
 
