@@ -123,6 +123,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Darkmoon Provider](https://github.com/ASCIT31/airflow-provider-darkmoon) - Provides a Hook, Operators and a Sensor to run [Darkmoon](https://github.com/ASCIT31/Dark-Moon) autonomous AI pentest campaigns from a DAG, wait for the run and gate a pipeline on finding severity. Connects to the Dashboard API of a self-hosted Darkmoon Pro deployment (the Darkmoon engine and CLI are open source, GPL-3.0).
 
+[Airflow Anakin Provider](https://github.com/Anakin-Inc/airflow-provider-anakin) - Provides a Hook and Operators for web data extraction with [Anakin](https://anakin.io): scrape pages to Markdown or structured JSON, crawl and map sites, run web search and browser tasks, and monitor pages for changes from a DAG. Results are pushed as XComs. Supports Airflow 2.10+ and 3.x. Available on [PyPI](https://pypi.org/project/airflow-provider-anakin/).
+
 
 &nbsp;
 
