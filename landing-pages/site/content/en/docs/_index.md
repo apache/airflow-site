@@ -145,6 +145,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-docker/stable/index.html"><code>Docker</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-duckdb/stable/index.html"><code>DuckDB</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-edge3/stable/index.html"><code>Edge3</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-elasticsearch/stable/index.html"><code>Elasticsearch</code></a></li>
@@ -171,6 +173,10 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-cloudant/stable/index.html"><code>IBM Cloudant</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-ibm-db2/stable/index.html"><code>IBM Db2</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-ibm-mq/stable/index.html"><code>IBM MQ</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-influxdb/stable/index.html"><code>Influx DB</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-informatica/stable/index.html"><code>Informatica</code></a></li>
@@ -190,6 +196,8 @@ Providers packages include integrations with third party projects. They are vers
   <li><a href="/docs/apache-airflow-providers-microsoft-psrp/stable/index.html"><code>Microsoft PowerShell Remoting Protocol (PSRP)</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-microsoft-winrm/stable/index.html"><code>Microsoft Windows Remote Management (WinRM)</code></a></li>
+
+  <li><a href="/docs/apache-airflow-providers-modal/stable/index.html"><code>Modal</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-mongo/stable/index.html"><code>MongoDB</code></a></li>
 
