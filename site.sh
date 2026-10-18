@@ -35,6 +35,7 @@ These are the ${0} commands that can be used in various situations:
     preview-landing-pages Start the web server with preview of the landing pages.
     build-landing-pages   Build the landing pages.
     prepare-theme         Copy required CSS/JS files from landing pages into the docs theme.
+    build-airflow-docs    Build Airflow docs with this theme (see sphinx_airflow_theme/README.md).
     install-node-deps     Download all the Node dependencies (including Docsy theme deps).
     check-site-links      Check to make sure that links are correct in the website.
     lint-css              Lint CSS files.
@@ -206,6 +207,15 @@ function prepare_theme {
     echo "Successful copied required files"
 }
 
+function build_airflow_docs {
+    AIRFLOW_REPO="$(cd "${AIRFLOW_REPO:-${MY_DIR}/../airflow}" && pwd)"
+    ensure_that_website_is_build
+    prepare_theme
+    # Breeze reads GITHUB_REPOSITORY, which is apache/airflow-site on GitHub Actions.
+    run_command "${AIRFLOW_REPO}" uv run --locked --project "${AIRFLOW_REPO}/dev/breeze" breeze build-docs \
+        --github-repository apache/airflow --sphinx-airflow-theme-path "${MY_DIR}/sphinx_airflow_theme" "$@"
+}
+
 if [[ "$#" -eq 0 ]]; then
     echo "You must provide at least one command."
     echo
@@ -243,6 +253,8 @@ elif [[ "${CMD}" == "check-site-links" ]]; then
 elif [[ "${CMD}" == "prepare-theme" ]]; then
     ensure_that_website_is_build
     prepare_theme
+elif [[ "${CMD}" == "build-airflow-docs" ]]; then
+    build_airflow_docs "${@:-apache-airflow}"
 elif [[ "${CMD}" == "lint-js" ]]; then
     ensure_node_module_exists
     if [[ "$#" -eq 0 ]]; then

@@ -253,6 +253,29 @@ jobs:
           path: './sphinx_airflow_theme/demo/_build'
           if-no-files-found: error
           retention-days: 14
+      # Informational preview of real Airflow docs with this theme (needs apache/airflow main to have
+      # `breeze build-docs --sphinx-airflow-theme-path`), so a failure does not fail the PR.
+      - name: 🗂 Checkout apache/airflow
+        if: github.event_name == 'pull_request' && steps.check-theme.outputs.theme_changed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: apache/airflow
+          path: airflow
+          persist-credentials: false
+      - name: 📚 Build Airflow docs with this theme
+        id: airflow-docs
+        if: github.event_name == 'pull_request' && steps.check-theme.outputs.theme_changed == 'true'
+        continue-on-error: true
+        env:
+          AIRFLOW_REPO: ${{ github.workspace }}/airflow
+        run: ./site.sh build-airflow-docs
+      - name: 🚀 Upload Airflow docs built with this theme as artifact
+        if: steps.airflow-docs.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: airflow-docs-with-theme
+          path: './airflow/generated/_build/docs'
+          retention-days: 14
       - name: 🚀 Create releases on GitHub
         working-directory: sphinx_airflow_theme
         env:
