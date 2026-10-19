@@ -127,6 +127,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Inbound Webhooks Provider](https://github.com/dheerajturaga/airflow-provider-inbound-webhooks) - Adds an endpoint to the Airflow API server that verifies incoming webhooks and turns each delivery into an asset event that Dags can schedule on, with no relay service or polling sensors. GitHub, GitLab and Jira are built in, and any service that signs with HMAC-SHA256 or sends a secret header works through a connection. Supports Airflow 3.1.1+. Available on [PyPI](https://pypi.org/project/airflow-provider-inbound-webhooks/).
 
+[Airflow rivet Provider](https://github.com/panchenkoai/airflow-provider-rivet) - Provides Operators and DAG builders that run [rivet](https://github.com/panchenkoai/rivet) batch and CDC extracts from PostgreSQL, MySQL, SQL Server, Oracle and MongoDB to S3, GCS, Azure Blob or local disk, and loads into BigQuery, Snowflake and ClickHouse; failures map to Airflow retries with rivet's error code and action.
+
 &nbsp;
 
 ## Async Providers
