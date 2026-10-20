@@ -1,0 +1,21 @@
+flowchart TB
+  model["Model API"]
+  subgraph worker["Airflow worker"]
+    direction LR
+    agent["Agent loop<br/>@task.agent"]
+    sql["SQLToolset<br/>holds the warehouse connection"]
+    sbt["SandboxToolset"]
+  end
+  wh[("Warehouse")]
+  subgraph sandbox["Sandbox"]
+    code["Code and files the model writes<br/>no network by default"]
+  end
+  model <-->|"prompts, tool calls, tool results"| agent
+  agent --> sql
+  agent --> sbt
+  sql -->|"read-only queries on listed tables"| wh
+  sbt -->|"run_command, read_file, write_file, list_directory"| code
+  classDef box fill:#ffffff,stroke:#51504F,color:#0f172a
+  class model,agent,sql,sbt,wh,code box
+  style worker fill:#eef6fb,stroke:#017CEE,color:#0f172a
+  style sandbox fill:#fff7ed,stroke:#E43921,stroke-dasharray:6 4,color:#0f172a
