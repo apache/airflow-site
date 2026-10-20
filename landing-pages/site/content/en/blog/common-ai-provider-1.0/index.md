@@ -1,5 +1,5 @@
 ---
-title: "Releasing Airflow AI Provider 1.0: Agents, Sandboxes, Human Approval and Smarter Retries"
+title: "Airflow AI Provider 1.0: Agents, Sandboxes, Human Approval and Smarter Retries"
 linkTitle: "Airflow AI Provider 1.0"
 authors:
   - name: "Kaxil Naik"
