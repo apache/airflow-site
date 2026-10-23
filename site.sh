@@ -67,9 +67,13 @@ function ensure_docsy_theme_deps_exists {
 }
 
 function ensure_that_website_is_build {
-    log "Check if ${MY_DIR}/landing-pages/dist/index.html file exists"
-    if [[ ! -f ${MY_DIR}/landing-pages/dist/index.html ]] ; then
-        log "The website is not built. Start building."
+    local index=${MY_DIR}/landing-pages/dist/index.html
+    log "Check if ${index} exists and is newer than its SCSS/JS sources"
+    if [[ ! -f ${index} ]] || [[ -n $(find "${MY_DIR}/landing-pages/src" \
+            "${MY_DIR}/landing-pages/site/assets" \
+            "${MY_DIR}/landing-pages/site/themes/docsy/assets" \
+            -type f -newer "${index}" -print -quit) ]] ; then
+        log "The website is not built or out of date. Start building."
         run_command "${MY_DIR}/landing-pages/" yarn run build
         log "The website built."
     fi

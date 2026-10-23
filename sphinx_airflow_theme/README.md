@@ -76,8 +76,8 @@ repository (needs an [airflow](https://github.com/apache/airflow) checkout, uv a
 It runs `prepare-theme`, then `breeze build-docs --sphinx-airflow-theme-path` in the Airflow checkout
 (`AIRFLOW_REPO`, default `../airflow`).
 Arguments are passed to `breeze build-docs` (default: `apache-airflow`). The result is in
-`${AIRFLOW_REPO}/generated/_build/docs/`. After changing SCSS or JavaScript, run
-`./site.sh build-landing-pages` first.
+`${AIRFLOW_REPO}/generated/_build/docs/`. If you used `./site.sh preview-landing-pages`,
+run `./site.sh build-landing-pages` first.
 
 CI builds the same for pull requests that change the theme version, as the `airflow-docs-with-theme` artifact.
 
