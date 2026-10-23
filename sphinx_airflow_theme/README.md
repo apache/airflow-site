@@ -11,6 +11,7 @@
   - [`hide_website_buttons`](#hide_website_buttons)
   - [`sidebar_collapse`](#sidebar_collapse)
   - [`sidebar_includehidden`](#sidebar_includehidden)
+  - [`sidebar_titles_only`](#sidebar_titles_only)
 - [Theme's source files](#themes-source-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -151,6 +152,7 @@ html_theme_options = {
 
 ## `sidebar_collapse`
 ## `sidebar_includehidden`
+## `sidebar_titles_only`
 
 Controls the ToC display in the sidebar. See https://www.sphinx-doc.org/en/master/templating.html#toctree for more info
 
