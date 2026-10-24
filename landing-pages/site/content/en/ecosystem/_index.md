@@ -29,6 +29,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache Airflow: Complete Hands-On Beginner to Advanced Class](https://www.udemy.com/course/apache-airflow-course) by Alexandra Abbas on Udemy
 
+[Apache Airflow: Hands-On Course](https://prepare.sh/course/apache-airflow) by Prepare.sh - Build real DAGs, operators, scheduling and task data passing in hands-on tutorials running on a real Airflow environment (free lessons; hands-on tutorials on the paid plan)
+
 [Data Pipelines with Apache Airflow](https://www.manning.com/books/data-pipelines-with-apache-airflow) and [Second Edition](https://www.manning.com/books/data-pipelines-with-apache-airflow-second-edition) Apache Airflow Books on Amazon
 
 &nbsp;
