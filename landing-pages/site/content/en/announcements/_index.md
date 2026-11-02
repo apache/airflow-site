@@ -8,6 +8,12 @@ menu:
 
 ---
 
+# November 2, 2026
+
+Airflow Summit Online Reconnect 2026 is happening November 4 & 5, online and free. Join the Apache Airflow community from anywhere in the world.
+
+🪶 [Register for Airflow Summit Online Reconnect](https://airflowsummit.org/onlinereconnect)
+
 # September 17, 2026
 
 We've just released Apache Airflow 3.3.2 🎉
