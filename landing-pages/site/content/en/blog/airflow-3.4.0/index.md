@@ -476,10 +476,11 @@ Several of the more advanced pieces, such as durable replay at the step level on
 
 - **Loop iteration views**: new UI for Task Loops shows each iteration's run and a per-task loop history chart, so an iterative workflow reads clearly instead of as an opaque group.
 - **Dag Folders**: the Dags list gains a **Folders** panel that groups your Dags into a navigable tree mirroring each bundle's directory layout, so you can drill into `multilang/go` or `task_loops/experiments` and filter to a folder instead of scrolling one flat list. The tree nests to any depth.
+
+  ![The Folders panel groups Dags by their directory layout within each bundle](images/dag-folders.png)
+
 - **Language-aware Dags in the UI**: Dags not written in Python surface with their source language, so a Go or TypeScript Dag is treated like any other Dag in the grid and graph.
 - Plus the usual round of stability, performance, and quality-of-life fixes across the scheduler, API server, and UI.
-
-![The Folders panel groups Dags by their directory layout within each bundle](images/dag-folders.png)
 
 # ⬆️ Upgrading to 3.4.0
 
