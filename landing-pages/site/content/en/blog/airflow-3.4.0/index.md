@@ -142,6 +142,8 @@ await new Bundle(dag).serve();
 
 </details>
 
+![The TypeScript `storefront_daily_orders` Dag in the Airflow UI, with its packed `bundle.min.mjs` in the Code view](images/multilang-run-typescript.png)
+
 ### Java
 
 Annotations carry the configuration. A `@Airflow.Deps` class wires the graph through a view that the annotation processor generates, so `javac` type-checks every edge. An interface-based API (`DagDef`, `dag.task(...)`) is also available.
@@ -220,6 +222,8 @@ public class OrdersDaily {
 ```
 
 </details>
+
+![The Java `risk_fraud_screening` Dag in the Airflow UI, with its `.jar` source in the Code view](images/multilang-run-java.png)
 
 ### Go
 
@@ -325,6 +329,8 @@ func (r *reports) pick(_ airflow.Context, total int) (*airflow.TaskRef, error) {
 ```
 
 </details>
+
+![The Go `finance_revenue_close` Dag in the Airflow UI, with its source in the Code view](images/multilang-run-go.png)
 
 ## Building and deploying
 
@@ -475,8 +481,6 @@ Several of the more advanced pieces, such as durable replay at the step level on
 
 ![The Folders panel groups Dags by their directory layout within each bundle](images/dag-folders.png)
 
-<!-- TODO image (from Ash): language-aware Dag in the grid/graph (e.g. a Go or TypeScript Dag run) — images/multilang-run.png -->
-
 # ⬆️ Upgrading to 3.4.0
 
 Before upgrading, review the [Significant Changes](https://airflow.apache.org/docs/apache-airflow/3.4.0/release_notes.html) in the release notes, and install against the [constraints file](https://github.com/apache/airflow/tree/constraints-3.4.0) for a reproducible upgrade. The language SDKs, the Dag Importer framework, and several `common.ai` previews are explicitly marked experimental, so pin to the exact versions you test with.
@@ -500,8 +504,8 @@ Notes for finalizing (delete before publishing):
 - Images still needed (replace the TODO-image comments above):
   * Task Loops iteration view (from Ash — docs/UI screenshots).
   * Loops + common.ai example and/or Required Actions approval page (from Kaxil).
-  * Language-aware Dag in the grid/graph (Go/TypeScript run).
   Lock all screenshots against the 3.4.0 GA build (the Loops UI may have changed since RC).
+- Added: per-SDK Code-view screenshots (multilang-run-{typescript,java,go}.png) from the Google Doc.
 - common.ai: confirmed shipping 1.1.0 (GA) with 3.4.0.
 - Java build snippet: replace the three `<version>` placeholders with the released SDK versions.
 - YAML: replace the illustrative snippet with a verbatim example once the schema is final.
