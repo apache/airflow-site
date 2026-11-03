@@ -26,6 +26,7 @@ import "./js/contentDrawer";
 import "./js/progressTracking";
 import "./js/rating";
 import "./js/makeTableResponsive";
+import "./js/detailsTabs";
 import "./js/versionSelector";
 import "./js/scrollToTop";
 
