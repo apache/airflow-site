@@ -131,6 +131,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow rivet Provider](https://github.com/panchenkoai/airflow-provider-rivet) - Provides Operators and DAG builders that run [rivet](https://github.com/panchenkoai/rivet) batch and CDC extracts from PostgreSQL, MySQL, SQL Server, Oracle and MongoDB to S3, GCS, Azure Blob or local disk, and loads into BigQuery, Snowflake and ClickHouse; failures map to Airflow retries with rivet's error code and action.
 
+[Airflow CoworkingView Provider](https://github.com/coworkingview/flex-office-data/tree/main/integrations/airflow) - Provides a Hook and Operator to fetch flexible-office price-index rates for a city from the public [CoworkingView](https://coworkingview.com) API into XCom or a JSON file. Available on [PyPI](https://pypi.org/project/airflow-provider-coworkingview/).
+
 &nbsp;
 
 ## Async Providers
