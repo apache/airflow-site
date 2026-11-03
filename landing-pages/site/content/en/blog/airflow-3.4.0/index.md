@@ -96,14 +96,12 @@ Each example below declares the same Dag, `orders_daily`:
 - `pick_report` picks a full or a brief report,
 - `trigger_finance` starts a run of the `finance_close` Dag after `load`, on a labeled edge.
 
-The UI screenshots under each language below are of separate real Dags authored with that SDK, not the `orders_daily` snippet itself.
+The UI screenshot in each tab is of a separate real Dag authored with that SDK, not the `orders_daily` snippet itself.
 
-### TypeScript
+<details name="sdk-dag" data-tab="typescript" data-sync-group="sdk" open>
+<summary>TypeScript</summary>
 
 A handler takes one object of named arguments, and calling a task names its inputs. The calls you write are the dependencies, and the compiler checks each one.
-
-<details>
-<summary>Show the full TypeScript Dag</summary>
 
 ```typescript
 import { Bundle, Dag, label, triggerDagRun } from "apache-airflow-ts-sdk";
@@ -142,16 +140,13 @@ loaded.before(label(triggered, "hand off"));
 await new Bundle(dag).serve();
 ```
 
-</details>
-
 ![The TypeScript `storefront_daily_orders` Dag in the Airflow UI, with its packed `bundle.min.mjs` in the Code view](images/multilang-run-typescript.png)
 
-### Java
+</details>
+<details name="sdk-dag" data-tab="java" data-sync-group="sdk">
+<summary>Java</summary>
 
 Annotations carry the configuration. A `@Airflow.Deps` class wires the graph through a view that the annotation processor generates, so `javac` type-checks every edge. An interface-based API (`DagDef`, `dag.task(...)`) is also available.
-
-<details>
-<summary>Show the full Java Dag</summary>
 
 ```java
 package com.example;
@@ -223,16 +218,13 @@ public class OrdersDaily {
 }
 ```
 
-</details>
-
 ![The Java `risk_fraud_screening` Dag in the Airflow UI, with its `.jar` source in the Code view](images/multilang-run-java.png)
 
-### Go
+</details>
+<details name="sdk-dag" data-tab="go" data-sync-group="sdk">
+<summary>Go</summary>
 
 `Inputs` passes task results and literals to a task function, in parameter order. A task's id is its function's name unless a `TaskSpec` sets one.
-
-<details>
-<summary>Show the full Go Dag</summary>
 
 ```go
 package main
@@ -330,9 +322,9 @@ func (r *reports) pick(_ airflow.Context, total int) (*airflow.TaskRef, error) {
 }
 ```
 
-</details>
-
 ![The Go `finance_revenue_close` Dag in the Airflow UI, with its source in the Code view](images/multilang-run-go.png)
+
+</details>
 
 ## Building and deploying
 
@@ -340,7 +332,10 @@ Each SDK builds your code into one self-contained artifact, which goes into a Da
 
 ### Building
 
-**TypeScript**: `airflow-ts-pack` bundles the entry module and everything it imports into one file.
+<details name="sdk-build" data-tab="typescript" data-sync-group="sdk" open>
+<summary>TypeScript</summary>
+
+`airflow-ts-pack` bundles the entry module and everything it imports into one file.
 
 ```bash
 npm install apache-airflow-ts-sdk
@@ -348,7 +343,11 @@ npm install --save-dev esbuild
 npx airflow-ts-pack src/orders_daily.ts --outdir dist   # writes dist/bundle.min.mjs
 ```
 
-**Java**: the Gradle plugin builds a fat JAR by default and packs the source of each Dag class into it. Maven is supported too.
+</details>
+<details name="sdk-build" data-tab="java" data-sync-group="sdk">
+<summary>Java</summary>
+
+The Gradle plugin builds a fat JAR by default and packs the source of each Dag class into it. Maven is supported too.
 
 ```kotlin
 plugins {
@@ -370,7 +369,11 @@ airflowBundle {
 ./gradlew bundle   # writes the JAR to build/bundle/
 ```
 
-**Go**: `airflow-go-pack` compiles the program and embeds each Dag's source file and a manifest in the executable. It cross-compiles for the platform your Airflow components run on.
+</details>
+<details name="sdk-build" data-tab="go" data-sync-group="sdk">
+<summary>Go</summary>
+
+`airflow-go-pack` compiles the program and embeds each Dag's source file and a manifest in the executable. It cross-compiles for the platform your Airflow components run on.
 
 ```bash
 # go.mod
@@ -378,6 +381,8 @@ tool github.com/apache/airflow/go-sdk/cmd/airflow-go-pack
 
 go tool airflow-go-pack --goos linux --goarch amd64 --output dist/orders_daily .
 ```
+
+</details>
 
 ### Deploying
 
