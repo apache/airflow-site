@@ -30,7 +30,7 @@ Call `.loop()` on a decorated task group to repeat it a number of times decided 
 from airflow.sdk import dag, task, task_group
 
 
-@dag(schedule=None, catchup=False, tags=["example"])
+@dag(tags=["example"])
 def refine_estimate():
     @task_group
     def refine():
@@ -70,7 +70,7 @@ refine_estimate()
 
 A loop with a fixed count (no `until`) always runs exactly `max_iterations` times and succeeds. If a loop reaches `max_iterations` while its `until` predicate is still `False`, meaning it never converged, the final iteration is marked failed, so a failure to converge surfaces as a real failure. The Airflow UI gains dedicated loop views so you can see each iteration's history at a glance.
 
-> A few limits to know: loops cannot be nested, a loop cannot sit inside a mapped task group, and a whole loop cannot itself be mapped.
+> A few limits to know: loops cannot be nested, a loop cannot sit inside a mapped task group (though mapped tasks inside loops are okay), and a whole loop cannot itself be mapped.
 
 For detailed usage, see the [loops authoring guide](https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/loops.html).
 
