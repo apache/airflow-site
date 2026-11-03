@@ -34,20 +34,24 @@
    {{< /codetabs >}}
 
  `sync` is optional; tabs that share a `sync` value switch together across the page
- (mirrors sphinx-design `:sync:`).
+ (mirrors sphinx-design `:sync:`). The fenced code block inside each `codetab` must
+ start at column 0 (do not indent it), or it renders as an indented block instead of
+ highlighted code.
 */}}
-{{- $id := printf "%d" .Ordinal -}}{{/* unique per shortcode on the page */}}
+{{- $n := add (.Page.Scratch.Get "ctCount" | default 0) 1 -}}
+{{- .Page.Scratch.Set "ctCount" $n -}}
+{{- $id := printf "%d" $n -}}{{/* page-unique id, safe even when nested in another shortcode */}}
 {{- .Scratch.Set "tabs" slice -}}
 {{- $_ := .Inner -}}{{/* access once: renders children so each codetab registers itself below */}}
 {{- $tabs := .Scratch.Get "tabs" -}}
 <div class="codetabs">
   <div class="codetabs__bar" role="tablist">
     {{- range $i, $t := $tabs -}}
-    <button type="button" role="tab" class="codetabs__tab{{ if eq $i 0 }} is-active{{ end }}" data-ct="{{ $id }}" data-idx="{{ $i }}"{{ with $t.sync }} data-sync="{{ . }}"{{ end }} aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}">{{ $t.header }}</button>
+    <button type="button" role="tab" id="ct-{{ $id }}-tab-{{ $i }}" aria-controls="ct-{{ $id }}-panel-{{ $i }}" class="codetabs__tab{{ if eq $i 0 }} is-active{{ end }}" data-ct="{{ $id }}" data-idx="{{ $i }}"{{ with $t.sync }} data-sync="{{ . }}"{{ end }} aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}">{{ $t.header }}</button>
     {{- end -}}
   </div>
   {{- range $i, $t := $tabs -}}
-  <div class="codetabs__panel{{ if eq $i 0 }} is-active{{ end }}" role="tabpanel" data-ct="{{ $id }}" data-idx="{{ $i }}">
+  <div class="codetabs__panel{{ if eq $i 0 }} is-active{{ end }}" role="tabpanel" id="ct-{{ $id }}-panel-{{ $i }}" aria-labelledby="ct-{{ $id }}-tab-{{ $i }}" data-ct="{{ $id }}" data-idx="{{ $i }}">
 {{ $t.content }}
   </div>
   {{- end -}}
