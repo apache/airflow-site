@@ -96,6 +96,8 @@ Each example below declares the same Dag, `orders_daily`:
 - `pick_report` picks a full or a brief report,
 - `trigger_finance` starts a run of the `finance_close` Dag after `load`, on a labeled edge.
 
+The UI screenshots under each language below are of separate real Dags authored with that SDK, not the `orders_daily` snippet itself.
+
 ### TypeScript
 
 A handler takes one object of named arguments, and calling a task names its inputs. The calls you write are the dependencies, and the compiler checks each one.
