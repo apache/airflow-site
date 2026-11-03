@@ -24,6 +24,10 @@ We're proud to announce the release of **Apache Airflow 3.4.0**! Where 3.3 gave 
 
 Some workflows do not have a fixed shape. You walk a tree of unknown depth, you refine an estimate until the error is small enough, or you run an agentic *generate → score → refine* loop until the output is good. Until now you reached for hard-coding a fixed depth or for Dags that trigger themselves. Airflow 3.4 makes **bounded, sequential iteration** a native concept.
 
+{{< figure src="images/loops_running_graph.png" alt="The refine loop of refine_estimate in the Graph view, running its third of up to ten iterations" caption="The `refine_estimate` Dag below, part-way through a run. The `refine` task group is a loop on its third of up to ten iterations: `improve` is running, then `evaluate` and the `accurate_enough` gate run and decide whether to go round again. `finished` waits until the loop is done." >}}
+
+Before we go any further, it is worth addressing one thing: “How can you have loops in a Dag, given DAG stands for Directed Acyclic Graph”. The answer to that is by being very careful. Essentially, there is no dependency loop introduced, the tasks in the Dag still do form a cycle-free graph. The looping nature is handled at runtime only.
+
 Call `.loop()` on a decorated task group to repeat it a number of times decided at runtime, where each iteration can build on the result of the last. It behaves like a `do … while` loop with a hard cap:
 
 ```python
@@ -63,18 +67,21 @@ refine_estimate()
 ## Key Capabilities
 
 - **`max_iterations`**: a required upper bound, so a loop can never run away.
-- **`until`**: an optional predicate that decides when to stop. Return `True` to stop, or omit it entirely for a loop that runs a fixed number of times. Because the body runs before the check, it always runs at least once.
+- **`until`**: an optional predicate function that decides when to stop, or omit it entirely for a loop that runs a fixed number of times. Because the body runs before the check, it always runs at least once.
 - **A `loop` context object** inside the body and the predicate: `loop.index` (the 1-based current pass), `loop.previous` (the last iteration's result), and `loop.result` (for the predicate).
 - **Lazy materialization**: Airflow only creates the next iteration when the loop decides to continue, so you do not see a tail of skipped iterations.
 - **Composable**: loops work with `.partial()` for body arguments, `.override()` for group config, and even `.expand()` to run mapped tasks *inside* a loop.
 
 A loop with a fixed count (no `until`) always runs exactly `max_iterations` times and succeeds. If a loop reaches `max_iterations` while its `until` predicate is still `False`, meaning it never converged, the final iteration is marked failed, so a failure to converge surfaces as a real failure. The Airflow UI gains dedicated loop views so you can see each iteration's history at a glance.
 
+{{< figure src="images/loops_running_iterations.png" alt="The Iterations tab of the running refine loop: iteration 3 in progress, with the reason the loop continued after iterations 1 and 2" caption="The loop's Iterations tab during the same run. Each finished iteration shows why its gate let the loop continue, here the error still being above the target, and iteration 3 is still running. To record a reason, the `until` function can return a `LoopDecision(stop=..., reason=...)` instead." >}}
+
 > A few limits to know: loops cannot be nested, a loop cannot sit inside a mapped task group (though mapped tasks inside loops are okay), and a whole loop cannot itself be mapped.
 
 For detailed usage, see the [loops authoring guide](https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/loops.html).
 
-<!-- TODO image (from Ash): Task Loops iteration view in the UI — e.g. images/loop-iteration-view.png -->
+{{< figure src="images/loops_review.png" alt="A Dag combining common.ai tasks, Loops, and HITL to provide humnan feedback to future rounds." caption="The third iteration of a `draft-and-review` loop, waiting for input. The graph shows the dag at iteration 3 of a max of 5. On the right, the reviewer reads the agent's draft and types feedback. *Request changes* runs the loop again with that feedback fed back to the next round, and *Approve* ends stops the loop early." >}}
+
 
 # 🌐 Write Airflow Dags in TypeScript, Java and Go
 
@@ -484,7 +491,7 @@ Several of the more advanced pieces, such as durable replay at the step level on
 - **Loop iteration views**: new UI for Task Loops shows each iteration's run and a per-task loop history chart, so an iterative workflow reads clearly instead of as an opaque group.
 - **Dag Folders**: the Dags list gains a **Folders** panel that groups your Dags into a navigable tree mirroring each bundle's directory layout, so you can drill into `multilang/go` or `task_loops/experiments` and filter to a folder instead of scrolling one flat list. The tree nests to any depth.
 
-  ![The Folders panel groups Dags by their directory layout within each bundle](images/dag-folders.png)
+  {{<figure src="images/dag-folders.png" alt="Airflow's Dags list page with a folder-like structure on the left hand side" caption="The Folders panel groups Dags by their directory layout within each bundle">}}
 
 - **Language-aware Dags in the UI**: Dags not written in Python surface with their source language, so a Go or TypeScript Dag is treated like any other Dag in the grid and graph.
 - Plus the usual round of stability, performance, and quality-of-life fixes across the scheduler, API server, and UI.
@@ -510,7 +517,6 @@ Happy orchestrating, whether you are iterating, writing in another language, or 
 Notes for finalizing (delete before publishing):
 - Hero image (OPTIONAL): images/3.4.0.jpg — 3.3.0 shipped without it, so not a blocker; add later if desired.
 - Images still needed (replace the TODO-image comments above):
-  * Task Loops iteration view (from Ash — docs/UI screenshots).
   * Loops + common.ai example and/or Required Actions approval page (from Kaxil).
   Lock all screenshots against the 3.4.0 GA build (the Loops UI may have changed since RC).
 - Added: per-SDK Code-view screenshots (multilang-run-{typescript,java,go}.png) from the Google Doc.
