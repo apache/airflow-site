@@ -1,0 +1,81 @@
+{{/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+
+ Tabbed container, the Hugo analog of sphinx-design's `tab-set`. Pair it with the
+ inner `codetab` shortcode (one per tab). The first tab is shown by default.
+
+ Usage:
+   {{< codetabs >}}
+   {{< codetab header="TypeScript" sync="typescript" >}}
+   ```typescript
+   console.log("hi");
+   ```
+   {{< /codetab >}}
+   {{< codetab header="Go" sync="go" >}}
+   ```go
+   fmt.Println("hi")
+   ```
+   {{< /codetab >}}
+   {{< /codetabs >}}
+
+ `sync` is optional; tabs that share a `sync` value switch together across the page
+ (mirrors sphinx-design `:sync:`).
+*/}}
+{{- $id := printf "%d" .Ordinal -}}{{/* unique per shortcode on the page */}}
+{{- .Scratch.Set "tabs" slice -}}
+{{- $_ := .Inner -}}{{/* access once: renders children so each codetab registers itself below */}}
+{{- $tabs := .Scratch.Get "tabs" -}}
+<div class="codetabs">
+  <div class="codetabs__bar" role="tablist">
+    {{- range $i, $t := $tabs -}}
+    <button type="button" role="tab" class="codetabs__tab{{ if eq $i 0 }} is-active{{ end }}" data-ct="{{ $id }}" data-idx="{{ $i }}"{{ with $t.sync }} data-sync="{{ . }}"{{ end }} aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}">{{ $t.header }}</button>
+    {{- end -}}
+  </div>
+  {{- range $i, $t := $tabs -}}
+  <div class="codetabs__panel{{ if eq $i 0 }} is-active{{ end }}" role="tabpanel" data-ct="{{ $id }}" data-idx="{{ $i }}">
+{{ $t.content }}
+  </div>
+  {{- end -}}
+</div>
+{{- if not (.Page.Scratch.Get "codetabsJS") -}}
+{{- .Page.Scratch.Set "codetabsJS" true -}}
+<script>
+(function () {
+  function activateGroup(group, idx) {
+    document.querySelectorAll('[data-ct="' + group + '"]').forEach(function (el) {
+      var on = el.getAttribute('data-idx') === idx;
+      el.classList.toggle('is-active', on);
+      if (el.classList.contains('codetabs__tab')) {
+        el.setAttribute('aria-selected', on ? 'true' : 'false');
+      }
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.codetabs__tab') : null;
+    if (!btn) return;
+    var sync = btn.getAttribute('data-sync');
+    var tabs = sync
+      ? Array.prototype.slice.call(document.querySelectorAll('.codetabs__tab[data-sync="' + sync + '"]'))
+      : [btn];
+    tabs.forEach(function (tab) {
+      activateGroup(tab.getAttribute('data-ct'), tab.getAttribute('data-idx'));
+    });
+  });
+})();
+</script>
+{{- end -}}
