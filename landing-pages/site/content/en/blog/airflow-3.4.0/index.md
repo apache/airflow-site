@@ -4,9 +4,9 @@ linkTitle: "Apache Airflow 3.4.0: Task Loops, Dags in Any Language, and AI Agent
 author: "Rahul Vats"
 github: "vatsrahul1001"
 linkedin: "vats-rahul"
-description: "Apache Airflow 3.4.0 introduces bounded Task Loops for iterative workflows, Dag authoring beyond Python (TypeScript, Go, Java, and YAML) on the new AIP-85 Dag Importer, and a maturing common.ai provider for running LLM and agent tasks with built-in human approval."
+description: "Apache Airflow 3.4.0 introduces bounded Task Loops for iterative workflows, Dag authoring beyond Python (TypeScript, Go, Java, and YAML) on the new AIP-85 Dag Importer, and a maturing Common AI provider for running LLM and agent tasks with built-in human approval."
 tags: [Release]
-date: "2026-11-04"
+date: "2026-11-06"
 images: ["/blog/airflow-3.4.0/images/3.4.0.jpg"]
 ---
 
@@ -80,7 +80,7 @@ A loop with a fixed count (no `until`) always runs exactly `max_iterations` time
 
 For detailed usage, see the [loops authoring guide](https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/loops.html).
 
-{{< figure src="images/loops_review.png" alt="A Dag combining common.ai tasks, Loops, and HITL to provide humnan feedback to future rounds." caption="The third iteration of a `draft-and-review` loop, waiting for input. The graph shows the dag at iteration 3 of a max of 5. On the right, the reviewer reads the agent's draft and types feedback. *Request changes* runs the loop again with that feedback fed back to the next round, and *Approve* ends stops the loop early." >}}
+{{< figure src="images/loops_review.png" alt="A Dag combining Common AI tasks, Loops, and HITL to provide human feedback to future rounds." caption="The third iteration of a `draft-and-review` loop, waiting for input. The graph shows the dag at iteration 3 of a max of 5. On the right, the reviewer reads the agent's draft and types feedback. *Request changes* runs the loop again with that feedback fed back to the next round, and *Approve* ends stops the loop early." >}}
 
 
 # 🌐 Write Airflow Dags in TypeScript, Java and Go
@@ -448,7 +448,7 @@ tasks:
 
 Templating is explicit: a field only renders when the author marks it. The value grammar uses small markers, `$t` to render a template, `$x` to read an XCom, `$f` to read a file, and `$const` for a literal constant, and a marker on a field the operator does not template is a build error rather than something silently ignored. That makes YAML Dags predictable: what you see is what runs.
 
-# 🤖 common.ai Goes GA: LLM and Agent Tasks, With a Human in the Loop
+# 🤖 Common AI Goes GA: LLM and Agent Tasks, With a Human in the Loop
 
 AI steps are becoming a normal part of data pipelines, and the `common.ai` provider reaches **GA** alongside this release — shipping **1.1.0** with Airflow 3.4.0 — stabilizing the API for running model calls and agents as ordinary Airflow tasks. Built on [pydantic-ai](https://ai.pydantic.dev/), it lets the API key come from a connection, a failed call retry like any task, the result land in XCom, and the whole thing run on a schedule.
 
