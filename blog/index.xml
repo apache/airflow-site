@@ -6,15 +6,491 @@
   <id>https://airflow.apache.org/blog/</id>
 
 
-  <updated>2026-11-06T19:01:23Z</updated>
+  <updated>2026-11-06T20:54:55Z</updated>
 
 
+  <entry>
+    <title>Apache Airflow 3.4.0: Task Loops, Dags in Any Language, and AI Agents</title>
+    <link href="https://airflow.apache.org/blog/airflow-3.4.0/" rel="alternate"/>
+    <id>https://airflow.apache.org/blog/airflow-3.4.0/</id>
+    <published>2026-11-06T00:00:00Z</published>
+    <updated>2026-11-06T20:54:55Z</updated>
+    <author>
+      <name>Apache Airflow</name>
+    </author><content type="html"><![CDATA[<p>We&rsquo;re proud to announce the release of <strong>Apache Airflow 3.4.0</strong>! Where 3.3 gave your <em>tasks</em> memory and task bodies in multiple languages, 3.4 is about <strong>shape and reach</strong>. It brings <strong>Task Loops</strong>, a native loop primitive for workflows that repeat until they are done; the ability to author an entire Dag in TypeScript, Go, Java, or YAML rather than only Python; and a steadily maturing <code>common.ai</code> provider that turns LLM calls and agents into ordinary Airflow tasks, complete with human approval.</p>
+<p><strong>🎯 Release Highlights</strong></p>
+<p>📦 PyPI: <a href="https://pypi.org/project/apache-airflow/3.4.0/">https://pypi.org/project/apache-airflow/3.4.0/</a> <br>
+📚 Docs: <a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/">https://airflow.apache.org/docs/apache-airflow/3.4.0/</a> <br>
+🛠️ Release Notes: <a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/release_notes.html">https://airflow.apache.org/docs/apache-airflow/3.4.0/release_notes.html</a> <br>
+🐳 Docker Image: <code>docker pull apache/airflow:3.4.0</code> <br>
+🚏 Constraints: <a href="https://github.com/apache/airflow/tree/constraints-3.4.0">https://github.com/apache/airflow/tree/constraints-3.4.0</a></p>
+<h1 id="-task-loops-aip-111-workflows-that-repeat-until-they-are-done">🔁 Task Loops (AIP-111): Workflows That Repeat Until They Are Done</h1>
+<p>Some workflows do not have a fixed shape. You walk a tree of unknown depth, you refine an estimate until the error is small enough, or you run an agentic <em>generate → score → refine</em> loop until the output is good. Until now you reached for hard-coding a fixed depth or for Dags that trigger themselves. Airflow 3.4 makes <strong>bounded, sequential iteration</strong> a native concept.</p>
+<figure><img src="/blog/airflow-3.4.0/images/loops_running_graph.png"
+    alt="The refine loop of refine_estimate in the Graph view, running its third of up to ten iterations"><figcaption>
+      <p>The <code>refine_estimate</code> Dag below, part-way through a run. The <code>refine</code> task group is a loop on its third of up to ten iterations: <code>improve</code> is running, then <code>evaluate</code> and the <code>accurate_enough</code> gate run and decide whether to go round again. <code>finished</code> waits until the loop is done.</p>
+    </figcaption>
+</figure>
+
+<p>Before we go any further, it is worth addressing one thing: “How can you have loops in a Dag, given DAG stands for Directed Acyclic Graph”. The answer to that is by being very careful. Essentially, there is no dependency loop introduced, the tasks in the Dag still do form a cycle-free graph. The looping nature is handled at runtime only.</p>
+<p>Call <code>.loop()</code> on a decorated task group to repeat it a number of times decided at runtime, where each iteration can build on the result of the last. It behaves like a <code>do … while</code> loop with a hard cap:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">airflow.sdk</span> <span class="kn">import</span> <span class="n">dag</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">task_group</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nd">@dag</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&#34;example&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">refine_estimate</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="nd">@task_group</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">refine</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">        <span class="k">def</span> <span class="nf">improve</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">loop</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="c1"># First pass starts from 1.0; later passes read the previous result.</span>
+</span></span><span class="line"><span class="cl">            <span class="n">estimate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">loop</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">loop</span><span class="o">.</span><span class="n">previous</span><span class="p">[</span><span class="s2">&#34;estimate&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="p">(</span><span class="n">estimate</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">estimate</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">        <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">estimate</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="p">{</span><span class="s2">&#34;estimate&#34;</span><span class="p">:</span> <span class="n">estimate</span><span class="p">,</span> <span class="s2">&#34;error&#34;</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">estimate</span> <span class="o">*</span> <span class="n">estimate</span> <span class="o">-</span> <span class="mf">2.0</span><span class="p">)}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">evaluate</span><span class="p">(</span><span class="n">improve</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">accurate_enough</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">loop</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">loop</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="s2">&#34;error&#34;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.000001</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nd">@task</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">finished</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Refinement finished.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">refinement</span> <span class="o">=</span> <span class="n">refine</span><span class="o">.</span><span class="n">loop</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="n">accurate_enough</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">refinement</span> <span class="o">&gt;&gt;</span> <span class="n">finished</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">refine_estimate</span><span class="p">()</span>
+</span></span></code></pre></div><h2 id="key-capabilities">Key Capabilities</h2>
+<ul>
+<li><strong><code>max_iterations</code></strong>: a required upper bound, so a loop can never run away.</li>
+<li><strong><code>until</code></strong>: an optional predicate function that decides when to stop, or omit it entirely for a loop that runs a fixed number of times. Because the body runs before the check, it always runs at least once.</li>
+<li><strong>A <code>loop</code> context object</strong> inside the body and the predicate: <code>loop.index</code> (the 1-based current pass), <code>loop.previous</code> (the last iteration&rsquo;s result), and <code>loop.result</code> (for the predicate).</li>
+<li><strong>Lazy materialization</strong>: Airflow only creates the next iteration when the loop decides to continue, so you do not see a tail of skipped iterations.</li>
+<li><strong>Composable</strong>: loops work with <code>.partial()</code> for body arguments, <code>.override()</code> for group config, and even <code>.expand()</code> to run mapped tasks <em>inside</em> a loop.</li>
+</ul>
+<p>A loop with a fixed count (no <code>until</code>) always runs exactly <code>max_iterations</code> times and succeeds. If a loop reaches <code>max_iterations</code> while its <code>until</code> predicate is still <code>False</code>, meaning it never converged, the final iteration is marked failed, so a failure to converge surfaces as a real failure. The Airflow UI gains dedicated loop views so you can see each iteration&rsquo;s history at a glance.</p>
+<figure><img src="/blog/airflow-3.4.0/images/loops_running_iterations.png"
+    alt="The Iterations tab of the running refine loop: iteration 3 in progress, with the reason the loop continued after iterations 1 and 2"><figcaption>
+      <p>The loop&rsquo;s Iterations tab during the same run. Each finished iteration shows why its gate let the loop continue, here the error still being above the target, and iteration 3 is still running. To record a reason, the <code>until</code> function can return a <code>LoopDecision(stop=..., reason=...)</code> instead.</p>
+    </figcaption>
+</figure>
+
+<blockquote>
+<p>A few limits to know: loops cannot be nested, a loop cannot sit inside a mapped task group (though mapped tasks inside loops are okay), and a whole loop cannot itself be mapped.</p></blockquote>
+<p>For detailed usage, see the <a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/loops.html">loops authoring guide</a>.</p>
+<figure><img src="/blog/airflow-3.4.0/images/loops_review.png"
+    alt="A Dag combining Common AI tasks, Loops, and HITL to provide human feedback to future rounds."><figcaption>
+      <p>The third iteration of a <code>draft-and-review</code> loop, waiting for input. The graph shows the dag at iteration 3 of a max of 5. On the right, the reviewer reads the agent&rsquo;s draft and types feedback. <em>Request changes</em> runs the loop again with that feedback fed back to the next round, and <em>Approve</em> ends stops the loop early.</p>
+    </figcaption>
+</figure>
+
+<h1 id="-write-airflow-dags-in-typescript-java-and-go">🌐 Write Airflow Dags in TypeScript, Java and Go</h1>
+<p>Airflow 3.3 let you write individual <em>tasks</em> in Java or Go while Python still owned the Dag. Airflow 3.4 takes the next step: you can define the entire Dag, including its schedule, tasks and dependencies, in TypeScript, Java or Go, with no Python file involved. All three SDKs are generally available.</p>
+<p>This is powered by <strong>AIP-85, the Dag Importer</strong>, a pluggable framework that teaches the Dag processor to read Dag sources beyond <code>.py</code>. Each format registers an importer. For a language SDK, the Dag processor runs the language&rsquo;s runtime to read the Dags an artifact declares, and Airflow then treats them exactly like Python Dags. The same framework also powers an opt-in YAML importer.</p>
+<h2 id="whats-supported">What&rsquo;s supported</h2>
+<p>Each SDK works in two modes, and one artifact can serve both: a <strong>Dag definition</strong> declares the whole Dag in the SDK&rsquo;s language, which is what 3.4 adds, and a <strong>Python Dag with stub TaskHandler</strong> implements the <code>@task.stub</code> tasks of a Python Dag, including their TaskFlow arguments. A Dag definition supports Dag and task options under Airflow&rsquo;s own names, one queue for all of a Dag&rsquo;s tasks, TaskFlow inputs from task results and literals, order-only dependencies (<code>before</code> / <code>after</code>), nested task groups, edge labels, if / else and switch / case branching, and triggering another Dag&rsquo;s run. Task code can use Variables, Connections, XCom and the task state store. An artifact can hold several Dags, including Dags generated in a loop, and the Code view shows each Dag&rsquo;s own source file. All of this works the same in TypeScript, Java and Go, and the TypeScript SDK adds human-in-the-loop tasks (approval, <code>hitl</code>).</p>
+<h2 id="the-same-dag-declared-in-three-languages">The same Dag declared in three languages</h2>
+<p>Each example below declares the same Dag, <code>orders_daily</code>:</p>
+<ul>
+<li>the <code>extract</code> task group counts orders for two regions,</li>
+<li><code>summarize</code> adds them up,</li>
+<li><code>has_orders</code> runs <code>load</code> when there are orders, and <code>alert</code> when there are none,</li>
+<li><code>pick_report</code> picks a full or a brief report,</li>
+<li><code>trigger_finance</code> starts a run of the <code>finance_close</code> Dag after <code>load</code>, on a labeled edge.</li>
+</ul>
+<p>The UI screenshot in each tab is of a separate real Dag authored with that SDK, not the <code>orders_daily</code> snippet itself.</p>
+<details name="sdk-dag" data-tab="typescript" data-sync-group="sdk" open>
+<summary>TypeScript</summary>
+<p>A handler takes one object of named arguments, and calling a task names its inputs. The calls you write are the dependencies, and the compiler checks each one.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-typescript" data-lang="typescript"><span class="line"><span class="cl"><span class="kr">import</span> <span class="p">{</span> <span class="nx">Bundle</span><span class="p">,</span> <span class="nx">Dag</span><span class="p">,</span> <span class="nx">label</span><span class="p">,</span> <span class="nx">triggerDagRun</span> <span class="p">}</span> <span class="kr">from</span> <span class="s2">&#34;apache-airflow-ts-sdk&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">dag</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Dag</span><span class="p">(</span><span class="s2">&#34;orders_daily&#34;</span><span class="p">,</span> <span class="p">{</span> <span class="nx">schedule</span><span class="o">:</span> <span class="s2">&#34;@daily&#34;</span><span class="p">,</span> <span class="nx">tags</span><span class="o">:</span> <span class="p">[</span><span class="s2">&#34;orders&#34;</span><span class="p">],</span> <span class="nx">queue</span><span class="o">:</span> <span class="s2">&#34;typescript&#34;</span> <span class="p">});</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// A task group: its task ids are &#34;extract.eu&#34; and &#34;extract.us&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kr">const</span> <span class="nx">extract</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">taskGroup</span><span class="p">(</span><span class="s2">&#34;extract&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">eu</span> <span class="o">=</span> <span class="nx">extract</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;eu&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">()</span><span class="o">:</span> <span class="nx">Promise</span><span class="p">&lt;</span><span class="nt">number</span><span class="p">&gt;</span> <span class="o">=&gt;</span> <span class="mi">120</span><span class="p">)();</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">us</span> <span class="o">=</span> <span class="nx">extract</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;us&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">()</span><span class="o">:</span> <span class="nx">Promise</span><span class="p">&lt;</span><span class="nt">number</span><span class="p">&gt;</span> <span class="o">=&gt;</span> <span class="mi">80</span><span class="p">)();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// TaskFlow: passing a task&#39;s result draws the dependency and delivers the value.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kr">const</span> <span class="nx">summarize</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;summarize&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">({</span> <span class="nx">eu</span><span class="p">,</span> <span class="nx">us</span> <span class="p">}</span><span class="o">:</span> <span class="p">{</span> <span class="nx">eu</span>: <span class="kt">number</span><span class="p">;</span> <span class="nx">us</span>: <span class="kt">number</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="nx">eu</span> <span class="o">+</span> <span class="nx">us</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">total</span> <span class="o">=</span> <span class="nx">summarize</span><span class="p">({</span> <span class="nx">eu</span><span class="p">,</span> <span class="nx">us</span> <span class="p">});</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">load</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;load&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">({</span> <span class="nx">total</span><span class="p">,</span> <span class="nx">table</span> <span class="p">}</span><span class="o">:</span> <span class="p">{</span> <span class="nx">total</span>: <span class="kt">number</span><span class="p">;</span> <span class="nx">table</span>: <span class="kt">string</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Loading </span><span class="si">${</span><span class="nx">total</span><span class="si">}</span><span class="sb"> orders into </span><span class="si">${</span><span class="nx">table</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">loaded</span> <span class="o">=</span> <span class="nx">load</span><span class="p">({</span> <span class="nx">total</span><span class="p">,</span> <span class="nx">table</span><span class="o">:</span> <span class="s2">&#34;warehouse.orders&#34;</span> <span class="p">});</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">alerted</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;alert&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;No orders today&#34;</span><span class="p">))();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// if / else: the side not taken is skipped.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kr">const</span> <span class="nx">hasOrders</span> <span class="o">=</span> <span class="kr">async</span> <span class="p">({</span> <span class="nx">total</span> <span class="p">}</span><span class="o">:</span> <span class="p">{</span> <span class="nx">total</span>: <span class="kt">number</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="nx">total</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">dag</span><span class="p">.</span><span class="k">if</span><span class="p">(</span><span class="nx">hasOrders</span><span class="p">,</span> <span class="p">{</span> <span class="nx">total</span> <span class="p">},</span> <span class="p">{</span> <span class="nx">taskId</span><span class="o">:</span> <span class="s2">&#34;has_orders&#34;</span> <span class="p">}).</span><span class="nx">then</span><span class="p">(</span><span class="nx">loaded</span><span class="p">).</span><span class="k">else</span><span class="p">(</span><span class="nx">alerted</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// switch / case: the decider returns the task to run.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kr">const</span> <span class="nx">full</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;report_full&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;Full report&#34;</span><span class="p">))();</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">brief</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;report_brief&#34;</span><span class="p">,</span> <span class="kr">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;Brief report&#34;</span><span class="p">))();</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">pickReport</span> <span class="o">=</span> <span class="kr">async</span> <span class="p">({</span> <span class="nx">total</span> <span class="p">}</span><span class="o">:</span> <span class="p">{</span> <span class="nx">total</span>: <span class="kt">number</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">total</span> <span class="o">&gt;</span> <span class="mi">1000</span> <span class="o">?</span> <span class="nx">full</span> : <span class="kt">brief</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">dag</span><span class="p">.</span><span class="k">switch</span><span class="p">(</span><span class="nx">pickReport</span><span class="p">,</span> <span class="p">{</span> <span class="nx">total</span> <span class="p">},</span> <span class="p">{</span> <span class="nx">taskId</span><span class="o">:</span> <span class="s2">&#34;pick_report&#34;</span> <span class="p">}).</span><span class="k">case</span><span class="p">(</span><span class="nx">full</span><span class="p">).</span><span class="k">case</span><span class="p">(</span><span class="nx">brief</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Trigger another Dag after the load, on a labeled edge.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kr">const</span> <span class="nx">triggered</span> <span class="o">=</span> <span class="nx">dag</span><span class="p">.</span><span class="nx">task</span><span class="p">(</span><span class="s2">&#34;trigger_finance&#34;</span><span class="p">,</span> <span class="nx">triggerDagRun</span><span class="p">({</span> <span class="nx">dagId</span><span class="o">:</span> <span class="s2">&#34;finance_close&#34;</span> <span class="p">}))();</span>
+</span></span><span class="line"><span class="cl"><span class="nx">loaded</span><span class="p">.</span><span class="nx">before</span><span class="p">(</span><span class="nx">label</span><span class="p">(</span><span class="nx">triggered</span><span class="p">,</span> <span class="s2">&#34;hand off&#34;</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">await</span> <span class="k">new</span> <span class="nx">Bundle</span><span class="p">(</span><span class="nx">dag</span><span class="p">).</span><span class="nx">serve</span><span class="p">();</span>
+</span></span></code></pre></div><p><img src="/blog/airflow-3.4.0/images/multilang-run-typescript.png" alt="The TypeScript storefront_daily_orders Dag in the Airflow UI, with its packed bundle.min.mjs in the Code view"></p>
+</details>
+<details name="sdk-dag" data-tab="java" data-sync-group="sdk">
+<summary>Java</summary>
+<p>Annotations carry the configuration. A <code>@Airflow.Deps</code> class wires the graph through a view that the annotation processor generates, so <code>javac</code> type-checks every edge. An interface-based API (<code>DagDef</code>, <code>dag.task(...)</code>) is also available.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">package</span><span class="w"> </span><span class="nn">com.example</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kn">import static</span><span class="w"> </span><span class="nn">java.lang.System.Logger.Level.INFO</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.airflow.sdk.*</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nd">@Airflow.Dag</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;orders_daily&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">schedule</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;@daily&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">tags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&#34;orders&#34;</span><span class="p">},</span><span class="w"> </span><span class="n">queue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;java&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OrdersDaily</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">Logger</span><span class="w"> </span><span class="n">log</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">getLogger</span><span class="p">(</span><span class="n">OrdersDaily</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getName</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c1">// A task group: its task ids are &#34;extract.eu&#34; and &#34;extract.us&#34;.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.TaskGroup</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;extract&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">static</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Extract</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Airflow.Task</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">eu</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">120L</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Airflow.Task</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">us</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">80L</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Task</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">summarize</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">eu</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">us</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">eu</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">us</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Task</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">total</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">log</span><span class="p">.</span><span class="na">log</span><span class="p">(</span><span class="n">INFO</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;Loading {0} orders into {1}&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p">,</span><span class="w"> </span><span class="n">table</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Task</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">alert</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">log</span><span class="p">.</span><span class="na">log</span><span class="p">(</span><span class="n">INFO</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;No orders today&#34;</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c1">// if / else: the side not taken is skipped.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.If</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;has_orders&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">hasOrders</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">total</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Task</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;report_full&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">reportFull</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">log</span><span class="p">.</span><span class="na">log</span><span class="p">(</span><span class="n">INFO</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;Full report&#34;</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Task</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;report_brief&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">reportBrief</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">log</span><span class="p">.</span><span class="na">log</span><span class="p">(</span><span class="n">INFO</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;Brief report&#34;</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c1">// switch / case: the decider returns the class generated for the task to run.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Switch</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;pick_report&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;?</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">Task</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">pickReport</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">total</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">1000</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">OrdersDailyBuilder</span><span class="p">.</span><span class="na">ReportFull</span><span class="p">.</span><span class="na">class</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">OrdersDailyBuilder</span><span class="p">.</span><span class="na">ReportBrief</span><span class="p">.</span><span class="na">class</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c1">// Trigger another Dag. This method runs when the Dag is built, not when the task runs.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Task</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;trigger_finance&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="n">TriggerDagRun</span><span class="w"> </span><span class="nf">triggerFinance</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">TriggerDagRun</span><span class="p">(</span><span class="s">&#34;finance_close&#34;</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c1">// Each call is a task, and passing its result to another call draws the dependency.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Airflow.Deps</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">static</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Wiring</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">OrdersDailyDeps</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">depends</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="kd">var</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">summarize</span><span class="p">(</span><span class="n">extract</span><span class="p">().</span><span class="na">eu</span><span class="p">(),</span><span class="w"> </span><span class="n">extract</span><span class="p">().</span><span class="na">us</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="kd">var</span><span class="w"> </span><span class="n">loaded</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load</span><span class="p">(</span><span class="n">total</span><span class="p">,</span><span class="w"> </span><span class="n">lit</span><span class="p">(</span><span class="s">&#34;warehouse.orders&#34;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">hasOrders</span><span class="p">(</span><span class="n">total</span><span class="p">).</span><span class="na">Then</span><span class="p">(</span><span class="n">loaded</span><span class="p">).</span><span class="na">Else</span><span class="p">(</span><span class="n">alert</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">pickReport</span><span class="p">(</span><span class="n">total</span><span class="p">).</span><span class="na">Case</span><span class="p">(</span><span class="n">reportFull</span><span class="p">()).</span><span class="na">Case</span><span class="p">(</span><span class="n">reportBrief</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">loaded</span><span class="p">.</span><span class="na">before</span><span class="p">(</span><span class="n">Flow</span><span class="p">.</span><span class="na">label</span><span class="p">(</span><span class="n">triggerFinance</span><span class="p">(),</span><span class="w"> </span><span class="s">&#34;hand off&#34;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">Server</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="n">args</span><span class="p">).</span><span class="na">serve</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Bundle</span><span class="p">().</span><span class="na">register</span><span class="p">(</span><span class="n">OrdersDaily</span><span class="p">.</span><span class="na">class</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p><img src="/blog/airflow-3.4.0/images/multilang-run-java.png" alt="The Java risk_fraud_screening Dag in the Airflow UI, with its .jar source in the Code view"></p>
+</details>
+<details name="sdk-dag" data-tab="go" data-sync-group="sdk">
+<summary>Go</summary>
+<p><code>Inputs</code> passes task results and literals to a task function, in parameter order. A task&rsquo;s id is its function&rsquo;s name unless a <code>TaskSpec</code> sets one.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;log&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;github.com/apache/airflow/go-sdk/airflow&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">bundle</span> <span class="o">:=</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Bundle</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">bundle</span><span class="p">.</span><span class="nf">Register</span><span class="p">(</span><span class="nf">ordersDaily</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">bundle</span><span class="p">.</span><span class="nf">Serve</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">log</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">ordersDaily</span><span class="p">()</span> <span class="o">*</span><span class="nx">airflow</span><span class="p">.</span><span class="nx">DagRef</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">dag</span> <span class="o">:=</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Dag</span><span class="p">(</span><span class="s">&#34;orders_daily&#34;</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">DagSpec</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Schedule</span><span class="p">:</span> <span class="s">&#34;@daily&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Tags</span><span class="p">:</span>     <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;orders&#34;</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Queue</span><span class="p">:</span>    <span class="s">&#34;golang&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// A task group: its task ids are &#34;extract.eu&#34; and &#34;extract.us&#34;.</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">extract</span> <span class="o">:=</span> <span class="nx">dag</span><span class="p">.</span><span class="nf">TaskGroup</span><span class="p">(</span><span class="s">&#34;extract&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">eu</span> <span class="o">:=</span> <span class="nx">extract</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">countOrders</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;eu&#34;</span><span class="p">},</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">airflow</span><span class="p">.</span><span class="nf">Literal</span><span class="p">(</span><span class="s">&#34;eu&#34;</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">us</span> <span class="o">:=</span> <span class="nx">extract</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">countOrders</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;us&#34;</span><span class="p">},</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">airflow</span><span class="p">.</span><span class="nf">Literal</span><span class="p">(</span><span class="s">&#34;us&#34;</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// TaskFlow: passing a task&#39;s result draws the dependency and delivers the value.</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">total</span> <span class="o">:=</span> <span class="nx">dag</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">summarize</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">eu</span><span class="p">,</span> <span class="nx">us</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">loaded</span> <span class="o">:=</span> <span class="nx">dag</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">load</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">total</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Literal</span><span class="p">(</span><span class="s">&#34;warehouse.orders&#34;</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// if / else: the side not taken is skipped.</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">dag</span><span class="p">.</span><span class="nf">If</span><span class="p">(</span><span class="nx">hasOrders</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;has_orders&#34;</span><span class="p">},</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">total</span><span class="p">)).</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">Then</span><span class="p">(</span><span class="nx">loaded</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">Else</span><span class="p">(</span><span class="nx">dag</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">alert</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// switch / case: the decider returns the task to run.</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">r</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">reports</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">full</span><span class="p">:</span>  <span class="nx">dag</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">reportFull</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;report_full&#34;</span><span class="p">}),</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">brief</span><span class="p">:</span> <span class="nx">dag</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span><span class="nx">reportBrief</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;report_brief&#34;</span><span class="p">}),</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">dag</span><span class="p">.</span><span class="nf">Switch</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">pick</span><span class="p">,</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;pick_report&#34;</span><span class="p">},</span> <span class="nx">airflow</span><span class="p">.</span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">total</span><span class="p">)).</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">Case</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">full</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">Case</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">brief</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Trigger another Dag after the load, on a labeled edge.</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">triggered</span> <span class="o">:=</span> <span class="nx">dag</span><span class="p">.</span><span class="nf">Task</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">airflow</span><span class="p">.</span><span class="nf">TriggerDagRun</span><span class="p">(</span><span class="nx">airflow</span><span class="p">.</span><span class="nx">TriggerDagRunSpec</span><span class="p">{</span><span class="nx">DagID</span><span class="p">:</span> <span class="s">&#34;finance_close&#34;</span><span class="p">}),</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskSpec</span><span class="p">{</span><span class="nx">TaskID</span><span class="p">:</span> <span class="s">&#34;trigger_finance&#34;</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">loaded</span><span class="p">.</span><span class="nf">Before</span><span class="p">(</span><span class="nx">airflow</span><span class="p">.</span><span class="nf">Label</span><span class="p">(</span><span class="nx">triggered</span><span class="p">,</span> <span class="s">&#34;hand off&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">dag</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">ordersByRegion</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="s">&#34;eu&#34;</span><span class="p">:</span> <span class="mi">120</span><span class="p">,</span> <span class="s">&#34;us&#34;</span><span class="p">:</span> <span class="mi">80</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">countOrders</span><span class="p">(</span><span class="nx">_</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">region</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">ordersByRegion</span><span class="p">[</span><span class="nx">region</span><span class="p">],</span> <span class="kc">nil</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">summarize</span><span class="p">(</span><span class="nx">_</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">eu</span><span class="p">,</span> <span class="nx">us</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">eu</span> <span class="o">+</span> <span class="nx">us</span><span class="p">,</span> <span class="kc">nil</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">load</span><span class="p">(</span><span class="nx">actx</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">total</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">table</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">actx</span><span class="p">.</span><span class="nf">Logger</span><span class="p">().</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;loading orders&#34;</span><span class="p">,</span> <span class="s">&#34;total&#34;</span><span class="p">,</span> <span class="nx">total</span><span class="p">,</span> <span class="s">&#34;table&#34;</span><span class="p">,</span> <span class="nx">table</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">alert</span><span class="p">(</span><span class="nx">actx</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">actx</span><span class="p">.</span><span class="nf">Logger</span><span class="p">().</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;no orders today&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">hasOrders</span><span class="p">(</span><span class="nx">_</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">total</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="kt">bool</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">total</span> <span class="p">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">nil</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">reportFull</span><span class="p">(</span><span class="nx">actx</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">actx</span><span class="p">.</span><span class="nf">Logger</span><span class="p">().</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;full report&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">reportBrief</span><span class="p">(</span><span class="nx">actx</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">actx</span><span class="p">.</span><span class="nf">Logger</span><span class="p">().</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;brief report&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// reports holds the switch&#39;s cases, because a decider returns a *TaskRef.</span>
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">reports</span> <span class="kd">struct</span><span class="p">{</span> <span class="nx">full</span><span class="p">,</span> <span class="nx">brief</span> <span class="o">*</span><span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskRef</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">reports</span><span class="p">)</span> <span class="nf">pick</span><span class="p">(</span><span class="nx">_</span> <span class="nx">airflow</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">total</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">airflow</span><span class="p">.</span><span class="nx">TaskRef</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">total</span> <span class="p">&gt;</span> <span class="mi">1000</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">full</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">brief</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><img src="/blog/airflow-3.4.0/images/multilang-run-go.png" alt="The Go finance_revenue_close Dag in the Airflow UI, with its source in the Code view"></p>
+</details>
+<h2 id="building-and-deploying">Building and deploying</h2>
+<p>Each SDK builds your code into one self-contained artifact, which goes into a Dag bundle like any <code>.py</code> file.</p>
+<h3 id="building">Building</h3>
+<details name="sdk-build" data-tab="typescript" data-sync-group="sdk" open>
+<summary>TypeScript</summary>
+<p><code>airflow-ts-pack</code> bundles the entry module and everything it imports into one file.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">npm install apache-airflow-ts-sdk
+</span></span><span class="line"><span class="cl">npm install --save-dev esbuild
+</span></span><span class="line"><span class="cl">npx airflow-ts-pack src/orders_daily.ts --outdir dist   <span class="c1"># writes dist/bundle.min.mjs</span>
+</span></span></code></pre></div></details>
+<details name="sdk-build" data-tab="java" data-sync-group="sdk">
+<summary>Java</summary>
+<p>The Gradle plugin builds a fat JAR by default and packs the source of each Dag class into it. Maven is supported too.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-kotlin" data-lang="kotlin"><span class="line"><span class="cl"><span class="n">plugins</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">id</span><span class="p">(</span><span class="s2">&#34;org.apache.airflow.sdk&#34;</span><span class="p">)</span> <span class="n">version</span> <span class="s2">&#34;&lt;version&gt;&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">dependencies</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">annotationProcessor</span><span class="p">(</span><span class="s2">&#34;org.apache.airflow:airflow-sdk-processor:&lt;version&gt;&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">implementation</span><span class="p">(</span><span class="s2">&#34;org.apache.airflow:airflow-sdk:&lt;version&gt;&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">implementation</span><span class="p">(</span><span class="s2">&#34;org.apache.airflow:airflow-sdk-jpl:&lt;version&gt;&#34;</span><span class="p">)</span>  <span class="c1">// sends System.Logger output to the task log
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">airflowBundle</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mainClass</span> <span class="p">=</span> <span class="s2">&#34;com.example.OrdersDaily&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./gradlew bundle   <span class="c1"># writes the JAR to build/bundle/</span>
+</span></span></code></pre></div></details>
+<details name="sdk-build" data-tab="go" data-sync-group="sdk">
+<summary>Go</summary>
+<p><code>airflow-go-pack</code> compiles the program and embeds each Dag&rsquo;s source file and a manifest in the executable. It cross-compiles for the platform your Airflow components run on.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># go.mod</span>
+</span></span><span class="line"><span class="cl">tool github.com/apache/airflow/go-sdk/cmd/airflow-go-pack
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">go tool airflow-go-pack --goos linux --goarch amd64 --output dist/orders_daily .
+</span></span></code></pre></div></details>
+<h3 id="deploying">Deploying</h3>
+<p>Put the artifact in a Dag bundle, such as the default dags-folder. The Dag processor and the workers need the language&rsquo;s runtime:</p>
+<table>
+  <thead>
+      <tr>
+          <th><strong>SDK</strong></th>
+          <th><strong>Artifact</strong></th>
+          <th><strong>Runtime on the Dag processor and workers</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>TypeScript</td>
+          <td><code>*.min.mjs</code> file</td>
+          <td>Node.js 22+</td>
+      </tr>
+      <tr>
+          <td>Java</td>
+          <td><code>.jar</code> whose manifest sets <code>Main-Class</code></td>
+          <td>Java runtime</td>
+      </tr>
+      <tr>
+          <td>Go</td>
+          <td>executable with no file extension</td>
+          <td>None</td>
+      </tr>
+  </tbody>
+</table>
+<p>Then register a coordinator for each language and route each Dag&rsquo;s queue to it, on the Dag processor and on the workers:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[sdk]</span>
+</span></span><span class="line"><span class="cl"><span class="na">coordinators</span> <span class="o">=</span> <span class="s">{
+</span></span></span><span class="line"><span class="cl"><span class="s">    &#34;ts&#34;: {&#34;classpath&#34;: &#34;airflow.sdk.coordinators.node.NodeCoordinator&#34;},
+</span></span></span><span class="line"><span class="cl"><span class="s">    &#34;java&#34;: {&#34;classpath&#34;: &#34;airflow.sdk.coordinators.java.JavaCoordinator&#34;},
+</span></span></span><span class="line"><span class="cl"><span class="s">    &#34;go&#34;: {&#34;classpath&#34;: &#34;airflow.sdk.coordinators.executable.ExecutableCoordinator&#34;}
+</span></span></span><span class="line"><span class="cl"><span class="s">  }</span>
+</span></span><span class="line"><span class="cl"><span class="na">queue_to_coordinator</span> <span class="o">=</span> <span class="s">{&#34;typescript&#34;: &#34;ts&#34;, &#34;java&#34;: &#34;java&#34;, &#34;golang&#34;: &#34;go&#34;}</span>
+</span></span></code></pre></div><p>The Dag processor runs each artifact to read its Dags, and each task runs from the same Dag bundle. From there, Airflow treats the Dags like Python ones: the scheduler plans their runs, they show up in the UI, and the Code view shows each Dag&rsquo;s own source file. With more than one coordinator for the same language, map each Dag bundle to one of them with <code>[sdk] dag_bundle_to_coordinator</code>.</p>
+<p>For a Python Dag with stub TaskHandler, put the artifact next to the Python Dag, or in the Dag bundle named by the coordinator&rsquo;s <code>task_handler_bundle_name</code>.</p>
+<h2 id="learn-more">Learn more</h2>
+<ul>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/language-sdks/typescript.html">TypeScript SDK guide</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/language-sdks/java.html">Java SDK guide</a></li>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/authoring-and-scheduling/language-sdks/go.html">Go SDK guide</a></li>
+</ul>
+<h2 id="yaml-dags">YAML Dags</h2>
+<p>For teams that want Dags as declarative configuration, with no code and no build step, Airflow 3.4 adds a native YAML importer on top of AIP-85. A <code>.yaml</code> file carrying a <code>$schema</code> marker is discovered, validated against a schema, and built into a real Dag with real operators.</p>
+<p>The format is intentionally small. A task either <strong><code>uses:</code></strong> a built-in operator or <strong><code>run:</code></strong> a code task, binds arguments with <strong><code>with:</code></strong>, and declares dependencies with <strong><code>needs:</code></strong>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Illustrative of the YAML grammar. Confirm exact keys against the released schema.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">$schema</span><span class="p">:</span><span class="w"> </span><span class="l">airflow/dag</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">dag_id</span><span class="p">:</span><span class="w"> </span><span class="l">daily_sales</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;@daily&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">tasks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l">extract</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l">airflow.providers.standard.operators.bash.BashOperator</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">with</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;python extract.py&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l">load</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l">airflow.providers.standard.operators.bash.BashOperator</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">with</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">bash_command</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;python load.py&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="l">extract]</span><span class="w">
+</span></span></span></code></pre></div><p>Templating is explicit: a field only renders when the author marks it. The value grammar uses small markers, <code>$t</code> to render a template, <code>$x</code> to read an XCom, <code>$f</code> to read a file, and <code>$const</code> for a literal constant, and a marker on a field the operator does not template is a build error rather than something silently ignored. That makes YAML Dags predictable: what you see is what runs.</p>
+<h1 id="-common-ai-goes-ga-llm-and-agent-tasks-with-a-human-in-the-loop">🤖 Common AI Goes GA: LLM and Agent Tasks, With a Human in the Loop</h1>
+<p>AI steps are becoming a normal part of data pipelines, and the <code>common.ai</code> provider reaches <strong>GA</strong> alongside this release — shipping <strong>1.1.0</strong> with Airflow 3.4.0 — stabilizing the API for running model calls and agents as ordinary Airflow tasks. Built on <a href="https://ai.pydantic.dev/">pydantic-ai</a>, it lets the API key come from a connection, a failed call retry like any task, the result land in XCom, and the whole thing run on a schedule.</p>
+<p>The simplest form is a decorator:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@task.llm</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">llm_conn_id</span><span class="o">=</span><span class="s2">&#34;pydanticai_default&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&#34;You write release announcements. Be concise.&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">summarize</span><span class="p">(</span><span class="n">notes</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="sa">f</span><span class="s2">&#34;Summarize these release notes in two sentences:</span><span class="se">\n</span><span class="si">{</span><span class="n">notes</span><span class="si">}</span><span class="s2">&#34;</span>
+</span></span></code></pre></div><p>For anything that needs tools, the <code>AgentOperator</code> runs a full agent that can use tools. Toolsets wire the model to real Airflow resources such as SQL, hooks, MCP servers, object storage, and sandboxes, so the agent can actually <em>do</em> work, not just talk:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">AgentOperator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">task_id</span><span class="o">=</span><span class="s2">&#34;analyst&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">prompt</span><span class="o">=</span><span class="s2">&#34;What are the top 5 customers by order count?&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">llm_conn_id</span><span class="o">=</span><span class="s2">&#34;pydanticai_default&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&#34;You are a SQL analyst. Use the tools to explore the schema and answer with data.&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">toolsets</span><span class="o">=</span><span class="p">[</span><span class="n">SQLToolset</span><span class="p">(</span><span class="n">db_conn_id</span><span class="o">=</span><span class="s2">&#34;postgres_default&#34;</span><span class="p">,</span> <span class="n">allowed_tables</span><span class="o">=</span><span class="p">[</span><span class="s2">&#34;customers&#34;</span><span class="p">,</span> <span class="s2">&#34;orders&#34;</span><span class="p">],</span> <span class="n">max_rows</span><span class="o">=</span><span class="mi">20</span><span class="p">)],</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><h2 id="key-capabilities-1">Key Capabilities</h2>
+<ul>
+<li><strong>A family of operators and decorators</strong>: <code>@task.llm</code> and <code>LLMOperator</code>, <code>@task.agent</code> and <code>AgentOperator</code>, plus <code>LLMBranchOperator</code> (let the model pick the next task), <code>LLMSQLQueryOperator</code> (natural language to SQL), and operators for batch and file analysis.</li>
+<li><strong>Agents that use tools</strong> via toolsets for SQL, hooks, MCP, object storage, and sandboxes, with LangChain and LlamaIndex integrations for pipelines in the RAG style.</li>
+<li><strong>Cost and usage limits</strong>: cap tokens, requests, or spend per run, with usage (including prompt cache hits) pushed to XCom. Prompt caching is on by default.</li>
+<li><strong>Human in the loop, natively</strong>: this is where the rest of the release pays off. An agent can pause partway through a run for a person to <strong>approve a tool call</strong> before it executes, or to <strong>approve the final answer</strong>, using the first-class <code>awaiting_input</code> state from Airflow 3.3. The task parks <strong>without a triggerer and without holding a worker slot</strong>, shows up on the <strong>Required Actions</strong> page, and resumes when a reviewer responds. Approve and it proceeds; reject and the agent is told and carries on.</li>
+</ul>
+<p>Several of the more advanced pieces, such as durable replay at the step level on retry, sandbox toolsets, and code mode, are shipping as <strong>experimental previews</strong> and may change before they stabilize.</p>
+<!-- TODO image (from Kaxil): Loops + common.ai example, and/or the Required Actions / human-in-the-loop approval page -->
+<h1 id="-ui-observability-and-operations">🖥️ UI, Observability, and Operations</h1>
+<ul>
+<li>
+<p><strong>Loop iteration views</strong>: new UI for Task Loops shows each iteration&rsquo;s run and a per-task loop history chart, so an iterative workflow reads clearly instead of as an opaque group.</p>
+</li>
+<li>
+<p><strong>Dag Folders</strong>: the Dags list gains a <strong>Folders</strong> panel that groups your Dags into a navigable tree mirroring each bundle&rsquo;s directory layout, so you can drill into <code>multilang/go</code> or <code>task_loops/experiments</code> and filter to a folder instead of scrolling one flat list. The tree nests to any depth.</p>
+<figure><img src="/blog/airflow-3.4.0/images/dag-folders.png"
+      alt="Airflow&#39;s Dags list page with a folder-like structure on the left hand side"><figcaption>
+        <p>The Folders panel groups Dags by their directory layout within each bundle</p>
+      </figcaption>
+  </figure>
+
+</li>
+<li>
+<p><strong>Language-aware Dags in the UI</strong>: Dags not written in Python surface with their source language, so a Go or TypeScript Dag is treated like any other Dag in the grid and graph.</p>
+</li>
+<li>
+<p>Plus the usual round of stability, performance, and quality-of-life fixes across the scheduler, API server, and UI.</p>
+</li>
+</ul>
+<h1 id="-upgrading-to-340">⬆️ Upgrading to 3.4.0</h1>
+<p>Before upgrading, review the <a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/release_notes.html">Significant Changes</a> in the release notes, and install against the <a href="https://github.com/apache/airflow/tree/constraints-3.4.0">constraints file</a> for a reproducible upgrade. The language SDKs, the Dag Importer framework, and several <code>common.ai</code> previews are explicitly marked experimental, so pin to the exact versions you test with.</p>
+<h1 id="-community-appreciation">🙏 Community Appreciation</h1>
+<p>Apache Airflow 3.4.0 is the work of hundreds of contributors who authored AIPs, wrote and reviewed code, improved docs, triaged issues, and tested release candidates. Task Loops, the Dag Importer and its language SDKs, and the <code>common.ai</code> provider each represent months of design discussion and collaboration across the community. Thank you to everyone who helped shape and ship this release.</p>
+<h1 id="-get-involved">🔗 Get Involved</h1>
+<ul>
+<li>📥 <strong>Upgrade</strong>: <code>pip install apache-airflow==3.4.0</code> (use the <a href="https://github.com/apache/airflow/tree/constraints-3.4.0">constraints files</a> for a reproducible install).</li>
+<li>📚 <strong>Read the docs</strong>: <a href="https://airflow.apache.org/docs/apache-airflow/3.4.0/">https://airflow.apache.org/docs/apache-airflow/3.4.0/</a></li>
+<li>💬 <strong>Join the conversation</strong> on the <a href="https://s.apache.org/airflow-slack">Airflow Slack</a> and the <a href="https://airflow.apache.org/community/">dev mailing list</a>.</li>
+<li>🐛 <strong>Report issues</strong> and open PRs on <a href="https://github.com/apache/airflow">GitHub</a>.</li>
+</ul>
+<p>Happy orchestrating, whether you are iterating, writing in another language, or putting an agent to work with a human in the loop!</p>
+<!--
+Notes for finalizing (delete before publishing):
+- Hero image (OPTIONAL): images/3.4.0.jpg — 3.3.0 shipped without it, so not a blocker; add later if desired.
+- Images still needed (replace the TODO-image comments above):
+  * Loops + common.ai example and/or Required Actions approval page (from Kaxil).
+  Lock all screenshots against the 3.4.0 GA build (the Loops UI may have changed since RC).
+- Added: per-SDK Code-view screenshots (multilang-run-{typescript,java,go}.png) from the Google Doc.
+- common.ai: confirmed shipping 1.1.0 (GA) with 3.4.0.
+- Java build snippet: replace the three `<version>` placeholders with the released SDK versions.
+- YAML: replace the illustrative snippet with a verbatim example once the schema is final.
+- Verify the Learn-more SDK guide links resolve under /3.4.0/ (pinned from /stable/).
+-->
+]]></content>
+  </entry>
+  
   <entry>
     <title>Apache Airflow CI Now Runs Trusted Builds on Self-Hosted Runners</title>
     <link href="https://airflow.apache.org/blog/self-hosted-ci-runners/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/self-hosted-ci-runners/</id>
     <published>2026-10-26T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow&rsquo;s CI shares GitHub-hosted runner capacity with the other Apache Software Foundation projects,
@@ -53,7 +529,7 @@ contribution to the open-source community, and thank you to AWS for the credits 
     <link href="https://airflow.apache.org/blog/common-ai-provider-1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/common-ai-provider-1.0/</id>
     <published>2026-10-19T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Common AI (<code>apache-airflow-providers-common-ai</code>), the Apache Airflow provider for LLMs and AI agents, is now 1.0. An agent in your pipeline can query your warehouse through read-only tools, run the code it writes in a sandbox rather than in the process that runs the task, and, on Airflow 3.3, wait for a person to approve a tool call before it acts.</p>
@@ -532,7 +1008,7 @@ contribution to the open-source community, and thank you to AWS for the credits 
     <link href="https://airflow.apache.org/blog/airflow-3.3.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.3.0/</id>
     <published>2026-07-06T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We&rsquo;re proud to announce the release of <strong>Apache Airflow 3.3.0</strong>! Where 3.2 brought precision to <em>data</em> with asset partitioning, 3.3 gives your <em>tasks</em> memory and multi-language support: a first-class state store for tasks and assets, a Language Task SDK for writing task logic in Java and Go, a major expansion of asset partitioning, and pluggable retry policies.</p>
@@ -764,7 +1240,7 @@ contribution to the open-source community, and thank you to AWS for the credits 
     <link href="https://airflow.apache.org/blog/agentic-workloads-airflow-3/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/agentic-workloads-airflow-3/</id>
     <published>2026-04-15T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>A question like &ldquo;How does AI tool usage vary across Airflow versions?&rdquo; has a natural SQL shape: one cross-tabulation, one result. A question like &ldquo;What does a typical Airflow deployment look like for practitioners who are actively using AI in their workflow?&rdquo; does not. It requires querying executor type, deployment method, cloud provider, and Airflow version independently, each filtered to the same respondent group, then synthesizing the results into a coherent picture. No single query returns the answer. The answer emerges from the relationship between all of them.</p>
@@ -1096,7 +1572,7 @@ Receives the labeled result sets from all four dimensions and produces a plain-l
     <link href="https://airflow.apache.org/blog/ai-survey-analysis-pipelines/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/ai-survey-analysis-pipelines/</id>
     <published>2026-04-15T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The <a href="https://airflow.apache.org/survey/">2025 Airflow Community Survey</a> collected responses
@@ -1460,7 +1936,7 @@ querying several dimensions in parallel and synthesizing the results with a seco
     <link href="https://airflow.apache.org/blog/common-ai-provider/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/common-ai-provider/</id>
     <published>2026-04-14T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>At <a href="https://airflowsummit.org/sessions/2025/airflow-as-an-ai-agents-toolkit-unlocking-1000-integrations-with-mcp/">Airflow Summit 2025</a>, we previewed what native AI integration in Apache Airflow could look like. Today we&rsquo;re shipping it.</p>
@@ -1768,7 +2244,7 @@ querying several dimensions in parallel and synthesizing the results with a seco
     <link href="https://airflow.apache.org/blog/airflow-3.2.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.2.0/</id>
     <published>2026-04-07T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We&rsquo;re proud to announce the release of <strong>Apache Airflow 3.2.0</strong>! Airflow 3.1 puts humans at the center of automated workflows. 3.2 brings that same precision to data: Asset partitioning for granular pipeline orchestration, multi-team deployments for enterprise scale, synchronous deadline alert callbacks, and continued progress toward full Task SDK separation.</p>
@@ -1981,7 +2457,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflow-registry/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-registry/</id>
     <published>2026-03-19T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Today we&rsquo;re launching the <strong><a href="https://airflow.apache.org/registry/">Apache Airflow Registry</a></strong> — a searchable catalog of every official Airflow provider and its modules, live at <a href="https://airflow.apache.org/registry/">airflow.apache.org/registry/</a>.</p>
@@ -2062,7 +2538,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflow-survey-2025/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2025/</id>
     <published>2026-01-22T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2025/images/Airflow-Survey-2025-Results.png" alt="Airflow Survey 2025" title="airflow_survey_2025"></p>
@@ -2083,7 +2559,7 @@ export AIRFLOW__CORE__MULTI_TEAM=True
     <link href="https://airflow.apache.org/blog/airflowctl-0.1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflowctl-0.1.0/</id>
     <published>2025-10-15T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We are thrilled to announce the first major release of <strong><code>airflowctl</code> 0.1.0</strong>, the new <strong>secure, API-driven command-line interface (CLI)</strong> for Apache Airflow — built under <a href="https://cwiki.apache.org/confluence/display/AIRFLOW/AIP-81&#43;Enhanced&#43;Security&#43;in&#43;CLI&#43;via&#43;Integration&#43;of&#43;API"><strong>AIP-81</strong></a>.</p>
@@ -2244,7 +2720,7 @@ The secure CLI foundation lays the groundwork for Airflow’s next generation. A
     <link href="https://airflow.apache.org/blog/airflow-3.1.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-3.1.0/</id>
     <published>2025-09-25T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We are thrilled to announce the release of <strong>Apache Airflow 3.1.0</strong>, an update that puts humans at the center of data
@@ -2428,7 +2904,7 @@ human-centered. We can&rsquo;t wait to see what you build with it!</p>
     <link href="https://airflow.apache.org/blog/airflow-three-point-oh-is-here/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-three-point-oh-is-here/</id>
     <published>2025-04-22T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>We announced our intent to focus on Apache Airflow 3.0® as the next big milestone for the Airflow project at the Airflow Summit in September 2024. We are delighted to announce that Airflow 3.0 is now released!</p>
@@ -2833,7 +3309,7 @@ Let’s build the future of data orchestration—together.</p>
     <link href="https://airflow.apache.org/blog/airflow-survey-2024/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2024/</id>
     <published>2025-02-27T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2024/images/Airflow-Survey-2024-Results-v2.png" alt="Airflow Survey 2024" title="airflow_survey_2024"></p>
@@ -2854,7 +3330,7 @@ Let’s build the future of data orchestration—together.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.10.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.10.0/</id>
     <published>2024-08-08T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I&rsquo;m happy to announce that Apache Airflow 2.10.0 is now available, bringing an array of noteworthy enhancements and new features that will greatly serve our community.</p>
@@ -2977,7 +3453,7 @@ executor = &#39;LocalExecutor,KubernetesExecutor,my.custom.module.ExecutorClass:
     <link href="https://airflow.apache.org/blog/airflow-2.9.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.9.0/</id>
     <published>2024-04-08T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m happy to announce that Apache Airflow 2.9.0 has been released! This time around we have new features for data-aware scheduling and a bunch of UI-related improvements.</p>
@@ -3098,7 +3574,7 @@ xcom_objectstorage_compression = gzip
     <link href="https://airflow.apache.org/blog/fab-oid-vulnerability/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/fab-oid-vulnerability/</id>
     <published>2024-02-26T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="vulnerability-in-long-deprecated-openid-authentication-method-in-flask-appbuilder">Vulnerability in long deprecated OpenID authentication method in Flask AppBuilder</h1>
@@ -3184,7 +3660,7 @@ where Flask AppBuilder is also used.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.8.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.8.0/</id>
     <published>2023-12-15T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am thrilled to announce the release of Apache Airflow 2.8.0, featuring a host of significant enhancements and new features that will greatly benefit our community.</p>
@@ -3264,7 +3740,7 @@ We care for your security, and &ldquo;secure by default&rdquo; is one of the thi
     <link href="https://airflow.apache.org/blog/airflow-survey-2023/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2023/</id>
     <published>2023-09-21T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><img src="/blog/airflow-survey-2023/images/Astronomer_Demographics.png" alt="Demographics" title="airflow_usage">
@@ -3282,7 +3758,7 @@ We care for your security, and &ldquo;secure by default&rdquo; is one of the thi
     <link href="https://airflow.apache.org/blog/airflow-2.7.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.7.0/</id>
     <published>2023-08-18T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m happy to announce that Apache Airflow 2.7.0 has been released! Some notable features have been added that we are excited for the community to use.</p>
@@ -3344,7 +3820,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/introducing_setup_teardown/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/introducing_setup_teardown/</id>
     <published>2023-08-18T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>In data pipelines, commonly we need to create infrastructure resources, like a cluster or GPU nodes in an existing cluster, before doing the actual “work” and delete them after the work is done. Airflow 2.7 adds “setup” and “teardown” tasks to better support this type of pipeline. This blog post aims to highlight the key features so you know what’s possible. For full documentation on how to use setup and teardown tasks, see the <a href="https://airflow.apache.org/docs/apache-airflow/2.7.0/howto/setup-and-teardown.html">setup and teardown docs</a>.</p>
@@ -3392,7 +3868,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/airflow-2.6.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.6.0/</id>
     <published>2023-04-30T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am excited to announce that Apache Airflow 2.6.0 has been released, bringing many minor features and improvements to the community.</p>
@@ -3451,7 +3927,7 @@ The following providers have been moved and require certain minimum providers ve
     <link href="https://airflow.apache.org/blog/airflow-2.5.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.5.0/</id>
     <published>2022-12-02T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.5 has just been released, barely two and a half months after 2.4!</p>
@@ -3486,7 +3962,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow-2.4.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.4.0/</id>
     <published>2022-09-19T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.4.0 contains over 650 &ldquo;user-facing&rdquo; commits (excluding commits to providers or chart) and over 870 total. That includes 46 new features, 39 improvements, 52 bug fixes, and several documentation changes.</p>
@@ -3590,7 +4066,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow-survey-2022/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2022/</id>
     <published>2022-06-17T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="airflow-user-survey-2022">Airflow User Survey 2022</h1>
@@ -5280,7 +5756,7 @@ c. Everything runs in one process, so you can put a breakpoint in your IDE, and 
     <link href="https://airflow.apache.org/blog/airflow_summit_2022/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow_summit_2022/</id>
     <published>2022-05-16T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The biggest Airflow Event of the Year returns May 23–27! Airflow Summit 2022 will bring together the global
@@ -5304,7 +5780,7 @@ communities to watch the event and network.</p>
     <link href="https://airflow.apache.org/blog/airflow-2.3.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.3.0/</id>
     <published>2022-04-30T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow 2.3.0 contains over 700 commits since 2.2.0 and includes 50 new features, 99 improvements, 85 bug fixes, and several doc changes.</p>
@@ -5405,7 +5881,7 @@ Sade&rsquo;s &ldquo;Smooth Operator&rdquo;. Enjoy!</li>
     <link href="https://airflow.apache.org/blog/airflow-2.2.0/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-2.2.0/</id>
     <published>2021-10-11T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I’m proud to announce that Apache Airflow 2.2.0 has been released. It contains over 600 commits since 2.1.4 and includes 30 new features, 84 improvements, 85 bug fixes, and many internal and doc changes.</p>
@@ -5460,7 +5936,7 @@ Sade&rsquo;s &ldquo;Smooth Operator&rdquo;. Enjoy!</li>
     <link href="https://airflow.apache.org/blog/airflow_summit_2021/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow_summit_2021/</id>
     <published>2021-03-21T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="airflow-summit-2021-is-here">Airflow Summit 2021 is here!</h2>
@@ -5481,7 +5957,7 @@ participate in its development.</p>
     <link href="https://airflow.apache.org/blog/airflow-survey-2020/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey-2020/</id>
     <published>2021-03-09T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="apache-airflow-survey-2020">Apache Airflow Survey 2020</h1>
@@ -6805,7 +7281,7 @@ to share their experience and tools.</p>
     <link href="https://airflow.apache.org/blog/airflow-two-point-oh-is-here/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-two-point-oh-is-here/</id>
     <published>2020-12-17T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I am proud to announce that Apache Airflow 2.0.0 has been released.</p>
@@ -6898,7 +7374,7 @@ Docs on <a href="http://airflow.apache.org/docs/apache-airflow-providers/package
     <link href="https://airflow.apache.org/blog/experience-with-airflow-as-an-outreachy-intern/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/experience-with-airflow-as-an-outreachy-intern/</id>
     <published>2020-08-30T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p><a href="https://www.outreachy.org/">Outreachy</a> is a program which organises three months paid internships with FOSS
@@ -6958,7 +7434,7 @@ community that has been made my summer, one to remember.</p>
     <link href="https://airflow.apache.org/blog/airflow-1.10.12/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.12/</id>
     <published>2020-08-25T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.12 contains 113 commits since 1.10.11 and includes 5 new features, 23 improvements, 23 bug fixes,
@@ -7078,7 +7554,7 @@ William Tran, Xiaodong Deng, YI FU, Zikun Zhu, dewaldabrie, pulsar314, retornam,
     <link href="https://airflow.apache.org/blog/apache-airflow-for-newcomers/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/apache-airflow-for-newcomers/</id>
     <published>2020-08-17T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Apache Airflow is a platform to programmatically author, schedule, and monitor workflows.
@@ -7190,7 +7666,7 @@ and <a href="https://github.com/turbaszek">Tomek</a> for all their support. I&rs
     <link href="https://airflow.apache.org/blog/implementing-stable-api-for-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/implementing-stable-api-for-apache-airflow/</id>
     <published>2020-07-19T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>My <a href="https://outreachy.org">Outreachy internship</a> is coming to its ends which is also the best time to look back and
@@ -7275,7 +7751,7 @@ wonderful reviews. I&rsquo;m grateful.</p>
     <link href="https://airflow.apache.org/blog/airflow-1.10.10/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.10/</id>
     <published>2020-04-09T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.10 contains 199 commits since 1.10.9 and includes 11 new features, 43 improvements, 44 bug fixes, and several doc changes.</p>
@@ -7417,7 +7893,7 @@ objc[1873]: +[__NSPlaceholderDate initialize] may have been in progress in anoth
     <link href="https://airflow.apache.org/blog/airflow-1.10.8-1.10.9/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-1.10.8-1.10.9/</id>
     <published>2020-02-23T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Airflow 1.10.8 contains 160 commits since 1.10.7 and includes 4 new features, 42 improvements, 36 bug fixes, and several doc changes.</p>
@@ -7471,7 +7947,7 @@ for 1.10.* series but would no longer be available from Airflow 2.0</p>
     <link href="https://airflow.apache.org/blog/experience-in-google-season-of-docs-2019-with-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/experience-in-google-season-of-docs-2019-with-apache-airflow/</id>
     <published>2019-12-20T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>I came across <a href="https://developers.google.com/season-of-docs">Google Season of Docs</a> (GSoD) almost by accident, thanks to my extensive HackerNews and Twitter addiction.  I was familiar with the Google Summer of Code but not with this program.
@@ -7568,7 +8044,7 @@ After a lot of trial and error, we arrived at a version with which both of us co
     <link href="https://airflow.apache.org/blog/airflow-survey/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/airflow-survey/</id>
     <published>2019-12-11T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h1 id="apache-airflow-survey-2019">Apache Airflow Survey 2019</h1>
@@ -8370,7 +8846,7 @@ declare DAGs.</p>
     <link href="https://airflow.apache.org/blog/announcing-new-website/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/announcing-new-website/</id>
     <published>2019-12-11T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>The brand <a href="https://airflow.apache.org/">new Airflow website</a> has arrived! Those who have been following the process know that the journey to update <a href="https://airflow.readthedocs.io/en/1.10.6/">the old Airflow website</a> started at the beginning of the year.
@@ -8401,7 +8877,7 @@ and that its improved accessibility increases adoption and use of Apache Airflow
     <link href="https://airflow.apache.org/blog/apache-con-europe-2019-thoughts-and-insights-by-airflow-committers/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/apache-con-europe-2019-thoughts-and-insights-by-airflow-committers/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<p>Is it possible to create an organization that delivers tens of projects used by millions, nearly no one is paid for doing their job, and still, it has been fruitfully carrying on for more than 20 years? Apache Software Foundation proves it is possible. For the last two decades, ASF has been crafting a model called the Apache Way—a way of organizing and leading tech open source projects. Due to this approach, which is strongly based on the “community over code” motto, we can enjoy such awesome projects like Apache Spark, Flink, Beam, or Airflow (and many more).</p>
@@ -8415,7 +8891,7 @@ and that its improved accessibility increases adoption and use of Apache Airflow
     <link href="https://airflow.apache.org/blog/documenting-using-local-development-environments/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/documenting-using-local-development-environments/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="documenting-local-development-environment-of-apache-airflow">Documenting local development environment of Apache Airflow</h2>
@@ -8453,7 +8929,7 @@ a team for 3 months.</p>
     <link href="https://airflow.apache.org/blog/its-a-breeze-to-develop-apache-airflow/" rel="alternate"/>
     <id>https://airflow.apache.org/blog/its-a-breeze-to-develop-apache-airflow/</id>
     <published>2019-11-22T00:00:00Z</published>
-    <updated>2026-11-06T19:01:23Z</updated>
+    <updated>2026-11-06T20:54:55Z</updated>
     <author>
       <name>Apache Airflow</name>
     </author><content type="html"><![CDATA[<h2 id="the-story-behind-the-airflow-breeze-tool">The story behind the Airflow Breeze tool</h2>
