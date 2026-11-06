@@ -8,6 +8,16 @@ menu:
 
 ---
 
+# November 06, 2026
+
+We've just released Apache Airflow 3.4.0 🎉
+
+📦 PyPI: https://pypi.org/project/apache-airflow/3.4.0/ \
+📚 Docs: https://airflow.apache.org/docs/apache-airflow/3.4.0/ \
+🛠 Release Notes: https://airflow.apache.org/docs/apache-airflow/3.4.0/release_notes.html \
+🐳 Docker Image: "docker pull apache/airflow:3.4.0" \
+🚏 Constraints: https://github.com/apache/airflow/tree/constraints-3.4.0
+
 # November 2, 2026
 
 Airflow Summit Online Reconnect 2026 is happening November 4 & 5, online and free. Join the Apache Airflow community from anywhere in the world.
