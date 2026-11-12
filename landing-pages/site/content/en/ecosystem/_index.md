@@ -135,6 +135,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow TTDU Provider](https://github.com/etacbae6768-a11y/ttdu-integrations/tree/main/airflow-provider-ttdu) - Provides a Hook and an Operator to run [TTDU](https://toolsthatdontupload.com) document flows (receipt photos to PDF, Korean payroll check, personal-data redaction, HWP/HWPX to PDF) from a DAG, either on an offline runner on the same machine (files stay local) or on the TTDU hub API. Results are written to a folder; names, sizes and SHA-256 go to XCom. Supports Airflow 3.x. Available on [PyPI](https://pypi.org/project/airflow-provider-ttdu/).
 
+[Airflow Lexio Rent Provider](https://github.com/lexio-rent-git/airflow-provider-lexio) - Provides a Hook, Operators and a Sensor for the [Lexio Rent](https://lexio.rent/logiciel-location-voiture) car rental management API: export fleet, rentals and customers to a warehouse, and react to rental events from the API's event feed, which has no webhooks.
+
 &nbsp;
 
 ## Async Providers
