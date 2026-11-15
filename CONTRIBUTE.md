@@ -84,9 +84,10 @@ The following applications must be installed to use the project:
 
 * git
 * docker (for the shell language linter)
-* Node 22
+* Node 24
 * Yarn
-* Hugo >= 0.146.0
+* Hugo >= 0.170.0 (the version used in CI)
+* Dart Sass, available on `PATH` as `dart-sass` (see below)
 
 It is also worth adding SSH keys for the `github.com` server to trusted ones. It is necessary to clone repositories. You can do this using following command:
 ```bash
@@ -112,11 +113,11 @@ git config --global user.email '<your.email@example.com>'
 git config --global user.name '<you name>'
 ```
 
-To install Node 22, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 22 with these commands:
+To install Node 24, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 24 with these commands:
 
 ```bash
-nvm install 22
-nvm use 22
+nvm install 24
+nvm use 24
 ```
 
 To install yarn, run the following command:
@@ -124,14 +125,24 @@ To install yarn, run the following command:
 npm install -g yarn
 ```
 
-To install hugo on Debian, run the following command:
-```bash
-sudo apt install hugo -y
-```
+Debian's packaged Hugo is usually too old; install the `hugo_<version>_linux-amd64.deb` package from the
+[Hugo releases page](https://github.com/gohugoio/hugo/releases) instead.
 
-To verify your Hugo version meets the requirement (>= 0.146.0), run:
+To verify your Hugo version meets the requirement (>= 0.170.0), run:
 ```bash
 hugo version
+```
+
+**Dart Sass**
+
+The Docsy theme compiles its styles with [Dart Sass](https://sass-lang.com/dart-sass/). Hugo must find it
+under the name `dart-sass`: the build runs through `yarn`, which puts the pure-JavaScript `sass` package
+from `node_modules/.bin` first on `PATH`, and Hugo cannot use that one. On Debian, download the
+`dart-sass-<version>-linux-x64.tar.gz` archive from the [Dart Sass releases page](https://github.com/sass/dart-sass/releases)
+and link its `sass` script as `dart-sass`; on macOS, after `brew install sass/sass/sass`, run:
+
+```bash
+ln -s "$(brew --prefix)/bin/sass" "$(brew --prefix)/bin/dart-sass"
 ```
 
 **macOS installation**
@@ -141,12 +152,12 @@ To install git on macOS, install the XCode Command Line Tools with the following
 xcode-select --install
 ```
 
-Then, install [Homebrew](https://brew.sh). Once that has completed, you can install Hugo:
+Then, install [Homebrew](https://brew.sh). Once that has completed, you can install Hugo and Dart Sass:
 ```bash
-brew install hugo
+brew install hugo sass/sass/sass
 ```
 
-To verify your Hugo version meets the requirement (>= 0.146.0), run:
+To verify your Hugo version meets the requirement (>= 0.170.0), run:
 ```bash
 hugo version
 ```

@@ -20,10 +20,10 @@
 {{ $scssMain := "scss/main.scss"}}
 {{ if hugo.IsServer }}
 {{/* Note the missing postCSS. This makes it snappier to develop in Chrome, but makes it look suboptimal in other browsers. */}}
-{{ $css := resources.Get $scssMain | toCSS (dict "enableSourceMap" true) }}
+{{ $css := resources.Get $scssMain | toCSS (dict "transpiler" "dartsass" "enableSourceMap" true "silenceDependencyDeprecations" true) }}
 <link href="{{ $css.RelPermalink }}" rel="stylesheet">
 {{ else }}
-{{ $css := resources.Get $scssMain | toCSS (dict "enableSourceMap" false) | postCSS | minify | fingerprint }}
+{{ $css := resources.Get $scssMain | toCSS (dict "transpiler" "dartsass" "enableSourceMap" false "silenceDependencyDeprecations" true) | postCSS | minify | fingerprint }}
 <link rel="preload" href="{{ $css.RelPermalink }}" as="style">
 <link href="{{ $css.RelPermalink }}" rel="stylesheet" integrity="{{ $css.Data.integrity }}">
 {{ end }}
@@ -32,10 +32,10 @@
 {{ $scssCustom := "scss/main-custom.scss"}}
 {{ $customScssResource := resources.Get $scssCustom }}
 {{ if hugo.IsServer }}
-{{ $cssCustom := $customScssResource | toCSS (dict "enableSourceMap" true) | postCSS }}
+{{ $cssCustom := $customScssResource | toCSS (dict "transpiler" "dartsass" "enableSourceMap" true "silenceDependencyDeprecations" true "silenceDeprecations" (slice "import" "global-builtin")) | postCSS }}
 <link href="{{ $cssCustom.RelPermalink }}" rel="stylesheet">
 {{ else }}
-{{ $cssCustom := $customScssResource | toCSS (dict "enableSourceMap" false) | postCSS | minify | fingerprint }}
+{{ $cssCustom := $customScssResource | toCSS (dict "transpiler" "dartsass" "enableSourceMap" false "silenceDependencyDeprecations" true "silenceDeprecations" (slice "import" "global-builtin")) | postCSS | minify | fingerprint }}
 <link rel="preload" href="{{ $cssCustom.RelPermalink }}" as="style">
 <link href="{{ $cssCustom.RelPermalink }}" rel="stylesheet" integrity="{{ $cssCustom.Data.integrity }}">
 {{ end }}
