@@ -162,11 +162,12 @@ To verify your Hugo version meets the requirement (>= 0.170.0), run:
 hugo version
 ```
 
-To install Node 22, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 22 with these commands:
+To install Node 24, first install the [Node version manager](https://github.com/nvm-sh/nvm), `nvm`. Then, install Node 24 with these commands:
 
 ```bash
-nvm install 22
-nvm use 22
+nvm install 24
+nvm use 24
+```
 
 To install Yarn, run the following command:
 ```bash
