@@ -38,7 +38,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         nodejs \
@@ -59,10 +59,20 @@ RUN curl -sL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 
 RUN HUGOHOME="$(mktemp -d)" \
     && export HUGOHOME \
-    && curl -sL https://github.com/gohugoio/hugo/releases/download/v0.135.0/hugo_extended_0.135.0_linux-amd64.tar.gz > "${HUGOHOME}/hugo.tar.gz" \
+    && curl -fsSL https://github.com/gohugoio/hugo/releases/download/v0.170.0/hugo_0.170.0_linux-amd64.tar.gz > "${HUGOHOME}/hugo.tar.gz" \
+    && echo "0930754ec22ad2dd1a252f8c31a5e57faccc9d15f1c3d381ddafcb96eeb8aef0  ${HUGOHOME}/hugo.tar.gz" | sha256sum -c - \
     && tar -xzvf "${HUGOHOME}/hugo.tar.gz" hugo \
     && mv hugo /usr/local/bin/hugo \
     && chmod +x /usr/local/bin/hugo \
     && rm -r "${HUGOHOME}"
+
+# Docsy compiles its SCSS with Dart Sass. Expose it as `dart-sass`, which Hugo
+# looks up before `sass`, so the pure-JS `sass` in node_modules/.bin can't shadow it.
+RUN curl -fsSL -o /tmp/dart-sass.tar.gz https://github.com/sass/dart-sass/releases/download/1.108.2/dart-sass-1.108.2-linux-x64.tar.gz \
+    && echo "32d2eb5b83cbc180fce9657ff3c57401a9006c59eccfe0bfdde0aa755a66d42f  /tmp/dart-sass.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/dart-sass.tar.gz -C /opt \
+    && rm /tmp/dart-sass.tar.gz \
+    && printf '#!/bin/sh\nexec /opt/dart-sass/sass "$@"\n' > /usr/local/bin/dart-sass \
+    && chmod +x /usr/local/bin/dart-sass
 
 WORKDIR /opt/site/

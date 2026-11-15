@@ -77,17 +77,40 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: '3.12'
-      - name: ❤️  Install Node 22 LTS
+      - name: ❤️  Install Node 24 LTS
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
-          node-version: 22
+          node-version: 24
       - name: 📚 Install Hugo
+        # Hugo 0.170 dropped the separate "extended" edition; the standard
+        # archive is the full build. Checksum from hugo_0.170.0_checksums.txt.
         run: |
-          HUGO_VERSION="0.146.0"
-          curl -fsSL "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" | sudo tar -xz -C /usr/local/bin hugo
+          HUGO_VERSION="0.170.0"
+          HUGO_SHA256="0930754ec22ad2dd1a252f8c31a5e57faccc9d15f1c3d381ddafcb96eeb8aef0"
+          HUGO_TGZ="hugo_${HUGO_VERSION}_linux-amd64.tar.gz"
+          curl -fsSL -o "/tmp/${HUGO_TGZ}" "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_TGZ}"
+          echo "${HUGO_SHA256}  /tmp/${HUGO_TGZ}" | shasum -a 256 -c -
+          sudo tar -xzf "/tmp/${HUGO_TGZ}" -C /usr/local/bin hugo
+          hugo version
+      - name: 🎨 Install Dart Sass
+        # Docsy compiles its SCSS with Dart Sass (Hugo's LibSass is deprecated).
+        # Expose it as `dart-sass`: Hugo looks that name up before `sass`, so the
+        # pure-JS `sass` that `yarn run` puts first on PATH (node_modules/.bin)
+        # never shadows it. Checksum is the GitHub release asset digest (Dart
+        # Sass publishes no checksums file).
+        run: |
+          DART_SASS_VERSION="1.108.2"
+          DART_SASS_SHA256="32d2eb5b83cbc180fce9657ff3c57401a9006c59eccfe0bfdde0aa755a66d42f"
+          DART_SASS_TGZ="dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
+          curl -fsSL -o "/tmp/${DART_SASS_TGZ}" "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/${DART_SASS_TGZ}"
+          echo "${DART_SASS_SHA256}  /tmp/${DART_SASS_TGZ}" | shasum -a 256 -c -
+          sudo tar -xzf "/tmp/${DART_SASS_TGZ}" -C /opt
+          printf '#!/bin/sh\nexec /opt/dart-sass/sass "$@"\n' | sudo tee /usr/local/bin/dart-sass > /dev/null
+          sudo chmod +x /usr/local/bin/dart-sass
+          dart-sass --version
       - name: 📦 Install Docsy theme dependencies (Bootstrap & FontAwesome)
         working-directory: /mnt/airflow-site/landing-pages/site/themes/docsy
-        run: npm install
+        run: npm run install:theme-deps
       - name: 🟢 Install node dependencies
         run: |
           /mnt/airflow-site/site.sh install-node-deps

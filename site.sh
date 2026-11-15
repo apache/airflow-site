@@ -59,9 +59,9 @@ function ensure_node_module_exists {
 
 function ensure_docsy_theme_deps_exists {
     log "Checking if Docsy theme dependencies exist"
-    if [[ ! -d ${MY_DIR}/landing-pages/site/themes/docsy/node_modules/ ]] ; then
+    if [[ ! -d ${MY_DIR}/landing-pages/site/themes/docsy/theme/node_modules/ ]] ; then
         log "Missing Docsy theme dependencies (Bootstrap & FontAwesome). Start installation."
-        run_command "${MY_DIR}/landing-pages/site/themes/docsy/" npm install
+        run_command "${MY_DIR}/landing-pages/site/themes/docsy/" npm run install:theme-deps
         log "Docsy theme dependencies installed."
     fi
 }
@@ -71,7 +71,7 @@ function ensure_that_website_is_build {
     log "Check if ${index} exists and is newer than its SCSS/JS sources"
     if [[ ! -f ${index} ]] || [[ -n $(find "${MY_DIR}/landing-pages/src" \
             "${MY_DIR}/landing-pages/site/assets" \
-            "${MY_DIR}/landing-pages/site/themes/docsy/assets" \
+            "${MY_DIR}/landing-pages/site/themes/docsy/theme/assets" \
             -type f -newer "${index}" -print -quit) ]] ; then
         log "The website is not built or out of date. Start building."
         run_command "${MY_DIR}/landing-pages/" yarn run build
@@ -235,7 +235,7 @@ shift
 if [[ "${CMD}" == "install-node-deps" ]] ; then
     npm install --global yarn
     run_command "${MY_DIR}/landing-pages/" yarn install
-    run_command "${MY_DIR}/landing-pages/site/themes/docsy/" npm install
+    run_command "${MY_DIR}/landing-pages/site/themes/docsy/" npm run install:theme-deps
 elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
     ensure_docsy_theme_deps_exists
