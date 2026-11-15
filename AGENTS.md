@@ -20,7 +20,7 @@
 ## Repository Structure
 
 - `landing-pages/` — Hugo-based landing pages (HTML, SCSS, JS)
-  - `site/themes/docsy/` — Docsy theme (npm dependencies)
+  - `site/themes/docsy/` — Docsy theme submodule; the theme itself is in `theme/` (deps: `npm run install:theme-deps`)
 - `sphinx_airflow_theme/` — Sphinx theme package for Airflow documentation
   - `demo/` — theme demo site
 - `.github/workflows/` — CI workflows (build, dependabot)

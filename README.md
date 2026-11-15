@@ -52,9 +52,13 @@ git submodule update --init --recursive
 ---
 
 In order to build the site locally,
-1. Install [Node.js and NPM](https://nodejs.org/en/download)
-2. Make sure you have [HUGO](https://gohugo.io/installation/) installed. You're recommended to install the version that is being used in the [CI build](https://github.com/apache/airflow-site/blob/main/.github/workflows/build.yml#L53) job.
-3. Run script `<ROOT DIRECTORY>/site.sh build-site`.
+1. Install [Node.js](https://nodejs.org/en/download) 24 and NPM.
+2. Make sure you have [HUGO](https://gohugo.io/installation/) >= 0.170.0 installed. You're recommended to install the version that is being used in the [CI build](.github/workflows/build.yml) job (see the "Install Hugo" step).
+3. Install [Dart Sass](https://sass-lang.com/dart-sass/) and make it available on `PATH` as `dart-sass`
+   (Hugo checks that name before `sass`, so the JavaScript `sass` from `node_modules/.bin` can't shadow it).
+   On macOS: `brew install sass/sass/sass && ln -s "$(brew --prefix)/bin/sass" "$(brew --prefix)/bin/dart-sass"`.
+   See [CONTRIBUTE.md](CONTRIBUTE.md) for other platforms.
+4. Run script `<ROOT DIRECTORY>/site.sh build-site`.
 
 In order to preview landing pages, run script `<ROOT DIRECTORY>/site.sh preview-landing-pages`.
 
