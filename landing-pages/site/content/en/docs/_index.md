@@ -87,6 +87,8 @@ Providers packages include integrations with third party projects. They are vers
 
   <li><a href="/docs/apache-airflow-providers-apache-hive/stable/index.html"><code>Apache Hive</code></a></li>
 
+  <li><a href="/docs/apache-airflow-providers-apache-huggingface/stable/index.html"><code>Apache Hugging Face</code></a></li>
+
   <li><a href="/docs/apache-airflow-providers-apache-iceberg/stable/index.html"><code>Apache Iceberg</code></a></li>
 
   <li><a href="/docs/apache-airflow-providers-apache-impala/stable/index.html"><code>Apache Impala</code></a></li>
