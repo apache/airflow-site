@@ -57,6 +57,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Ksolves Apache Airflow Support](https://www.ksolves.com/support-services/apache-airflow) - Airflow Service Provider - Support, Consultation, Migration
 
+[DharmOps Apache Airflow Consulting](https://www.dharmops.com/services/data-platform-engineering/apache-airflow-consulting) - Airflow consulting and support - Airflow 2 to 3 upgrades, MWAA and Cloud Composer migration, DAG and scheduler performance, ongoing support
+
 &nbsp;
 
 ## Other deployments methods
