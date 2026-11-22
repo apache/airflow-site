@@ -1,0 +1,71 @@
+{{/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+*/}}
+{{- /*
+  Generates the /security/ pages from the published CVE records in
+  data/security/cves/<CVE-ID>.json (one CVE JSON 5.x record per file, as
+  cve.org serves it):
+    - /security/cve-yyyy-nnnnn/  one page per CVE;
+    - /security/<product>/       one listing per product that has CVEs
+                                 (products are defined in data/security/products.yaml).
+  Adding a record file is all it takes to publish a new CVE page.
+*/ -}}
+{{- $present := dict -}}
+{{- range $file, $rec := hugo.Data.security.cves -}}
+  {{- $r := partial "security/record.html" $rec -}}
+  {{- if ne $r.id $file -}}
+    {{- errorf "data/security/cves/%s.json holds the record of %s" $file $r.id -}}
+  {{- end -}}
+  {{- if ne $r.state "PUBLISHED" -}}
+    {{- warnf "data/security/cves/%s.json is in state %s and is not published" $file $r.state -}}
+  {{- else -}}
+    {{- $.AddPage (dict
+      "kind" "page"
+      "path" (lower $r.id)
+      "title" (printf "%s: %s" $r.id $r.title)
+      "dates" (dict "date" $r.published "publishDate" $r.published "lastmod" $r.updated)
+      "params" (dict
+        "cve_id" $r.id
+        "short_title" $r.title
+        "severity" $r.severity
+        "security_products" $r.categories
+        "security_labels" $r.labels
+        "security_packages" $r.packages
+      )
+      "description" (printf "%s: %s" $r.id $r.title)
+      "content" (dict "mediaType" "text/markdown" "value" "")
+    ) -}}
+    {{- range $r.categories -}}{{- $present = merge $present (dict . true) -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $i, $p := hugo.Data.security.products.products -}}
+  {{- if index $present $p.key -}}
+    {{- $.AddPage (dict
+      "kind" "page"
+      "path" $p.key
+      "title" (printf "%s security advisories" $p.title)
+      "params" (dict
+        "product_key" $p.key
+        "product_title" $p.title
+        "product_weight" (add $i 1)
+      )
+      "description" (printf "Published CVEs affecting %s, newest first." $p.title)
+      "content" (dict "mediaType" "text/markdown" "value" "")
+    ) -}}
+  {{- end -}}
+{{- end -}}
