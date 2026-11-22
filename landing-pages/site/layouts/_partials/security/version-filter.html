@@ -1,0 +1,49 @@
+{{/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+*/}}
+{{- /*
+  Version filter for a product listing. Context: dict "key" <listing key>
+  "cves" <CVE pages>. Rendered hidden: src/js/securityVersionFilter.js reveals
+  it and filters the rows by their data-affected ranges, so without JavaScript
+  the full tables still show.
+*/ -}}
+{{- $providers := eq .key "providers" -}}
+<form class="security-version-filter" role="search" aria-label="Filter by version" hidden>
+    {{- if $providers }}
+    {{- $packages := slice -}}
+    {{- range .cves }}{{ $packages = $packages | append .Params.security_packages }}{{ end }}
+    <div class="security-version-filter__field">
+        <label for="security-filter-package">Provider package</label>
+        <select id="security-filter-package" name="package" class="form-select form-select-sm">
+            <option value="">All packages</option>
+            {{- range sort (uniq $packages) }}
+            <option value="{{ . }}">{{ . }}</option>
+            {{- end }}
+        </select>
+    </div>
+    {{- end }}
+    <div class="security-version-filter__field">
+        <label for="security-filter-version">{{ if $providers }}Provider version{{ else }}Version you run{{ end }}</label>
+        <input id="security-filter-version" name="version" type="text" class="form-control form-control-sm"
+               inputmode="decimal" autocomplete="off" spellcheck="false"
+               placeholder="{{ if $providers }}e.g. 8.10.0{{ else }}e.g. 2.10.5{{ end }}"
+               aria-describedby="security-filter-status">
+    </div>
+    <button type="reset" class="btn btn-sm btn-outline-secondary">Clear</button>
+    <p id="security-filter-status" class="security-version-filter__status" aria-live="polite"></p>
+</form>

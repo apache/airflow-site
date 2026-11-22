@@ -22,20 +22,25 @@
 <h1>{{ .Params.product_title }}</h1>
 <p>{{ len $cves }} published {{ cond (eq (len $cves) 1) "CVE" "CVEs" }}, newest first.
    Report new vulnerabilities as described on the <a href="{{ .Parent.RelPermalink }}">security page</a>.</p>
+{{ partial "security/version-filter.html" (dict "key" $key "cves" $cves) }}
 {{- if eq $key "providers" }}
     {{- $packages := slice -}}
     {{- range $cves }}{{ $packages = $packages | append .Params.security_packages }}{{ end -}}
     {{- $packages = sort (uniq $packages) }}
+    <div class="security-packages-index">
     <p>Provider packages:</p>
     <ul class="security-packages">
         {{- range $packages }}
         <li><a href="#{{ . | anchorize }}">{{ . }}</a> ({{ len (where $cves "Params.security_packages" "intersect" (slice .)) }})</li>
         {{- end }}
     </ul>
+    </div>
     {{- range $packages }}
-    <h2 id="{{ . | anchorize }}">{{ . }}</h2>
-    {{ partial "security/cve-table.html" (dict "pages" (where $cves "Params.security_packages" "intersect" (slice .)) "show_product" false) }}
+    <section class="security-package" data-package="{{ . }}">
+        <h2 id="{{ . | anchorize }}">{{ . }}</h2>
+        {{ partial "security/cve-table.html" (dict "pages" (where $cves "Params.security_packages" "intersect" (slice .)) "show_product" false "category" $key "package" .) }}
+    </section>
     {{- end }}
 {{- else }}
-    {{ partial "security/cve-table.html" (dict "pages" $cves "show_product" (eq $key "other")) }}
+    {{ partial "security/cve-table.html" (dict "pages" $cves "show_product" (eq $key "other") "category" $key) }}
 {{- end }}

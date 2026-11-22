@@ -71,7 +71,33 @@
   {{- $label := $catTitle -}}
   {{- if not $cat -}}{{- $cat = "other" -}}{{- $label = $name -}}{{- end -}}
   {{- if eq $cat "providers" -}}{{- $label = $pkg -}}{{- $packages = $packages | append $pkg -}}{{- end -}}
-  {{- $entries = $entries | append (dict "product" $name "package" $pkg "category" $cat "label" $label "versions" (.versions | default slice) "default_status" (.defaultStatus | default "")) -}}
+  {{- /*
+    Ranges for the version filter, as {from, lt, le} (dotted versions or ""):
+    `version` is the lower bound ("0" = none), with `lessThan` or
+    `lessThanOrEqual` as the upper one, or on its own a single version.
+  */ -}}
+  {{- $ranges := slice -}}
+  {{- $isVersion := `^\d+(?:\.\d+)*$` -}}
+  {{- range (.versions | default slice) -}}
+    {{- if and .status (ne .status "affected") -}}{{- continue -}}{{- end -}}
+    {{- $v := trim (string (.version | default "")) " " -}}
+    {{- $lt := trim (string (.lessThan | default "")) " " -}}
+    {{- $le := trim (string (.lessThanOrEqual | default "")) " " -}}
+    {{- $from := cond (findRE $isVersion $v) $v "" -}}
+    {{- $upper := or $lt $le -}}
+    {{- if and $upper (not (findRE $isVersion $upper)) -}}
+      {{- warnf "%s: upper bound %q is not a version number, the version filter ignores it" $meta.cveId $upper -}}
+    {{- else if $lt -}}
+      {{- $ranges = $ranges | append (dict "from" $from "lt" $lt "le" "") -}}
+    {{- else if $le -}}
+      {{- $ranges = $ranges | append (dict "from" $from "lt" "" "le" $le) -}}
+    {{- else if $from -}}
+      {{- $ranges = $ranges | append (dict "from" $from "lt" "" "le" $from) -}}
+    {{- else -}}
+      {{- warnf "%s: affected version %q is not a version number, the version filter ignores it" $meta.cveId $v -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $entries = $entries | append (dict "product" $name "package" $pkg "category" $cat "label" $label "versions" (.versions | default slice) "ranges" $ranges "default_status" (.defaultStatus | default "")) -}}
   {{- $categories = $categories | append $cat -}}
   {{- $labels = $labels | append $label -}}
 {{- end -}}

@@ -30,6 +30,10 @@ import "./js/detailsTabs";
 import "./js/versionSelector";
 import "./js/scrollToTop";
 
+if (document.querySelector(".security-version-filter")) {
+  import(/* webpackChunkName: "security" */ "./js/securityVersionFilter");
+}
+
 if (document.querySelector("#search")) {
   import(/* webpackChunkName: "search" */ "./js/searchBlogPosts");
 }
