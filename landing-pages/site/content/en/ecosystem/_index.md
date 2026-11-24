@@ -139,6 +139,8 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Airflow Lexio Rent Provider](https://github.com/lexio-rent-git/airflow-provider-lexio) - Provides a Hook, Operators and a Sensor for the [Lexio Rent](https://lexio.rent/logiciel-location-voiture) car rental management API: export fleet, rentals and customers to a warehouse, and react to rental events from the API's event feed, which has no webhooks.
 
+[Dagwick](https://github.com/dagwick/dagwick) - A read-only Airflow 3 UI plugin and CLI that grades each DAG from A to F against best-practice checks (retries, timeouts, failure alerts, secrets in DAG files and more) and shows how to fix each one. Teams can reweight, turn off or acknowledge any check. Available on [PyPI](https://pypi.org/project/dagwick/).
+
 &nbsp;
 
 ## Async Providers
