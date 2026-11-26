@@ -53,6 +53,19 @@ FAMILIES = {
     "Rubik": "Rubik:wght@500",
 }
 
+# Single-file names used before the fonts were split per subset. Browsers may keep
+# serving cached copies of the old CSS, which still point at these names, so keep
+# them as copies of the Latin subset (enough for every Latin-script page) until
+# those caches have expired. Safe to drop after the 2027-03 site release.
+LEGACY_ALIASES = {
+    "OpenSans-italic.woff2": "OpenSans-italic-latin.woff2",
+    "OpenSans-normal.woff2": "OpenSans-normal-latin.woff2",
+    "Roboto-italic.woff2": "Roboto-italic-latin.woff2",
+    "Roboto-normal.woff2": "Roboto-normal-latin.woff2",
+    "RobotoMono-normal.woff2": "RobotoMono-normal-latin.woff2",
+    "Rubik-normal.woff2": "Rubik-normal-latin.woff2",
+}
+
 # Google only returns woff2 (and unicode-range subsets) to modern browsers.
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
@@ -105,6 +118,9 @@ def main() -> None:
     written: set[str] = set()
     for name, query in FAMILIES.items():
         written |= refresh_family(name, query)
+    for legacy, current in LEGACY_ALIASES.items():
+        (FONTS_DIR / legacy).write_bytes((FONTS_DIR / current).read_bytes())
+        written.add(legacy)
     for stale in sorted(FONTS_DIR.glob("*.woff2")):
         if stale.name not in written:
             print(f"Removing unused {stale.name}")
