@@ -66,14 +66,35 @@ function ensure_docsy_theme_deps_exists {
     fi
 }
 
-function ensure_that_website_is_build {
+# Succeeds when landing-pages/dist is missing or older than any of its sources:
+# content, layouts, config, static files and SCSS/JS (node_modules excluded).
+function landing_pages_need_build {
     local index=${MY_DIR}/landing-pages/dist/index.html
-    log "Check if ${index} exists and is newer than its SCSS/JS sources"
-    if [[ ! -f ${index} ]] || [[ -n $(find "${MY_DIR}/landing-pages/src" \
-            "${MY_DIR}/landing-pages/site/assets" \
-            "${MY_DIR}/landing-pages/site/themes/docsy/theme/assets" \
-            -type f -newer "${index}" -print -quit) ]] ; then
+    log "Check if ${index} exists and is newer than its sources"
+    [[ ! -f ${index} ]] && return 0
+    [[ -n $(find "${MY_DIR}/landing-pages/src" "${MY_DIR}/landing-pages/site" \
+            -name node_modules -prune -o \
+            -type f -newer "${index}" -print -quit) ]]
+}
+
+# Hugo compiles the Docsy SCSS with Dart Sass through `sass --embedded`. `yarn run`
+# puts the pure-JS `sass` from node_modules/.bin first on PATH, which cannot do
+# that and makes Hugo fail with a cryptic "unexpected EOF"; Hugo looks up
+# `dart-sass` first, so require that name (see README.md).
+function ensure_dart_sass_exists {
+    if ! command -v dart-sass &>/dev/null; then
+        echo "Missing 'dart-sass' on PATH: Hugo needs the native Dart Sass to build the site."
+        echo "Install Dart Sass and expose it as 'dart-sass', e.g. on macOS:"
+        # shellcheck disable=SC2016  # print the command literally, for the user to copy
+        echo '  brew install sass/sass/sass && ln -s "$(brew --prefix)/bin/sass" "$(brew --prefix)/bin/dart-sass"'
+        exit 1
+    fi
+}
+
+function ensure_that_website_is_build {
+    if landing_pages_need_build; then
         log "The website is not built or out of date. Start building."
+        ensure_dart_sass_exists
         run_command "${MY_DIR}/landing-pages/" yarn run build
         log "The website built."
     fi
@@ -146,6 +167,7 @@ function prepare_packages_metadata {
 
 function build_landing_pages {
     log "Building landing pages"
+    ensure_dart_sass_exists
     run_command "${MY_DIR}/landing-pages/" yarn run index
     prepare_packages_metadata
     run_command "${MY_DIR}/landing-pages/" yarn run build
@@ -170,8 +192,10 @@ function assert_file_exists {
 function build_site {
     log "Building full site"
 
-    if [[ ! -f "${MY_DIR}/landing-pages/dist/index.html" ]]; then
+    if landing_pages_need_build; then
         build_landing_pages
+    else
+        log "Reusing up-to-date landing pages from landing-pages/dist"
     fi
 
     pushd "${MY_DIR}" &>/dev/null || exit 1
@@ -239,6 +263,7 @@ if [[ "${CMD}" == "install-node-deps" ]] ; then
 elif [[ "${CMD}" == "preview-landing-pages" ]]; then
     ensure_node_module_exists
     ensure_docsy_theme_deps_exists
+    ensure_dart_sass_exists
     run_command "${MY_DIR}/landing-pages/" yarn run index
     prepare_packages_metadata
     run_command "./landing-pages/" yarn run preview
