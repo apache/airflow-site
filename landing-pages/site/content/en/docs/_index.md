@@ -4,6 +4,7 @@ linkTitle: "Documentation"
 weight: 20
 menu:
     main:
+        name: "Docs"
         weight: 10
 ---
 

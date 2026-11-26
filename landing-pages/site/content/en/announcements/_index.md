@@ -4,6 +4,7 @@ date: 2020-08-08T05:30:20+05:30
 draft: false
 menu:
   main:
+    name: "News"
     weight: 25
 
 ---
