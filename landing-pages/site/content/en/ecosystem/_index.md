@@ -31,8 +31,6 @@ If you would you like to be included on this page, please reach out to the [Apac
 
 [Apache Airflow: Hands-On Course](https://prepare.sh/course/apache-airflow) by Prepare.sh - Build real DAGs, operators, scheduling and task data passing in hands-on tutorials running on a real Airflow environment (free lessons; hands-on tutorials on the paid plan)
 
-[Apache Airflow Tutorial: A Daily Sales Report Dag](https://ynteractive.com/content/apache-airflow-daily-sales-report-dag-tutorial) by Stepthrough - Free 8-step beginner walkthrough: start Airflow with airflow standalone, write a TaskFlow Dag with a daily schedule, trigger it and read the task logs in Grid View
-
 [Data Pipelines with Apache Airflow](https://www.manning.com/books/data-pipelines-with-apache-airflow) and [Second Edition](https://www.manning.com/books/data-pipelines-with-apache-airflow-second-edition) Apache Airflow Books on Amazon
 
 &nbsp;
