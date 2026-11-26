@@ -1,0 +1,46 @@
+{{/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+*/}}
+{{- /* A product listing page. Providers are grouped by provider package. */ -}}
+{{- $key := .Params.product_key -}}
+{{- $cves := where (where .Parent.RegularPages "Params.cve_id" "!=" nil) "Params.security_products" "intersect" (slice $key) -}}
+<h1>{{ .Params.product_title }}</h1>
+<p>{{ len $cves }} published {{ cond (eq (len $cves) 1) "CVE" "CVEs" }}, newest first.
+   Report new vulnerabilities as described on the <a href="{{ .Parent.RelPermalink }}">security page</a>.</p>
+{{ partial "security/version-filter.html" (dict "key" $key "cves" $cves) }}
+{{- if eq $key "providers" }}
+    {{- $packages := slice -}}
+    {{- range $cves }}{{ $packages = $packages | append .Params.security_packages }}{{ end -}}
+    {{- $packages = sort (uniq $packages) }}
+    <div class="security-packages-index">
+    <p>Provider packages:</p>
+    <ul class="security-packages">
+        {{- range $packages }}
+        <li><a href="#{{ . | anchorize }}">{{ . }}</a> ({{ len (where $cves "Params.security_packages" "intersect" (slice .)) }})</li>
+        {{- end }}
+    </ul>
+    </div>
+    {{- range $packages }}
+    <section class="security-package" data-package="{{ . }}">
+        <h2 id="{{ . | anchorize }}">{{ . }}</h2>
+        {{ partial "security/cve-table.html" (dict "pages" (where $cves "Params.security_packages" "intersect" (slice .)) "show_product" false "category" $key "package" .) }}
+    </section>
+    {{- end }}
+{{- else }}
+    {{ partial "security/cve-table.html" (dict "pages" $cves "show_product" (eq $key "other") "category" $key) }}
+{{- end }}
